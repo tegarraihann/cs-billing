@@ -9,7 +9,7 @@
                     </div>
                     <div class="hidden md:block ml-4">
                         <div class="text-xl font-bold text-blue-900">
-                            LogisticPro
+                            Logistic
                         </div>
                     </div>
                 </div>
