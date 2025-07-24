@@ -4,7 +4,7 @@
   ],
   "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
   "resources/js/Components/AboutSection.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Components/ApplicationLogo.vue": [
@@ -14,7 +14,7 @@
     "/build/assets/Login-DRi5UVTK.js"
   ],
   "resources/js/Components/ContactSection.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Components/DangerButton.vue": [
@@ -27,15 +27,15 @@
     "/build/assets/AuthenticatedLayout-8TbwyeTu.js"
   ],
   "resources/js/Components/FooterSection.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Components/HeroSection.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Components/HeroSection.vue?vue&type=style&index=0&scoped=bd4ef50e&lang.css": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Components/InputError.vue": [
@@ -60,14 +60,14 @@
     "/build/assets/DeleteUserForm-JErP_Yl2.js"
   ],
   "resources/js/Components/ServicesSection.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Components/TextInput.vue": [
     "/build/assets/TextInput-SoXY5mdM.js"
   ],
   "resources/js/Components/homePage/Navbar.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Layouts/AuthenticatedLayout.vue": [
@@ -98,7 +98,7 @@
     "/build/assets/Dashboard-Qlznxtup.js"
   ],
   "resources/js/Pages/HomePage.vue": [
-    "/build/assets/HomePage-N_1_xkIE.js",
+    "/build/assets/HomePage-IpWBtF3i.js",
     "/build/assets/HomePage-BO3n3cyj.css"
   ],
   "resources/js/Pages/Profile/Edit.vue": [

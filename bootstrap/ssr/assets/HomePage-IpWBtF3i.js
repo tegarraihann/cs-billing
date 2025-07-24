@@ -33,7 +33,7 @@ const _sfc_main$6 = {
       window.removeEventListener("scroll", handleScroll);
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<nav${ssrRenderAttrs(mergeProps({ class: "fixed w-full bg-white/95 backdrop-blur-sm shadow-lg z-50 transition-all duration-300" }, _attrs))}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between items-center h-16"><div class="flex items-center"><div class="flex-shrink-0"><img class="h-10 w-auto" src="/images/logo.png" alt="Logo"></div><div class="hidden md:block ml-4"><div class="text-xl font-bold text-blue-900"> LogisticPro </div></div></div><div class="hidden md:block"><div class="ml-10 flex items-baseline space-x-8"><!--[-->`);
+      _push(`<nav${ssrRenderAttrs(mergeProps({ class: "fixed w-full bg-white/95 backdrop-blur-sm shadow-lg z-50 transition-all duration-300" }, _attrs))}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between items-center h-16"><div class="flex items-center"><div class="flex-shrink-0"><img class="h-10 w-auto" src="/images/logo.png" alt="Logo"></div><div class="hidden md:block ml-4"><div class="text-xl font-bold text-blue-900"> Logistic </div></div></div><div class="hidden md:block"><div class="ml-10 flex items-baseline space-x-8"><!--[-->`);
       ssrRenderList(navigation, (item) => {
         _push(`<a${ssrRenderAttr("href", item.href)} class="${ssrRenderClass([{ "text-blue-600 font-semibold": activeSection.value === item.href }, "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-300 cursor-pointer"])}">${ssrInterpolate(item.name)}</a>`);
       });
