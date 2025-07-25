@@ -192,21 +192,21 @@ const offices = [
     name: 'Kantor Pusat Jakarta',
     address: 'Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan 12190',
     phone: '+62 21 2555-0123',
-    email: 'jakarta@logisticpro.co.id'
+    email: 'jakarta@companyname.com'
   },
   {
     id: 2,
     name: 'Cabang Surabaya',
     address: 'Jl. Raya Darmo 68-70, Surabaya 60264',
     phone: '+62 31 8765-4321',
-    email: 'surabaya@logisticpro.co.id'
+    email: 'surabaya@companyname.com'
   },
   {
     id: 3,
     name: 'Cabang Medan',
     address: 'Jl. Asia Baru No. 88, Medan 20214',
     phone: '+62 61 4567-8901',
-    email: 'medan@logisticpro.co.id'
+    email: 'medan@companyname.com'
   }
 ]
 </script>

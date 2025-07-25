@@ -5,11 +5,11 @@
                 <!-- Logo -->
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <img class="h-10 w-auto" src="/images/logo.png" alt="Logo" />
+                        <img class="h-10 w-auto" src="/images/logo.png" alt="Logo Company" />
                     </div>
                     <div class="hidden md:block ml-4">
                         <div class="text-xl font-bold text-blue-900">
-                            Logistic
+                            Company Name
                         </div>
                     </div>
                 </div>
