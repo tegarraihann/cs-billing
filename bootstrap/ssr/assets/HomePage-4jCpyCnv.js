@@ -33,7 +33,7 @@ const _sfc_main$6 = {
       window.removeEventListener("scroll", handleScroll);
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<nav${ssrRenderAttrs(mergeProps({ class: "fixed w-full bg-white/95 backdrop-blur-sm shadow-lg z-50 transition-all duration-300" }, _attrs))}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between items-center h-16"><div class="flex items-center"><div class="flex-shrink-0"><img class="h-10 w-auto" src="/images/logo.png" alt="Logo"></div><div class="hidden md:block ml-4"><div class="text-xl font-bold text-blue-900"> Logistic </div></div></div><div class="hidden md:block"><div class="ml-10 flex items-baseline space-x-8"><!--[-->`);
+      _push(`<nav${ssrRenderAttrs(mergeProps({ class: "fixed w-full bg-white/95 backdrop-blur-sm shadow-lg z-50 transition-all duration-300" }, _attrs))}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between items-center h-16"><div class="flex items-center"><div class="flex-shrink-0"><img class="h-10 w-auto" src="/images/logo.png" alt="Logo Company"></div><div class="hidden md:block ml-4"><div class="text-xl font-bold text-blue-900"> Company Name </div></div></div><div class="hidden md:block"><div class="ml-10 flex items-baseline space-x-8"><!--[-->`);
       ssrRenderList(navigation, (item) => {
         _push(`<a${ssrRenderAttr("href", item.href)} class="${ssrRenderClass([{ "text-blue-600 font-semibold": activeSection.value === item.href }, "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-300 cursor-pointer"])}">${ssrInterpolate(item.name)}</a>`);
       });
@@ -327,21 +327,21 @@ const _sfc_main$2 = {
         name: "Kantor Pusat Jakarta",
         address: "Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan 12190",
         phone: "+62 21 2555-0123",
-        email: "jakarta@logisticpro.co.id"
+        email: "jakarta@companyname.com"
       },
       {
         id: 2,
         name: "Cabang Surabaya",
         address: "Jl. Raya Darmo 68-70, Surabaya 60264",
         phone: "+62 31 8765-4321",
-        email: "surabaya@logisticpro.co.id"
+        email: "surabaya@companyname.com"
       },
       {
         id: 3,
         name: "Cabang Medan",
         address: "Jl. Asia Baru No. 88, Medan 20214",
         phone: "+62 61 4567-8901",
-        email: "medan@logisticpro.co.id"
+        email: "medan@companyname.com"
       }
     ];
     return (_ctx, _push, _parent, _attrs) => {
@@ -380,25 +380,25 @@ const _sfc_main$1 = {
     const socialMedia = [
       {
         name: "Facebook",
-        url: "https://facebook.com/logisticpro",
+        url: "#",
         hoverColor: "hover:bg-blue-600",
         icon: '<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M20 10C20 4.477 15.523 0 10 0S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z"/></svg>'
       },
       {
         name: "Instagram",
-        url: "https://instagram.com/logisticpro",
+        url: "#",
         hoverColor: "hover:bg-pink-600",
         icon: '<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0zm-2 4h4a4 4 0 014 4v4a4 4 0 01-4 4H8a4 4 0 01-4-4V8a4 4 0 014-4zm4 1.5H8A2.5 2.5 0 005.5 8v4A2.5 2.5 0 008 14.5h4a2.5 2.5 0 002.5-2.5V8A2.5 2.5 0 0012 5.5zM10 7a3 3 0 100 6 3 3 0 000-6zm0 1.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm3.5-2.5a.5.5 0 11-1 0 .5.5 0 011 0z"/></svg>'
       },
       {
         name: "LinkedIn",
-        url: "https://linkedin.com/company/logisticpro",
+        url: "#",
         hoverColor: "hover:bg-blue-700",
         icon: '<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z"/></svg>'
       },
       {
         name: "WhatsApp",
-        url: "https://wa.me/6281234567890",
+        url: "#",
         hoverColor: "hover:bg-green-600",
         icon: '<svg fill="currentColor" viewBox="0 0 20 20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0010.05 0C4.495 0 .16 4.335.157 9.892c0 1.743.456 3.448 1.328 4.956L0 20l5.304-1.39a9.934 9.934 0 004.737 1.215h.005c5.505 0 9.847-4.336 9.847-9.892A9.824 9.824 0 0020.05 3.488"/></svg>'
       }
@@ -438,7 +438,7 @@ const _sfc_main$1 = {
       },
       {
         type: "Email",
-        value: "info@logisticpro.co.id",
+        value: "info@companyname.com",
         secondary: "Respon dalam 24 jam",
         icon: '<svg fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>'
       },
@@ -459,7 +459,7 @@ const _sfc_main$1 = {
       window.removeEventListener("scroll", handleScroll);
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<footer${ssrRenderAttrs(mergeProps({ class: "bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white" }, _attrs))}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"><div class="grid lg:grid-cols-4 md:grid-cols-2 gap-8"><div class="lg:col-span-1"><div class="flex items-center mb-6"><img class="h-10 w-auto mr-3" src="/images/logo.png" alt="LogisticPro"><div class="text-2xl font-bold">LogisticPro</div></div><p class="text-blue-100 mb-6 leading-relaxed"> Solusi logistik terpercaya untuk ekspor-impor, trucking inland, transfer uang internasional, dan asuransi barang kiriman ke seluruh dunia. </p><div class="flex space-x-4"><!--[-->`);
+      _push(`<footer${ssrRenderAttrs(mergeProps({ class: "bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white" }, _attrs))}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"><div class="grid lg:grid-cols-4 md:grid-cols-2 gap-8"><div class="lg:col-span-1"><div class="flex items-center mb-6"><img class="h-10 w-auto mr-3" src="/images/logo.png" alt="Company logo"><div class="text-2xl font-bold">Company</div></div><p class="text-blue-100 mb-6 leading-relaxed"> Solusi logistik terpercaya untuk ekspor-impor, trucking inland, transfer uang internasional, dan asuransi barang kiriman ke seluruh dunia. </p><div class="flex space-x-4"><!--[-->`);
       ssrRenderList(socialMedia, (social) => {
         _push(`<a${ssrRenderAttr("href", social.url)} target="_blank" class="${ssrRenderClass([social.hoverColor, "w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"])}"><div class="w-5 h-5">${social.icon ?? ""}</div></a>`);
       });
