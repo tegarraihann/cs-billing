@@ -4,8 +4,12 @@
   ],
   "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
   "resources/js/Components/AboutSection.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/AboutSection.vue?vue&type=style&index=0&scoped=78cf45c0&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Components/ApplicationLogo.vue": [
     "/build/assets/ApplicationLogo-B2173abF.js"
@@ -14,8 +18,12 @@
     "/build/assets/Login-DRi5UVTK.js"
   ],
   "resources/js/Components/ContactSection.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/ContactSection.vue?vue&type=style&index=0&scoped=32bffd0f&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Components/DangerButton.vue": [
     "/build/assets/DeleteUserForm-JErP_Yl2.js"
@@ -27,22 +35,30 @@
     "/build/assets/AuthenticatedLayout-8TbwyeTu.js"
   ],
   "resources/js/Components/FooterSection.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/FooterSection.vue?vue&type=style&index=0&scoped=3007f915&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Components/HeroSection.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
-  "resources/js/Components/HeroSection.vue?vue&type=style&index=0&scoped=bd4ef50e&lang.css": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+  "resources/js/Components/HeroSection.vue?vue&type=style&index=0&scoped=3eceddb6&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Components/InputError.vue": [
     "/build/assets/TextInput-SoXY5mdM.js"
   ],
   "resources/js/Components/InputLabel.vue": [
     "/build/assets/TextInput-SoXY5mdM.js"
+  ],
+  "resources/js/Components/Logo.vue": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Components/Modal.vue": [
     "/build/assets/DeleteUserForm-JErP_Yl2.js"
@@ -60,15 +76,31 @@
     "/build/assets/DeleteUserForm-JErP_Yl2.js"
   ],
   "resources/js/Components/ServicesSection.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/ServicesSection.vue?vue&type=style&index=0&scoped=7696a1e3&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/Team.vue": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/Team.vue?vue&type=style&index=0&scoped=5fd477d5&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Components/TextInput.vue": [
     "/build/assets/TextInput-SoXY5mdM.js"
   ],
   "resources/js/Components/homePage/Navbar.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Components/homePage/Navbar.vue?vue&type=style&index=0&scoped=82fee1df&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Layouts/AuthenticatedLayout.vue": [
     "/build/assets/AuthenticatedLayout-8TbwyeTu.js"
@@ -98,8 +130,12 @@
     "/build/assets/Dashboard-Qlznxtup.js"
   ],
   "resources/js/Pages/HomePage.vue": [
-    "/build/assets/HomePage-4jCpyCnv.js",
-    "/build/assets/HomePage-BO3n3cyj.css"
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
+  ],
+  "resources/js/Pages/HomePage.vue?vue&type=style&index=0&lang.css": [
+    "/build/assets/HomePage-BJsZPYbD.js",
+    "/build/assets/HomePage-ChImWkFt.css"
   ],
   "resources/js/Pages/Profile/Edit.vue": [
     "/build/assets/Edit-DP2r3h5l.js"
