@@ -18,20 +18,20 @@
         </p>
       </div>
 
-      <div class="grid lg:grid-cols-2 gap-16">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-16">
         <!-- Contact Form -->
-        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20">
-          <h3 class="text-2xl font-bold text-white mb-8">Kirim Pesan Anda</h3>
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
+          <h3 class="text-2xl font-bold text-white mb-6 md:mb-8">Kirim Pesan Anda</h3>
 
           <form @submit.prevent="submitForm" class="space-y-6">
-            <div class="grid md:grid-cols-2 gap-6">
+            <div class="grid md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label class="block text-sm font-semibold text-sage-100 mb-3">Nama Lengkap *</label>
                 <input
                   v-model="form.name"
                   type="text"
                   required
-                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm"
                   placeholder="Masukkan nama lengkap"
                 />
               </div>
@@ -41,19 +41,19 @@
                   v-model="form.email"
                   type="email"
                   required
-                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm"
                   placeholder="email@perusahaan.com"
                 />
               </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-6">
+            <div class="grid md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label class="block text-sm font-semibold text-sage-100 mb-3">Nama Perusahaan</label>
                 <input
                   v-model="form.company"
                   type="text"
-                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm"
                   placeholder="PT. Nama Perusahaan"
                 />
               </div>
@@ -61,7 +61,7 @@
                 <label class="block text-sm font-semibold text-sage-100 mb-3">Layanan yang Diminati</label>
                 <select
                   v-model="form.service"
-                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                  class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm"
                 >
                   <option value="" class="text-gray-900">Pilih Layanan</option>
                   <option value="export-import" class="text-gray-900">Export & Import</option>
@@ -79,17 +79,17 @@
                 v-model="form.message"
                 rows="5"
                 required
-                class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm resize-none"
+                class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-sage-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm resize-none text-sm"
                 placeholder="Jelaskan kebutuhan logistik Anda secara detail..."
               ></textarea>
             </div>
 
             <!-- Submit Options -->
-            <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex flex-col gap-4">
               <button
                 type="submit"
                 :disabled="!isFormValid"
-                class="flex-1 bg-white text-sage-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-sage-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                class="w-full bg-white text-sage-700 px-6 py-4 rounded-xl font-bold text-base hover:bg-sage-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
@@ -102,7 +102,7 @@
                 type="button"
                 @click="sendViaWhatsApp"
                 :disabled="!isFormValid || whatsAppLoading"
-                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
+                class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
               >
                 <svg v-if="whatsAppLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -118,24 +118,24 @@
         </div>
 
         <!-- Contact Information -->
-        <div class="space-y-8">
+        <div class="space-y-6 lg:space-y-8">
           <!-- Quick Contact Methods -->
-          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20">
-            <h3 class="text-2xl font-bold text-white mb-8">Kontak Langsung</h3>
+          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
+            <h3 class="text-2xl font-bold text-white mb-6 md:mb-8">Kontak Langsung</h3>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 gap-4 md:gap-6">
               <button
                 v-for="contact in quickContacts"
                 :key="contact.id"
                 @click="handleQuickContact(contact)"
                 class="flex items-center space-x-4 p-4 bg-white/10 rounded-2xl hover:bg-white/20 transition-all duration-300 group text-left w-full"
               >
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0"
                      :class="contact.bgColor">
-                  <div v-html="contact.icon" class="w-7 h-7 text-white"></div>
+                  <div v-html="contact.icon" class="w-6 h-6 md:w-7 md:h-7 text-white"></div>
                 </div>
-                <div>
-                  <div class="text-white font-bold text-lg">{{ contact.name }}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-white font-bold text-base md:text-lg">{{ contact.name }}</div>
                   <div class="text-sage-100 text-sm">{{ contact.role }}</div>
                   <div class="text-sage-200 text-xs">{{ contact.description }}</div>
                 </div>
@@ -144,37 +144,39 @@
           </div>
 
           <!-- Office Locations -->
-          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20">
-            <h3 class="text-2xl font-bold text-white mb-8">Kantor Kami</h3>
+          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
+            <h3 class="text-2xl font-bold text-white mb-6 md:mb-8">Kantor Kami</h3>
 
-            <div class="space-y-6">
+            <div class="space-y-4 md:space-y-6">
               <div
                 v-for="office in offices"
                 :key="office.id"
-                class="flex items-start space-x-4 p-6 bg-white/10 rounded-2xl hover:bg-white/20 transition-all duration-300"
+                class="p-4 md:p-6 bg-white/10 rounded-2xl hover:bg-white/20 transition-all duration-300"
               >
-                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <h4 class="text-lg font-bold text-white mb-2">{{ office.name }}</h4>
-                  <p class="text-sage-100 text-sm mb-3 leading-relaxed">{{ office.address }}</p>
-                  <div class="flex flex-col sm:flex-row gap-4 text-sm">
-                    <a :href="`tel:${office.phone}`" class="text-sage-200 hover:text-white transition-colors flex items-center">
-                      <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-                      </svg>
-                      {{ office.phone }}
-                    </a>
-                    <a :href="`mailto:${office.email}`" class="text-sage-200 hover:text-white transition-colors flex items-center">
-                      <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                      </svg>
-                      {{ office.email }}
-                    </a>
+                <div class="flex items-start space-x-4">
+                  <div class="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-base md:text-lg font-bold text-white mb-2">{{ office.name }}</h4>
+                    <p class="text-sage-100 text-sm mb-3 leading-relaxed">{{ office.address }}</p>
+                    <div class="flex flex-col gap-2 text-sm">
+                      <a :href="`tel:${office.phone}`" class="text-sage-200 hover:text-white transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                        </svg>
+                        <span class="break-all">{{ office.phone }}</span>
+                      </a>
+                      <a :href="`mailto:${office.email}`" class="text-sage-200 hover:text-white transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        </svg>
+                        <span class="break-all">{{ office.email }}</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -182,22 +184,22 @@
           </div>
 
           <!-- Why Choose Us -->
-          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20">
-            <h3 class="text-2xl font-bold text-white mb-8">Mengapa Pilih Eshaka Wijaya Logistics?</h3>
+          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
+            <h3 class="text-2xl font-bold text-white mb-6 md:mb-8">Mengapa Pilih Eshaka Wijaya Logistics?</h3>
 
-            <div class="space-y-6">
+            <div class="space-y-4 md:space-y-6">
               <div
                 v-for="feature in whyChooseUs"
                 :key="feature.title"
                 class="flex items-start space-x-4"
               >
-                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
                   </svg>
                 </div>
-                <div>
-                  <h4 class="text-white font-bold text-lg mb-1">{{ feature.title }}</h4>
+                <div class="min-w-0">
+                  <h4 class="text-white font-bold text-base md:text-lg mb-1">{{ feature.title }}</h4>
                   <p class="text-sage-100 text-sm leading-relaxed">{{ feature.description }}</p>
                 </div>
               </div>
@@ -207,17 +209,17 @@
       </div>
 
       <!-- Map Section -->
-      <div class="mt-20 bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20">
-        <h3 class="text-2xl font-bold text-white mb-8 text-center">Lokasi Kantor Pusat</h3>
-        <div class="bg-white/20 rounded-2xl h-64 flex items-center justify-center backdrop-blur-sm">
+      <div class="mt-16 lg:mt-20 bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
+        <h3 class="text-2xl font-bold text-white mb-6 md:mb-8 text-center">Lokasi Kantor Pusat</h3>
+        <div class="bg-white/20 rounded-2xl h-48 md:h-64 flex items-center justify-center backdrop-blur-sm">
           <div class="text-center">
-            <svg class="w-16 h-16 text-white/60 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-12 h-12 md:w-16 md:h-16 text-white/60 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
             </svg>
-            <p class="text-white/80 text-lg mb-4">Peta Interaktif Kantor Pusat</p>
+            <p class="text-white/80 text-base md:text-lg mb-4">Peta Interaktif Kantor Pusat</p>
             <button
               @click="openGoogleMaps"
-              class="bg-white text-sage-700 px-6 py-3 rounded-xl font-semibold hover:bg-sage-50 transition-colors duration-300"
+              class="bg-white text-sage-700 px-4 md:px-6 py-2 md:py-3 rounded-xl font-semibold hover:bg-sage-50 transition-colors duration-300 text-sm md:text-base"
             >
               Lihat di Google Maps
             </button>
@@ -408,4 +410,11 @@ const whyChooseUs = [
 .placeholder-sage-200::placeholder { color: #E8ECE5; }
 .from-sage-600 { --tw-gradient-from: #8DB580; }
 .via-sage-700 { --tw-gradient-stops: var(--tw-gradient-from), #7BA169, var(--tw-gradient-to, rgba(123, 161, 105, 0)); }
+
+/* Additional responsive utilities */
+@media (max-width: 768px) {
+  .break-all {
+    word-break: break-all;
+  }
+}
 </style>

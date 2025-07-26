@@ -43,12 +43,12 @@
   </div>
 
   <!-- Team Information (if below photo) -->
-  <div v-if="showText && layout === 'vertical'" class="text-center mt-8">
+  <div v-if="showText && layout === 'vertical'" class="text-center mt-4">
     <h3 :class="titleClass">{{ teamTitle }}</h3>
     <p :class="descriptionClass">{{ teamDescription }}</p>
 
     <!-- Team Stats -->
-    <div v-if="showStats" class="grid grid-cols-4 gap-4 mt-8 max-w-2xl mx-auto">
+    <div v-if="showStats" class="grid grid-cols-4 gap-4 mt-6 max-w-2xl mx-auto">
       <div v-for="stat in teamStats" :key="stat.label" class="text-center">
         <div class="text-xl font-bold text-sage-700">{{ stat.value }}</div>
         <div class="text-xs text-gray-600">{{ stat.label }}</div>
@@ -122,7 +122,7 @@ const sizeConfig = computed(() => {
     small: {
       photoContainer: 'w-64 h-auto',
       photo: 'w-full h-auto',
-      container: props.layout === 'horizontal' ? 'space-x-6' : 'space-y-4',
+      container: props.layout === 'horizontal' ? 'space-x-6' : 'space-y-2',
       textContainer: 'flex flex-col',
       title: 'text-xl font-bold text-gray-800',
       description: 'text-sm text-gray-600 mt-2'
@@ -130,7 +130,7 @@ const sizeConfig = computed(() => {
     medium: {
       photoContainer: 'w-80 h-auto',
       photo: 'w-full h-auto',
-      container: props.layout === 'horizontal' ? 'space-x-8' : 'space-y-6',
+      container: props.layout === 'horizontal' ? 'space-x-8' : 'space-y-3',
       textContainer: 'flex flex-col max-w-md',
       title: 'text-2xl font-bold text-gray-800',
       description: 'text-base text-gray-600 mt-3'
@@ -138,26 +138,26 @@ const sizeConfig = computed(() => {
     large: {
       photoContainer: 'w-96 h-auto',
       photo: 'w-full h-auto',
-      container: props.layout === 'horizontal' ? 'space-x-10' : 'space-y-8',
+      container: props.layout === 'horizontal' ? 'space-x-10' : 'space-y-4',
       textContainer: 'flex flex-col max-w-lg',
       title: 'text-3xl font-bold text-gray-800',
       description: 'text-lg text-gray-600 mt-4 leading-relaxed'
     },
     xl: {
-      photoContainer: 'w-auto h-auto',
+      photoContainer: 'w-auto h-auto max-w-2xl',
       photo: 'w-full h-auto',
-      container: props.layout === 'horizontal' ? 'space-x-12' : 'space-y-8',
+      container: props.layout === 'horizontal' ? 'space-x-12' : 'space-y-4',
       textContainer: 'flex flex-col max-w-xl',
       title: 'text-4xl font-bold text-gray-800',
-      description: 'text-xl text-gray-600 mt-6 leading-relaxed'
+      description: 'text-xl text-gray-600 mt-4 leading-relaxed'
     },
     full: {
       photoContainer: 'w-full max-w-4xl h-auto',
       photo: 'w-full h-auto',
-      container: props.layout === 'horizontal' ? 'space-x-16' : 'space-y-12',
+      container: props.layout === 'horizontal' ? 'space-x-16' : 'space-y-6',
       textContainer: 'flex flex-col max-w-2xl',
       title: 'text-5xl font-bold text-gray-800',
-      description: 'text-2xl text-gray-600 mt-8 leading-relaxed'
+      description: 'text-2xl text-gray-600 mt-6 leading-relaxed'
     }
   }
 

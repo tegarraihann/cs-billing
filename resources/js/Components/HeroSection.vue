@@ -1,5 +1,5 @@
 <template>
-    <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-sage-50 to-sage-100">
+    <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-sage-50 to-sage-100 pt-20">
         <!-- Subtle Background Pattern -->
         <div class="absolute inset-0 opacity-5">
             <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, #8DB580 1px, transparent 0); background-size: 40px 40px;"></div>
@@ -7,7 +7,7 @@
 
         <!-- Floating Geometric Elements -->
         <div class="absolute inset-0 overflow-hidden">
-            <div class="absolute top-20 left-20 w-32 h-32 bg-sage-200 rounded-full opacity-20 animate-pulse"></div>
+            <div class="absolute top-32 left-20 w-32 h-32 bg-sage-200 rounded-full opacity-20 animate-pulse"></div>
             <div class="absolute top-1/3 right-16 w-24 h-24 bg-sage-300 rounded-full opacity-15 animate-pulse" style="animation-delay: 1s;"></div>
             <div class="absolute bottom-1/4 left-16 w-20 h-20 bg-sage-400 rounded-full opacity-10 animate-pulse" style="animation-delay: 2s;"></div>
         </div>
@@ -175,7 +175,7 @@ const scrollToServices = () => {
 .bg-sage-400 { background-color: #A5C49A; }
 .bg-sage-500 { background-color: #8DB580; }
 .bg-sage-600 { background-color: #8DB580; }
-.bg-sage-700 { background-color: #7BA169; }
+.bg-sage-700 { color: #7BA169; }
 .border-sage-100 { border-color: #E8ECE5; }
 .border-sage-400 { border-color: #A5C49A; }
 .border-sage-600 { border-color: #8DB580; }

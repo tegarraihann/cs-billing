@@ -98,7 +98,7 @@
         </div>
 
         <!-- Newsletter Section -->
-        <div class="border-t border-gray-700/50 bg-gradient-to-r from-gray-800 to-sage-800/20">
+        <!-- <div class="border-t border-gray-700/50 bg-gradient-to-r from-gray-800 to-sage-800/20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div class="grid md:grid-cols-2 gap-8 items-center">
                     <div>
@@ -128,7 +128,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Bottom Footer -->
         <div class="border-t border-gray-700/50 bg-gray-900/50">

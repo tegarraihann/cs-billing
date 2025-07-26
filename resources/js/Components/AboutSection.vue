@@ -154,8 +154,8 @@
             </div>
 
             <!-- Team Section -->
-            <div class="bg-white rounded-3xl p-12 shadow-xl border border-sage-100">
-                <div class="text-center mb-12">
+            <div class="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-sage-100">
+                <div class="text-center mb-8">
                     <h3 class="text-3xl font-bold text-gray-800 mb-4">
                         Tim Profesional Kami
                     </h3>
@@ -167,7 +167,7 @@
                 </div>
 
                 <!-- Team Photo Component -->
-                <div class="flex justify-center">
+                <div class="flex justify-center mb-12">
                     <Team
                         size="xl"
                         layout="vertical"
@@ -180,7 +180,7 @@
                 </div>
 
                 <!-- Team Highlights -->
-                <div class="grid md:grid-cols-3 gap-8 mt-16">
+                <div class="grid md:grid-cols-3 gap-8">
                     <div v-for="highlight in teamHighlights" :key="highlight.title"
                         class="text-center p-6 bg-sage-50 rounded-2xl hover:bg-sage-100 transition-colors duration-300">
                         <div class="w-16 h-16 bg-sage-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
