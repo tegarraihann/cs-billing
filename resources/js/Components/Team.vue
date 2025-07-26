@@ -144,7 +144,7 @@ const sizeConfig = computed(() => {
       description: 'text-lg text-gray-600 mt-4 leading-relaxed'
     },
     xl: {
-      photoContainer: 'w-[500px] h-auto',
+      photoContainer: 'w-auto h-auto',
       photo: 'w-full h-auto',
       container: props.layout === 'horizontal' ? 'space-x-12' : 'space-y-8',
       textContainer: 'flex flex-col max-w-xl',

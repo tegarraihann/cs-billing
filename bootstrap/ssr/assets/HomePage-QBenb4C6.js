@@ -392,7 +392,7 @@ const _sfc_main$4 = {
           description: "text-lg text-gray-600 mt-4 leading-relaxed"
         },
         xl: {
-          photoContainer: "w-[500px] h-auto",
+          photoContainer: "w-auto h-auto",
           photo: "w-full h-auto",
           container: props.layout === "horizontal" ? "space-x-12" : "space-y-8",
           textContainer: "flex flex-col max-w-xl",
@@ -435,30 +435,30 @@ const _sfc_main$4 = {
     const titleClass = computed(() => sizeConfig.value.title);
     const descriptionClass = computed(() => sizeConfig.value.description);
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<!--[--><div class="${ssrRenderClass([containerClass.value, "flex items-center justify-center"])}" data-v-5fd477d5><div class="relative group" data-v-5fd477d5><div class="${ssrRenderClass([photoContainerClass.value, "relative overflow-hidden"])}" data-v-5fd477d5><img${ssrRenderAttr("src", photoSrc.value)}${ssrRenderAttr("alt", altText.value)} class="${ssrRenderClass([photoClass.value, "object-cover object-center transition-transform duration-700 group-hover:scale-105"])}" data-v-5fd477d5><div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" data-v-5fd477d5></div>`);
+      _push(`<!--[--><div class="${ssrRenderClass([containerClass.value, "flex items-center justify-center"])}" data-v-f88b51df><div class="relative group" data-v-f88b51df><div class="${ssrRenderClass([photoContainerClass.value, "relative overflow-hidden"])}" data-v-f88b51df><img${ssrRenderAttr("src", photoSrc.value)}${ssrRenderAttr("alt", altText.value)} class="${ssrRenderClass([photoClass.value, "object-cover object-center transition-transform duration-700 group-hover:scale-105"])}" data-v-f88b51df><div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" data-v-f88b51df></div>`);
       if (__props.showOverlay) {
-        _push(`<div class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" data-v-5fd477d5><h3 class="text-2xl font-bold mb-2" data-v-5fd477d5>${ssrInterpolate(__props.teamTitle)}</h3><p class="text-sm opacity-90" data-v-5fd477d5>${ssrInterpolate(__props.teamDescription)}</p></div>`);
+        _push(`<div class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" data-v-f88b51df><h3 class="text-2xl font-bold mb-2" data-v-f88b51df>${ssrInterpolate(__props.teamTitle)}</h3><p class="text-sm opacity-90" data-v-f88b51df>${ssrInterpolate(__props.teamDescription)}</p></div>`);
       } else {
         _push(`<!---->`);
       }
       _push(`</div>`);
       if (__props.showDecorative) {
-        _push(`<div class="absolute -top-4 -right-4 w-8 h-8 bg-sage-600 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300" data-v-5fd477d5></div>`);
+        _push(`<div class="absolute -top-4 -right-4 w-8 h-8 bg-sage-600 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300" data-v-f88b51df></div>`);
       } else {
         _push(`<!---->`);
       }
       if (__props.showDecorative) {
-        _push(`<div class="absolute -bottom-4 -left-4 w-6 h-6 bg-sage-400 rounded-full opacity-30 group-hover:opacity-60 transition-opacity duration-300" data-v-5fd477d5></div>`);
+        _push(`<div class="absolute -bottom-4 -left-4 w-6 h-6 bg-sage-400 rounded-full opacity-30 group-hover:opacity-60 transition-opacity duration-300" data-v-f88b51df></div>`);
       } else {
         _push(`<!---->`);
       }
       _push(`</div>`);
       if (__props.showText && __props.layout === "horizontal") {
-        _push(`<div class="${ssrRenderClass(textContainerClass.value)}" data-v-5fd477d5><h3 class="${ssrRenderClass(titleClass.value)}" data-v-5fd477d5>${ssrInterpolate(__props.teamTitle)}</h3><p class="${ssrRenderClass(descriptionClass.value)}" data-v-5fd477d5>${ssrInterpolate(__props.teamDescription)}</p>`);
+        _push(`<div class="${ssrRenderClass(textContainerClass.value)}" data-v-f88b51df><h3 class="${ssrRenderClass(titleClass.value)}" data-v-f88b51df>${ssrInterpolate(__props.teamTitle)}</h3><p class="${ssrRenderClass(descriptionClass.value)}" data-v-f88b51df>${ssrInterpolate(__props.teamDescription)}</p>`);
         if (__props.showStats) {
-          _push(`<div class="grid grid-cols-2 gap-4 mt-6" data-v-5fd477d5><!--[-->`);
+          _push(`<div class="grid grid-cols-2 gap-4 mt-6" data-v-f88b51df><!--[-->`);
           ssrRenderList(teamStats.value, (stat) => {
-            _push(`<div class="text-center" data-v-5fd477d5><div class="text-2xl font-bold text-sage-700" data-v-5fd477d5>${ssrInterpolate(stat.value)}</div><div class="text-sm text-gray-600" data-v-5fd477d5>${ssrInterpolate(stat.label)}</div></div>`);
+            _push(`<div class="text-center" data-v-f88b51df><div class="text-2xl font-bold text-sage-700" data-v-f88b51df>${ssrInterpolate(stat.value)}</div><div class="text-sm text-gray-600" data-v-f88b51df>${ssrInterpolate(stat.label)}</div></div>`);
           });
           _push(`<!--]--></div>`);
         } else {
@@ -470,11 +470,11 @@ const _sfc_main$4 = {
       }
       _push(`</div>`);
       if (__props.showText && __props.layout === "vertical") {
-        _push(`<div class="text-center mt-8" data-v-5fd477d5><h3 class="${ssrRenderClass(titleClass.value)}" data-v-5fd477d5>${ssrInterpolate(__props.teamTitle)}</h3><p class="${ssrRenderClass(descriptionClass.value)}" data-v-5fd477d5>${ssrInterpolate(__props.teamDescription)}</p>`);
+        _push(`<div class="text-center mt-8" data-v-f88b51df><h3 class="${ssrRenderClass(titleClass.value)}" data-v-f88b51df>${ssrInterpolate(__props.teamTitle)}</h3><p class="${ssrRenderClass(descriptionClass.value)}" data-v-f88b51df>${ssrInterpolate(__props.teamDescription)}</p>`);
         if (__props.showStats) {
-          _push(`<div class="grid grid-cols-4 gap-4 mt-8 max-w-2xl mx-auto" data-v-5fd477d5><!--[-->`);
+          _push(`<div class="grid grid-cols-4 gap-4 mt-8 max-w-2xl mx-auto" data-v-f88b51df><!--[-->`);
           ssrRenderList(teamStats.value, (stat) => {
-            _push(`<div class="text-center" data-v-5fd477d5><div class="text-xl font-bold text-sage-700" data-v-5fd477d5>${ssrInterpolate(stat.value)}</div><div class="text-xs text-gray-600" data-v-5fd477d5>${ssrInterpolate(stat.label)}</div></div>`);
+            _push(`<div class="text-center" data-v-f88b51df><div class="text-xl font-bold text-sage-700" data-v-f88b51df>${ssrInterpolate(stat.value)}</div><div class="text-xs text-gray-600" data-v-f88b51df>${ssrInterpolate(stat.label)}</div></div>`);
           });
           _push(`<!--]--></div>`);
         } else {
@@ -494,7 +494,7 @@ _sfc_main$4.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/Team.vue");
   return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
 };
-const Team = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["__scopeId", "data-v-5fd477d5"]]);
+const Team = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["__scopeId", "data-v-f88b51df"]]);
 const _sfc_main$3 = {
   __name: "AboutSection",
   __ssrInlineRender: true,
