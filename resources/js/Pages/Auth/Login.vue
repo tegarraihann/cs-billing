@@ -23,6 +23,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
         </div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-sage-800 mb-2">Welcome Back</h1>
         <p class="text-sage-600 text-sm sm:text-base">Sign in to access your dashboard</p>
       </div>
 
@@ -39,7 +40,52 @@
           <span>{{ status }}</span>
         </div>
 
+        <!-- Demo Credentials Info -->
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+          <h3 class="font-semibold text-blue-800 mb-2 flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Demo Credentials
+          </h3>
+          <div class="text-xs text-blue-700 space-y-1">
+            <p><strong>Master Admin:</strong> masteradmin@example.com</p>
+            <p><strong>Admin CS:</strong> CS@example.com</p>
+            <p><strong>Admin Keuangan:</strong> keuangan@example.com</p>
+            <p class="mt-2"><strong>Password for all:</strong> password</p>
+          </div>
+        </div>
+
         <form @submit.prevent="submit" class="space-y-5 sm:space-y-6">
+          <!-- Role Selection Field -->
+          <div class="space-y-2">
+            <InputLabel for="role" value="Login As" class="text-sage-800 font-semibold text-sm" />
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <select
+                id="role"
+                v-model="form.role"
+                class="w-full pl-10 pr-4 py-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-all duration-200 text-sm sm:text-base bg-white appearance-none"
+                required
+              >
+                <option value="">Select your role</option>
+                <option v-for="role in roles" :key="role.value" :value="role.value">
+                  {{ role.label }}
+                </option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <InputError class="text-xs sm:text-sm" :message="form.errors.role" />
+          </div>
+
           <!-- Email Field -->
           <div class="space-y-2">
             <InputLabel for="email" value="Email Address" class="text-sage-800 font-semibold text-sm" />
@@ -55,7 +101,6 @@
                 class="w-full pl-10 pr-4 py-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-all duration-200 text-sm sm:text-base"
                 v-model="form.email"
                 required
-                autofocus
                 autocomplete="username"
                 placeholder="Enter your email address"
               />
@@ -187,12 +232,16 @@ import TextInput from '@/Components/TextInput.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
 // Props
-defineProps({
+const props = defineProps({
   canResetPassword: {
     type: Boolean,
   },
   status: {
     type: String,
+  },
+  roles: {
+    type: Array,
+    default: () => [],
   },
 })
 
@@ -201,6 +250,7 @@ const showPassword = ref(false)
 
 // Form setup
 const form = useForm({
+  role: '',
   email: '',
   password: '',
   remember: false,
@@ -226,41 +276,12 @@ const togglePasswordVisibility = () => {
 }
 
 /* Input focus enhancements */
-input:focus {
+input:focus, select:focus {
   transform: scale(1.005);
 }
 
 /* Button active state */
 button:active:not(:disabled) {
   transform: scale(0.98) translateY(0);
-}
-
-/* Custom scrollbar for mobile */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(141, 181, 128, 0.3);
-  border-radius: 2px;
-}
-
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  input {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 </style>

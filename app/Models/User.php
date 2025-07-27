@@ -6,32 +6,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'phone',
         'role',
-        'is_activate',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -48,48 +43,84 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_active' => 'boolean',
         ];
     }
 
-    public function customer()
+    /**
+     * Available user roles
+     */
+    public const ROLES = [
+        'masteradmin' => 'Master Admin',
+        'admin_cs' => 'Admin Customer Service',
+        'admin_keuangan' => 'Admin Keuangan',
+    ];
+
+    /**
+     * Check if user has master admin role
+     */
+    public function isMasterAdmin(): bool
     {
-        return $this->hasOne(Customer::class);
+        return $this->role === 'masteradmin';
     }
 
-    public function assignedInquiries()
+    /**
+     * Check if user has admin CS role
+     */
+    public function isAdminCS(): bool
     {
-        return $this->hasMany(Inquiry::class, 'assigned_to');
+        return $this->role === 'admin_cs';
     }
 
-    public function inquiryMessages()
+    /**
+     * Check if user has admin keuangan role
+     */
+    public function isAdminKeuangan(): bool
     {
-        return $this->hasMany(InquiryMessage::class);
+        return $this->role === 'admin_keuangan';
     }
 
-    // Scopes
-    public function scopeActive($query)
+    /**
+     * Check if user has any admin role
+     */
+    public function isAdmin(): bool
     {
-        return $query->where('is_active', true);
+        return in_array($this->role, ['masteradmin', 'admin_cs', 'admin_keuangan']);
     }
 
-    public function scopeByRole($query, $role)
+    /**
+     * Check if user has specific role
+     */
+    public function hasRole(string $role): bool
     {
-        return $query->where('role', $role);
+        return $this->role === $role;
     }
 
-    public function getIsAdminAttribute()
+    /**
+     * Check if user has any of the given roles
+     */
+    public function hasAnyRole(array $roles): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, $roles);
     }
 
-    public function getIsCustomerServiceAttribute()
+    /**
+     * Get role display name
+     */
+    public function getRoleDisplayName(): string
     {
-        return $this->role === 'cs_agent';
+        return self::ROLES[$this->role] ?? $this->role;
     }
 
-    public function getIsCustomerAttribute()
+    /**
+     * Get default dashboard route based on role
+     */
+    public function getDefaultDashboardRoute(): string
     {
-        return $this->role === 'customer';
+        return match($this->role) {
+            'masteradmin' => 'masteradmin.dashboard',
+            'admin_cs' => 'admin-cs.dashboard',
+            'admin_keuangan' => 'admin-keuangan.dashboard',
+            default => 'dashboard'
+        };
     }
 }

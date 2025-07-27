@@ -30,12 +30,38 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                    'created_at' => $user->created_at,
+                ] : null,
             ],
-            'ziggy' => fn () => [
+            'permissions' => $user ? [
+                'canManageUsers' => $user->role === 'masteradmin',
+                'canViewReports' => in_array($user->role, ['masteradmin', 'admin_cs', 'admin_keuangan']),
+                'canEditSettings' => $user->role === 'masteradmin',
+                'canDeleteUsers' => $user->role === 'masteradmin',
+                'canViewAnalytics' => in_array($user->role, ['masteradmin', 'admin_cs']),
+                'canManageFinance' => in_array($user->role, ['masteradmin', 'admin_keuangan']),
+                'canManageCustomerService' => in_array($user->role, ['masteradmin', 'admin_cs']),
+                'canViewAllData' => $user->role === 'masteradmin',
+            ] : [],
+            'userRole' => $user?->role,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
+            ],
+            'ziggy' => fn() => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],

@@ -21,6 +21,11 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'roles' => [
+                ['value' => 'masteradmin', 'label' => 'Master Administrator'],
+                ['value' => 'admin_cs', 'label' => 'Admin Customer Service'],
+                ['value' => 'admin_keuangan', 'label' => 'Admin Keuangan']
+            ],
         ]);
     }
 
@@ -33,7 +38,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+        // Redirect based on user role to specific dashboard
+        return $this->redirectBasedOnRole($user->role);
     }
 
     /**
@@ -48,5 +56,18 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Redirect user based on their role to specific dashboard.
+     */
+    private function redirectBasedOnRole(string $role): RedirectResponse
+    {
+        return match ($role) {
+            'masteradmin' => redirect()->intended(route('masteradmin.dashboard')),
+            'admin_cs' => redirect()->intended(route('admin-cs.dashboard')),
+            'admin_keuangan' => redirect()->intended(route('admin-keuangan.dashboard')),
+            default => redirect()->intended('/')->with('error', 'Role tidak dikenal, silakan hubungi administrator.'),
+        };
     }
 }
