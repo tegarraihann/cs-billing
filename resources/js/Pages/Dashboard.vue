@@ -1,30 +1,44 @@
+<template>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Main Content -->
+    <div class="pt-16">
+      <!-- Sidebar -->
+      <Navbar />
+
+      <!-- Hero Section -->
+      <HeroSection />
+
+      <!-- Footer Section -->
+      <FooterSection />
+    </div>
+  </div>
+</template>
+
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { ref } from 'vue'
+import Navbar from "@/Pages/masteradmin/Navbar.vue"
+
+import FooterSection from "@/Pages/masteradmin/FooterSection.vue"
+import { Head } from "@inertiajs/vue3"
+
+// Props
+const props = defineProps({
+  canLogin: Boolean,
+  canRegister: Boolean,
+})
+
+// Mobile sidebar state
+const isMobileSidebarOpen = ref(false)
+
+const toggleMobileSidebar = () => {
+  isMobileSidebarOpen.value = !isMobileSidebarOpen.value
+}
+
+const closeMobileSidebar = () => {
+  isMobileSidebarOpen.value = false
+}
 </script>
 
-<template>
-    <Head title="Dashboard" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800"
-            >
-                Dashboard
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div
-                    class="overflow-hidden bg-white shadow-sm sm:rounded-lg"
-                >
-                    <div class="p-6 text-gray-900">
-                        You're logged in!
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
-</template>
+<style scoped>
+/* Component-specific styles if needed */
+</style>

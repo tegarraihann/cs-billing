@@ -127,7 +127,12 @@
     "/build/assets/VerifyEmail-giyvWrLQ.js"
   ],
   "resources/js/Pages/Dashboard.vue": [
-    "/build/assets/Dashboard-Qlznxtup.js"
+    "/build/assets/Dashboard-B_iHtVgR.js",
+    "/build/assets/Dashboard-D56Dzu1j.css"
+  ],
+  "resources/js/Pages/Dashboard.vue?vue&type=style&index=0&lang.css": [
+    "/build/assets/Dashboard-B_iHtVgR.js",
+    "/build/assets/Dashboard-D56Dzu1j.css"
   ],
   "resources/js/Pages/HomePage.vue": [
     "/build/assets/HomePage-CPx9gnyw.js",
@@ -151,6 +156,15 @@
   ],
   "resources/js/Pages/Welcome.vue": [
     "/build/assets/Welcome-DMaBece4.js"
+  ],
+  "resources/js/Pages/masteradmin/FooterSection.vue": [
+    "/build/assets/FooterSection-CxTVLidt.js"
+  ],
+  "resources/js/Pages/masteradmin/Herosection.vue": [
+    "/build/assets/Herosection-CHjcZnnp.js"
+  ],
+  "resources/js/Pages/masteradmin/Sidebar.vue": [
+    "/build/assets/Sidebar-BeHCjdq8.js"
   ],
   "resources/js/ssr.js": [],
   "vendor/tightenco/ziggy/dist/index.js": []
