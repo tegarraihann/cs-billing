@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
@@ -14,23 +13,22 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, ...$roles): Response
+    public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!Auth::check()) {
+        if (!auth()->check()) {
             return redirect()->route('login');
         }
 
-        $user = Auth::user();
+        $user = auth()->user();
 
-        // Check if user account is active
-        if ($user->status !== 'active') {
-            Auth::logout();
-            return redirect()->route('login')->with('error', 'Your account is ' . $user->status . '. Please contact administrator.');
+        if ($user->role !== $role) {
+            abort(403, 'Unauthorized. Access denied for your role.');
         }
 
-        // Check if user has required role
-        if (!empty($roles) && !in_array($user->role, $roles)) {
-            abort(403, 'Unauthorized. You do not have permission to access this page.');
+        // Check if user is active
+        if (!$user->is_active || $user->status !== 'active') {
+            auth()->logout();
+            return redirect()->route('login')->with('error', 'Your account has been deactivated.');
         }
 
         return $next($request);

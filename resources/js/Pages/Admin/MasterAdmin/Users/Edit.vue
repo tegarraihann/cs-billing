@@ -31,7 +31,7 @@
           <!-- Page Title -->
           <div class="flex-1 lg:flex-none">
             <h1 class="text-lg sm:text-xl font-semibold text-sage-800">
-              Add New User
+              Edit User
             </h1>
           </div>
 
@@ -299,7 +299,7 @@
                       clip-rule="evenodd"
                     ></path>
                   </svg>
-                  <span class="ml-1 text-sage-500 md:ml-2">Add New User</span>
+                  <span class="ml-1 text-sage-500 md:ml-2">Edit User</span>
                 </div>
               </li>
             </ol>
@@ -314,11 +314,9 @@
             class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
           >
             <div>
-              <h2 class="text-2xl font-bold text-sage-800 mb-2">
-                Add New User
-              </h2>
+              <h2 class="text-2xl font-bold text-sage-800 mb-2">Edit User</h2>
               <p class="text-sage-600">
-                Create a new user account with appropriate permissions
+                Update user information and permissions
               </p>
             </div>
             <div class="mt-4 sm:mt-0">
@@ -345,7 +343,7 @@
           </div>
         </div>
 
-        <!-- Create Form -->
+        <!-- Edit Form -->
         <div
           class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
         >
@@ -354,7 +352,7 @@
               User Information
             </h3>
             <p class="text-sm text-sage-600 mt-1">
-              Fill in the user details below
+              Edit the user details below
             </p>
           </div>
 
@@ -478,26 +476,29 @@
             <!-- Password Section -->
             <div class="mt-8 pt-6 border-t border-sage-200">
               <h4 class="text-lg font-medium text-sage-800 mb-4">
-                Account Security
+                Change Password
               </h4>
+              <p class="text-sm text-sage-600 mb-4">
+                Leave password fields empty if you don't want to change the
+                password
+              </p>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Password -->
+                <!-- New Password -->
                 <div>
                   <label
                     for="password"
                     class="block text-sm font-medium text-sage-700 mb-2"
                   >
-                    Password <span class="text-red-500">*</span>
+                    New Password
                   </label>
                   <input
                     id="password"
                     v-model="form.password"
                     type="password"
-                    required
                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                     :class="{ 'border-red-300': errors.password }"
-                    placeholder="Enter password (min. 8 characters)"
+                    placeholder="Enter new password"
                   />
                   <div v-if="errors.password" class="mt-1 text-sm text-red-600">
                     {{ errors.password[0] }}
@@ -510,15 +511,14 @@
                     for="password_confirmation"
                     class="block text-sm font-medium text-sage-700 mb-2"
                   >
-                    Confirm Password <span class="text-red-500">*</span>
+                    Confirm New Password
                   </label>
                   <input
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
-                    required
                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                    placeholder="Confirm password"
+                    placeholder="Confirm new password"
                   />
                 </div>
               </div>
@@ -539,8 +539,8 @@
                 :disabled="isSubmitting"
                 class="px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span v-if="isSubmitting">Creating...</span>
-                <span v-else>Create User</span>
+                <span v-if="isSubmitting">Updating...</span>
+                <span v-else>Update User</span>
               </button>
             </div>
           </form>
@@ -557,6 +557,7 @@ import DropdownLink from "@/Components/DropdownLink.vue";
 
 // Props
 const props = defineProps({
+  user: Object,
   errors: Object,
 });
 
@@ -585,11 +586,11 @@ const errors = ref(props.errors || {});
 
 // Form data
 const form = reactive({
-  name: "",
-  email: "",
-  phone: "",
-  role: "",
-  status: "active", // Default to active
+  name: props.user?.name || "",
+  email: props.user?.email || "",
+  phone: props.user?.phone || "",
+  role: props.user?.role || "",
+  status: props.user?.status || "",
   password: "",
   password_confirmation: "",
 });
@@ -624,43 +625,35 @@ const submitForm = async () => {
   errors.value = {};
 
   try {
-    // Get CSRF token from multiple sources
-    const csrfToken =
-      window.Laravel?.csrfToken ||
-      document
-        .querySelector('meta[name="csrf-token"]')
-        ?.getAttribute("content");
-
-    if (!csrfToken) {
-      throw new Error("CSRF token not found");
-    }
-
-    console.log("Using CSRF token:", csrfToken); // Debug log
-
     // Create form data
     const formData = new FormData();
-    formData.append("_token", csrfToken);
+    formData.append("_method", "PUT");
+    formData.append(
+      "_token",
+      document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+    );
     formData.append("name", form.name);
     formData.append("email", form.email);
     formData.append("phone", form.phone || "");
     formData.append("role", form.role);
     formData.append("status", form.status);
-    formData.append("password", form.password);
-    formData.append("password_confirmation", form.password_confirmation);
+
+    if (form.password) {
+      formData.append("password", form.password);
+      formData.append("password_confirmation", form.password_confirmation);
+    }
 
     // Submit form
-    const response = await fetch("/master-admin/users", {
+    const response = await fetch(`/master-admin/users/${props.user.id}`, {
       method: "POST",
       body: formData,
       headers: {
         "X-Requested-With": "XMLHttpRequest",
         Accept: "application/json",
-        "X-CSRF-TOKEN": csrfToken,
       },
     });
 
     const data = await response.json();
-    console.log("Response:", response.status, data); // Debug log
 
     if (response.ok && data.success) {
       // Redirect on success
@@ -672,12 +665,12 @@ const submitForm = async () => {
         errors.value = data.errors;
       } else {
         // Handle other errors
-        alert(data.message || "Terjadi kesalahan saat membuat user.");
+        alert(data.message || "Terjadi kesalahan saat mengupdate user.");
       }
     }
   } catch (error) {
     console.error("Form submission error:", error);
-    alert("Terjadi kesalahan saat mengirim data: " + error.message);
+    alert("Terjadi kesalahan saat mengirim data.");
   } finally {
     isSubmitting.value = false;
   }
@@ -701,6 +694,7 @@ const handleResize = () => {
 onMounted(() => {
   window.addEventListener("resize", handleResize);
   window.addEventListener("click", handleClickOutside);
+  console.log("User data:", props.user);
   console.log("Errors:", props.errors);
 });
 
