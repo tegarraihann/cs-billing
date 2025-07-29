@@ -37,26 +37,53 @@
 
           <!-- User Profile Dropdown -->
           <div class="flex items-center space-x-2 sm:space-x-4">
-            <Dropdown align="right" width="48">
-              <template #trigger>
-                <button
-                  class="flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-sage-100 transition-colors"
+            <div class="relative">
+              <button
+                @click="toggleDropdown"
+                class="flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-sage-100 transition-colors"
+              >
+                <div
+                  class="w-7 h-7 sm:w-8 sm:h-8 bg-sage-600 rounded-full flex items-center justify-center"
                 >
-                  <div
-                    class="w-7 h-7 sm:w-8 sm:h-8 bg-sage-600 rounded-full flex items-center justify-center"
-                  >
-                    <span class="text-white font-semibold text-xs sm:text-sm">
-                      {{ getInitials($page.props.auth.user?.name) }}
-                    </span>
-                  </div>
-                  <div class="hidden sm:block text-left">
-                    <p class="text-sm font-medium text-sage-700">
-                      {{ $page.props.auth.user?.name }}
-                    </p>
-                    <p class="text-xs text-sage-500">Admin Keuangan</p>
-                  </div>
+                  <span class="text-white font-semibold text-xs sm:text-sm">
+                    {{ getInitials(authUser?.name) }}
+                  </span>
+                </div>
+                <div class="hidden sm:block text-left">
+                  <p class="text-sm font-medium text-sage-700">
+                    {{ authUser?.name }}
+                  </p>
+                  <p class="text-xs text-sage-500">Admin Keuangan</p>
+                </div>
+                <svg
+                  class="w-4 h-4 text-sage-600 hidden sm:block transition-transform"
+                  :class="{ 'rotate-180': showDropdown }"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div
+                v-if="showDropdown"
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+                @click.stop
+              >
+                <!-- Profile Link -->
+                <a
+                  href="/profile"
+                  class="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                >
                   <svg
-                    class="w-4 h-4 text-sage-600 hidden sm:block"
+                    class="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -65,60 +92,44 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M19 9l-7 7-7-7"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
                   </svg>
+                  <span>Profile</span>
+                </a>
+
+                <!-- Divider -->
+                <div class="border-t border-gray-100 my-1"></div>
+
+                <!-- Logout Button -->
+                <button
+                  @click="handleLogout"
+                  class="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <span>Log Out</span>
                 </button>
-              </template>
+              </div>
+            </div>
 
-              <template #content>
-                <div class="py-1">
-                  <DropdownLink
-                    :href="route('profile.edit')"
-                    class="flex items-center space-x-2 px-4 py-2"
-                  >
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    <span>Profile</span>
-                  </DropdownLink>
-
-                  <div class="border-t border-gray-100 my-1"></div>
-
-                  <DropdownLink
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left"
-                  >
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    <span>Log Out</span>
-                  </DropdownLink>
-                </div>
-              </template>
-            </Dropdown>
+            <!-- Overlay to close dropdown when clicking outside -->
+            <div
+              v-if="showDropdown"
+              @click="closeDropdown"
+              class="fixed inset-0 z-40"
+            ></div>
           </div>
         </div>
       </div>
@@ -169,14 +180,9 @@
       <!-- Navigation Menu -->
       <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
         <!-- Dashboard -->
-        <Link
-          :href="route('admin-keuangan.dashboard')"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
-          :class="{
-            'bg-sage-100 text-sage-800': route().current(
-              'admin-keuangan.dashboard'
-            ),
-          }"
+        <a
+          :href="dashboardRoute"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group bg-sage-100 text-sage-800"
         >
           <svg
             class="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -192,9 +198,68 @@
             />
           </svg>
           <span class="font-medium">Dashboard</span>
-        </Link>
+        </a>
 
-        <!-- Finance Management -->
+        <!-- Finance Management Menu Items -->
+        <a
+          href="#"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+        >
+          <svg
+            class="w-5 h-5 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span class="font-medium">Invoices</span>
+        </a>
+
+        <a
+          href="#"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+        >
+          <svg
+            class="w-5 h-5 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          <span class="font-medium">Payments</span>
+        </a>
+
+        <a
+          href="#"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+        >
+          <svg
+            class="w-5 h-5 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          <span class="font-medium">Reports</span>
+        </a>
       </nav>
 
       <!-- User Profile Section -->
@@ -206,16 +271,14 @@
             class="w-10 h-10 bg-sage-600 rounded-full flex items-center justify-center"
           >
             <span class="text-white font-semibold text-sm">
-              {{ getInitials($page.props.auth.user?.name) }}
+              {{ getInitials(authUser?.name) }}
             </span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-sage-700 truncate">
-              {{ $page.props.auth.user?.name }}
+              {{ authUser?.name }}
             </p>
-            <p class="text-xs text-sage-500 truncate">
-              {{ $page.props.auth.user?.email }}
-            </p>
+            <p class="text-xs text-sage-500 truncate">{{ authUser?.email }}</p>
           </div>
         </div>
       </div>
@@ -229,7 +292,7 @@
           class="bg-gradient-to-r from-sage-600 to-sage-700 rounded-xl shadow-lg p-6 mb-8 text-white"
         >
           <h2 class="text-2xl font-bold mb-2">
-            Welcome back, {{ $page.props.auth.user?.name }}!
+            Welcome back, {{ authUser?.name }}!
           </h2>
           <p class="text-sage-100">
             Manage financial operations, billing, and payments efficiently.
@@ -258,7 +321,9 @@
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p class="text-2xl font-semibold text-gray-900">Rp 125.4M</p>
+                <p class="text-2xl font-semibold text-gray-900">
+                  {{ formatCurrency(stats?.totalRevenue || 125400000) }}
+                </p>
               </div>
             </div>
           </div>
@@ -285,7 +350,9 @@
                 <p class="text-sm font-medium text-gray-600">
                   Outstanding Bills
                 </p>
-                <p class="text-2xl font-semibold text-gray-900">Rp 8.2M</p>
+                <p class="text-2xl font-semibold text-gray-900">
+                  {{ formatCurrency(stats?.pendingPayments || 8200000) }}
+                </p>
               </div>
             </div>
           </div>
@@ -310,7 +377,9 @@
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Paid This Month</p>
-                <p class="text-2xl font-semibold text-gray-900">Rp 18.5M</p>
+                <p class="text-2xl font-semibold text-gray-900">
+                  {{ formatCurrency(18500000) }}
+                </p>
               </div>
             </div>
           </div>
@@ -373,57 +442,30 @@
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-b border-gray-100">
-                  <td class="py-3 px-4 text-sage-600 font-medium">#FIN-001</td>
-                  <td class="py-3 px-4">PT. Tech Solutions</td>
-                  <td class="py-3 px-4 font-semibold">Rp 2.500.000</td>
-                  <td class="py-3 px-4">Payment</td>
+                <tr
+                  v-for="transaction in sampleTransactions"
+                  :key="transaction.id"
+                  class="border-b border-gray-100"
+                >
+                  <td class="py-3 px-4 text-sage-600 font-medium">
+                    {{ transaction.id }}
+                  </td>
+                  <td class="py-3 px-4">{{ transaction.customer }}</td>
+                  <td class="py-3 px-4 font-semibold">
+                    {{ formatCurrency(transaction.amount) }}
+                  </td>
+                  <td class="py-3 px-4">{{ transaction.type }}</td>
                   <td class="py-3 px-4">
                     <span
-                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
-                      >Completed</span
+                      class="px-2 py-1 text-xs font-medium rounded-full"
+                      :class="getStatusClass(transaction.status)"
                     >
+                      {{ transaction.status }}
+                    </span>
                   </td>
-                  <td class="py-3 px-4 text-gray-500">2025-07-28</td>
-                </tr>
-                <tr class="border-b border-gray-100">
-                  <td class="py-3 px-4 text-sage-600 font-medium">#FIN-002</td>
-                  <td class="py-3 px-4">CV. Mandiri Jaya</td>
-                  <td class="py-3 px-4 font-semibold">Rp 1.200.000</td>
-                  <td class="py-3 px-4">Invoice</td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
-                      >Pending</span
-                    >
+                  <td class="py-3 px-4 text-gray-500">
+                    {{ transaction.date }}
                   </td>
-                  <td class="py-3 px-4 text-gray-500">2025-07-27</td>
-                </tr>
-                <tr class="border-b border-gray-100">
-                  <td class="py-3 px-4 text-sage-600 font-medium">#FIN-003</td>
-                  <td class="py-3 px-4">UD. Berkah Usaha</td>
-                  <td class="py-3 px-4 font-semibold">Rp 800.000</td>
-                  <td class="py-3 px-4">Payment</td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
-                      >Completed</span
-                    >
-                  </td>
-                  <td class="py-3 px-4 text-gray-500">2025-07-27</td>
-                </tr>
-                <tr>
-                  <td class="py-3 px-4 text-sage-600 font-medium">#FIN-004</td>
-                  <td class="py-3 px-4">PT. Digital Kreatif</td>
-                  <td class="py-3 px-4 font-semibold">Rp 3.200.000</td>
-                  <td class="py-3 px-4">Refund</td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
-                      >Processing</span
-                    >
-                  </td>
-                  <td class="py-3 px-4 text-gray-500">2025-07-26</td>
                 </tr>
               </tbody>
             </table>
@@ -431,19 +473,189 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 hover:shadow-md transition-shadow cursor-pointer"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="p-3 bg-green-100 rounded-lg">
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-sage-800">New Invoice</h4>
+                <p class="text-sm text-sage-600">Create billing invoice</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 hover:shadow-md transition-shadow cursor-pointer"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="p-3 bg-blue-100 rounded-lg">
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-sage-800">Record Payment</h4>
+                <p class="text-sm text-sage-600">Log new payment</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 hover:shadow-md transition-shadow cursor-pointer"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="p-3 bg-purple-100 rounded-lg">
+                <svg
+                  class="w-6 h-6 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-sage-800">Financial Report</h4>
+                <p class="text-sm text-sage-600">Generate reports</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 hover:shadow-md transition-shadow cursor-pointer"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="p-3 bg-orange-100 rounded-lg">
+                <svg
+                  class="w-6 h-6 text-orange-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-sage-800">Pending Bills</h4>
+                <p class="text-sm text-sage-600">Review overdue</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
-import { Link } from "@inertiajs/vue3";
-import Dropdown from "@/Components/Dropdown.vue";
-import DropdownLink from "@/Components/DropdownLink.vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 // Props
+const props = defineProps({
+  user: Object,
+  userRole: String,
+  stats: Object,
+});
+
+// Computed properties
+const authUser = computed(() => props.user);
+
+// Routes
+const dashboardRoute = "/admin-keuangan/dashboard";
+
+// Reactive state
+const isMobileSidebarOpen = ref(false);
+const showDropdown = ref(false);
+
+// Sample data for transactions
+const sampleTransactions = ref([
+  {
+    id: "#FIN-001",
+    customer: "PT. Tech Solutions",
+    amount: 2500000,
+    type: "Payment",
+    status: "Completed",
+    date: "2025-07-28",
+  },
+  {
+    id: "#FIN-002",
+    customer: "CV. Mandiri Jaya",
+    amount: 1200000,
+    type: "Invoice",
+    status: "Pending",
+    date: "2025-07-27",
+  },
+  {
+    id: "#FIN-003",
+    customer: "UD. Berkah Usaha",
+    amount: 800000,
+    type: "Payment",
+    status: "Completed",
+    date: "2025-07-27",
+  },
+  {
+    id: "#FIN-004",
+    customer: "PT. Digital Kreatif",
+    amount: 3200000,
+    type: "Refund",
+    status: "Processing",
+    date: "2025-07-26",
+  },
+]);
+
+// Methods
+const toggleMobileSidebar = () => {
+  isMobileSidebarOpen.value = !isMobileSidebarOpen.value;
+};
+
+const closeMobileSidebar = () => {
+  isMobileSidebarOpen.value = false;
+};
+
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value;
+};
+
+const closeDropdown = () => {
+  showDropdown.value = false;
+};
+
 const getInitials = (name) => {
   if (!name) return "U";
   return name
@@ -452,6 +664,94 @@ const getInitials = (name) => {
     .join("")
     .toUpperCase()
     .substring(0, 2);
+};
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
+const getStatusClass = (status) => {
+  const classes = {
+    Completed: "bg-green-100 text-green-800",
+    Pending: "bg-yellow-100 text-yellow-800",
+    Processing: "bg-red-100 text-red-800",
+  };
+  return classes[status] || "bg-gray-100 text-gray-800";
+};
+
+const getCsrfToken = () => {
+  return (
+    window.Laravel?.csrfToken ||
+    document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+  );
+};
+
+const handleLogout = async () => {
+  try {
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("CSRF token not found");
+      alert("Session expired. Please refresh the page.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("_token", csrfToken);
+
+    const response = await fetch("/logout", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRF-TOKEN": csrfToken,
+      },
+    });
+
+    if (response.ok || response.redirected) {
+      window.location.href = "/";
+    } else {
+      // Fallback form method
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/logout";
+
+      const tokenInput = document.createElement("input");
+      tokenInput.type = "hidden";
+      tokenInput.name = "_token";
+      tokenInput.value = csrfToken;
+
+      form.appendChild(tokenInput);
+      document.body.appendChild(form);
+      form.submit();
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Fallback form method
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/logout";
+
+    const tokenInput = document.createElement("input");
+    tokenInput.type = "hidden";
+    tokenInput.name = "_token";
+    tokenInput.value = getCsrfToken();
+
+    form.appendChild(tokenInput);
+    document.body.appendChild(form);
+    form.submit();
+  }
+};
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (!event.target.closest(".relative")) {
+    showDropdown.value = false;
+  }
 };
 
 // Auto-close mobile sidebar on screen resize
@@ -464,10 +764,13 @@ const handleResize = () => {
 // Lifecycle hooks
 onMounted(() => {
   window.addEventListener("resize", handleResize);
+  window.addEventListener("click", handleClickOutside);
+  console.log("AdminKeuangan Dashboard props:", props);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
+  window.removeEventListener("click", handleClickOutside);
 });
 </script>
 
@@ -523,16 +826,13 @@ onUnmounted(() => {
 aside::-webkit-scrollbar {
   width: 4px;
 }
-
 aside::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
-
 aside::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 2px;
 }
-
 aside::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }

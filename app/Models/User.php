@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -19,8 +20,12 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role',
+        'status',
+        'is_active',
+        'email_verified_at',
     ];
 
     /**
@@ -43,52 +48,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
     /**
-     * Available user roles
-     */
-    public const ROLES = [
-        'masteradmin' => 'Master Admin',
-        'admin_cs' => 'Admin Customer Service',
-        'admin_keuangan' => 'Admin Keuangan',
-    ];
-
-    /**
-     * Check if user has master admin role
-     */
-    public function isMasterAdmin(): bool
-    {
-        return $this->role === 'masteradmin';
-    }
-
-    /**
-     * Check if user has admin CS role
-     */
-    public function isAdminCS(): bool
-    {
-        return $this->role === 'admin_cs';
-    }
-
-    /**
-     * Check if user has admin keuangan role
-     */
-    public function isAdminKeuangan(): bool
-    {
-        return $this->role === 'admin_keuangan';
-    }
-
-    /**
-     * Check if user has any admin role
-     */
-    public function isAdmin(): bool
-    {
-        return in_array($this->role, ['masteradmin', 'admin_cs', 'admin_keuangan']);
-    }
-
-    /**
-     * Check if user has specific role
+     * Check if user has a specific role
      */
     public function hasRole(string $role): bool
     {
@@ -96,31 +61,66 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has any of the given roles
+     * Check if user is active
      */
-    public function hasAnyRole(array $roles): bool
+    public function isActive(): bool
     {
-        return in_array($this->role, $roles);
+        return $this->is_active && $this->status === 'active';
     }
 
     /**
      * Get role display name
      */
-    public function getRoleDisplayName(): string
+    public function getRoleDisplayNameAttribute(): string
     {
-        return self::ROLES[$this->role] ?? $this->role;
+        return match ($this->role) {
+            'masteradmin' => 'Master Admin',
+            'admin_cs' => 'Admin CS',
+            'admin_keuangan' => 'Admin Keuangan',
+            default => ucfirst($this->role)
+        };
     }
 
     /**
-     * Get default dashboard route based on role
+     * Get status display name
      */
-    public function getDefaultDashboardRoute(): string
+    public function getStatusDisplayNameAttribute(): string
     {
-        return match($this->role) {
-            'masteradmin' => 'masteradmin.dashboard',
-            'admin_cs' => 'admin-cs.dashboard',
-            'admin_keuangan' => 'admin-keuangan.dashboard',
-            default => 'dashboard'
-        };
+        return ucfirst($this->status);
+    }
+
+    /**
+     * Scope to filter by role
+     */
+    public function scopeRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    /**
+     * Scope to filter by status
+     */
+    public function scopeStatus($query, string $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Scope to filter active users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active')->where('is_active', true);
+    }
+
+    /**
+     * Scope to search users by name or email
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+                ->orWhere('email', 'like', '%' . $search . '%');
+        });
     }
 }
