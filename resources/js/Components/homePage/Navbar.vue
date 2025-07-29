@@ -32,7 +32,7 @@
                 <div class="hidden md:block">
                     <button @click="scrollToSection('#contact')"
                         class="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        Konsultasi Gratis
+                        Hubungi Kami
                     </button>
                 </div>
 

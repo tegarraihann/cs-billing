@@ -231,22 +231,22 @@ const achievements = [
 ]
 
 const keyPoints = [
-    {
-        title: 'Pengalaman 15+ Tahun',
-        description: 'Melayani ekspor-impor dan logistik dengan track record yang terpercaya dan profesional'
-    },
-    {
-        title: 'Jaringan Global',
-        description: 'Kemitraan dengan 50+ negara untuk memfasilitasi perdagangan internasional yang efisien'
-    },
-    {
-        title: 'Teknologi Modern',
-        description: 'Sistem tracking real-time dan digitalisasi proses untuk efisiensi maksimal dan transparansi'
-    },
-    {
-        title: 'Tim Profesional',
-        description: 'Didukung oleh experts bersertifikat internasional di bidang logistik dan perdagangan'
-    }
+    // {
+    //     title: 'Pengalaman 15+ Tahun',
+    //     description: 'Melayani ekspor-impor dan logistik dengan track record yang terpercaya dan profesional'
+    // },
+    // {
+    //     title: 'Jaringan Global',
+    //     description: 'Kemitraan dengan 50+ negara untuk memfasilitasi perdagangan internasional yang efisien'
+    // },
+    // {
+    //     title: 'Teknologi Modern',
+    //     description: 'Sistem tracking real-time dan digitalisasi proses untuk efisiensi maksimal dan transparansi'
+    // },
+    // {
+    //     title: 'Tim Profesional',
+    //     description: 'Didukung oleh experts bersertifikat internasional di bidang logistik dan perdagangan'
+    // }
 ]
 
 const teamHighlights = [

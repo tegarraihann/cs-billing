@@ -1,5 +1,5 @@
 <template>
-    <footer class="bg-gradient-to-br from-gray-800 via-gray-900 to-sage-800 text-white">
+    <footer class="bg-gray-800  text-white">
         <!-- Main Footer Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-12">
