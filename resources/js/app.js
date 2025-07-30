@@ -12,16 +12,13 @@ const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 const setupCSRF = () => {
     const token = document.querySelector('meta[name="csrf-token"]');
     if (token) {
-        // Make CSRF token globally available
         window.Laravel = window.Laravel || {};
         window.Laravel.csrfToken = token.getAttribute("content");
 
-        // Setup for axios if available
+        // Optional: If you use axios
         if (window.axios) {
-            window.axios.defaults.headers.common["X-CSRF-TOKEN"] =
-                token.getAttribute("content");
-            window.axios.defaults.headers.common["X-Requested-With"] =
-                "XMLHttpRequest";
+            window.axios.defaults.headers.common["X-CSRF-TOKEN"] = token.getAttribute("content");
+            window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
         }
 
         console.log("CSRF token loaded:", token.getAttribute("content"));
@@ -38,7 +35,6 @@ createInertiaApp({
             import.meta.glob("./Pages/**/*.vue")
         ),
     setup({ el, App, props, plugin }) {
-        // Setup CSRF token when app initializes
         setupCSRF();
 
         return createApp({ render: () => h(App, props) })
@@ -51,5 +47,5 @@ createInertiaApp({
     },
 });
 
-// Also setup CSRF when DOM is ready (fallback)
+// Fallback for CSRF setup if not already triggered
 document.addEventListener("DOMContentLoaded", setupCSRF);
