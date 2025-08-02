@@ -77,7 +77,7 @@
                         <div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                              :style="`background-image: url('${service.backgroundImage}');`"
                              :class="service.fallbackBg"
-                             style="will-change: transform; contain: layout style paint;"
+                             style="will-change: transform;"
                              loading="lazy">
                             <div class="absolute inset-0 bg-black/55 group-hover:bg-black/45 transition-opacity duration-300"></div>
                         </div>
@@ -126,7 +126,7 @@
                                         <div
                                             class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                                             :style="`background-image: url('${addon.backgroundImage}');`"
-                                            style="will-change: transform; contain: layout style paint;"
+                                            style="will-change: transform;"
                                             loading="lazy"
                                         >
                                             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
@@ -413,7 +413,7 @@ const startAutoSlide = () => {
         } else {
             nextSlide()
         }
-    }, 8000) // Increased interval for better performance
+    }, 6000) // Restore original interval
 }
 
 const stopAutoSlide = () => {
@@ -470,11 +470,10 @@ onUnmounted(() => {
 .hover\:bg-sage-200:hover { background-color: #D4DDD0; }
 .hover\:bg-sage-700:hover { background-color: #7BA169; }
 
-/* Optimized carousel transition */
+/* Carousel transition optimization */
 .carousel-slide {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.5s ease-in-out;
     will-change: transform;
-    contain: layout style paint;
 }
 
 /* Optimized icon hover effect */
@@ -487,12 +486,11 @@ onUnmounted(() => {
     color: white !important;
 }
 
-/* Optimized containers */
+/* Dotted Map Container Styles */
 .dotted-map-background {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    contain: layout style paint;
 }
 
 /* Additional sage colors for CTA section */

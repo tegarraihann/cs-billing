@@ -39,16 +39,8 @@ const loadDottedMap = async () => {
   loadAttempted = true
 
   try {
-    // Use requestIdleCallback for better performance
-    if (window.requestIdleCallback) {
-      window.requestIdleCallback(async () => {
-        await loadMapPackage()
-      })
-    } else {
-      setTimeout(async () => {
-        await loadMapPackage()
-      }, 100)
-    }
+    // Direct load for faster response
+    await loadMapPackage()
   } catch (error) {
     // Fallback is already visible
   }
@@ -75,19 +67,20 @@ const loadMapPackage = async () => {
     if (svgMap?.trim() && mapContainer.value) {
       const fallbackElement = mapContainer.value.querySelector('.fallback-dotted-map')
       if (fallbackElement) {
-        const fragment = document.createDocumentFragment()
         const div = document.createElement('div')
         div.innerHTML = svgMap
         div.className = 'map-animation'
-        div.style.cssText = 'width:100%;height:100%;opacity:0.6'
+        div.style.width = '100%'
+        div.style.height = '100%'
+        div.style.opacity = '0.6'
         
         const svg = div.querySelector('svg')
         if (svg) {
-          svg.style.cssText = 'width:100%;height:100%;will-change:transform'
+          svg.style.width = '100%'
+          svg.style.height = '100%'
         }
 
-        fragment.appendChild(div)
-        mapContainer.value.replaceChild(fragment, fallbackElement)
+        mapContainer.value.replaceChild(div, fallbackElement)
       }
     }
   } catch (error) {
@@ -110,86 +103,79 @@ onUnmounted(() => {
 .dotted-map-container {
   position: relative;
   overflow: hidden;
-  contain: layout style paint;
 }
 
-/* Optimized animation for the map */
+/* Simplified animation for the map */
 .map-animation {
-  animation: float-map 30s ease-in-out infinite;
-  will-change: transform;
+  animation: float-map 20s ease-in-out infinite;
 }
 
 @keyframes float-map {
   0%, 100% {
-    transform: translate3d(0, 0, 0);
+    transform: translateX(0) translateY(0);
   }
-  33% {
-    transform: translate3d(1px, -0.5px, 0);
+  25% {
+    transform: translateX(2px) translateY(-1px);
   }
-  66% {
-    transform: translate3d(-0.5px, 1px, 0);
+  50% {
+    transform: translateX(-1px) translateY(2px);
+  }
+  75% {
+    transform: translateX(1px) translateY(-2px);
   }
 }
 
-/* Optimized Fallback CSS dotted map */
+/* Simplified Fallback CSS dotted map */
 .fallback-dotted-map {
   background-image: 
     radial-gradient(circle at 3px 3px, rgba(255, 255, 255, 0.4) 1.2px, transparent 0),
-    radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.3) 0.8px, transparent 0),
-    radial-gradient(circle at 15px 35px, rgba(255, 255, 255, 0.25) 1px, transparent 0);
-  background-size: 45px 45px, 70px 70px, 55px 55px;
-  background-position: 0 0, 15px 15px, 8px 25px;
-  animation: float-dots 40s ease-in-out infinite;
+    radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.3) 0.8px, transparent 0);
+  background-size: 45px 45px, 70px 70px;
+  background-position: 0 0, 15px 15px;
+  animation: float-dots 30s ease-in-out infinite;
   position: relative;
   opacity: 1;
   min-height: 200px;
-  contain: layout style paint;
-  will-change: background-position;
 }
 
-/* Optimized connection lines overlay */
+/* Simplified connection lines overlay */
 .fallback-dotted-map::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image: 
-    linear-gradient(45deg, transparent 49.5%, rgba(255, 255, 255, 0.06) 50%, transparent 50.5%),
-    linear-gradient(-45deg, transparent 49.5%, rgba(255, 255, 255, 0.04) 50%, transparent 50.5%);
-  background-size: 140px 140px, 120px 120px;
-  animation: connect-lines 60s linear infinite;
-  opacity: 0.5;
-  contain: layout style paint;
+    linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.08) 50%, transparent 51%);
+  background-size: 100px 100px;
+  animation: connect-lines 40s linear infinite;
+  opacity: 0.6;
 }
 
-/* Optimized pulsing nodes */
+/* Simplified pulsing nodes */
 .fallback-dotted-map::after {
   content: '';
   position: absolute;
   inset: 0;
   background-image: 
     radial-gradient(circle at 25% 35%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
-    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.3) 1.2px, transparent 2.2px),
-    radial-gradient(circle at 80% 65%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
-    radial-gradient(circle at 30% 75%, rgba(255, 255, 255, 0.3) 1.2px, transparent 2.2px);
-  animation: pulse-nodes 6s ease-in-out infinite;
-  contain: layout style paint;
+    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.3) 1.2px, transparent 2.2px);
+  animation: pulse-nodes 4s ease-in-out infinite;
 }
 
 @keyframes float-dots {
   0%, 100% {
-    background-position: 0 0, 15px 15px, 8px 25px;
+    background-position: 0 0, 15px 15px;
   }
   50% {
-    background-position: 4px 4px, 19px 19px, 12px 29px;
+    background-position: 4px 4px, 19px 19px;
   }
 }
 
 @keyframes connect-lines {
   0% {
-    background-position: 0 0, 0 0;
+    background-position: 0 0;
   }
   100% {
-    background-position: 140px 140px, -120px 120px;
+    background-position: 100px 100px;
   }
 }
 
