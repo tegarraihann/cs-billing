@@ -40,7 +40,8 @@
                     </div>
 
                     <!-- Enhanced Heading with Better Contrast -->
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up leading-tight font-montserrat">
+                    <h1
+                        class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up leading-tight font-montserrat">
                         <span class="text-white drop-shadow-lg">PT ESHAKA WIJAYA </span>
                         <br>
                         <span
@@ -70,12 +71,9 @@
                 </div>
 
                 <!-- Logo Right Side -->
-                <div class="flex justify-center lg:justify-center lg:-ml-16 animate-fade-in-up" style="animation-delay: 0.1s;">
-                    <HeroLogo
-                        size="xl"
-                        :enable-parallax="true"
-                        alt-text="PT Eshaka Wijaya Logistics Hero Logo"
-                    />
+                <div class="hidden lg:flex justify-center lg:justify-center lg:-ml-16 animate-fade-in-up"
+                    style="animation-delay: 0.1s;">
+                    <HeroLogo size="xl" :enable-parallax="true" alt-text="PT Eshaka Wijaya Logistics Hero Logo" />
                 </div>
 
             </div>
@@ -141,19 +139,24 @@ const scrollToServices = () => {
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-20px);
     }
 }
 
 @keyframes gradient {
+
     0%,
     100% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
@@ -207,5 +210,4 @@ const scrollToServices = () => {
 .font-jost {
     font-family: 'jost', sans-serif;
 }
-
 </style>

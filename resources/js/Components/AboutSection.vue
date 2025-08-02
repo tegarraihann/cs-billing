@@ -153,7 +153,8 @@
                 <div class="flex justify-center mb-8 md:mb-12">
                     <Team size="large" layout="vertical" :show-text="false" :show-overlay="true" :show-stats="true"
                         team-title="Tim Expert Logistics"
-                        team-description="Profesional berpengalaman dengan dedikasi tinggi dalam melayani kebutuhan logistik internasional Anda." />
+                        team-description="Experienced professionals with a high level of dedication to serving your international logistics needs."
+                        />
                 </div>
 
                 <!-- Team Highlights -->
