@@ -126,7 +126,7 @@
               </svg>
               Your message has been sent successfully! Our team will contact you soon.
             </div>
-            
+
             <div v-if="submitStatus === 'error'" class="mb-4 p-3 bg-red-500/20 border border-red-400/30 rounded-xl text-red-300 text-sm font-jost flex items-center">
               <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -139,8 +139,8 @@
               :disabled="isSubmitting || !isFormValid"
               :class="[
                 'w-full px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300',
-                isFormValid && !isSubmitting 
-                  ? 'bg-white text-sage-500 hover:bg-white/90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5' 
+                isFormValid && !isSubmitting
+                  ? 'bg-white text-sage-500 hover:bg-white/90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   : 'bg-white/50 text-sage-400 cursor-not-allowed'
               ]"
             >
@@ -240,9 +240,9 @@ const validatePhone = (phone) => {
 const validateForm = () => {
   // Clear previous errors
   Object.keys(formErrors).forEach(key => formErrors[key] = '')
-  
+
   let isValid = true
-  
+
   if (!form.name.trim()) {
     formErrors.name = 'Full name is required'
     isValid = false
@@ -250,7 +250,7 @@ const validateForm = () => {
     formErrors.name = 'Name must be at least 2 characters'
     isValid = false
   }
-  
+
   if (!form.email.trim()) {
     formErrors.email = 'Email is required'
     isValid = false
@@ -258,7 +258,7 @@ const validateForm = () => {
     formErrors.email = 'Please enter a valid email address'
     isValid = false
   }
-  
+
   if (!form.phone.trim()) {
     formErrors.phone = 'Phone number is required'
     isValid = false
@@ -266,7 +266,7 @@ const validateForm = () => {
     formErrors.phone = 'Please enter a valid phone number'
     isValid = false
   }
-  
+
   if (!form.message.trim()) {
     formErrors.message = 'Message is required'
     isValid = false
@@ -274,15 +274,15 @@ const validateForm = () => {
     formErrors.message = 'Message must be at least 10 characters'
     isValid = false
   }
-  
+
   return isValid
 }
 
 const isFormValid = computed(() => {
-  return form.name.trim() && 
-         form.email.trim() && 
+  return form.name.trim() &&
+         form.email.trim() &&
          validateEmail(form.email) &&
-         form.phone.trim() && 
+         form.phone.trim() &&
          validatePhone(form.phone) &&
          form.message.trim() &&
          form.message.trim().length >= 10
@@ -292,7 +292,7 @@ const submitForm = async () => {
   if (!validateForm()) {
     return
   }
-  
+
   isSubmitting.value = true
   submitStatus.value = ''
 
@@ -303,7 +303,7 @@ const submitForm = async () => {
     // Reset form after successful submission
     Object.keys(form).forEach(key => form[key] = '')
     submitStatus.value = 'success'
-    
+
     // Clear success message after 5 seconds
     setTimeout(() => {
       submitStatus.value = ''
@@ -406,7 +406,7 @@ const whyChooseUs = [
     .transition-transform {
         transition: none;
     }
-    
+
     .animate-spin,
     .animate-pulse {
         animation: none;

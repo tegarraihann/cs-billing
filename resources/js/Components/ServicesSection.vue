@@ -194,28 +194,37 @@
 
             <!-- CTA Banner Section -->
             <div class="mt-20 lg:mt-24 relative">
-                <!-- Dotted Map Background -->
-                <div class="absolute inset-0 opacity-40 z-0 min-h-full">
-                    <DottedMap
-                        dot-color="rgba(255, 255, 255, 0.8)"
-                        :dot-size="2"
-                        :spacing="2"
-                        :countries="['ID', 'SG', 'MY', 'TH', 'VN', 'PH', 'CN', 'JP', 'KR', 'IN', 'AU', 'NZ', 'US', 'GB', 'DE', 'FR', 'NL', 'AE', 'SA', 'BR', 'MX', 'CA']"
+                <!-- Background World Map -->
+                <div class="absolute inset-0 opacity-50 z-0 min-h-96">
+                    <WorldMapDotted 
+                        :dot-size="3"
+                        dot-color="rgba(139, 181, 128, 0.8)"
+                        :dot-spacing="25"
+                        :animated="true"
+                        :show-country-highlights="true"
+                        highlight-color="rgba(139, 181, 128, 1)"
+                        :opacity="1"
+                        height="100%"
+                        width="100%"
                     />
                 </div>
 
                 <!-- Banner Content -->
                 <div class="relative bg-gradient-to-r from-sage-600 via-sage-700 to-sage-600 rounded-2xl p-6 md:p-8 lg:p-12 text-white overflow-hidden z-10">
-                    <!-- Inner Dotted Map Background on Banner -->
-                    <div class="absolute inset-0 opacity-15 z-0">
-                        <DottedMap 
-                            dot-color="rgba(255, 255, 255, 0.4)"
-                            :dot-size="0.8"
-                            :spacing="6"
-                            :countries="['ID', 'SG', 'MY', 'TH', 'VN', 'PH', 'CN', 'JP', 'KR', 'AU', 'US']"
+                    <!-- Inner Banner World Map -->
+                    <div class="absolute inset-0 opacity-30 z-0">
+                        <WorldMapDotted 
+                            :dot-size="2"
+                            dot-color="rgba(255, 255, 255, 0.7)"
+                            :dot-spacing="20"
+                            :animated="true"
+                            :show-country-highlights="false"
+                            :opacity="1"
+                            height="100%"
+                            width="100%"
                         />
                     </div>
-                    
+
                     <!-- Decorative Elements -->
                     <div class="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl z-5"></div>
                     <div class="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full blur-lg z-5"></div>
@@ -268,7 +277,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import DottedMap from '@/Components/DottedMap.vue'
+import DottedMapCSS from '@/Components/DottedMapCSS.vue'
+import WorldMapDotted from '@/Components/WorldMapDotted.vue'
 
 const exportImportFeatures = [
     'Customs Clearance & Documentation',
@@ -404,10 +414,10 @@ let isPageVisible = true
 
 const startAutoSlide = () => {
     if (!isPageVisible) return
-    
+
     autoSlideInterval = setInterval(() => {
         if (!isPageVisible) return
-        
+
         if (currentSlide.value >= totalSlides.value - 1) {
             currentSlide.value = 0
         } else {
@@ -486,12 +496,6 @@ onUnmounted(() => {
     color: white !important;
 }
 
-/* Dotted Map Container Styles */
-.dotted-map-background {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
 
 /* Additional sage colors for CTA section */
 .text-sage-100 { color: #F4F6F3; }

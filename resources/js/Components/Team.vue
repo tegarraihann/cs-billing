@@ -8,7 +8,7 @@
           :src="photoSrc"
           :alt="altText"
           :class="photoClass"
-          class="object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-105 group-hover:brightness-110"
+          class="object-cover object-center transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
           decoding="async"
           @error="handleImageError"
@@ -30,19 +30,19 @@
           </div>
         </div>
 
-        <!-- Overlay with gradient -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 ease-in-out"></div>
+        <!-- Simplified Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
 
         <!-- Team Info Overlay -->
-        <div v-if="showOverlay" class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+        <div v-if="showOverlay" class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
           <h3 class="text-2xl font-bold mb-2 font-montserrat">{{ teamTitle }}</h3>
           <p class="text-sm opacity-90 font-jost">{{ teamDescription }}</p>
         </div>
       </div>
 
-      <!-- Decorative Elements (Optional - can be removed if too distracting) -->
-      <div v-if="showDecorative" class="absolute -top-4 -right-4 w-8 h-8 bg-sage-600 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-      <div v-if="showDecorative" class="absolute -bottom-4 -left-4 w-6 h-6 bg-sage-400 rounded-full opacity-30 group-hover:opacity-60 transition-opacity duration-300"></div>
+      <!-- Simplified Decorative Elements -->
+      <div v-if="showDecorative" class="absolute -top-3 -right-3 w-6 h-6 bg-sage-600 rounded-full opacity-15 group-hover:opacity-30 transition-opacity duration-200"></div>
+      <div v-if="showDecorative" class="absolute -bottom-3 -left-3 w-4 h-4 bg-sage-400 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-200"></div>
     </div>
 
     <!-- Team Information (if beside photo) -->
@@ -263,9 +263,9 @@ img {
   }
 }
 
-/* Optimize image loading */
+/* Optimized image loading */
 img[loading="lazy"] {
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
 }
 
 /* Smooth loading animation */
