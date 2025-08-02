@@ -31,7 +31,7 @@
           <!-- Page Title -->
           <div class="flex-1 lg:flex-none">
             <h1 class="text-lg sm:text-xl font-semibold text-sage-800">
-              Add New User
+              Dashboard
             </h1>
           </div>
 

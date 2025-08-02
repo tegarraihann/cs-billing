@@ -122,7 +122,12 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Additional profile routes for data retrieval
+    Route::get('/profile/data', [ProfileController::class, 'getProfileData'])->name('profile.data');
+    Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
 });
 
 require __DIR__ . '/auth.php';

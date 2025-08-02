@@ -6,10 +6,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -26,6 +27,10 @@ class User extends Authenticatable
         'status',
         'is_active',
         'email_verified_at',
+        'last_login_at',
+        'password_changed_at',
+        'profile_updated_at',
+        'last_activity_at',
     ];
 
     /**
@@ -47,66 +52,129 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'password_changed_at' => 'datetime',
+            'profile_updated_at' => 'datetime',
+            'last_activity_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
     }
 
     /**
-     * Check if user has a specific role
+     * Boot the model.
      */
-    public function hasRole(string $role): bool
+    protected static function boot()
     {
-        return $this->role === $role;
+        parent::boot();
+
+        // Update profile_updated_at when user data changes
+        static::updating(function ($user) {
+            // Check if profile fields are being updated
+            $profileFields = ['name', 'email', 'phone'];
+            foreach ($profileFields as $field) {
+                if ($user->isDirty($field)) {
+                    $user->profile_updated_at = now();
+                    break;
+                }
+            }
+
+            // Update password_changed_at when password changes
+            if ($user->isDirty('password')) {
+                $user->password_changed_at = now();
+            }
+        });
+
+        // Set timestamps when creating user
+        static::creating(function ($user) {
+            $user->profile_updated_at = now();
+            if ($user->password) {
+                $user->password_changed_at = now();
+            }
+        });
     }
 
     /**
-     * Check if user is active
+     * Get user's full profile data for API responses
      */
-    public function isActive(): bool
+    public function getProfileData(): array
     {
-        return $this->is_active && $this->status === 'active';
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'role' => $this->role,
+            'status' => $this->status,
+            'is_active' => $this->is_active,
+            'email_verified_at' => $this->email_verified_at,
+            'last_login_at' => $this->last_login_at,
+            'password_changed_at' => $this->password_changed_at,
+            'profile_updated_at' => $this->profile_updated_at,
+            'last_activity_at' => $this->last_activity_at,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 
     /**
-     * Get role display name
+     * Get user's security information
      */
-    public function getRoleDisplayNameAttribute(): string
+    public function getSecurityData(): array
     {
-        return match ($this->role) {
-            'masteradmin' => 'Master Admin',
-            'admin_cs' => 'Admin CS',
-            'admin_keuangan' => 'Admin Keuangan',
-            default => ucfirst($this->role)
-        };
+        $accountAge = $this->created_at ? $this->created_at->diffInDays(now()) : 0;
+        $daysSincePasswordChange = $this->password_changed_at ? $this->password_changed_at->diffInDays(now()) : null;
+        $daysSinceLastLogin = $this->last_login_at ? $this->last_login_at->diffInDays(now()) : null;
+
+        return [
+            'account_age_days' => $accountAge,
+            'account_age_formatted' => $this->formatAccountAge($accountAge),
+            'days_since_password_change' => $daysSincePasswordChange,
+            'days_since_last_login' => $daysSinceLastLogin,
+            'is_email_verified' => !is_null($this->email_verified_at),
+            'is_recently_active' => $this->isRecentlyActive(),
+            'password_age_warning' => $daysSincePasswordChange && $daysSincePasswordChange > 90,
+        ];
     }
 
     /**
-     * Get status display name
+     * Check if user is recently active (within last 30 days)
      */
-    public function getStatusDisplayNameAttribute(): string
+    public function isRecentlyActive(): bool
     {
-        return ucfirst($this->status);
+        if (!$this->last_activity_at) {
+            return false;
+        }
+
+        return $this->last_activity_at->diffInDays(now()) <= 30;
     }
 
     /**
-     * Scope to filter by role
+     * Format account age in human readable format
      */
-    public function scopeRole($query, string $role)
+    private function formatAccountAge(int $days): string
     {
-        return $query->where('role', $role);
+        if ($days < 30) {
+            return $days . ' day' . ($days > 1 ? 's' : '');
+        } elseif ($days < 365) {
+            $months = floor($days / 30);
+            return $months . ' month' . ($months > 1 ? 's' : '');
+        } else {
+            $years = floor($days / 365);
+            return $years . ' year' . ($years > 1 ? 's' : '');
+        }
     }
 
     /**
-     * Scope to filter by status
+     * Update user's last activity
      */
-    public function scopeStatus($query, string $status)
+    public function updateLastActivity(): void
     {
-        return $query->where('status', $status);
+        $this->update(['last_activity_at' => now()]);
     }
 
     /**
-     * Scope to filter active users
+     * Scope for active users
      */
     public function scopeActive($query)
     {
@@ -114,13 +182,82 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to search users by name or email
+     * Scope for recently active users
      */
-    public function scopeSearch($query, string $search)
+    public function scopeRecentlyActive($query, int $days = 30)
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%');
-        });
+        return $query->where('last_activity_at', '>=', now()->subDays($days));
+    }
+
+    /**
+     * Get role label for display
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        $labels = [
+            'masteradmin' => 'Master Administrator',
+            'admin_cs' => 'Admin Customer Service',
+            'admin_keuangan' => 'Admin Keuangan',
+        ];
+
+        return $labels[$this->role] ?? $this->role;
+    }
+
+    /**
+     * Get status badge class
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return $this->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    }
+
+    /**
+     * Check if user needs to verify email
+     */
+    public function needsEmailVerification(): bool
+    {
+        return is_null($this->email_verified_at);
+    }
+
+    /**
+     * Check if password is old (more than 90 days)
+     */
+    public function hasOldPassword(): bool
+    {
+        if (!$this->password_changed_at) {
+            return true; // No record of password change
+        }
+
+        return $this->password_changed_at->diffInDays(now()) > 90;
+    }
+
+    /**
+     * Get formatted last login time
+     */
+    public function getLastLoginFormattedAttribute(): ?string
+    {
+        if (!$this->last_login_at) {
+            return null;
+        }
+
+        return $this->last_login_at->format('d M Y, H:i');
+    }
+
+    /**
+     * Get user statistics for dashboard
+     */
+    public static function getStatistics(): array
+    {
+        return [
+            'total_users' => self::count(),
+            'active_users' => self::active()->count(),
+            'inactive_users' => self::where('status', 'inactive')->count(),
+            'recently_active' => self::recentlyActive()->count(),
+            'unverified_emails' => self::whereNull('email_verified_at')->count(),
+            'role_distribution' => self::selectRaw('role, COUNT(*) as count')
+                ->groupBy('role')
+                ->pluck('count', 'role')
+                ->toArray(),
+        ];
     }
 }
