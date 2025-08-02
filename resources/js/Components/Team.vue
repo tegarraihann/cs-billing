@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center" :class="containerClass">
+  <div class="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8" :class="containerClass">
     <!-- Team Photo Container -->
     <div class="relative group">
       <!-- Main Team Photo -->
@@ -8,17 +8,35 @@
           :src="photoSrc"
           :alt="altText"
           :class="photoClass"
-          class="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          class="object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-105 group-hover:brightness-110"
+          loading="lazy"
+          decoding="async"
           @error="handleImageError"
+          @load="handleImageLoad"
         />
 
+        <!-- Loading placeholder -->
+        <div v-if="!imageLoaded && !imageError" class="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse flex items-center justify-center">
+          <div class="text-gray-500 text-lg font-medium">Loading...</div>
+        </div>
+
+        <!-- Error fallback -->
+        <div v-if="imageError" class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+          <div class="text-center text-gray-600">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 3h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <p class="text-sm">Tim Photo Unavailable</p>
+          </div>
+        </div>
+
         <!-- Overlay with gradient -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 ease-in-out"></div>
 
         <!-- Team Info Overlay -->
         <div v-if="showOverlay" class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <h3 class="text-2xl font-bold mb-2">{{ teamTitle }}</h3>
-          <p class="text-sm opacity-90">{{ teamDescription }}</p>
+          <h3 class="text-2xl font-bold mb-2 font-montserrat">{{ teamTitle }}</h3>
+          <p class="text-sm opacity-90 font-jost">{{ teamDescription }}</p>
         </div>
       </div>
 
@@ -103,13 +121,14 @@ const props = defineProps({
 })
 
 const imageError = ref(false)
+const imageLoaded = ref(false)
 
 // Team photo source
 const photoSrc = computed(() => {
   if (imageError.value) {
     return null
   }
-  return '/images/team/tim.png' // atau '/images/team/team-photo.jpg'
+  return '/images/team/tim.png'
 })
 
 const altText = computed(() => {
@@ -120,7 +139,7 @@ const altText = computed(() => {
 const sizeConfig = computed(() => {
   const base = {
     small: {
-      photoContainer: 'w-64 h-auto',
+      photoContainer: 'w-full max-w-sm h-auto px-4 sm:px-0',
       photo: 'w-full h-auto',
       container: props.layout === 'horizontal' ? 'space-x-6' : 'space-y-2',
       textContainer: 'flex flex-col',
@@ -128,7 +147,7 @@ const sizeConfig = computed(() => {
       description: 'text-sm text-gray-600 mt-2'
     },
     medium: {
-      photoContainer: 'w-80 h-auto',
+      photoContainer: 'w-full max-w-md h-auto px-4 sm:px-0',
       photo: 'w-full h-auto',
       container: props.layout === 'horizontal' ? 'space-x-8' : 'space-y-3',
       textContainer: 'flex flex-col max-w-md',
@@ -136,24 +155,24 @@ const sizeConfig = computed(() => {
       description: 'text-base text-gray-600 mt-3'
     },
     large: {
-      photoContainer: 'w-96 h-auto',
-      photo: 'w-full h-auto',
+      photoContainer: 'w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-[40rem] h-auto sm:h-[25rem] md:h-[30rem] lg:h-[35rem] mx-auto px-4 sm:px-0',
+      photo: 'w-full h-auto sm:h-full object-cover sm:object-cover',
       container: props.layout === 'horizontal' ? 'space-x-10' : 'space-y-4',
       textContainer: 'flex flex-col max-w-lg',
       title: 'text-3xl font-bold text-gray-800',
       description: 'text-lg text-gray-600 mt-4 leading-relaxed'
     },
     xl: {
-      photoContainer: 'w-auto h-auto max-w-2xl',
-      photo: 'w-full h-auto',
+      photoContainer: 'w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl h-auto sm:h-[30rem] md:h-[35rem] lg:h-[40rem] mx-auto px-4 sm:px-0',
+      photo: 'w-full h-auto sm:h-full object-cover',
       container: props.layout === 'horizontal' ? 'space-x-12' : 'space-y-4',
       textContainer: 'flex flex-col max-w-xl',
       title: 'text-4xl font-bold text-gray-800',
       description: 'text-xl text-gray-600 mt-4 leading-relaxed'
     },
     full: {
-      photoContainer: 'w-full max-w-4xl h-auto',
-      photo: 'w-full h-auto',
+      photoContainer: 'w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto sm:h-[35rem] md:h-[40rem] lg:h-[45rem] mx-auto px-4 sm:px-0',
+      photo: 'w-full h-auto sm:h-full object-cover',
       container: props.layout === 'horizontal' ? 'space-x-16' : 'space-y-6',
       textContainer: 'flex flex-col max-w-2xl',
       title: 'text-5xl font-bold text-gray-800',
@@ -169,7 +188,7 @@ const sizeConfig = computed(() => {
       ultrawide: 'aspect-[21/9]'
     }
 
-    base[props.size].photo = `w-full h-full object-cover ${aspectRatios[props.aspectRatio]}`
+    base[props.size].photo = `${base[props.size].photo.split(' ').slice(0, -1).join(' ')} h-full object-cover ${aspectRatios[props.aspectRatio]}`
     base[props.size].photoContainer = base[props.size].photoContainer.replace('h-auto', aspectRatios[props.aspectRatio])
   }
 
@@ -198,10 +217,27 @@ const descriptionClass = computed(() => sizeConfig.value.description)
 
 const handleImageError = () => {
   imageError.value = true
+  console.warn('Failed to load team image:', photoSrc.value)
+}
+
+const handleImageLoad = () => {
+  imageLoaded.value = true
 }
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Add Montserrat font class */
+.font-montserrat {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.font-jost {
+    font-family: 'jost', sans-serif;
+}
+
 /* Custom Sage Colors */
 .bg-sage-100 { background-color: #E8ECE5; }
 .bg-sage-200 { background-color: #D4DDD0; }
@@ -212,8 +248,36 @@ const handleImageError = () => {
 /* Ensure image displays properly without distortion */
 img {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
+  max-width: 100%;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Desktop-specific image styling */
+@media (min-width: 640px) {
+  img {
+    height: 100%;
+    min-height: 100%;
+  }
+}
+
+/* Optimize image loading */
+img[loading="lazy"] {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Smooth loading animation */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.animate-pulse {
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #f0f0f0 0px, #e0e0e0 40px, #f0f0f0 80px);
+  background-size: 200px;
 }
 
 /* Remove any default rounded corners */

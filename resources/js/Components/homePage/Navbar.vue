@@ -32,7 +32,7 @@
                 <div class="hidden md:block">
                     <button @click="scrollToSection('#contact')"
                         class="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        Hubungi Kami
+                        Contact Us
                     </button>
                 </div>
 
@@ -85,10 +85,10 @@ const mobileMenuOpen = ref(false)
 const activeSection = ref('#home')
 
 const navigation = [
-    { name: 'Beranda', href: '#home' },
-    { name: 'Layanan', href: '#services' },
-    { name: 'Tentang', href: '#about' },
-    { name: 'Kontak', href: '#contact' },
+    { name: 'Home', href: '#home' },
+    { name: 'Service', href: '#services' },
+    { name: 'About', href: '#about' },
+    { name: 'Contact', href: '#contact' },
 ]
 
 const scrollToSection = (sectionId) => {

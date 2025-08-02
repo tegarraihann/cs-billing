@@ -59,11 +59,11 @@ const logoSrc = computed(() => {
   }
 
   if (props.variant === 'icon-only') {
-    return '/images/logo/eshaka-wijaya-icon.png'
+    return '/images/logo/logo.png'
   } else if (props.variant === 'white') {
-    return '/images/logo/eshaka-wijaya-logo-white.png'
+    return '/images/logo/logo.png'
   } else {
-    return '/images/logo/eshaka-wijaya-logo.png'
+    return '/images/logo/logo.png'
   }
 })
 

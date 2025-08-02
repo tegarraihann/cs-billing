@@ -10,6 +10,13 @@
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+    <link rel="mask-icon" href="{{ asset('favicon.svg') }}" color="#8DB580">
+    <meta name="msapplication-TileColor" content="#8DB580">
+    <meta name="theme-color" content="#8DB580">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
