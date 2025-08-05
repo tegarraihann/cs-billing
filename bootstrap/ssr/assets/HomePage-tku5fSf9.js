@@ -44,11 +44,11 @@ const _sfc_main$c = {
         return null;
       }
       if (props.variant === "icon-only") {
-        return "/images/logo/logo.png";
+        return "/images/logo/logo-hero.svg";
       } else if (props.variant === "white") {
-        return "/images/logo/logo.png";
+        return "/images/logo/logo-hero.svgg";
       } else {
-        return "/images/logo/logo.png";
+        return "/images/logo/logo-hero.svg";
       }
     });
     const altText = computed(() => {
@@ -92,13 +92,13 @@ const _sfc_main$c = {
     });
     const containerClass = computed(() => sizeConfig.value.container);
     const logoClass = computed(() => sizeConfig.value.logo);
-    computed(() => sizeConfig.value.textContainer);
-    computed(() => {
+    const textContainerClass = computed(() => sizeConfig.value.textContainer);
+    const primaryTextClass = computed(() => {
       const baseClass = sizeConfig.value.primaryText;
       const colorClass = props.variant === "white" ? "text-white" : "text-gray-800";
       return `${baseClass} ${colorClass}`;
     });
-    computed(() => {
+    const taglineClass = computed(() => {
       const baseClass = sizeConfig.value.tagline;
       const colorClass = props.variant === "white" ? "text-gray-200" : "text-gray-600";
       return `${baseClass} ${colorClass}`;
@@ -106,7 +106,13 @@ const _sfc_main$c = {
     return (_ctx, _push, _parent, _attrs) => {
       _push(`<div${ssrRenderAttrs(mergeProps({
         class: ["flex items-center", containerClass.value]
-      }, _attrs))}><img${ssrRenderAttr("src", logoSrc.value)}${ssrRenderAttr("alt", altText.value)} class="${ssrRenderClass([logoClass.value, "object-contain"])}"></div>`);
+      }, _attrs))}><img${ssrRenderAttr("src", logoSrc.value)}${ssrRenderAttr("alt", altText.value)} class="${ssrRenderClass([logoClass.value, "object-contain"])}">`);
+      if (__props.showText) {
+        _push(`<div class="${ssrRenderClass(textContainerClass.value)}"><div class="${ssrRenderClass(primaryTextClass.value)}">PT ESHAKA WIJAYA</div><div class="${ssrRenderClass(taglineClass.value)}">LOGISTICS</div></div>`);
+      } else {
+        _push(`<!---->`);
+      }
+      _push(`</div>`);
     };
   }
 };
@@ -131,6 +137,10 @@ const _sfc_main$b = {
     const handleScroll = () => {
       const sections = ["#home", "#services", "#about", "#contact"];
       const scrollPosition = window.scrollY + 120;
+      if (window.scrollY < 100) {
+        activeSection.value = "#home";
+        return;
+      }
       for (let i = sections.length - 1; i >= 0; i--) {
         const element = document.querySelector(sections[i]);
         if (element && element.offsetTop <= scrollPosition) {
@@ -141,32 +151,34 @@ const _sfc_main$b = {
     };
     onMounted(() => {
       window.addEventListener("scroll", handleScroll);
+      handleScroll();
     });
     onUnmounted(() => {
       window.removeEventListener("scroll", handleScroll);
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<nav${ssrRenderAttrs(mergeProps({ class: "fixed w-full bg-white/90 backdrop-blur-md shadow-lg border-b border-pale-sage/30 z-50 transition-all duration-300" }, _attrs))} data-v-d91eb8ee><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-v-d91eb8ee><div class="flex justify-between items-center h-20" data-v-d91eb8ee><div class="flex items-center cursor-pointer hover:scale-105 transition-transform duration-300" data-v-d91eb8ee>`);
+      _push(`<nav${ssrRenderAttrs(mergeProps({ class: "fixed w-full bg-white/90 backdrop-blur-md shadow-lg border-b border-pale-sage/30 z-50 transition-all duration-300" }, _attrs))} data-v-f73fd66e><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-v-f73fd66e><div class="flex justify-between items-center h-20" data-v-f73fd66e><div class="flex items-center cursor-pointer hover:scale-105 transition-transform duration-300" data-v-f73fd66e>`);
       _push(ssrRenderComponent(_sfc_main$c, {
         size: "medium",
         variant: "default",
+        "show-text": false,
         "show-tagline": false
       }, null, _parent));
-      _push(`</div><div class="hidden md:block" data-v-d91eb8ee><div class="ml-10 flex items-baseline space-x-8" data-v-d91eb8ee><!--[-->`);
+      _push(`</div><div class="hidden md:block" data-v-f73fd66e><div class="ml-10 flex items-baseline space-x-8" data-v-f73fd66e><!--[-->`);
       ssrRenderList(navigation, (item) => {
-        _push(`<a${ssrRenderAttr("href", item.href)} class="${ssrRenderClass([{ "active-link font-semibold": activeSection.value === item.href }, "navbar-link px-4 py-2 text-sm font-medium transition-colors duration-300 cursor-pointer relative group"])}" data-v-d91eb8ee>${ssrInterpolate(item.name)} <span class="${ssrRenderClass([{ "w-full": activeSection.value === item.href }, "underline-effect"])}" data-v-d91eb8ee></span></a>`);
+        _push(`<a${ssrRenderAttr("href", item.href)} class="${ssrRenderClass([{ "active-link": activeSection.value === item.href }, "navbar-link px-6 py-3 text-base font-medium transition-all duration-300 cursor-pointer relative group font-inter"])}" data-v-f73fd66e>${ssrInterpolate(item.name)} <span class="${ssrRenderClass([{ "w-full": activeSection.value === item.href }, "underline-effect transition-all duration-300"])}" data-v-f73fd66e></span></a>`);
       });
-      _push(`<!--]--></div></div><div class="hidden md:block" data-v-d91eb8ee><button class="cta-button text-white px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" data-v-d91eb8ee> Contact Us </button></div><div class="md:hidden" data-v-d91eb8ee><button class="mobile-menu-btn focus:outline-none p-2" data-v-d91eb8ee><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-v-d91eb8ee>`);
+      _push(`<!--]--></div></div><div class="hidden md:block" data-v-f73fd66e><button class="cta-button text-white px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" data-v-f73fd66e> Contact Us </button></div><div class="md:hidden" data-v-f73fd66e><button class="mobile-menu-btn focus:outline-none p-2" data-v-f73fd66e><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-v-f73fd66e>`);
       if (!mobileMenuOpen.value) {
-        _push(`<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" data-v-d91eb8ee></path>`);
+        _push(`<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" data-v-f73fd66e></path>`);
       } else {
-        _push(`<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" data-v-d91eb8ee></path>`);
+        _push(`<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" data-v-f73fd66e></path>`);
       }
-      _push(`</svg></button></div></div></div><div style="${ssrRenderStyle(mobileMenuOpen.value ? null : { display: "none" })}" class="md:hidden bg-white border-t border-pale-sage" data-v-d91eb8ee><div class="px-2 pt-2 pb-3 space-y-1" data-v-d91eb8ee><!--[-->`);
+      _push(`</svg></button></div></div></div><div style="${ssrRenderStyle(mobileMenuOpen.value ? null : { display: "none" })}" class="md:hidden bg-white border-t border-pale-sage" data-v-f73fd66e><div class="px-2 pt-2 pb-3 space-y-1" data-v-f73fd66e><!--[-->`);
       ssrRenderList(navigation, (item) => {
-        _push(`<a${ssrRenderAttr("href", item.href)} class="mobile-nav-link block px-4 py-3 text-base font-medium cursor-pointer rounded-lg transition-colors duration-200" data-v-d91eb8ee>${ssrInterpolate(item.name)}</a>`);
+        _push(`<a${ssrRenderAttr("href", item.href)} class="mobile-nav-link block px-4 py-3 text-base font-medium cursor-pointer rounded-lg transition-colors duration-200" data-v-f73fd66e>${ssrInterpolate(item.name)}</a>`);
       });
-      _push(`<!--]--><button class="mobile-cta-button w-full mt-4 text-white px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300" data-v-d91eb8ee> Konsultasi Gratis </button></div></div></nav>`);
+      _push(`<!--]--><button class="mobile-cta-button w-full mt-4 text-white px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300" data-v-f73fd66e> Contact Us </button></div></div></nav>`);
     };
   }
 };
@@ -176,26 +188,8 @@ _sfc_main$b.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/homePage/Navbar.vue");
   return _sfc_setup$b ? _sfc_setup$b(props, ctx) : void 0;
 };
-const NavBar = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["__scopeId", "data-v-d91eb8ee"]]);
+const NavBar = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["__scopeId", "data-v-f73fd66e"]]);
 const _sfc_main$a = {
-  __name: "HeroLogo",
-  __ssrInlineRender: true,
-  props: {
-    size: {
-      type: String,
-      default: "large",
-      // small, medium, large, xl
-      validator: (value) => ["small", "medium", "large", "xl"].includes(value)
-    },
-    enableParallax: {
-      type: Boolean,
-      default: true
-    },
-    altText: {
-      type: String,
-      default: "PT Eshaka Wijaya Logistics Logo"
-    }
-  },
   setup(__props) {
     const props = __props;
     const imageError = ref(false);
@@ -245,9 +239,9 @@ const _sfc_main$a = {
       }
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<div${ssrRenderAttrs(mergeProps({ class: "logo-parallax relative group" }, _attrs))} data-v-3d1b550c><div class="relative z-10 logo-float" data-v-3d1b550c><img${ssrRenderAttr("src", logoSrc.value)}${ssrRenderAttr("alt", __props.altText)} class="${ssrRenderClass([logoClass.value, "object-contain drop-shadow-xl transition-transform duration-300 hover:scale-105"])}" loading="eager" data-v-3d1b550c>`);
+      _push(`<div${ssrRenderAttrs(mergeProps({ class: "logo-parallax relative group" }, _attrs))} data-v-e077a754><div class="relative z-10 logo-float" data-v-e077a754><img${ssrRenderAttr("src", logoSrc.value)}${ssrRenderAttr("alt", __props.altText)} class="${ssrRenderClass([logoClass.value, "object-contain drop-shadow-xl transition-transform duration-300 hover:scale-105"])}" loading="eager" data-v-e077a754>`);
       if (imageError.value) {
-        _push(`<div class="flex items-center justify-center text-white/70 text-lg font-medium" data-v-3d1b550c><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20" data-v-3d1b550c><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" data-v-3d1b550c></path></svg></div>`);
+        _push(`<div class="flex items-center justify-center text-white/70 text-lg font-medium" data-v-e077a754><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20" data-v-e077a754><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" data-v-e077a754></path></svg></div>`);
       } else {
         _push(`<!---->`);
       }
@@ -261,7 +255,6 @@ _sfc_main$a.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/HeroLogo.vue");
   return _sfc_setup$a ? _sfc_setup$a(props, ctx) : void 0;
 };
-const HeroLogo = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["__scopeId", "data-v-3d1b550c"]]);
 const _sfc_main$9 = {
   __name: "HeroSection",
   __ssrInlineRender: true,
@@ -270,13 +263,7 @@ const _sfc_main$9 = {
       _push(`<section${ssrRenderAttrs(mergeProps({
         id: "home",
         class: "relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
-      }, _attrs))} data-v-8202073c><div class="absolute inset-0" data-v-8202073c><img src="/images/background-hero.jpg" alt="Hero Background" class="w-full h-full object-cover" loading="eager" decoding="async" fetchpriority="high" data-v-8202073c><div class="absolute inset-0 bg-gradient-to-br from-black/85 via-primary-sage/60 via-secondary-sage/70 to-accent-sage/75" data-v-8202073c></div></div><div class="absolute inset-0 opacity-15" data-v-8202073c><div class="absolute inset-0" style="${ssrRenderStyle({ "background-image": "radial-gradient(circle at 2px 2px, var(--pale-sage) 1px, transparent 0)", "background-size": "40px 40px" })}" data-v-8202073c></div></div><div class="absolute inset-0 overflow-hidden pointer-events-none" data-v-8202073c><div class="absolute top-40 right-20 w-3 h-3 bg-secondary-sage/30 rotate-45 animate-pulse" style="${ssrRenderStyle({ "animation-delay": "1s" })}" data-v-8202073c></div><div class="absolute top-60 right-32 w-2 h-2 bg-accent-sage/40 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "3s" })}" data-v-8202073c></div><div class="absolute bottom-40 left-20 w-4 h-4 border border-light-sage/25 rotate-45 animate-pulse" style="${ssrRenderStyle({ "animation-delay": "5s" })}" data-v-8202073c></div><div class="absolute bottom-60 left-32 w-2 h-8 bg-pale-sage/20 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "7s" })}" data-v-8202073c></div></div><div class="absolute inset-0 overflow-hidden pointer-events-none" data-v-8202073c><div class="floating-element absolute top-20 left-10 w-64 h-64 bg-light-sage/20 rounded-full blur-3xl" data-v-8202073c></div><div class="floating-element absolute bottom-20 right-10 w-80 h-80 bg-accent-sage/15 rounded-full blur-3xl" style="${ssrRenderStyle({ "animation-delay": "2s" })}" data-v-8202073c></div><div class="floating-element absolute top-1/3 right-1/4 w-48 h-48 bg-secondary-sage/12 rounded-full blur-2xl" style="${ssrRenderStyle({ "animation-delay": "4s" })}" data-v-8202073c></div><div class="floating-element absolute bottom-1/3 left-1/3 w-56 h-56 bg-pale-sage/18 rounded-full blur-3xl" style="${ssrRenderStyle({ "animation-delay": "6s" })}" data-v-8202073c></div></div><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" data-v-8202073c><div class="grid lg:grid-cols-2 gap-16 items-center" data-v-8202073c><div class="text-center lg:text-left" data-v-8202073c><div class="inline-flex items-center px-8 py-4 mb-10 bg-white backdrop-blur-md rounded-full shadow-2xl animate-fade-in-down border border-pale-sage" data-v-8202073c><div class="w-3 h-3 bg-secondary-sage rounded-full mr-3 animate-pulse shadow-lg shadow-secondary-sage/50" data-v-8202073c></div><span class="text-base font-semibold text-dark-gray font-jost" data-v-8202073c>Trusted for over 20 Years</span><svg class="w-5 h-5 ml-3 text-secondary-sage" fill="currentColor" viewBox="0 0 20 20" data-v-8202073c><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812z" clip-rule="evenodd" data-v-8202073c></path></svg></div><h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up leading-tight font-montserrat" data-v-8202073c><span class="text-white drop-shadow-lg" data-v-8202073c>PT ESHAKA WIJAYA </span><br data-v-8202073c><span class="text-transparent bg-clip-text gradient-logistics drop-shadow-lg animate-gradient" data-v-8202073c> LOGISTICS </span></h1><p class="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto lg:mx-0 animate-fade-in-up leading-relaxed drop-shadow font-jost" style="${ssrRenderStyle({ "animation-delay": "0.2s" })}" data-v-8202073c> Trusted solutions for your international export-import and logistics needs with professional and experienced services. </p><div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12 animate-fade-in-up" style="${ssrRenderStyle({ "animation-delay": "0.4s" })}" data-v-8202073c><button class="group relative btn-primary text-white px-8 py-3 rounded-full font-medium text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" data-v-8202073c><span class="relative z-10" data-v-8202073c>Free Consultation</span></button><button class="group bg-white/90 backdrop-blur-sm text-dark-gray hover:bg-white px-8 py-3 rounded-full font-medium text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" data-v-8202073c> Services </button></div></div><div class="hidden lg:flex justify-center lg:justify-center lg:-ml-16 animate-fade-in-up" style="${ssrRenderStyle({ "animation-delay": "0.1s" })}" data-v-8202073c>`);
-      _push(ssrRenderComponent(HeroLogo, {
-        size: "xl",
-        "enable-parallax": true,
-        "alt-text": "PT Eshaka Wijaya Logistics Hero Logo"
-      }, null, _parent));
-      _push(`</div></div></div><div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce" data-v-8202073c><div class="w-8 h-12 border-2 border-pale-sage/60 rounded-full flex justify-center backdrop-blur-sm bg-white/10" data-v-8202073c><div class="w-1.5 h-4 bg-secondary-sage rounded-full mt-2 animate-pulse" data-v-8202073c></div></div></div></section>`);
+      }, _attrs))} data-v-36755749><div class="absolute inset-0" data-v-36755749><img src="/images/bg.jpg" alt="Hero Background" class="w-full h-full object-cover" loading="eager" decoding="async" fetchpriority="high" data-v-36755749><div class="absolute inset-0 bg-gradient-to-br from-black/85 via-primary-sage/60 via-secondary-sage/70 to-accent-sage/75" data-v-36755749></div><div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 via-black/20 to-transparent" data-v-36755749></div></div><div class="absolute inset-0 opacity-15" data-v-36755749><div class="absolute inset-0" style="${ssrRenderStyle({ "background-image": "radial-gradient(circle at 2px 2px, var(--pale-sage) 1px, transparent 0)", "background-size": "40px 40px" })}" data-v-36755749></div></div><div class="absolute inset-0 overflow-hidden pointer-events-none" data-v-36755749><div class="absolute top-40 right-20 w-3 h-3 bg-secondary-sage/30 rotate-45 animate-pulse" style="${ssrRenderStyle({ "animation-delay": "1s" })}" data-v-36755749></div><div class="absolute top-60 right-32 w-2 h-2 bg-accent-sage/40 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "3s" })}" data-v-36755749></div><div class="absolute bottom-40 left-20 w-4 h-4 border border-light-sage/25 rotate-45 animate-pulse" style="${ssrRenderStyle({ "animation-delay": "5s" })}" data-v-36755749></div><div class="absolute bottom-60 left-32 w-2 h-8 bg-pale-sage/20 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "7s" })}" data-v-36755749></div></div><div class="absolute inset-0 overflow-hidden pointer-events-none" data-v-36755749><div class="floating-element absolute top-20 left-10 w-64 h-64 bg-light-sage/20 rounded-full blur-3xl" data-v-36755749></div><div class="floating-element absolute bottom-20 right-10 w-80 h-80 bg-accent-sage/15 rounded-full blur-3xl" style="${ssrRenderStyle({ "animation-delay": "2s" })}" data-v-36755749></div><div class="floating-element absolute top-1/3 right-1/4 w-48 h-48 bg-secondary-sage/12 rounded-full blur-2xl" style="${ssrRenderStyle({ "animation-delay": "4s" })}" data-v-36755749></div><div class="floating-element absolute bottom-1/3 left-1/3 w-56 h-56 bg-pale-sage/18 rounded-full blur-3xl" style="${ssrRenderStyle({ "animation-delay": "6s" })}" data-v-36755749></div></div><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" data-v-36755749><div class="grid lg:grid-cols-2 gap-16 items-center" data-v-36755749><div class="text-center lg:text-left" data-v-36755749><div class="inline-flex items-center px-8 py-4 mb-10 bg-white/95 backdrop-blur-md rounded-full shadow-2xl animate-fade-in-down border border-primary-sage/20" data-v-36755749><div class="w-3 h-3 rounded-full mr-3 animate-pulse shadow-lg" style="${ssrRenderStyle({ "background-color": "#556B2F", "box-shadow": "0 0 10px rgba(85, 107, 47, 0.6)" })}" data-v-36755749></div><span class="text-base font-semibold text-primary-sage font-jost" data-v-36755749>Trusted for over 20 Years</span></div><div class="mb-6 animate-fade-in-up" data-v-36755749><h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-none font-inter mb-2" data-v-36755749><span class="text-white drop-shadow-2xl tracking-tight whitespace-nowrap" data-v-36755749>PT ESHAKA WIJAYA</span></h1><h2 class="text-4xl md:text-5xl lg:text-6xl font-bold font-inter" data-v-36755749><span class="text-transparent bg-clip-text gradient-logistics drop-shadow-lg animate-gradient" data-v-36755749> LOGISTICS </span></h2></div><p class="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto lg:mx-0 animate-fade-in-up leading-relaxed drop-shadow font-jost" style="${ssrRenderStyle({ "animation-delay": "0.2s" })}" data-v-36755749> Trusted solutions for your international export-import and logistics needs with professional and experienced services. </p><div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12 animate-fade-in-up" style="${ssrRenderStyle({ "animation-delay": "0.4s" })}" data-v-36755749><button class="group relative btn-primary text-white px-8 py-3 rounded-full font-medium text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" data-v-36755749><span class="relative z-10" data-v-36755749>Free Consultation</span></button><button class="group bg-white/90 backdrop-blur-sm text-dark-gray hover:bg-white px-8 py-3 rounded-full font-medium text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" data-v-36755749> Services </button></div></div></div></div><div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce" data-v-36755749><div class="w-8 h-12 border-2 border-pale-sage/60 rounded-full flex justify-center backdrop-blur-sm bg-white/10" data-v-36755749><div class="w-1.5 h-4 bg-secondary-sage rounded-full mt-2 animate-pulse" data-v-36755749></div></div></div></section>`);
     };
   }
 };
@@ -286,7 +273,7 @@ _sfc_main$9.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/HeroSection.vue");
   return _sfc_setup$9 ? _sfc_setup$9(props, ctx) : void 0;
 };
-const HeroSection = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["__scopeId", "data-v-8202073c"]]);
+const HeroSection = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["__scopeId", "data-v-36755749"]]);
 const _sfc_main$8 = {
   setup(__props) {
     const props = __props;
@@ -439,25 +426,25 @@ const _sfc_main$6 = {
         title: "Trucking Inland",
         description: "Ground shipping throughout Indonesia with a well-maintained fleet and real-time tracking.",
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1-1V9a1 1 0 011-1h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15a1 1 0 01-1 1h-1m-6 0a1 1 0 001 1h4a1 1 0 001-1m-6 0H9m0 0H5m0 0v-4a1 1 0 011-1h4a1 1 0 011 1v4"/></svg>',
-        iconBg: "bg-sage-200",
+        iconBg: "bg-primary-sage",
         backgroundImage: "/images/trucking-bg.jpg",
-        fallbackBg: "bg-sage-50"
+        fallbackBg: "bg-light-sage"
       },
       {
         title: "Money Transfer",
         description: "International transfers at competitive rates and fast processing worldwide.",
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>',
-        iconBg: "bg-sage-600",
+        iconBg: "bg-primary-sage",
         backgroundImage: "/images/export.jpg",
-        fallbackBg: "bg-sage-50"
+        fallbackBg: "bg-light-sage"
       },
       {
         title: "Freight Insurance",
         description: "Complete protection for shipments with comprehensive coverage and easy claims.",
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
-        iconBg: "bg-sage-500",
+        iconBg: "bg-primary-sage",
         backgroundImage: "/images/insurance.jpg",
-        fallbackBg: "bg-sage-50"
+        fallbackBg: "bg-light-sage"
       }
     ];
     const additionalServices = [
@@ -557,24 +544,24 @@ const _sfc_main$6 = {
     return (_ctx, _push, _parent, _attrs) => {
       _push(`<section${ssrRenderAttrs(mergeProps({
         id: "services",
-        class: "py-20 bg-gray-50 relative overflow-hidden"
-      }, _attrs))} data-v-437b9bea><div class="absolute top-0 right-0 w-96 h-96 bg-sage-50/30 rounded-full blur-3xl" data-v-437b9bea></div><div class="absolute bottom-0 left-0 w-80 h-80 bg-sage-200/20 rounded-full blur-3xl" data-v-437b9bea></div><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" data-v-437b9bea><div class="text-center mb-16" data-v-437b9bea><div class="inline-flex items-center px-4 py-2 bg-sage-50 text-sage-600 rounded-full text-sm font-medium mb-4" data-v-437b9bea><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-v-437b9bea></path></svg> Professional Services </div><h2 class="text-3xl md:text-4xl font-semibold text-gray-800 mb-4 font-montserrat" data-v-437b9bea> Complete Logistics Solution </h2><p class="text-base text-gray-600 max-w-2xl mx-auto font-jost" data-v-437b9bea> With over 20 years of experience, we provide high-quality logistics services with international standards. </p></div><div class="grid lg:grid-cols-2 gap-8 mb-20" data-v-437b9bea><div class="lg:row-span-2 relative rounded-xl p-8 shadow-md transition-all duration-300 overflow-hidden group" data-v-437b9bea><div style="${ssrRenderStyle({ "background-image": "url('/images/export.jpg')" })}" class="${ssrRenderClass(["bg-sage-50/50", "absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"])}" data-v-437b9bea><div class="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-all duration-300" data-v-437b9bea></div></div><div class="relative z-10" data-v-437b9bea><div class="flex items-center mb-6" data-v-437b9bea><div class="w-12 h-12 bg-sage-600 rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200" data-v-437b9bea><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" data-v-437b9bea></path></svg></div><div class="bg-sage-600 text-white px-3 py-1 rounded-full text-xs font-medium" data-v-437b9bea> Featured </div></div><h3 class="text-2xl font-semibold text-white mb-3 font-montserrat drop-shadow-lg bg-black/15 rounded-lg px-3 py-2 backdrop-blur-sm" data-v-437b9bea> Export &amp; Import </h3><p class="text-white mb-6 leading-relaxed font-jost drop-shadow-md" data-v-437b9bea> We specialize in export and import services with comprehensive customs clearance, door-to-door delivery, and real-time tracking. </p><div class="space-y-2 mb-8 bg-black/8 rounded-lg p-4 backdrop-blur-sm" data-v-437b9bea><!--[-->`);
+        class: "py-20 relative overflow-hidden"
+      }, _attrs))} data-v-30003806><div class="absolute top-0 right-0 w-96 h-96" style="${ssrRenderStyle({ "background-color": "rgba(168, 185, 151, 0.3)", "border-radius": "50%", "filter": "blur(3rem)" })}" data-v-30003806></div><div class="absolute bottom-0 left-0 w-80 h-80" style="${ssrRenderStyle({ "background-color": "rgba(138, 155, 122, 0.2)", "border-radius": "50%", "filter": "blur(3rem)" })}" data-v-30003806></div><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" data-v-30003806><div class="text-center mb-16" data-v-30003806><div class="inline-flex items-center px-4 py-2 bg-secondary-sage text-white rounded-full text-sm font-medium mb-4" data-v-30003806><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-v-30003806></path></svg> Professional Services </div><h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 font-inter" data-v-30003806> Complete Logistics Solution </h2><p class="text-base text-gray-600 max-w-2xl mx-auto font-jost" data-v-30003806> With over 20 years of experience, we provide high-quality logistics services with international standards. </p></div><div class="grid lg:grid-cols-2 gap-8 mb-20" data-v-30003806><div class="lg:row-span-2 relative rounded-xl p-8 shadow-md transition-all duration-300 overflow-hidden group" data-v-30003806><div style="${ssrRenderStyle({ "background-image": "url('/images/export.jpg')" })}" class="${ssrRenderClass(["bg-light-sage/50", "absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"])}" data-v-30003806><div class="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-all duration-300" data-v-30003806></div></div><div class="relative z-10" data-v-30003806><div class="flex items-center mb-6" data-v-30003806><div class="w-12 h-12 bg-primary-sage rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200" data-v-30003806><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" data-v-30003806></path></svg></div><div class="bg-primary-sage text-white px-3 py-1 rounded-full text-xs font-medium" data-v-30003806> Featured </div></div><div class="space-y-2 mb-8 bg-black/8 rounded-lg p-4 backdrop-blur-sm rounded-xl" data-v-30003806><h3 class="text-2xl font-bold text-white mb-3 font-inter drop-shadow-lg rounded-lg py-2" data-v-30003806> Export &amp; Import </h3><p class="text-white mb-6 leading-relaxed font-jost drop-shadow-md" data-v-30003806> We specialize in export and import services with comprehensive customs clearance, door-to-door delivery, and real-time tracking. </p><!--[-->`);
       ssrRenderList(exportImportFeatures, (feature) => {
-        _push(`<div class="flex items-start" data-v-437b9bea><div class="w-5 h-5 bg-white/40 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 shadow-sm" data-v-437b9bea><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" data-v-437b9bea></path></svg></div><span class="text-white text-sm font-jost font-medium drop-shadow-sm" data-v-437b9bea>${ssrInterpolate(feature)}</span></div>`);
+        _push(`<div class="flex items-start" data-v-30003806><div class="w-5 h-5 bg-white/40 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 shadow-sm" data-v-30003806><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" data-v-30003806></path></svg></div><span class="text-white text-sm font-jost font-medium drop-shadow-sm" data-v-30003806>${ssrInterpolate(feature)}</span></div>`);
       });
-      _push(`<!--]--></div><button class="w-full bg-sage-600 hover:bg-sage-500 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:shadow-lg shadow-md" data-v-437b9bea> Konsultasi Export Import </button></div></div><div class="space-y-6" data-v-437b9bea><!--[-->`);
+      _push(`<!--]--></div><button class="w-full bg-primary-sage hover:bg-accent-sage text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:shadow-lg shadow-md" data-v-30003806> Konsultasi Export Import </button></div></div><div class="space-y-6" data-v-30003806><!--[-->`);
       ssrRenderList(otherServices, (service) => {
-        _push(`<div class="relative bg-white rounded-xl p-6 border border-gray-100 hover:border-sage-200 hover:shadow-sm transition-all duration-200 overflow-hidden group" data-v-437b9bea><div style="${ssrRenderStyle([`background-image: url('${service.backgroundImage}');`, { "will-change": "transform" }])}" class="${ssrRenderClass([service.fallbackBg, "absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"])}" loading="lazy" data-v-437b9bea><div class="absolute inset-0 bg-black/55 group-hover:bg-black/45 transition-opacity duration-300" data-v-437b9bea></div></div><div class="relative flex items-start bg-black/8 rounded-lg p-4 backdrop-blur-sm" data-v-437b9bea><div class="${ssrRenderClass([service.iconBg, "w-10 h-10 rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200"])}" data-v-437b9bea><div class="w-5 h-5 text-white" data-v-437b9bea>${service.icon ?? ""}</div></div><div class="flex-1" data-v-437b9bea><h4 class="text-lg font-semibold text-white mb-2 font-montserrat transition-colors duration-200 drop-shadow-md" data-v-437b9bea>${ssrInterpolate(service.title)}</h4><p class="text-sm text-white/95 leading-relaxed font-jost drop-shadow-sm" data-v-437b9bea>${ssrInterpolate(service.description)}</p></div></div></div>`);
+        _push(`<div class="relative bg-white rounded-xl p-6 border border-gray-100 hover:border-accent-sage hover:shadow-sm transition-all duration-200 overflow-hidden group" data-v-30003806><div style="${ssrRenderStyle([`background-image: url('${service.backgroundImage}');`, { "will-change": "transform" }])}" class="${ssrRenderClass([service.fallbackBg, "absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"])}" loading="lazy" data-v-30003806><div class="absolute inset-0 bg-black/55 group-hover:bg-black/45 transition-opacity duration-300" data-v-30003806></div></div><div class="relative flex items-start bg-black/8 rounded-lg p-4 backdrop-blur-sm" data-v-30003806><div class="${ssrRenderClass([service.iconBg, "w-10 h-10 rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200"])}" data-v-30003806><div class="w-5 h-5 text-white" data-v-30003806>${service.icon ?? ""}</div></div><div class="flex-1" data-v-30003806><h4 class="text-lg font-bold text-white mb-2 font-inter transition-colors duration-200 drop-shadow-md" data-v-30003806>${ssrInterpolate(service.title)}</h4><p class="text-sm text-white/95 leading-relaxed font-jost drop-shadow-sm" data-v-30003806>${ssrInterpolate(service.description)}</p></div></div></div>`);
       });
-      _push(`<!--]--></div></div><div class="text-center" data-v-437b9bea><h3 class="text-xl font-semibold text-gray-800 mb-8 font-montserrat" data-v-437b9bea> Support Services </h3><div class="relative" data-v-437b9bea><div class="overflow-hidden rounded-xl" data-v-437b9bea><div class="flex transition-transform duration-500 ease-in-out" style="${ssrRenderStyle([`transform: translate3d(-${currentSlide.value * 100}%, 0, 0)`, { "will-change": "transform" }])}" data-v-437b9bea><!--[-->`);
+      _push(`<!--]--></div></div><div class="text-center" data-v-30003806><h3 class="text-xl font-bold text-gray-800 mb-8 font-inter" data-v-30003806> Support Services </h3><div class="relative" data-v-30003806><div class="overflow-hidden rounded-xl" data-v-30003806><div class="flex transition-transform duration-500 ease-in-out" style="${ssrRenderStyle([`transform: translate3d(-${currentSlide.value * 100}%, 0, 0)`, { "will-change": "transform" }])}" data-v-30003806><!--[-->`);
       ssrRenderList(additionalServices, (addon, index) => {
-        _push(`<div class="flex-shrink-0 w-full" data-v-437b9bea><div class="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden h-80 md:h-80 group" data-v-437b9bea><div class="w-full md:w-1/2 h-48 md:h-full relative overflow-hidden" data-v-437b9bea><div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style="${ssrRenderStyle([`background-image: url('${addon.backgroundImage}');`, { "will-change": "transform" }])}" loading="lazy" data-v-437b9bea><div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" data-v-437b9bea></div></div><div class="absolute top-6 left-6" data-v-437b9bea><div class="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-sage-600 transition-all duration-300 group" data-v-437b9bea><div class="w-8 h-8 text-sage-600 transition-colors duration-300 icon-hover" data-v-437b9bea>${addon.icon ?? ""}</div></div></div></div><div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center" data-v-437b9bea><h4 class="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4 font-montserrat group-hover:text-sage-600 transition-colors duration-300" data-v-437b9bea>${ssrInterpolate(addon.title)}</h4><p class="text-gray-600 leading-relaxed font-jost group-hover:text-gray-700 transition-colors duration-300" data-v-437b9bea>${ssrInterpolate(addon.description)}</p></div></div></div>`);
+        _push(`<div class="flex-shrink-0 w-full" data-v-30003806><div class="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden h-80 md:h-80 group" data-v-30003806><div class="w-full md:w-1/2 h-48 md:h-full relative overflow-hidden" data-v-30003806><div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style="${ssrRenderStyle([`background-image: url('${addon.backgroundImage}');`, { "will-change": "transform" }])}" loading="lazy" data-v-30003806><div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" data-v-30003806></div></div><div class="absolute top-6 left-6" data-v-30003806><div class="w-16 h-16 bg-primary-sage backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-accent-sage transition-all duration-300 relative" data-v-30003806><div class="w-8 h-8 text-white group-hover:text-pale-sage transition-colors duration-300 icon-hover relative z-20" data-v-30003806>${addon.icon ?? ""}</div></div></div></div><div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center" data-v-30003806><h4 class="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4 font-inter group-hover:text-primary-sage transition-colors duration-300" data-v-30003806>${ssrInterpolate(addon.title)}</h4><p class="text-gray-600 leading-relaxed font-jost group-hover:text-gray-700 transition-colors duration-300" data-v-30003806>${ssrInterpolate(addon.description)}</p></div></div></div>`);
       });
-      _push(`<!--]--></div></div><div class="flex justify-between items-center mt-6" data-v-437b9bea><button${ssrIncludeBooleanAttr(currentSlide.value === 0) ? " disabled" : ""} class="w-10 h-10 bg-sage-50 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed" data-v-437b9bea><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 19l-7-7 7-7" data-v-437b9bea></path></svg></button><div class="flex space-x-2" data-v-437b9bea><!--[-->`);
+      _push(`<!--]--></div></div><div class="flex justify-between items-center mt-6" data-v-30003806><button${ssrIncludeBooleanAttr(currentSlide.value === 0) ? " disabled" : ""} class="w-10 h-10 bg-secondary-sage hover:bg-accent-sage disabled:bg-gray-100 disabled:text-gray-400 text-white rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed" data-v-30003806><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 19l-7-7 7-7" data-v-30003806></path></svg></button><div class="flex space-x-2" data-v-30003806><!--[-->`);
       ssrRenderList(totalSlides.value, (slide, index) => {
-        _push(`<button class="${ssrRenderClass([currentSlide.value === index ? "bg-sage-600 w-6" : "bg-gray-300 hover:bg-sage-200", "w-2 h-2 rounded-full transition-all duration-200"])}" data-v-437b9bea></button>`);
+        _push(`<button class="${ssrRenderClass([currentSlide.value === index ? "bg-primary-sage w-6" : "bg-gray-300 hover:bg-accent-sage", "w-2 h-2 rounded-full transition-all duration-200"])}" data-v-30003806></button>`);
       });
-      _push(`<!--]--></div><button${ssrIncludeBooleanAttr(currentSlide.value >= totalSlides.value - 1) ? " disabled" : ""} class="w-10 h-10 bg-sage-50 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed" data-v-437b9bea><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7" data-v-437b9bea></path></svg></button></div></div></div><div class="mt-20 lg:mt-24 relative" data-v-437b9bea><div class="absolute inset-0 opacity-50 z-0 min-h-96" data-v-437b9bea>`);
+      _push(`<!--]--></div><button${ssrIncludeBooleanAttr(currentSlide.value >= totalSlides.value - 1) ? " disabled" : ""} class="w-10 h-10 bg-secondary-sage hover:bg-accent-sage disabled:bg-gray-100 disabled:text-gray-400 text-white rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed" data-v-30003806><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7" data-v-30003806></path></svg></button></div></div></div><div class="mt-20 lg:mt-24 relative bg-light-sage rounded-2xl" data-v-30003806><div class="absolute inset-0 opacity-50 z-0 min-h-96" data-v-30003806>`);
       _push(ssrRenderComponent(WorldMapDotted, {
         "dot-size": 3,
         "dot-color": "rgba(85, 107, 47, 0.8)",
@@ -586,20 +573,20 @@ const _sfc_main$6 = {
         height: "100%",
         width: "100%"
       }, null, _parent));
-      _push(`</div><div class="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 rounded-2xl p-6 md:p-8 lg:p-12 text-white overflow-hidden z-10" data-v-437b9bea><div class="absolute inset-0 opacity-30 z-0" data-v-437b9bea>`);
+      _push(`</div><div class="relative rounded-2xl p-6 md:p-8 lg:p-12 text-white overflow-hidden z-10" style="${ssrRenderStyle({ "background": "linear-gradient(135deg, #556B2F 0%, #4A5F29 50%, #556B2F 100%)" })}" data-v-30003806><div class="absolute inset-0 opacity-15 z-0" data-v-30003806>`);
       _push(ssrRenderComponent(WorldMapDotted, {
-        "dot-size": 2,
-        "dot-color": "rgba(255, 255, 255, 0.7)",
-        "dot-spacing": 20,
+        "dot-size": 1,
+        "dot-color": "rgba(255, 255, 255, 0.4)",
+        "dot-spacing": 30,
         animated: true,
         "show-country-highlights": false,
         opacity: 1,
         height: "100%",
         width: "100%"
       }, null, _parent));
-      _push(`</div><div class="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl z-5" data-v-437b9bea></div><div class="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full blur-lg z-5" data-v-437b9bea></div><div class="relative z-20 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8" data-v-437b9bea><div class="flex-1 text-center lg:text-left" data-v-437b9bea><h3 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-montserrat leading-tight" data-v-437b9bea> Ready to Handle Your <span class="text-sage-200 block lg:inline" data-v-437b9bea> Logistics Needs</span></h3><p class="text-base md:text-lg text-sage-100 mb-4 md:mb-0 leading-relaxed font-jost max-w-2xl lg:max-w-none" data-v-437b9bea> Get a free consultation with our expert team. We provide the best solutions for export-import, trucking, and other logistics services. </p></div><div class="flex-shrink-0" data-v-437b9bea><button class="bg-white text-sage-600 px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-base md:text-lg hover:bg-sage-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group flex items-center" data-v-437b9bea><svg class="w-5 h-5 mr-2 text-sage-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" data-v-437b9bea></path></svg><span data-v-437b9bea>Contact Us</span><svg class="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-437b9bea><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" data-v-437b9bea></path></svg></button></div></div><div class="relative z-20 mt-6 lg:mt-8 pt-6 border-t border-white/20" data-v-437b9bea><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center" data-v-437b9bea><!--[-->`);
+      _push(`</div><div class="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl z-5" data-v-30003806></div><div class="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full blur-lg z-5" data-v-30003806></div><div class="relative z-20 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8" data-v-30003806><div class="flex-1 text-center lg:text-left" data-v-30003806><h3 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-inter leading-tight text-white" data-v-30003806> Ready to Handle Your <br data-v-30003806><span class="font-bold drop-shadow-lg" style="${ssrRenderStyle({ "color": "#A8B897" })}" data-v-30003806>Logistics Needs</span></h3><p class="text-base md:text-lg text-white/90 mb-4 md:mb-0 leading-relaxed font-jost max-w-2xl lg:max-w-none" data-v-30003806> Get a free consultation with our expert team. We provide the best solutions for export-import, trucking, and other logistics services. </p></div><div class="flex-shrink-0" data-v-30003806><button class="bg-white text-primary-sage px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-base md:text-lg hover:bg-accent-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group flex items-center" data-v-30003806><svg class="w-5 h-5 mr-2 text-primary-sage group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" data-v-30003806></path></svg><span data-v-30003806>Contact Us</span><svg class="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-30003806><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" data-v-30003806></path></svg></button></div></div><div class="relative z-20 mt-6 lg:mt-8 pt-6 border-t border-white/20" data-v-30003806><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center" data-v-30003806><!--[-->`);
       ssrRenderList(globalStats, (stat) => {
-        _push(`<div data-v-437b9bea><div class="text-lg md:text-xl font-bold text-white mb-1 font-montserrat" data-v-437b9bea>${ssrInterpolate(stat.value)}</div><div class="text-sage-200 text-xs md:text-sm font-medium font-jost" data-v-437b9bea>${ssrInterpolate(stat.label)}</div></div>`);
+        _push(`<div data-v-30003806><div class="text-lg md:text-xl font-bold text-white mb-1 font-inter" data-v-30003806>${ssrInterpolate(stat.value)}</div><div class="text-accent-sage text-xs md:text-sm font-medium font-jost" data-v-30003806>${ssrInterpolate(stat.label)}</div></div>`);
       });
       _push(`<!--]--></div></div></div></div></div></section>`);
     };
@@ -611,7 +598,7 @@ _sfc_main$6.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/ServicesSection.vue");
   return _sfc_setup$6 ? _sfc_setup$6(props, ctx) : void 0;
 };
-const ServicesSection = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["__scopeId", "data-v-437b9bea"]]);
+const ServicesSection = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["__scopeId", "data-v-30003806"]]);
 const _sfc_main$5 = {
   setup(__props) {
     const props = __props;
@@ -787,36 +774,88 @@ const _sfc_main$4 = {
   setup(__props) {
     const props = __props;
     const active = ref(0);
-    let interval = null;
-    const handleNext = () => {
-      active.value = (active.value + 1) % props.testimonials.length;
+    let isTransitioning = ref(false);
+    const getCardRotation = (index) => {
+      const rotations = [-8, -4, 0, 4, 8, -6, 6, -2, 2, -7];
+      return rotations[index % rotations.length];
     };
-    const randomRotateY = () => {
-      return Math.floor(Math.random() * 21) - 10;
-    };
-    onMounted(() => {
-      if (props.autoplay) {
-        interval = setInterval(handleNext, 5e3);
+    const getCardStyle = (index) => {
+      const totalItems = props.testimonials.length;
+      const activeIndex = active.value;
+      let relativePosition = index - activeIndex;
+      if (relativePosition > totalItems / 2) {
+        relativePosition -= totalItems;
+      } else if (relativePosition < -totalItems / 2) {
+        relativePosition += totalItems;
       }
-    });
+      if (relativePosition === 0) {
+        return {
+          transform: `rotate(${getCardRotation(index)}deg) scale(1) translateY(0px) translateX(0px)`,
+          zIndex: 10,
+          opacity: 1
+        };
+      } else if (relativePosition === 1 || relativePosition === -totalItems + 1) {
+        return {
+          transform: `rotate(3deg) scale(0.94) translateY(4px) translateX(10px)`,
+          zIndex: 5,
+          opacity: 0.85
+        };
+      } else if (relativePosition === 2 || relativePosition === -totalItems + 2) {
+        return {
+          transform: `rotate(-6deg) scale(0.88) translateY(8px) translateX(15px)`,
+          zIndex: 2,
+          opacity: 0.7
+        };
+      } else {
+        return {
+          transform: `rotate(${getCardRotation(index)}deg) scale(0.8) translateY(20px) translateX(${relativePosition > 0 ? 30 : -30}px)`,
+          zIndex: 1,
+          opacity: 0
+        };
+      }
+    };
+    const getCardClasses = (index) => {
+      const totalItems = props.testimonials.length;
+      const activeIndex = active.value;
+      let relativePosition = index - activeIndex;
+      if (relativePosition > totalItems / 2) {
+        relativePosition -= totalItems;
+      } else if (relativePosition < -totalItems / 2) {
+        relativePosition += totalItems;
+      }
+      if (relativePosition === 0) {
+        return "layered-card-shadow";
+      }
+      return "";
+    };
     onUnmounted(() => {
-      if (interval) {
-        clearInterval(interval);
-      }
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<div${ssrRenderAttrs(mergeProps({ class: "mx-auto max-w-sm px-4 py-20 font-sans antialiased md:max-w-4xl md:px-8" }, _attrs))} data-v-ea20a1c0><div class="flex h-96 w-full flex-col items-center justify-center" data-v-ea20a1c0><div class="relative grid h-full w-full grid-cols-1 gap-10 md:grid-cols-2" data-v-ea20a1c0><div class="relative flex flex-col items-center justify-center" data-v-ea20a1c0><div class="relative w-80 h-80" data-v-ea20a1c0><div class="absolute inset-0 w-full h-full" data-v-ea20a1c0><div class="absolute w-full h-full rounded-2xl overflow-hidden shadow-xl" style="${ssrRenderStyle({ "transform": "rotate(-6deg) scale(0.88) translateY(8px)", "z-index": "1" })}" data-v-ea20a1c0><img${ssrRenderAttr("src", __props.testimonials[(active.value + 2) % __props.testimonials.length].src)}${ssrRenderAttr("alt", __props.testimonials[(active.value + 2) % __props.testimonials.length].name)} class="w-full h-full object-cover rounded-2xl opacity-70" data-v-ea20a1c0></div><div class="absolute w-full h-full rounded-2xl overflow-hidden shadow-xl" style="${ssrRenderStyle({ "transform": "rotate(3deg) scale(0.94) translateY(4px)", "z-index": "2" })}" data-v-ea20a1c0><img${ssrRenderAttr("src", __props.testimonials[(active.value + 1) % __props.testimonials.length].src)}${ssrRenderAttr("alt", __props.testimonials[(active.value + 1) % __props.testimonials.length].name)} class="w-full h-full object-cover rounded-2xl opacity-85" data-v-ea20a1c0></div><div class="absolute inset-0 w-full h-full" style="${ssrRenderStyle({ "z-index": "3" })}" data-v-ea20a1c0><div class="relative w-full h-full layered-card-shadow rounded-2xl overflow-hidden" style="${ssrRenderStyle({
-        transform: `rotate(${randomRotateY()}deg)`,
-        transformOrigin: "center center"
-      })}" data-v-ea20a1c0><img${ssrRenderAttr("src", __props.testimonials[active.value].src)}${ssrRenderAttr("alt", __props.testimonials[active.value].name)} class="w-full h-full object-cover rounded-2xl" data-v-ea20a1c0><div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl" data-v-ea20a1c0><h4 class="text-white font-bold text-lg" data-v-ea20a1c0>${ssrInterpolate(__props.testimonials[active.value].name)}</h4><p class="text-white/90 text-sm" data-v-ea20a1c0>${ssrInterpolate(__props.testimonials[active.value].designation)}</p></div></div></div></div><div class="absolute -top-4 -right-4 w-6 h-6 bg-sage-400 rounded-full opacity-60 animate-pulse" data-v-ea20a1c0></div><div class="absolute -bottom-6 -left-6 w-8 h-8 bg-sage-300 rounded-full opacity-40" data-v-ea20a1c0></div><div class="absolute top-1/2 -right-8 w-4 h-4 bg-sage-500 rounded-full opacity-50" data-v-ea20a1c0></div></div></div><div class="relative flex flex-col items-center justify-center" data-v-ea20a1c0><div class="relative h-80 w-full overflow-hidden rounded-3xl bg-white p-6 shadow-2xl md:h-96" data-v-ea20a1c0><div class="flex h-full flex-col justify-between" data-v-ea20a1c0><div class="flex flex-col" data-v-ea20a1c0><div class="mb-4" data-v-ea20a1c0><svg class="w-8 h-8 text-sage-400 mb-4" fill="currentColor" viewBox="0 0 24 24" data-v-ea20a1c0><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z" data-v-ea20a1c0></path></svg></div><p class="text-lg font-normal text-gray-600 md:text-xl leading-relaxed mb-6" data-v-ea20a1c0> &quot;${ssrInterpolate(__props.testimonials[active.value].quote)}&quot; </p></div><div class="border-t border-gray-100 pt-4" data-v-ea20a1c0><h4 class="text-lg font-bold text-gray-800 mb-1" data-v-ea20a1c0>${ssrInterpolate(__props.testimonials[active.value].name)}</h4><p class="text-sm font-medium text-sage-600 mb-2" data-v-ea20a1c0>${ssrInterpolate(__props.testimonials[active.value].designation)}</p><div class="flex items-center text-yellow-400" data-v-ea20a1c0><!--[-->`);
-      ssrRenderList(5, (i) => {
-        _push(`<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" data-v-ea20a1c0><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" data-v-ea20a1c0></path></svg>`);
+      _push(`<div${ssrRenderAttrs(mergeProps({ class: "mx-auto max-w-sm px-4 py-20 font-sans antialiased md:max-w-2xl md:px-8" }, _attrs))} data-v-9e9aeeba><div class="flex h-96 w-full flex-col items-center justify-center" data-v-9e9aeeba><div class="relative flex h-full w-full items-center justify-center" data-v-9e9aeeba><div class="relative flex flex-col items-center justify-center" data-v-9e9aeeba><div class="relative w-80 h-80" data-v-9e9aeeba><div class="absolute inset-0 w-full h-full" data-v-9e9aeeba><!--[-->`);
+      ssrRenderList(__props.testimonials, (testimonial, index) => {
+        _push(`<div class="${ssrRenderClass([getCardClasses(index), "absolute w-full h-full rounded-2xl overflow-hidden shadow-xl smooth-card-transition"])}" style="${ssrRenderStyle(getCardStyle(index))}" data-v-9e9aeeba><img${ssrRenderAttr("src", testimonial.src)}${ssrRenderAttr("alt", testimonial.name)} class="w-full h-full object-cover rounded-2xl bg-white" data-v-9e9aeeba>`);
+        if (index === active.value) {
+          _push(`<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl smooth-overlay-transition" data-v-9e9aeeba><h4 class="text-white font-bold text-lg" data-v-9e9aeeba>${ssrInterpolate(testimonial.name)}</h4><p class="text-white/90 text-sm flex items-center" data-v-9e9aeeba>`);
+          if (testimonial.designation.includes("+62") || testimonial.designation.includes("0895")) {
+            _push(`<!--[--><span class="mr-2" data-v-9e9aeeba>${ssrInterpolate(testimonial.designation.split("|")[0].trim())}</span><span class="flex items-center" data-v-9e9aeeba><svg class="w-4 h-4 mr-1 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9e9aeeba><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" data-v-9e9aeeba></path></svg> ${ssrInterpolate(testimonial.designation.split("|")[1].trim())}</span><!--]-->`);
+          } else {
+            _push(`<!--[-->${ssrInterpolate(testimonial.designation)}<!--]-->`);
+          }
+          _push(`</p></div>`);
+        } else {
+          _push(`<!---->`);
+        }
+        _push(`</div>`);
       });
-      _push(`<!--]--></div></div></div></div><div class="flex flex-row items-center justify-center gap-4 py-4" data-v-ea20a1c0><button class="flex h-10 w-10 items-center justify-center rounded-full bg-sage-100 hover:bg-sage-200 transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50" data-v-ea20a1c0>`);
-      _push(ssrRenderComponent(unref(ChevronLeftIcon), { class: "h-5 w-5 text-sage-700" }, null, _parent));
-      _push(`</button><button class="flex h-10 w-10 items-center justify-center rounded-full bg-sage-100 hover:bg-sage-200 transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50" data-v-ea20a1c0>`);
-      _push(ssrRenderComponent(unref(ChevronRightIcon), { class: "h-5 w-5 text-sage-700" }, null, _parent));
-      _push(`</button></div></div></div></div></div>`);
+      _push(`<!--]--></div><div class="absolute -top-4 -right-4 w-6 h-6 bg-sage-400 rounded-full opacity-60 animate-pulse" data-v-9e9aeeba></div><div class="absolute -bottom-6 -left-6 w-8 h-8 bg-sage-300 rounded-full opacity-40" data-v-9e9aeeba></div><div class="absolute top-1/2 -right-8 w-4 h-4 bg-sage-500 rounded-full opacity-50" data-v-9e9aeeba></div></div></div></div><div class="flex flex-row items-center justify-center gap-4 py-6" data-v-9e9aeeba><button${ssrIncludeBooleanAttr(unref(isTransitioning)) ? " disabled" : ""} class="flex h-12 w-12 items-center justify-center rounded-full bg-sage-100 hover:bg-sage-200 transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-sage-100 disabled:hover:shadow-md" data-v-9e9aeeba>`);
+      _push(ssrRenderComponent(unref(ChevronLeftIcon), {
+        class: ["h-6 w-6 text-sage-700 transition-transform duration-200", { "scale-90": unref(isTransitioning) }]
+      }, null, _parent));
+      _push(`</button><button${ssrIncludeBooleanAttr(unref(isTransitioning)) ? " disabled" : ""} class="flex h-12 w-12 items-center justify-center rounded-full bg-sage-100 hover:bg-sage-200 transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-sage-100 disabled:hover:shadow-md" data-v-9e9aeeba>`);
+      _push(ssrRenderComponent(unref(ChevronRightIcon), {
+        class: ["h-6 w-6 text-sage-700 transition-transform duration-200", { "scale-90": unref(isTransitioning) }]
+      }, null, _parent));
+      _push(`</button></div></div></div>`);
     };
   }
 };
@@ -826,7 +865,7 @@ _sfc_main$4.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/AnimatedTestimonials.vue");
   return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
 };
-const AnimatedTestimonials = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["__scopeId", "data-v-ea20a1c0"]]);
+const AnimatedTestimonials = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["__scopeId", "data-v-9e9aeeba"]]);
 const _sfc_main$3 = {
   __name: "AboutSection",
   __ssrInlineRender: true,
@@ -875,27 +914,39 @@ const _sfc_main$3 = {
     const clientTestimonials = [
       {
         quote: "Eshaka Wijaya Logistics has been our trusted partner for international trade for the past 5 years. Their professional service and on-time delivery make our business operations much more efficient.",
-        name: "Budi Santoso",
-        designation: "CEO, PT Indo Export",
-        src: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+        name: "Our Team",
+        designation: "Complete Logistics Team",
+        src: "/images/team/all-team.png"
       },
       {
         quote: "The team's expertise in handling complex logistics requirements is remarkable. They consistently deliver beyond our expectations with competitive pricing and excellent customer service.",
-        name: "Sari Dewi",
-        designation: "Operations Manager, Global Trading Co.",
-        src: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+        name: "Customer Service",
+        designation: "Name... | +6285213866455",
+        src: "/images/team/cs-satu.png"
       },
       {
         quote: "Real-time tracking system and transparent communication from Eshaka Wijaya Logistics give us complete confidence in every shipment. Highly recommended for international logistics needs.",
-        name: "Ahmad Rahman",
-        designation: "Director, Nusantara Import",
-        src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+        name: "Customer Service",
+        designation: "Name... | +62895334850224",
+        src: "/images/team/cs-dua.png"
       },
       {
         quote: "Their comprehensive services from customs clearance to final delivery have simplified our export operations significantly. Professional team with deep understanding of international trade regulations.",
-        name: "Maya Kartika",
-        designation: "Logistics Manager, Archipelago Industries",
-        src: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+        name: "Head of Operations",
+        designation: "Name...",
+        src: "/images/team/head-ops.png"
+      },
+      {
+        quote: "We provide innovative marketing strategies and business development solutions that drive growth and success for our logistics partners across international markets.",
+        name: "Marketing Team",
+        designation: "Name...",
+        src: "/images/team/marketing-satu.png"
+      },
+      {
+        quote: "Our dedicated marketing professionals work tirelessly to build strong relationships and expand our network, ensuring the best service delivery for all our valued clients.",
+        name: "Marketing Team",
+        designation: "Name...",
+        src: "/images/team/marketing-dua.png"
       }
     ];
     const teamHighlights = [
@@ -920,26 +971,26 @@ const _sfc_main$3 = {
         id: "about",
         class: "py-24 bg-gradient-to-br from-gray-50 to-sage-50",
         "aria-labelledby": "about-heading"
-      }, _attrs))} data-v-ed3c655f><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-v-ed3c655f><div class="text-center mb-12 lg:mb-20" data-v-ed3c655f><div class="inline-flex items-center px-4 py-2 bg-white border border-sage-200 text-sage-700 rounded-full text-sm font-semibold mb-6" data-v-ed3c655f><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ed3c655f><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-v-ed3c655f></path></svg> Authorized &amp; Trusted Certificate </div><h2 id="about-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 font-montserrat" data-v-ed3c655f> About Eshaka Wijaya Logistics </h2><p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-jost" data-v-ed3c655f> With more than 20 years of experience in the Indonesian logistics industry, we are here as a trusted partner for efficient and professional international trade solutions. </p></div><div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 lg:mb-24" data-v-ed3c655f><div data-v-ed3c655f><h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6 font-montserrat" data-v-ed3c655f> Trusted Logistics Partner <span class="text-sage-600 block md:inline" data-v-ed3c655f>Since 2015</span></h3><p class="text-base md:text-lg text-gray-600 mb-6 md:mb-8 leading-relaxed font-jost" data-v-ed3c655f> Eshaka Wijaya Logistics was established with the vision of becoming the leading logistics company in Indonesia. We provide export-import, inland trucking, international money transfer, and freight insurance services with trusted international quality standards. </p><div class="space-y-4 md:space-y-6 mb-8 md:mb-10" data-v-ed3c655f><!--[-->`);
+      }, _attrs))} data-v-ebfd158e><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-v-ebfd158e><div class="text-center mb-12 lg:mb-20" data-v-ebfd158e><div class="inline-flex items-center px-4 py-2 bg-white border border-sage-200 text-sage-800 rounded-full text-sm font-semibold mb-6" data-v-ebfd158e><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ebfd158e><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-v-ebfd158e></path></svg> Authorized &amp; Trusted Certificate </div><h2 id="about-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 font-inter" data-v-ebfd158e> About Eshaka Wijaya Logistics </h2><p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-jost" data-v-ebfd158e> With more than 20 years of experience in the Indonesian logistics industry, we are here as a trusted partner for efficient and professional international trade solutions. </p></div><div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 lg:mb-24" data-v-ebfd158e><div data-v-ebfd158e><h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6 font-inter" data-v-ebfd158e> Trusted Logistics Partner <span class="text-sage-700 block md:inline" data-v-ebfd158e>Since 2015</span></h3><p class="text-base md:text-lg text-gray-600 mb-6 md:mb-8 leading-relaxed font-jost" data-v-ebfd158e><b data-v-ebfd158e>Eshaka Wijaya Logistics</b> was established with the vision of becoming the leading logistics company in Indonesia. We provide export-import, inland trucking, international money transfer, and freight insurance services with trusted international quality standards. </p><div class="space-y-4 md:space-y-6 mb-8 md:mb-10" data-v-ebfd158e><!--[-->`);
       ssrRenderList(keyPoints, (point) => {
-        _push(`<div class="flex items-start group" data-v-ed3c655f><div class="w-12 h-12 bg-sage-600 rounded-xl flex items-center justify-center flex-shrink-0 mr-4 group-hover:scale-110 transition-transform duration-300" style="${ssrRenderStyle({ "will-change": "transform" })}" data-v-ed3c655f><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ed3c655f><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 13l4 4L19 7" data-v-ed3c655f></path></svg></div><div data-v-ed3c655f><h4 class="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2 font-montserrat" data-v-ed3c655f>${ssrInterpolate(point.title)}</h4><p class="text-sm md:text-base text-gray-600 leading-relaxed font-jost" data-v-ed3c655f>${ssrInterpolate(point.description)}</p></div></div>`);
+        _push(`<div class="flex items-start group" data-v-ebfd158e><div class="w-12 h-12 bg-sage-700 rounded-xl flex items-center justify-center flex-shrink-0 mr-4 group-hover:scale-110 transition-transform duration-300" style="${ssrRenderStyle({ "will-change": "transform" })}" data-v-ebfd158e><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ebfd158e><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 13l4 4L19 7" data-v-ebfd158e></path></svg></div><div data-v-ebfd158e><h4 class="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2 font-montserrat" data-v-ebfd158e>${ssrInterpolate(point.title)}</h4><p class="text-sm md:text-base text-gray-600 leading-relaxed font-jost" data-v-ebfd158e>${ssrInterpolate(point.description)}</p></div></div>`);
       });
-      _push(`<!--]--></div><button class="bg-sage-600 hover:bg-sage-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1" style="${ssrRenderStyle({ "will-change": "transform, box-shadow" })}" aria-label="Contact us for consultation" data-v-ed3c655f> Consultation Now </button></div><div class="relative" data-v-ed3c655f><div class="bg-white rounded-3xl p-8 shadow-xl border border-sage-100" role="complementary" aria-label="Company statistics and achievements" data-v-ed3c655f><div class="grid grid-cols-2 gap-3 md:gap-6 mb-6 md:mb-8" data-v-ed3c655f><!--[-->`);
+      _push(`<!--]--></div><button class="btn-primary-sage hover:bg-sage-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1" style="${ssrRenderStyle({ "will-change": "transform, box-shadow" })}" aria-label="Contact us for consultation" data-v-ebfd158e> Consultation Now </button></div><div class="relative" data-v-ebfd158e><div class="bg-white rounded-3xl p-8 shadow-xl border border-sage-100" role="complementary" aria-label="Company statistics and achievements" data-v-ebfd158e><div class="grid grid-cols-2 gap-3 md:gap-6 mb-6 md:mb-8" data-v-ebfd158e><!--[-->`);
       ssrRenderList(companyStats, (stat) => {
-        _push(`<div class="text-center p-3 md:p-6 bg-sage-50 rounded-2xl hover:bg-sage-100 transition-colors duration-300" data-v-ed3c655f><div class="text-2xl md:text-3xl font-bold text-sage-700 mb-1 md:mb-2 font-montserrat" data-v-ed3c655f>${ssrInterpolate(stat.value)}</div><div class="text-gray-600 font-medium text-xs md:text-sm font-jost" data-v-ed3c655f>${ssrInterpolate(stat.label)}</div></div>`);
+        _push(`<div class="text-center p-3 md:p-6 bg-sage-50 rounded-2xl hover:bg-sage-100 transition-colors duration-300" data-v-ebfd158e><div class="text-2xl md:text-3xl font-bold text-sage-700 mb-1 md:mb-2 font-montserrat" data-v-ebfd158e>${ssrInterpolate(stat.value)}</div><div class="text-gray-600 font-medium text-xs md:text-sm font-jost" data-v-ebfd158e>${ssrInterpolate(stat.label)}</div></div>`);
       });
-      _push(`<!--]--></div><div class="space-y-3 md:space-y-4" data-v-ed3c655f><!--[-->`);
+      _push(`<!--]--></div><div class="space-y-3 md:space-y-4" data-v-ebfd158e><!--[-->`);
       ssrRenderList(achievements, (achievement) => {
-        _push(`<div class="flex items-center p-3 md:p-4 bg-sage-50 rounded-xl border border-sage-100 hover:bg-sage-100 transition-colors duration-300" data-v-ed3c655f><div class="w-10 h-10 md:w-12 md:h-12 bg-sage-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 flex-shrink-0" data-v-ed3c655f><div class="w-5 h-5 md:w-6 md:h-6 text-white" data-v-ed3c655f>${achievement.icon ?? ""}</div></div><div data-v-ed3c655f><h4 class="font-bold text-gray-800 text-sm md:text-base font-montserrat" data-v-ed3c655f>${ssrInterpolate(achievement.title)}</h4><p class="text-xs md:text-sm text-gray-600 font-jost leading-relaxed" data-v-ed3c655f>${ssrInterpolate(achievement.description)}</p></div></div>`);
+        _push(`<div class="flex items-center p-3 md:p-4 bg-sage-50 rounded-xl border border-sage-100 hover:bg-sage-100 transition-colors duration-300" data-v-ebfd158e><div class="w-10 h-10 md:w-12 md:h-12 bg-sage-400 rounded-xl flex items-center justify-center mr-3 md:mr-4 flex-shrink-0" data-v-ebfd158e><div class="w-5 h-5 md:w-6 md:h-6 text-white" data-v-ebfd158e>${achievement.icon ?? ""}</div></div><div data-v-ebfd158e><h4 class="font-bold text-gray-800 text-sm md:text-base font-montserrat" data-v-ebfd158e>${ssrInterpolate(achievement.title)}</h4><p class="text-xs md:text-sm text-gray-600 font-jost leading-relaxed" data-v-ebfd158e>${ssrInterpolate(achievement.description)}</p></div></div>`);
       });
-      _push(`<!--]--></div></div><div class="absolute -top-6 -right-6 w-24 h-24 bg-sage-200 rounded-full opacity-30" data-v-ed3c655f></div><div class="absolute -bottom-4 -left-4 w-16 h-16 bg-sage-300 rounded-full opacity-20" data-v-ed3c655f></div></div></div><div class="grid md:grid-cols-2 gap-6 md:gap-12 mb-16 lg:mb-24" data-v-ed3c655f><div class="bg-white rounded-3xl p-6 md:p-8 shadow-lg border border-sage-100 hover:shadow-xl transition-all duration-300" data-v-ed3c655f><div class="w-14 h-14 md:w-16 md:h-16 bg-sage-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6" data-v-ed3c655f><svg class="w-6 h-6 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ed3c655f><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" data-v-ed3c655f></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" data-v-ed3c655f></path></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-4 font-montserrat" data-v-ed3c655f>Our Vision</h3><p class="text-gray-600 leading-relaxed font-jost" data-v-ed3c655f> To become the leading logistics company in Indonesia, providing world-class export-import services and comprehensive logistics solutions that connect businesses across global markets with reliability, efficiency, and innovation. </p></div><div class="bg-white rounded-3xl p-8 shadow-lg border border-sage-100 hover:shadow-xl transition-all duration-300" data-v-ed3c655f><div class="w-16 h-16 bg-sage-600 rounded-2xl flex items-center justify-center mb-6" data-v-ed3c655f><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ed3c655f><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6.5M8 6V4h8v2M8 6H6a2 2 0 00-2 2v6.5m16-1.245a23.931 23.931 0 01-9 1.745c-3.183 0-6.22-.62-9-1.745M21 13.255V19a2 2 0 01-2 2H5a2 2 0 01-2-2v-5.745" data-v-ed3c655f></path></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-4 font-montserrat" data-v-ed3c655f>Our Mission</h3><div class="space-y-3 text-gray-600 font-jost" data-v-ed3c655f><div class="flex items-start" data-v-ed3c655f><div class="w-2 h-2 bg-sage-600 rounded-full mt-2 mr-3 flex-shrink-0" data-v-ed3c655f></div><p class="leading-relaxed" data-v-ed3c655f>Provide comprehensive and professional logistics services with international quality standards</p></div><div class="flex items-start" data-v-ed3c655f><div class="w-2 h-2 bg-sage-600 rounded-full mt-2 mr-3 flex-shrink-0" data-v-ed3c655f></div><p class="leading-relaxed" data-v-ed3c655f>Build strategic partnerships with global networks to facilitate efficient international trade</p></div><div class="flex items-start" data-v-ed3c655f><div class="w-2 h-2 bg-sage-600 rounded-full mt-2 mr-3 flex-shrink-0" data-v-ed3c655f></div><p class="leading-relaxed" data-v-ed3c655f>Continuously innovate with modern technology and systems for customer satisfaction</p></div></div></div></div><div class="bg-white rounded-3xl p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100" data-v-ed3c655f><div class="text-center mb-6 md:mb-8" data-v-ed3c655f><h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4 font-montserrat" data-v-ed3c655f> Our Professional Team </h3><p class="text-gray-600 max-w-3xl mx-auto leading-relaxed font-jost" data-v-ed3c655f> Led by experienced professionals in the logistics industry and international trade with a high commitment to customer satisfaction. Our solid and experienced team is ready to provide the best service for your logistics needs. </p></div><div class="mb-8 md:mb-12" data-v-ed3c655f>`);
+      _push(`<!--]--></div></div><div class="absolute -top-6 -right-6 w-24 h-24 bg-sage-200 rounded-full opacity-30" data-v-ebfd158e></div><div class="absolute -bottom-4 -left-4 w-16 h-16 bg-sage-300 rounded-full opacity-20" data-v-ebfd158e></div></div></div><div class="grid md:grid-cols-2 gap-6 md:gap-12 mb-16 lg:mb-24" data-v-ebfd158e><div class="bg-white rounded-3xl p-6 md:p-8 shadow-lg border border-sage-100 hover:shadow-xl transition-all duration-300" data-v-ebfd158e><div class="w-14 h-14 md:w-16 md:h-16 bg-sage-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6" data-v-ebfd158e><svg class="w-6 h-6 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ebfd158e><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" data-v-ebfd158e></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" data-v-ebfd158e></path></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-4 font-montserrat" data-v-ebfd158e>Our Vision</h3><p class="text-gray-600 leading-relaxed font-jost" data-v-ebfd158e> To become the leading logistics company in Indonesia, providing world-class export-import services and comprehensive logistics solutions that connect businesses across global markets with reliability, efficiency, and innovation. </p></div><div class="bg-white rounded-3xl p-8 shadow-lg border border-sage-100 hover:shadow-xl transition-all duration-300" data-v-ebfd158e><div class="w-16 h-16 bg-sage-600 rounded-2xl flex items-center justify-center mb-6" data-v-ebfd158e><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ebfd158e><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6.5M8 6V4h8v2M8 6H6a2 2 0 00-2 2v6.5m16-1.245a23.931 23.931 0 01-9 1.745c-3.183 0-6.22-.62-9-1.745M21 13.255V19a2 2 0 01-2 2H5a2 2 0 01-2-2v-5.745" data-v-ebfd158e></path></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-4 font-montserrat" data-v-ebfd158e>Our Mission</h3><div class="space-y-3 text-gray-600 font-jost" data-v-ebfd158e><div class="flex items-start" data-v-ebfd158e><div class="w-2 h-2 bg-sage-600 rounded-full mt-2 mr-3 flex-shrink-0" data-v-ebfd158e></div><p class="leading-relaxed" data-v-ebfd158e>Provide comprehensive and professional logistics services with international quality standards</p></div><div class="flex items-start" data-v-ebfd158e><div class="w-2 h-2 bg-sage-600 rounded-full mt-2 mr-3 flex-shrink-0" data-v-ebfd158e></div><p class="leading-relaxed" data-v-ebfd158e>Build strategic partnerships with global networks to facilitate efficient international trade</p></div><div class="flex items-start" data-v-ebfd158e><div class="w-2 h-2 bg-sage-600 rounded-full mt-2 mr-3 flex-shrink-0" data-v-ebfd158e></div><p class="leading-relaxed" data-v-ebfd158e>Continuously innovate with modern technology and systems for customer satisfaction</p></div></div></div></div><div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100" data-v-ebfd158e><div class="text-center mb-6 sm:mb-8 md:mb-10" data-v-ebfd158e><h3 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6 font-montserrat" data-v-ebfd158e> Our Professional Team </h3><p class="text-sm sm:text-base md:text-lg text-gray-600 max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto leading-relaxed font-jost px-2 sm:px-0" data-v-ebfd158e> Led by experienced professionals in the logistics industry and international trade with a high commitment to customer satisfaction. Our solid and experienced team is ready to provide the best service for your logistics needs. </p></div><div class="mb-6 sm:mb-8 md:mb-12" data-v-ebfd158e>`);
       _push(ssrRenderComponent(AnimatedTestimonials, {
         testimonials: clientTestimonials,
-        autoplay: true
+        autoplay: false
       }, null, _parent));
-      _push(`</div><div class="grid md:grid-cols-3 gap-4 md:gap-8" data-v-ed3c655f><!--[-->`);
+      _push(`</div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8" data-v-ebfd158e><!--[-->`);
       ssrRenderList(teamHighlights, (highlight) => {
-        _push(`<div class="text-center p-4 md:p-6 bg-sage-50 rounded-2xl hover:bg-sage-100 transition-colors duration-300" data-v-ed3c655f><div class="w-14 h-14 md:w-16 md:h-16 bg-sage-600 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4" data-v-ed3c655f><div class="w-6 h-6 md:w-8 md:h-8 text-white" data-v-ed3c655f>${highlight.icon ?? ""}</div></div><h4 class="text-base md:text-lg font-bold text-gray-800 mb-2 md:mb-3 font-montserrat" data-v-ed3c655f>${ssrInterpolate(highlight.title)}</h4><p class="text-gray-600 text-xs md:text-sm leading-relaxed font-jost" data-v-ed3c655f>${ssrInterpolate(highlight.description)}</p></div>`);
+        _push(`<div class="text-center p-4 sm:p-5 md:p-6 bg-sage-50 rounded-xl sm:rounded-2xl hover:bg-sage-100 transition-colors duration-300" data-v-ebfd158e><div class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-sage-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4" data-v-ebfd158e><div class="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" data-v-ebfd158e>${highlight.icon ?? ""}</div></div><h4 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-2 sm:mb-3 font-montserrat" data-v-ebfd158e>${ssrInterpolate(highlight.title)}</h4><p class="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed font-jost" data-v-ebfd158e>${ssrInterpolate(highlight.description)}</p></div>`);
       });
       _push(`<!--]--></div></div></div></section>`);
     };
@@ -951,7 +1002,7 @@ _sfc_main$3.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/AboutSection.vue");
   return _sfc_setup$3 ? _sfc_setup$3(props, ctx) : void 0;
 };
-const AboutSection = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-ed3c655f"]]);
+const AboutSection = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-ebfd158e"]]);
 const _sfc_main$2 = {
   __name: "ContactSection",
   __ssrInlineRender: true,
@@ -1018,69 +1069,69 @@ const _sfc_main$2 = {
         id: "contact",
         class: "py-24 bg-sage-900",
         "aria-labelledby": "contact-heading"
-      }, _attrs))} data-v-a6762f89><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-v-a6762f89><div class="text-center mb-16 lg:mb-24" data-v-a6762f89><div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full text-sm font-semibold mb-6" data-v-a6762f89><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a6762f89><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" data-v-a6762f89></path></svg> Contact Our Professional Team </div><h2 id="contact-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 font-montserrat" data-v-a6762f89> Let&#39;s Discuss Your Needs </h2><p class="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed font-jost" data-v-a6762f89> Our team of experts is ready to help provide the best logistics solutions for your business with 24/7 service. </p></div><div class="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start" data-v-a6762f89><div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-10 lg:p-12 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300" data-v-a6762f89><h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 lg:mb-8 font-montserrat" id="contact-form-heading" data-v-a6762f89>Send Your Message</h3><form class="space-y-4 md:space-y-6" aria-labelledby="contact-form-heading" novalidate data-v-a6762f89><div class="grid md:grid-cols-2 gap-4 md:gap-6" data-v-a6762f89><div data-v-a6762f89><label for="contact-name" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-a6762f89>Full Name *</label><input id="contact-name"${ssrRenderAttr("value", form.name)} type="text" required class="${ssrRenderClass([
+      }, _attrs))} data-v-9dfe69dd><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-v-9dfe69dd><div class="text-center mb-16 lg:mb-24" data-v-9dfe69dd><div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full text-sm font-semibold mb-6" data-v-9dfe69dd><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9dfe69dd><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" data-v-9dfe69dd></path></svg> Contact Our Professional Team </div><h2 id="contact-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 font-inter" data-v-9dfe69dd> Let&#39;s Discuss Your Needs </h2><p class="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed font-jost" data-v-9dfe69dd> Our team of experts is ready to help provide the best logistics solutions for your business with 24/7 service. </p></div><div class="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start" data-v-9dfe69dd><div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-10 lg:p-12 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300" data-v-9dfe69dd><h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 lg:mb-8 font-inter" id="contact-form-heading" data-v-9dfe69dd>Send Your Message</h3><form class="space-y-4 md:space-y-6" aria-labelledby="contact-form-heading" novalidate data-v-9dfe69dd><div class="grid md:grid-cols-2 gap-4 md:gap-6" data-v-9dfe69dd><div data-v-9dfe69dd><label for="contact-name" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-9dfe69dd>Full Name *</label><input id="contact-name"${ssrRenderAttr("value", form.name)} type="text" required class="${ssrRenderClass([
         "w-full px-3 md:px-4 py-3 md:py-4 bg-white/20 border rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm",
         formErrors.name ? "border-red-400 focus:ring-red-400/50" : "border-white/30 focus:ring-white/50"
-      ])}" placeholder="Enter full name"${ssrRenderAttr("aria-invalid", !!formErrors.name)}${ssrRenderAttr("aria-describedby", formErrors.name ? "name-error" : void 0)} data-v-a6762f89>`);
+      ])}" placeholder="Enter full name"${ssrRenderAttr("aria-invalid", !!formErrors.name)}${ssrRenderAttr("aria-describedby", formErrors.name ? "name-error" : void 0)} data-v-9dfe69dd>`);
       if (formErrors.name) {
-        _push(`<p id="name-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-a6762f89>${ssrInterpolate(formErrors.name)}</p>`);
+        _push(`<p id="name-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-9dfe69dd>${ssrInterpolate(formErrors.name)}</p>`);
       } else {
         _push(`<!---->`);
       }
-      _push(`</div><div data-v-a6762f89><label for="contact-email" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-a6762f89>Email *</label><input id="contact-email"${ssrRenderAttr("value", form.email)} type="email" required class="${ssrRenderClass([
+      _push(`</div><div data-v-9dfe69dd><label for="contact-email" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-9dfe69dd>Email *</label><input id="contact-email"${ssrRenderAttr("value", form.email)} type="email" required class="${ssrRenderClass([
         "w-full px-3 md:px-4 py-3 md:py-4 bg-white/20 border rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm",
         formErrors.email ? "border-red-400 focus:ring-red-400/50" : "border-white/30 focus:ring-white/50"
-      ])}" placeholder="example@email.com"${ssrRenderAttr("aria-invalid", !!formErrors.email)}${ssrRenderAttr("aria-describedby", formErrors.email ? "email-error" : void 0)} data-v-a6762f89>`);
+      ])}" placeholder="example@email.com"${ssrRenderAttr("aria-invalid", !!formErrors.email)}${ssrRenderAttr("aria-describedby", formErrors.email ? "email-error" : void 0)} data-v-9dfe69dd>`);
       if (formErrors.email) {
-        _push(`<p id="email-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-a6762f89>${ssrInterpolate(formErrors.email)}</p>`);
+        _push(`<p id="email-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-9dfe69dd>${ssrInterpolate(formErrors.email)}</p>`);
       } else {
         _push(`<!---->`);
       }
-      _push(`</div></div><div class="grid md:grid-cols-2 gap-4 md:gap-6" data-v-a6762f89><div data-v-a6762f89><label for="contact-phone" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-a6762f89>Mobile Phone *</label><input id="contact-phone"${ssrRenderAttr("value", form.phone)} type="tel" required class="${ssrRenderClass([
+      _push(`</div></div><div class="grid md:grid-cols-2 gap-4 md:gap-6" data-v-9dfe69dd><div data-v-9dfe69dd><label for="contact-phone" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-9dfe69dd>Mobile Phone *</label><input id="contact-phone"${ssrRenderAttr("value", form.phone)} type="tel" required class="${ssrRenderClass([
         "w-full px-3 md:px-4 py-3 md:py-4 bg-white/20 border rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm",
         formErrors.phone ? "border-red-400 focus:ring-red-400/50" : "border-white/30 focus:ring-white/50"
-      ])}" placeholder="+62 8xx xxxx xxxx"${ssrRenderAttr("aria-invalid", !!formErrors.phone)}${ssrRenderAttr("aria-describedby", formErrors.phone ? "phone-error" : void 0)} data-v-a6762f89>`);
+      ])}" placeholder="+62 8xx xxxx xxxx"${ssrRenderAttr("aria-invalid", !!formErrors.phone)}${ssrRenderAttr("aria-describedby", formErrors.phone ? "phone-error" : void 0)} data-v-9dfe69dd>`);
       if (formErrors.phone) {
-        _push(`<p id="phone-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-a6762f89>${ssrInterpolate(formErrors.phone)}</p>`);
+        _push(`<p id="phone-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-9dfe69dd>${ssrInterpolate(formErrors.phone)}</p>`);
       } else {
         _push(`<!---->`);
       }
-      _push(`</div><div data-v-a6762f89><label for="contact-service" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-a6762f89>Services</label><select id="contact-service" class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm" aria-label="Select a service" data-v-a6762f89><option value="" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "") : ssrLooseEqual(form.service, "")) ? " selected" : ""}>Choose Service</option><option value="export-import" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "export-import") : ssrLooseEqual(form.service, "export-import")) ? " selected" : ""}>Export/Import</option><option value="trucking" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "trucking") : ssrLooseEqual(form.service, "trucking")) ? " selected" : ""}>Trucking Inland</option><option value="money-transfer" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "money-transfer") : ssrLooseEqual(form.service, "money-transfer")) ? " selected" : ""}>Transfer Uang</option><option value="insurance" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "insurance") : ssrLooseEqual(form.service, "insurance")) ? " selected" : ""}>Asuransi Barang</option><option value="warehousing" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "warehousing") : ssrLooseEqual(form.service, "warehousing")) ? " selected" : ""}>Warehousing</option><option value="consulting" class="text-gray-900" data-v-a6762f89${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "consulting") : ssrLooseEqual(form.service, "consulting")) ? " selected" : ""}>Consulting</option></select></div></div><div data-v-a6762f89><label for="contact-message" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-a6762f89>Your Message *</label><textarea id="contact-message" required rows="5" class="${ssrRenderClass([
+      _push(`</div><div data-v-9dfe69dd><label for="contact-service" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-9dfe69dd>Services</label><select id="contact-service" class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm" aria-label="Select a service" data-v-9dfe69dd><option value="" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "") : ssrLooseEqual(form.service, "")) ? " selected" : ""}>Choose Service</option><option value="export-import" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "export-import") : ssrLooseEqual(form.service, "export-import")) ? " selected" : ""}>Export/Import</option><option value="trucking" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "trucking") : ssrLooseEqual(form.service, "trucking")) ? " selected" : ""}>Trucking Inland</option><option value="money-transfer" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "money-transfer") : ssrLooseEqual(form.service, "money-transfer")) ? " selected" : ""}>Transfer Uang</option><option value="insurance" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "insurance") : ssrLooseEqual(form.service, "insurance")) ? " selected" : ""}>Asuransi Barang</option><option value="warehousing" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "warehousing") : ssrLooseEqual(form.service, "warehousing")) ? " selected" : ""}>Warehousing</option><option value="consulting" class="text-gray-900" data-v-9dfe69dd${ssrIncludeBooleanAttr(Array.isArray(form.service) ? ssrLooseContain(form.service, "consulting") : ssrLooseEqual(form.service, "consulting")) ? " selected" : ""}>Consulting</option></select></div></div><div data-v-9dfe69dd><label for="contact-message" class="block text-xs md:text-sm font-semibold text-white/90 mb-2 md:mb-3 font-jost" data-v-9dfe69dd>Your Message *</label><textarea id="contact-message" required rows="5" class="${ssrRenderClass([
         "w-full px-3 md:px-4 py-3 md:py-4 bg-white/20 border rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm resize-none",
         formErrors.message ? "border-red-400 focus:ring-red-400/50" : "border-white/30 focus:ring-white/50"
-      ])}" placeholder="Describe your specific needs..."${ssrRenderAttr("aria-invalid", !!formErrors.message)}${ssrRenderAttr("aria-describedby", formErrors.message ? "message-error" : void 0)} data-v-a6762f89>${ssrInterpolate(form.message)}</textarea>`);
+      ])}" placeholder="Describe your specific needs..."${ssrRenderAttr("aria-invalid", !!formErrors.message)}${ssrRenderAttr("aria-describedby", formErrors.message ? "message-error" : void 0)} data-v-9dfe69dd>${ssrInterpolate(form.message)}</textarea>`);
       if (formErrors.message) {
-        _push(`<p id="message-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-a6762f89>${ssrInterpolate(formErrors.message)}</p>`);
+        _push(`<p id="message-error" class="text-red-300 text-xs mt-1 font-jost" role="alert" data-v-9dfe69dd>${ssrInterpolate(formErrors.message)}</p>`);
       } else {
         _push(`<!---->`);
       }
       _push(`</div>`);
       if (submitStatus.value === "success") {
-        _push(`<div class="mb-4 p-3 bg-green-500/20 border border-green-400/30 rounded-xl text-green-300 text-sm font-jost flex items-center" data-v-a6762f89><svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a6762f89><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" data-v-a6762f89></path></svg> Your message has been sent successfully! Our team will contact you soon. </div>`);
+        _push(`<div class="mb-4 p-3 bg-green-500/20 border border-green-400/30 rounded-xl text-green-300 text-sm font-jost flex items-center" data-v-9dfe69dd><svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9dfe69dd><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" data-v-9dfe69dd></path></svg> Your message has been sent successfully! Our team will contact you soon. </div>`);
       } else {
         _push(`<!---->`);
       }
       if (submitStatus.value === "error") {
-        _push(`<div class="mb-4 p-3 bg-red-500/20 border border-red-400/30 rounded-xl text-red-300 text-sm font-jost flex items-center" data-v-a6762f89><svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a6762f89><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" data-v-a6762f89></path></svg> An error occurred. Please try again. </div>`);
+        _push(`<div class="mb-4 p-3 bg-red-500/20 border border-red-400/30 rounded-xl text-red-300 text-sm font-jost flex items-center" data-v-9dfe69dd><svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9dfe69dd><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" data-v-9dfe69dd></path></svg> An error occurred. Please try again. </div>`);
       } else {
         _push(`<!---->`);
       }
       _push(`<button type="submit"${ssrIncludeBooleanAttr(isSubmitting.value || !isFormValid.value) ? " disabled" : ""} class="${ssrRenderClass([
         "w-full px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300",
         isFormValid.value && !isSubmitting.value ? "bg-white text-sage-500 hover:bg-white/90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" : "bg-white/50 text-sage-400 cursor-not-allowed"
-      ])}" data-v-a6762f89>`);
+      ])}" data-v-9dfe69dd>`);
       if (!isSubmitting.value) {
-        _push(`<span data-v-a6762f89>Send Message</span>`);
+        _push(`<span data-v-9dfe69dd>Send Message</span>`);
       } else {
-        _push(`<span class="flex items-center justify-center" data-v-a6762f89><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-sage-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" data-v-a6762f89><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1" data-v-a6762f89></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" data-v-a6762f89></path></svg> Sending... </span>`);
+        _push(`<span class="flex items-center justify-center" data-v-9dfe69dd><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-sage-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" data-v-9dfe69dd><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1" data-v-9dfe69dd></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" data-v-9dfe69dd></path></svg> Sending... </span>`);
       }
-      _push(`</button></form></div><div class="space-y-6 md:space-y-8" role="complementary" aria-labelledby="contact-info-heading" data-v-a6762f89><div class="grid gap-6" data-v-a6762f89><h3 id="contact-info-heading" class="sr-only" data-v-a6762f89>Contact Information</h3><!--[-->`);
+      _push(`</button></form></div><div class="space-y-6 md:space-y-8" role="complementary" aria-labelledby="contact-info-heading" data-v-9dfe69dd><div class="grid gap-6" data-v-9dfe69dd><h3 id="contact-info-heading" class="sr-only" data-v-9dfe69dd>Contact Information</h3><!--[-->`);
       ssrRenderList(offices, (office) => {
-        _push(`<div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300" data-v-a6762f89><h4 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4 font-montserrat" data-v-a6762f89>${ssrInterpolate(office.name)}</h4><div class="space-y-2 md:space-y-3" data-v-a6762f89><div class="flex items-start" data-v-a6762f89><svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mt-0.5 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a6762f89><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" data-v-a6762f89></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" data-v-a6762f89></path></svg><span class="text-white/90 text-xs md:text-sm leading-relaxed font-jost" data-v-a6762f89>${ssrInterpolate(office.address)}</span></div><div class="flex items-center" data-v-a6762f89><svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a6762f89><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" data-v-a6762f89></path></svg><span class="text-white font-medium text-xs md:text-sm font-jost" data-v-a6762f89>${ssrInterpolate(office.phone)}</span></div><div class="flex items-center" data-v-a6762f89><svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a6762f89><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" data-v-a6762f89></path></svg><span class="text-white font-medium text-xs md:text-sm break-all font-jost" data-v-a6762f89>${ssrInterpolate(office.email)}</span></div></div></div>`);
+        _push(`<div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300" data-v-9dfe69dd><h4 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4 font-inter" data-v-9dfe69dd>${ssrInterpolate(office.name)}</h4><div class="space-y-2 md:space-y-3" data-v-9dfe69dd><div class="flex items-start" data-v-9dfe69dd><svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mt-0.5 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9dfe69dd><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" data-v-9dfe69dd></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" data-v-9dfe69dd></path></svg><span class="text-white/90 text-xs md:text-sm leading-relaxed font-jost" data-v-9dfe69dd>${ssrInterpolate(office.address)}</span></div><div class="flex items-center" data-v-9dfe69dd><svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9dfe69dd><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" data-v-9dfe69dd></path></svg><span class="text-white font-medium text-xs md:text-sm font-jost" data-v-9dfe69dd>${ssrInterpolate(office.phone)}</span></div><div class="flex items-center" data-v-9dfe69dd><svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-9dfe69dd><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" data-v-9dfe69dd></path></svg><span class="text-white font-medium text-xs md:text-sm break-all font-jost" data-v-9dfe69dd>${ssrInterpolate(office.email)}</span></div></div></div>`);
       });
-      _push(`<!--]--></div><div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20" role="complementary" aria-labelledby="why-choose-us-heading" data-v-a6762f89><h4 id="why-choose-us-heading" class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 font-montserrat" data-v-a6762f89>Why Choose Us?</h4><div class="space-y-3 md:space-y-4" data-v-a6762f89><!--[-->`);
+      _push(`<!--]--></div><div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20" role="complementary" aria-labelledby="why-choose-us-heading" data-v-9dfe69dd><h4 id="why-choose-us-heading" class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 font-inter" data-v-9dfe69dd>Why Choose Us?</h4><div class="space-y-3 md:space-y-4" data-v-9dfe69dd><!--[-->`);
       ssrRenderList(whyChooseUs, (reason) => {
-        _push(`<div class="flex items-start group" data-v-a6762f89><div class="w-2 h-2 bg-white rounded-full mt-2 mr-3 md:mr-4 group-hover:scale-125 transition-transform duration-300 flex-shrink-0" data-v-a6762f89></div><div data-v-a6762f89><h5 class="font-semibold text-white text-xs md:text-sm mb-1 font-jost" data-v-a6762f89>${ssrInterpolate(reason.title)}</h5><p class="text-white/80 text-xs leading-relaxed font-jost" data-v-a6762f89>${ssrInterpolate(reason.description)}</p></div></div>`);
+        _push(`<div class="flex items-start group" data-v-9dfe69dd><div class="w-2 h-2 bg-white rounded-full mt-2 mr-3 md:mr-4 group-hover:scale-125 transition-transform duration-300 flex-shrink-0" data-v-9dfe69dd></div><div data-v-9dfe69dd><h5 class="font-semibold text-white text-xs md:text-sm mb-1 font-jost" data-v-9dfe69dd>${ssrInterpolate(reason.title)}</h5><p class="text-white/80 text-xs leading-relaxed font-jost" data-v-9dfe69dd>${ssrInterpolate(reason.description)}</p></div></div>`);
       });
       _push(`<!--]--></div></div></div></div></div></section>`);
     };
@@ -1092,7 +1143,7 @@ _sfc_main$2.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/ContactSection.vue");
   return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
 };
-const ContactSection = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-a6762f89"]]);
+const ContactSection = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-9dfe69dd"]]);
 const _sfc_main$1 = {
   __name: "FooterSection",
   __ssrInlineRender: true,
@@ -1202,43 +1253,43 @@ const _sfc_main$1 = {
         class: "bg-gray-800 text-white",
         role: "contentinfo",
         "aria-labelledby": "footer-heading"
-      }, _attrs))} data-v-ae674c13><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24" data-v-ae674c13><h2 id="footer-heading" class="sr-only" data-v-ae674c13>Footer</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 lg:gap-16" data-v-ae674c13><div class="md:col-span-2 lg:col-span-1" role="complementary" aria-labelledby="company-info-heading" data-v-ae674c13><div class="mb-6" data-v-ae674c13><h3 id="company-info-heading" class="sr-only" data-v-ae674c13>Company Information</h3>`);
+      }, _attrs))} data-v-ad047225><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24" data-v-ad047225><h2 id="footer-heading" class="sr-only" data-v-ad047225>Footer</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 lg:gap-16" data-v-ad047225><div class="md:col-span-2 lg:col-span-1" role="complementary" aria-labelledby="company-info-heading" data-v-ad047225><div class="mb-6" data-v-ad047225><h3 id="company-info-heading" class="sr-only" data-v-ad047225>Company Information</h3>`);
       _push(ssrRenderComponent(_sfc_main$c, {
         size: "large",
         "show-text": false,
         "show-tagline": false
       }, null, _parent));
-      _push(`</div><p class="text-gray-300 mb-6 md:mb-8 leading-relaxed font-jost text-sm md:text-base" data-v-ae674c13> Reliable logistics solutions for export-import, inland trucking, international money transfer, and shipment insurance with high professional standards since 2004. </p><div class="flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:mb-8" data-v-ae674c13><div class="flex items-center px-3 py-1.5 bg-sage-600/20 rounded-full" data-v-ae674c13><div class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" data-v-ae674c13></div><span class="text-xs md:text-sm text-sage-200 font-jost font-medium" data-v-ae674c13>Online 24/7</span></div><div class="flex items-center px-3 py-1.5 bg-sage-600/20 rounded-full" data-v-ae674c13><svg class="w-3 h-3 text-sage-300 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ae674c13><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-v-ae674c13></path></svg><span class="text-xs md:text-sm text-sage-200 font-jost font-medium" data-v-ae674c13>ISO Certified</span></div></div><div class="flex flex-wrap gap-3 md:gap-4" role="list" aria-label="Social media links" data-v-ae674c13><!--[-->`);
+      _push(`</div><p class="text-gray-300 mb-6 md:mb-8 leading-relaxed font-jost text-sm md:text-base" data-v-ad047225> Reliable logistics solutions for export-import, inland trucking, international money transfer, and shipment insurance with high professional standards since 2004. </p><div class="flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:mb-8" data-v-ad047225><div class="flex items-center px-3 py-1.5 bg-sage-600/20 rounded-full" data-v-ad047225><div class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" data-v-ad047225></div><span class="text-xs md:text-sm text-sage-200 font-jost font-medium" data-v-ad047225>Online 24/7</span></div><div class="flex items-center px-3 py-1.5 bg-sage-600/20 rounded-full" data-v-ad047225><svg class="w-3 h-3 text-sage-300 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ad047225><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-v-ad047225></path></svg><span class="text-xs md:text-sm text-sage-200 font-jost font-medium" data-v-ad047225>ISO Certified</span></div></div><div class="flex flex-wrap gap-3 md:gap-4" role="list" aria-label="Social media links" data-v-ad047225><!--[-->`);
       ssrRenderList(socialMedia, (social) => {
-        _push(`<a${ssrRenderAttr("href", social.url)} target="_blank" class="${ssrRenderClass([social.hoverColor, "w-10 h-10 md:w-12 md:h-12 bg-white/10 hover:bg-sage-600 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 group"])}"${ssrRenderAttr("aria-label", `Follow us on ${social.name}`)} role="listitem" rel="noopener noreferrer" data-v-ae674c13><div class="w-4 h-4 md:w-5 md:h-5 text-gray-300 group-hover:text-white" data-v-ae674c13>${social.icon ?? ""}</div></a>`);
+        _push(`<a${ssrRenderAttr("href", social.url)} target="_blank" class="${ssrRenderClass([social.hoverColor, "w-10 h-10 md:w-12 md:h-12 bg-white/10 hover:bg-sage-600 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 group"])}"${ssrRenderAttr("aria-label", `Follow us on ${social.name}`)} role="listitem" rel="noopener noreferrer" data-v-ad047225><div class="w-4 h-4 md:w-5 md:h-5 text-gray-300 group-hover:text-white" data-v-ad047225>${social.icon ?? ""}</div></a>`);
       });
-      _push(`<!--]--></div></div><div role="navigation" aria-labelledby="services-heading" data-v-ae674c13><h3 id="services-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-montserrat" data-v-ae674c13>Our Services</h3><ul class="space-y-3 md:space-y-4" role="list" data-v-ae674c13><!--[-->`);
+      _push(`<!--]--></div></div><div role="navigation" aria-labelledby="services-heading" data-v-ad047225><h3 id="services-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-inter" data-v-ad047225>Our Services</h3><ul class="space-y-3 md:space-y-4" role="list" data-v-ad047225><!--[-->`);
       ssrRenderList(services, (service) => {
-        _push(`<li data-v-ae674c13><a${ssrRenderAttr("href", service.link)} class="text-gray-300 hover:text-sage-300 transition-colors duration-300 flex items-start group cursor-pointer"${ssrRenderAttr("aria-label", `Navigate to ${service.name} section`)} data-v-ae674c13><svg class="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3 mt-1 flex-shrink-0 text-sage-600 group-hover:text-sage-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ae674c13><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7" data-v-ae674c13></path></svg><span class="group-hover:translate-x-1 transition-transform duration-300 font-jost text-sm md:text-base" data-v-ae674c13>${ssrInterpolate(service.name)}</span></a></li>`);
+        _push(`<li data-v-ad047225><a${ssrRenderAttr("href", service.link)} class="text-gray-300 hover:text-sage-300 transition-colors duration-300 flex items-start group cursor-pointer"${ssrRenderAttr("aria-label", `Navigate to ${service.name} section`)} data-v-ad047225><svg class="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3 mt-1 flex-shrink-0 text-sage-600 group-hover:text-sage-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ad047225><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7" data-v-ad047225></path></svg><span class="group-hover:translate-x-1 transition-transform duration-300 font-jost text-sm md:text-base" data-v-ad047225>${ssrInterpolate(service.name)}</span></a></li>`);
       });
-      _push(`<!--]--></ul></div><div role="navigation" aria-labelledby="quick-links-heading" data-v-ae674c13><h3 id="quick-links-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-montserrat" data-v-ae674c13>Quick Menu</h3><ul class="space-y-3 md:space-y-4" role="list" data-v-ae674c13><!--[-->`);
+      _push(`<!--]--></ul></div><div role="navigation" aria-labelledby="quick-links-heading" data-v-ad047225><h3 id="quick-links-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-inter" data-v-ad047225>Quick Menu</h3><ul class="space-y-3 md:space-y-4" role="list" data-v-ad047225><!--[-->`);
       ssrRenderList(quickLinks, (link) => {
-        _push(`<li data-v-ae674c13><a${ssrRenderAttr("href", link.url)} class="text-gray-300 hover:text-sage-300 transition-colors duration-300 flex items-start group cursor-pointer"${ssrRenderAttr("aria-label", `Navigate to ${link.name} page`)} data-v-ae674c13><svg class="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3 mt-1 flex-shrink-0 text-sage-600 group-hover:text-sage-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ae674c13><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7" data-v-ae674c13></path></svg><span class="group-hover:translate-x-1 transition-transform duration-300 font-jost text-sm md:text-base" data-v-ae674c13>${ssrInterpolate(link.name)}</span></a></li>`);
+        _push(`<li data-v-ad047225><a${ssrRenderAttr("href", link.url)} class="text-gray-300 hover:text-sage-300 transition-colors duration-300 flex items-start group cursor-pointer"${ssrRenderAttr("aria-label", `Navigate to ${link.name} page`)} data-v-ad047225><svg class="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3 mt-1 flex-shrink-0 text-sage-600 group-hover:text-sage-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-ad047225><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7" data-v-ad047225></path></svg><span class="group-hover:translate-x-1 transition-transform duration-300 font-jost text-sm md:text-base" data-v-ad047225>${ssrInterpolate(link.name)}</span></a></li>`);
       });
-      _push(`<!--]--></ul></div><div role="complementary" aria-labelledby="contact-info-heading" data-v-ae674c13><h3 id="contact-info-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-montserrat" data-v-ae674c13>Contact Us</h3><div class="space-y-4 md:space-y-6" role="list" data-v-ae674c13><!--[-->`);
+      _push(`<!--]--></ul></div><div role="complementary" aria-labelledby="contact-info-heading" data-v-ad047225><h3 id="contact-info-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-inter" data-v-ad047225>Contact Us</h3><div class="space-y-4 md:space-y-6" role="list" data-v-ad047225><!--[-->`);
       ssrRenderList(contactInfo, (contact) => {
-        _push(`<div class="group hover:bg-white/5 p-3 rounded-xl transition-colors duration-300" role="listitem" data-v-ae674c13><div class="flex items-start" data-v-ae674c13><div class="w-10 h-10 md:w-12 md:h-12 bg-sage-600/20 rounded-xl flex items-center justify-center mr-3 md:mr-4 mt-1 group-hover:bg-sage-600 transition-colors duration-300 flex-shrink-0" data-v-ae674c13><div class="w-4 h-4 md:w-5 md:h-5 text-sage-300 group-hover:text-white" data-v-ae674c13>${contact.icon ?? ""}</div></div><div class="min-w-0 flex-1" data-v-ae674c13><div class="text-xs md:text-sm text-sage-300 mb-1 font-medium font-jost" data-v-ae674c13>${ssrInterpolate(contact.type)}</div><div class="text-sm md:text-base text-white font-semibold mb-1 font-jost break-words" data-v-ae674c13>${ssrInterpolate(contact.value)}</div>`);
+        _push(`<div class="group hover:bg-white/5 p-3 rounded-xl transition-colors duration-300" role="listitem" data-v-ad047225><div class="flex items-start" data-v-ad047225><div class="w-10 h-10 md:w-12 md:h-12 bg-sage-600/20 rounded-xl flex items-center justify-center mr-3 md:mr-4 mt-1 group-hover:bg-sage-600 transition-colors duration-300 flex-shrink-0" data-v-ad047225><div class="w-4 h-4 md:w-5 md:h-5 text-sage-300 group-hover:text-white" data-v-ad047225>${contact.icon ?? ""}</div></div><div class="min-w-0 flex-1" data-v-ad047225><div class="text-xs md:text-sm text-sage-300 mb-1 font-medium font-jost" data-v-ad047225>${ssrInterpolate(contact.type)}</div><div class="text-sm md:text-base text-white font-semibold mb-1 font-jost break-words" data-v-ad047225>${ssrInterpolate(contact.value)}</div>`);
         if (contact.secondary) {
-          _push(`<div class="text-xs md:text-sm text-gray-400 font-jost" data-v-ae674c13>${ssrInterpolate(contact.secondary)}</div>`);
+          _push(`<div class="text-xs md:text-sm text-gray-400 font-jost" data-v-ad047225>${ssrInterpolate(contact.secondary)}</div>`);
         } else {
           _push(`<!---->`);
         }
         _push(`</div></div></div>`);
       });
-      _push(`<!--]--></div></div></div></div><div class="border-t border-gray-700/50 bg-gray-900/50" data-v-ae674c13><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8" data-v-ae674c13><div class="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0 gap-4" data-v-ae674c13><div class="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-6 text-center md:text-left" data-v-ae674c13><p class="text-gray-400 text-xs md:text-sm font-jost" data-v-ae674c13> © ${ssrInterpolate(currentYear.value)} Eshaka Wijaya Logistics. All rights reserved. </p><div class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6" data-v-ae674c13><!--[-->`);
+      _push(`<!--]--></div></div></div></div><div class="border-t border-gray-700/50 bg-gray-900/50" data-v-ad047225><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8" data-v-ad047225><div class="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0 gap-4" data-v-ad047225><div class="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-6 text-center md:text-left" data-v-ad047225><p class="text-gray-400 text-xs md:text-sm font-jost" data-v-ad047225> © ${ssrInterpolate(currentYear.value)} Eshaka Wijaya Logistics. All rights reserved. </p><div class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6" data-v-ad047225><!--[-->`);
       ssrRenderList(legalLinks, (legal) => {
-        _push(`<a${ssrRenderAttr("href", legal.url)} class="text-gray-400 hover:text-sage-300 text-xs md:text-sm transition-colors duration-300 font-jost" data-v-ae674c13>${ssrInterpolate(legal.name)}</a>`);
+        _push(`<a${ssrRenderAttr("href", legal.url)} class="text-gray-400 hover:text-sage-300 text-xs md:text-sm transition-colors duration-300 font-jost" data-v-ad047225>${ssrInterpolate(legal.name)}</a>`);
       });
-      _push(`<!--]--></div></div><div class="flex items-center justify-center lg:justify-end" data-v-ae674c13><div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4" data-v-ae674c13><span class="text-xs md:text-sm text-gray-400 font-jost" data-v-ae674c13>Certified by:</span><div class="flex flex-wrap justify-center gap-2" data-v-ae674c13><!--[-->`);
+      _push(`<!--]--></div></div><div class="flex items-center justify-center lg:justify-end" data-v-ad047225><div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4" data-v-ad047225><span class="text-xs md:text-sm text-gray-400 font-jost" data-v-ad047225>Certified by:</span><div class="flex flex-wrap justify-center gap-2" data-v-ad047225><!--[-->`);
       ssrRenderList(certifications, (cert) => {
-        _push(`<div class="flex items-center px-3 py-1.5 bg-sage-600/20 rounded-full" data-v-ae674c13><div class="w-3 h-3 md:w-4 md:h-4 text-sage-300 mr-1.5 md:mr-2" data-v-ae674c13>${cert.icon ?? ""}</div><span class="text-xs text-sage-200 font-medium font-jost" data-v-ae674c13>${ssrInterpolate(cert.name)}</span></div>`);
+        _push(`<div class="flex items-center px-3 py-1.5 bg-sage-600/20 rounded-full" data-v-ad047225><div class="w-3 h-3 md:w-4 md:h-4 text-sage-300 mr-1.5 md:mr-2" data-v-ad047225>${cert.icon ?? ""}</div><span class="text-xs text-sage-200 font-medium font-jost" data-v-ad047225>${ssrInterpolate(cert.name)}</span></div>`);
       });
-      _push(`<!--]--></div></div></div></div></div></div><button style="${ssrRenderStyle(showBackToTop.value ? null : { display: "none" })}" class="fixed bottom-6 right-6 md:bottom-8 md:right-8 w-12 h-12 md:w-14 md:h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-50" aria-label="Scroll back to top of page" type="button" data-v-ae674c13><svg class="w-5 h-5 md:w-6 md:h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" data-v-ae674c13><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 10l7-7m0 0l7 7m-7-7v18" data-v-ae674c13></path></svg></button></footer>`);
+      _push(`<!--]--></div></div></div></div></div></div><button style="${ssrRenderStyle(showBackToTop.value ? null : { display: "none" })}" class="fixed bottom-6 right-6 md:bottom-8 md:right-8 w-12 h-12 md:w-14 md:h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-50" aria-label="Scroll back to top of page" type="button" data-v-ad047225><svg class="w-5 h-5 md:w-6 md:h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" data-v-ad047225><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 10l7-7m0 0l7 7m-7-7v18" data-v-ad047225></path></svg></button></footer>`);
     };
   }
 };
@@ -1248,7 +1299,7 @@ _sfc_main$1.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/FooterSection.vue");
   return _sfc_setup$1 ? _sfc_setup$1(props, ctx) : void 0;
 };
-const FooterSection = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-ae674c13"]]);
+const FooterSection = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-ad047225"]]);
 const _sfc_main = {
   __name: "HomePage",
   __ssrInlineRender: true,
