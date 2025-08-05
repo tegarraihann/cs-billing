@@ -45,7 +45,7 @@
 
                 <!-- Services -->
                 <div role="navigation" aria-labelledby="services-heading">
-                    <h3 id="services-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-montserrat">Our Services</h3>
+                    <h3 id="services-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-inter">Our Services</h3>
                     <ul class="space-y-3 md:space-y-4" role="list">
                         <li v-for="service in services" :key="service.name">
                             <a :href="service.link" @click="scrollToSection(service.link)"
@@ -64,7 +64,7 @@
 
                 <!-- Quick Links -->
                 <div role="navigation" aria-labelledby="quick-links-heading">
-                    <h3 id="quick-links-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-montserrat">Quick Menu</h3>
+                    <h3 id="quick-links-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-inter">Quick Menu</h3>
                     <ul class="space-y-3 md:space-y-4" role="list">
                         <li v-for="link in quickLinks" :key="link.name">
                             <a :href="link.url" @click="scrollToSection(link.url)"
@@ -83,7 +83,7 @@
 
                 <!-- Contact Info -->
                 <div role="complementary" aria-labelledby="contact-info-heading">
-                    <h3 id="contact-info-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-montserrat">Contact Us</h3>
+                    <h3 id="contact-info-heading" class="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white font-inter">Contact Us</h3>
                     <div class="space-y-4 md:space-y-6" role="list">
                         <div v-for="contact in contactInfo" :key="contact.type" class="group hover:bg-white/5 p-3 rounded-xl transition-colors duration-300" role="listitem">
                             <div class="flex items-start">

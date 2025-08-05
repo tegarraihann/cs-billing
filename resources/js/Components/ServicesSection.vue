@@ -1,21 +1,21 @@
 <template>
-    <section id="services" class="py-20 bg-white relative overflow-hidden">
+    <section id="services" class="py-20 relative overflow-hidden">
         <!-- Subtle Background Elements -->
-        <div class="absolute top-0 right-0 w-96 h-96 bg-sage-100/30 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-80 h-80 bg-sage-100/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 right-0 w-96 h-96" style="background-color: rgba(168, 185, 151, 0.3); border-radius: 50%; filter: blur(3rem);"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80" style="background-color: rgba(138, 155, 122, 0.2); border-radius: 50%; filter: blur(3rem);"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <!-- Section Header -->
             <div class="text-center mb-16">
                 <div
-                    class="inline-flex items-center px-4 py-2 bg-sage-50 text-sage-700 rounded-full text-sm font-medium mb-4">
+                    class="inline-flex items-center px-4 py-2 bg-secondary-sage text-white rounded-full text-sm font-medium mb-4">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Professional Services
                 </div>
-                <h2 class="text-3xl md:text-4xl font-semibold text-gray-800 mb-4 font-montserrat">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 font-inter">
                     Complete Logistics Solution
                 </h2>
                 <p class="text-base text-gray-600 max-w-2xl mx-auto font-jost">
@@ -31,7 +31,7 @@
                     class="lg:row-span-2 relative rounded-xl p-8 shadow-md transition-all duration-300 overflow-hidden group">
                     <!-- Background Image -->
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                        style="background-image: url('/images/export.jpg')" :class="'bg-sage-50/50'">
+                        style="background-image: url('/images/export.jpg')" :class="'bg-light-sage/50'">
                         <div class="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-all duration-300">
                         </div>
                     </div>
@@ -40,27 +40,27 @@
                     <div class="relative z-10">
                         <div class="flex items-center mb-6">
                             <div
-                                class="w-12 h-12 bg-sage-600 rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200">
+                                class="w-12 h-12 bg-primary-sage rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200">
                                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                                         d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                             </div>
-                            <div class="bg-sage-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+                            <div class="bg-primary-sage text-white px-3 py-1 rounded-full text-xs font-medium">
                                 Featured
                             </div>
                         </div>
 
-                        <h3
-                            class="text-2xl font-semibold text-white mb-3 font-montserrat drop-shadow-lg bg-black/15 rounded-lg px-3 py-2 backdrop-blur-sm">
-                            Export & Import
-                        </h3>
-                        <p class="text-white mb-6 leading-relaxed font-jost drop-shadow-md">
-                            We specialize in export and import services with comprehensive customs clearance,
-                            door-to-door delivery, and real-time tracking.
-                        </p>
 
-                        <div class="space-y-2 mb-8 bg-black/8 rounded-lg p-4 backdrop-blur-sm">
+                        <div class="space-y-2 mb-8 bg-black/8 rounded-lg p-4 backdrop-blur-sm rounded-xl">
+                            <h3
+                                class="text-2xl font-bold text-white mb-3 font-inter drop-shadow-lg  rounded-lg py-2 ">
+                                Export & Import
+                            </h3>
+                            <p class="text-white mb-6 leading-relaxed font-jost drop-shadow-md">
+                                We specialize in export and import services with comprehensive customs clearance,
+                                door-to-door delivery, and real-time tracking.
+                            </p>
                             <div v-for="feature in exportImportFeatures" :key="feature" class="flex items-start">
                                 <div
                                     class="w-5 h-5 bg-white/40 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 shadow-sm">
@@ -76,7 +76,7 @@
                         </div>
 
                         <button
-                            class="w-full bg-sage-600 hover:bg-sage-700 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:shadow-lg shadow-md">
+                            class="w-full bg-primary-sage hover:bg-accent-sage text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:shadow-lg shadow-md">
                             Konsultasi Export Import
                         </button>
                     </div>
@@ -85,7 +85,7 @@
                 <!-- Other Services -->
                 <div class="space-y-6">
                     <div v-for="service in otherServices" :key="service.title"
-                        class="relative bg-white rounded-xl p-6 border border-gray-100 hover:border-sage-200 hover:shadow-sm transition-all duration-200 overflow-hidden group">
+                        class="relative bg-white rounded-xl p-6 border border-gray-100 hover:border-accent-sage hover:shadow-sm transition-all duration-200 overflow-hidden group">
                         <!-- Service Background Image with inline style -->
                         <div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                             :style="`background-image: url('${service.backgroundImage}');`" :class="service.fallbackBg"
@@ -102,7 +102,7 @@
                             </div>
                             <div class="flex-1">
                                 <h4
-                                    class="text-lg font-semibold text-white mb-2 font-montserrat transition-colors duration-200 drop-shadow-md">
+                                    class="text-lg font-bold text-white mb-2 font-inter transition-colors duration-200 drop-shadow-md">
                                     {{ service.title }}
                                 </h4>
                                 <p class="text-sm text-white/95 leading-relaxed font-jost drop-shadow-sm">
@@ -116,7 +116,7 @@
 
             <!-- Additional Services Carousel -->
             <div class="text-center">
-                <h3 class="text-xl font-semibold text-gray-800 mb-8 font-montserrat">
+                <h3 class="text-xl font-bold text-gray-800 mb-8 font-inter">
                     Support Services
                 </h3>
 
@@ -144,9 +144,9 @@
                                         <!-- Icon on Image -->
                                         <div class="absolute top-6 left-6">
                                             <div
-                                                class="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-sage-600 transition-all duration-300 group">
+                                                class="w-16 h-16 bg-primary-sage backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-accent-sage transition-all duration-300 relative">
                                                 <div v-html="addon.icon"
-                                                    class="w-8 h-8 text-sage-600 transition-colors duration-300 icon-hover">
+                                                    class="w-8 h-8 text-white group-hover:text-pale-sage transition-colors duration-300 icon-hover relative z-20">
                                                 </div>
                                             </div>
                                         </div>
@@ -155,7 +155,7 @@
                                     <!-- Content Section (Right) -->
                                     <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center">
                                         <h4
-                                            class="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4 font-montserrat group-hover:text-sage-700 transition-colors duration-300">
+                                            class="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4 font-inter group-hover:text-primary-sage transition-colors duration-300">
                                             {{ addon.title }}
                                         </h4>
                                         <p
@@ -172,7 +172,7 @@
                     <div class="flex justify-between items-center mt-6">
                         <!-- Previous Button -->
                         <button @click="previousSlide" :disabled="currentSlide === 0"
-                            class="w-10 h-10 bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed">
+                            class="w-10 h-10 bg-secondary-sage hover:bg-accent-sage disabled:bg-gray-100 disabled:text-gray-400 text-white rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                                     d="M15 19l-7-7 7-7" />
@@ -183,12 +183,12 @@
                         <div class="flex space-x-2">
                             <button v-for="(slide, index) in totalSlides" :key="index" @click="goToSlide(index)"
                                 class="w-2 h-2 rounded-full transition-all duration-200"
-                                :class="currentSlide === index ? 'bg-sage-600 w-6' : 'bg-gray-300 hover:bg-sage-300'"></button>
+                                :class="currentSlide === index ? 'bg-primary-sage w-6' : 'bg-gray-300 hover:bg-accent-sage'"></button>
                         </div>
 
                         <!-- Next Button -->
                         <button @click="nextSlide" :disabled="currentSlide >= totalSlides - 1"
-                            class="w-10 h-10 bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed">
+                            class="w-10 h-10 bg-secondary-sage hover:bg-accent-sage disabled:bg-gray-100 disabled:text-gray-400 text-white rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                                     d="M9 5l7 7-7 7" />
@@ -199,20 +199,20 @@
             </div>
 
             <!-- CTA Banner Section -->
-            <div class="mt-20 lg:mt-24 relative">
+            <div class="mt-20 lg:mt-24 relative bg-light-sage rounded-2xl">
                 <!-- Background World Map -->
                 <div class="absolute inset-0 opacity-50 z-0 min-h-96">
-                    <WorldMapDotted :dot-size="3" dot-color="rgba(139, 181, 128, 0.8)" :dot-spacing="25"
-                        :animated="true" :show-country-highlights="true" highlight-color="rgba(139, 181, 128, 1)"
+                    <WorldMapDotted :dot-size="3" dot-color="rgba(85, 107, 47, 0.8)" :dot-spacing="25"
+                        :animated="true" :show-country-highlights="true" highlight-color="rgba(85, 107, 47, 1)"
                         :opacity="1" height="100%" width="100%" />
                 </div>
 
                 <!-- Banner Content -->
                 <div
-                    class="relative bg-gradient-to-r from-sage-600 via-sage-700 to-sage-600 rounded-2xl p-6 md:p-8 lg:p-12 text-white overflow-hidden z-10">
+                    class="relative rounded-2xl p-6 md:p-8 lg:p-12 text-white overflow-hidden z-10" style="background: linear-gradient(135deg, #556B2F 0%, #4A5F29 50%, #556B2F 100%);">
                     <!-- Inner Banner World Map -->
-                    <div class="absolute inset-0 opacity-30 z-0">
-                        <WorldMapDotted :dot-size="2" dot-color="rgba(255, 255, 255, 0.7)" :dot-spacing="20"
+                    <div class="absolute inset-0 opacity-15 z-0">
+                        <WorldMapDotted :dot-size="1" dot-color="rgba(255, 255, 255, 0.4)" :dot-spacing="30"
                             :animated="true" :show-country-highlights="false" :opacity="1" height="100%" width="100%" />
                     </div>
 
@@ -226,14 +226,15 @@
                         <div class="flex-1 text-center lg:text-left">
                             <!-- Main Heading -->
                             <h3
-                                class="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-montserrat leading-tight">
+                                class="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-inter leading-tight text-white">
                                 Ready to Handle Your
-                                <span class="text-sage-200 block lg:inline"> Logistics Needs</span>
+                                <br>
+                                <span class="font-bold drop-shadow-lg" style="color: #A8B897;">Logistics Needs</span>
                             </h3>
 
                             <!-- Description -->
                             <p
-                                class="text-base md:text-lg text-sage-100 mb-4 md:mb-0 leading-relaxed font-jost max-w-2xl lg:max-w-none">
+                                class="text-base md:text-lg text-white/90 mb-4 md:mb-0 leading-relaxed font-jost max-w-2xl lg:max-w-none">
                                 Get a free consultation with our expert team. We provide the best solutions for
                                 export-import,
                                 trucking, and other logistics services. </p>
@@ -242,8 +243,8 @@
                         <!-- Right CTA -->
                         <div class="flex-shrink-0">
                             <button @click="scrollToContact"
-                                class="bg-white text-sage-700 px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-base md:text-lg hover:bg-sage-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-sage-600" fill="none" stroke="currentColor"
+                                class="bg-white text-primary-sage px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-base md:text-lg hover:bg-accent-sage hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-primary-sage group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -262,9 +263,9 @@
                     <div class="relative z-20 mt-6 lg:mt-8 pt-6 border-t border-white/20">
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                             <div v-for="stat in globalStats" :key="stat.label">
-                                <div class="text-lg md:text-xl font-bold text-white mb-1 font-montserrat">{{ stat.value
+                                <div class="text-lg md:text-xl font-bold text-white mb-1 font-inter">{{ stat.value
                                     }}</div>
-                                <div class="text-sage-200 text-xs md:text-sm font-medium font-jost">{{ stat.label }}
+                                <div class="text-accent-sage text-xs md:text-sm font-medium font-jost">{{ stat.label }}
                                 </div>
                             </div>
                         </div>
@@ -293,25 +294,25 @@ const otherServices = [
         title: 'Trucking Inland',
         description: 'Ground shipping throughout Indonesia with a well-maintained fleet and real-time tracking.',
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1-1V9a1 1 0 011-1h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15a1 1 0 01-1 1h-1m-6 0a1 1 0 001 1h4a1 1 0 001-1m-6 0H9m0 0H5m0 0v-4a1 1 0 011-1h4a1 1 0 011 1v4"/></svg>',
-        iconBg: 'bg-gray-400',
+        iconBg: 'bg-primary-sage',
         backgroundImage: '/images/trucking-bg.jpg',
-        fallbackBg: 'bg-gray-50'
+        fallbackBg: 'bg-light-sage'
     },
     {
         title: 'Money Transfer',
         description: 'International transfers at competitive rates and fast processing worldwide.',
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>',
-        iconBg: 'bg-sage-500',
+        iconBg: 'bg-primary-sage',
         backgroundImage: '/images/export.jpg',
-        fallbackBg: 'bg-sage-50'
+        fallbackBg: 'bg-light-sage'
     },
     {
         title: 'Freight Insurance',
         description: 'Complete protection for shipments with comprehensive coverage and easy claims.',
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
-        iconBg: 'bg-amber-500',
+        iconBg: 'bg-primary-sage',
         backgroundImage: '/images/insurance.jpg',
-        fallbackBg: 'bg-amber-50'
+        fallbackBg: 'bg-light-sage'
     }
 ]
 
@@ -455,65 +456,54 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Jost:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Jost:wght@400;500;600&display=swap');
 
-/* Add Montserrat font class */
-.font-montserrat {
-    font-family: 'Montserrat', sans-serif;
+/* Service Section Color Variables */
+:root {
+    --primary-sage: #556B2F;    /* CTA buttons */
+    --secondary-sage: #6B7F5A;  /* Icons, badges */
+    --accent-sage: #8A9B7A;     /* Hover effects */
+    --light-sage: #A8B897;      /* Backgrounds */
+    --pale-sage: #C5D1B7;       /* Subtle backgrounds */
 }
+
+/* Add Inter font class */
+.font-inter {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Primary color utilities - CTA buttons */
+.text-primary-sage { color: #556B2F !important; }
+.bg-primary-sage { background-color: #556B2F !important; }
+.border-primary-sage { border-color: #556B2F !important; }
+.hover\:bg-primary-sage:hover { background-color: #556B2F !important; }
+
+/* Secondary color utilities - Icons, badges */
+.text-secondary-sage { color: #6B7F5A !important; }
+.bg-secondary-sage { background-color: #6B7F5A !important; }
+.border-secondary-sage { border-color: #6B7F5A !important; }
+.hover\:bg-secondary-sage:hover { background-color: #6B7F5A !important; }
+
+/* Accent color utilities - Hover effects */
+.text-accent-sage { color: #8A9B7A !important; }
+.bg-accent-sage { background-color: #8A9B7A !important; }
+.border-accent-sage { border-color: #8A9B7A !important; }
+.hover\:bg-accent-sage:hover { background-color: #8A9B7A !important; }
+.hover\:text-white:hover { color: white !important; }
+
+/* Light sage utilities - Backgrounds */
+.bg-light-sage { background-color: #A8B897 !important; }
+.text-light-sage { color: #A8B897 !important; }
+
+/* Pale sage utilities - Subtle backgrounds */
+.bg-pale-sage { background-color: #C5D1B7 !important; }
+.text-pale-sage { color: #C5D1B7 !important; }
+.hover\:bg-pale-sage:hover { background-color: #C5D1B7 !important; }
 
 .font-jost {
     font-family: 'jost', sans-serif;
 }
 
-/* Optimized Sage Colors - Only used classes */
-.text-sage-600 {
-    color: #8DB580;
-}
-
-.text-sage-700 {
-    color: #7BA169;
-}
-
-.bg-sage-50 {
-    background-color: #F4F6F3;
-}
-
-.bg-sage-100 {
-    background-color: #E8ECE5;
-}
-
-.bg-sage-200 {
-    background-color: #D4DDD0;
-}
-
-.bg-sage-600 {
-    background-color: #8DB580;
-}
-
-.bg-sage-700 {
-    background-color: #7BA169;
-}
-
-.border-sage-100 {
-    border-color: #E8ECE5;
-}
-
-.border-sage-200 {
-    border-color: #D4DDD0;
-}
-
-.hover\:border-sage-200:hover {
-    border-color: #D4DDD0;
-}
-
-.hover\:bg-sage-200:hover {
-    background-color: #D4DDD0;
-}
-
-.hover\:bg-sage-700:hover {
-    background-color: #7BA169;
-}
 
 /* Carousel transition optimization */
 .carousel-slide {
@@ -523,25 +513,30 @@ onUnmounted(() => {
 
 /* Optimized icon hover effect */
 .group:hover .icon-hover svg {
-    color: white !important;
-    stroke: white !important;
+    color: #C5D1B7 !important;
+    stroke: #C5D1B7 !important;
+    fill: none !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 .group:hover .icon-hover {
-    color: white !important;
+    color: #C5D1B7 !important;
+    z-index: 20;
+    position: relative;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* Additional service icon styling */
+.icon-hover {
+    z-index: 20;
+    position: relative;
+}
+
+.icon-hover svg {
+    display: block;
+    position: relative;
+    z-index: 21;
 }
 
 
-/* Additional sage colors for CTA section */
-.text-sage-100 {
-    color: #F4F6F3;
-}
-
-.text-sage-200 {
-    color: #E8ECE5;
-}
-
-.bg-sage-50 {
-    background-color: #F4F6F3;
-}
 </style>

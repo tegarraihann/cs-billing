@@ -10,10 +10,10 @@
     />
 
     <!-- Company Text (optional) -->
-    <!-- <div v-if="showText" :class="textContainerClass">
-      <div :class="primaryTextClass">{{ companyName }}</div>
-      <div v-if="showTagline" :class="taglineClass">{{ tagline }}</div>
-    </div> -->
+    <div v-if="showText" :class="textContainerClass">
+      <div :class="primaryTextClass">PT ESHAKA WIJAYA</div>
+      <div :class="taglineClass">LOGISTICS</div>
+    </div>
   </div>
 </template>
 
@@ -59,11 +59,11 @@ const logoSrc = computed(() => {
   }
 
   if (props.variant === 'icon-only') {
-    return '/images/logo/logo.png'
+    return '/images/logo/logo-hero.svg'
   } else if (props.variant === 'white') {
-    return '/images/logo/logo.png'
+    return '/images/logo/logo-hero.svgg'
   } else {
-    return '/images/logo/logo.png'
+    return '/images/logo/logo-hero.svg'
   }
 })
 

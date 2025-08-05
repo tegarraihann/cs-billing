@@ -10,7 +10,7 @@
         loading="eager"
         @error="handleImageError"
       />
-      
+
       <!-- Fallback for SVG loading error -->
       <div v-if="imageError" class="flex items-center justify-center text-white/70 text-lg font-medium">
         <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
@@ -73,18 +73,18 @@ let ticking = false
 
 const handleParallax = () => {
   if (!props.enableParallax || ticking) return
-  
+
   requestAnimationFrame(() => {
     const scrolled = window.pageYOffset
     const logoElement = document.querySelector('.logo-parallax')
-    
+
     if (logoElement) {
       const rate = scrolled * -0.2
       logoElement.style.transform = `translateY(${rate}px)`
     }
     ticking = false
   })
-  
+
   ticking = true
 }
 

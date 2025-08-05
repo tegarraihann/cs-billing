@@ -4,13 +4,13 @@
             <!-- Section Header -->
             <div class="text-center mb-12 lg:mb-20">
                 <div
-                    class="inline-flex items-center px-4 py-2 bg-white border border-sage-200 text-sage-700 rounded-full text-sm font-semibold mb-6">
+                    class="inline-flex items-center px-4 py-2 bg-white border border-sage-200 text-sage-800 rounded-full text-sm font-semibold mb-6">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                     Authorized & Trusted Certificate
                 </div>
-                <h2 id="about-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 font-montserrat">
+                <h2 id="about-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 font-inter">
                     About Eshaka Wijaya Logistics
                 </h2>
                 <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-jost">
@@ -22,13 +22,13 @@
             <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 lg:mb-24">
                 <!-- Content -->
                 <div>
-                    <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6 font-montserrat">
+                    <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6 font-inter">
                         Trusted Logistics Partner
-                        <span class="text-sage-600 block md:inline">Since 2015</span>
+                        <span class="text-sage-700 block md:inline">Since 2015</span>
                     </h3>
 
                     <p class="text-base md:text-lg text-gray-600 mb-6 md:mb-8 leading-relaxed font-jost">
-                        Eshaka Wijaya Logistics was established with the vision of becoming the leading logistics
+                        <b>Eshaka Wijaya Logistics</b> was established with the vision of becoming the leading logistics
                         company in Indonesia. We provide export-import, inland trucking, international money transfer,
                         and freight insurance services with trusted international quality standards.
                     </p>
@@ -37,7 +37,7 @@
                     <div class="space-y-4 md:space-y-6 mb-8 md:mb-10">
                         <div v-for="point in keyPoints" :key="point.title" class="flex items-start group">
                             <div
-                                class="w-12 h-12 bg-sage-600 rounded-xl flex items-center justify-center flex-shrink-0 mr-4 group-hover:scale-110 transition-transform duration-300"
+                                class="w-12 h-12 bg-sage-700 rounded-xl flex items-center justify-center flex-shrink-0 mr-4 group-hover:scale-110 transition-transform duration-300"
                                 style="will-change: transform;">
                                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 13l4 4L19 7" />
@@ -52,7 +52,7 @@
 
                     <!-- CTA Button -->
                     <button @click="scrollToContact"
-                        class="bg-sage-600 hover:bg-sage-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                        class="btn-primary-sage hover:bg-sage-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                         style="will-change: transform, box-shadow;"
                         aria-label="Contact us for consultation">
                         Consultation Now
@@ -76,7 +76,7 @@
                         <div class="space-y-3 md:space-y-4">
                             <div v-for="achievement in achievements" :key="achievement.title"
                                 class="flex items-center p-3 md:p-4 bg-sage-50 rounded-xl border border-sage-100 hover:bg-sage-100 transition-colors duration-300">
-                                <div class="w-10 h-10 md:w-12 md:h-12 bg-sage-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 flex-shrink-0">
+                                <div class="w-10 h-10 md:w-12 md:h-12 bg-sage-400 rounded-xl flex items-center justify-center mr-3 md:mr-4 flex-shrink-0">
                                     <div v-html="achievement.icon" class="w-5 h-5 md:w-6 md:h-6 text-white"></div>
                                 </div>
                                 <div>
@@ -137,35 +137,32 @@
             </div>
 
             <!-- Team Section -->
-            <div class="bg-white rounded-3xl p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100">
-                <div class="text-center mb-6 md:mb-8">
-                    <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4 font-montserrat">
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100">
+                <div class="text-center mb-6 sm:mb-8 md:mb-10">
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6 font-montserrat">
                         Our Professional Team
                     </h3>
-                    <p class="text-gray-600 max-w-3xl mx-auto leading-relaxed font-jost">
+                    <p class="text-sm sm:text-base md:text-lg text-gray-600 max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto leading-relaxed font-jost px-2 sm:px-0">
                         Led by experienced professionals in the logistics industry and international trade with a high
                         commitment to customer satisfaction. Our solid and experienced team is ready to provide the best
                         service for your logistics needs.
                     </p>
                 </div>
 
-                <!-- Team Photo Component -->
-                <div class="flex justify-center mb-8 md:mb-12">
-                    <Team size="large" layout="vertical" :show-text="false" :show-overlay="true" :show-stats="true"
-                        team-title="Tim Expert Logistics"
-                        team-description="Experienced professionals with a high level of dedication to serving your international logistics needs."
-                        />
+                <!-- Client Testimonials -->
+                <div class="mb-6 sm:mb-8 md:mb-12">
+                    <AnimatedTestimonials :testimonials="clientTestimonials" :autoplay="false" />
                 </div>
 
                 <!-- Team Highlights -->
-                <div class="grid md:grid-cols-3 gap-4 md:gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                     <div v-for="highlight in teamHighlights" :key="highlight.title"
-                        class="text-center p-4 md:p-6 bg-sage-50 rounded-2xl hover:bg-sage-100 transition-colors duration-300">
-                        <div class="w-14 h-14 md:w-16 md:h-16 bg-sage-600 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                            <div v-html="highlight.icon" class="w-6 h-6 md:w-8 md:h-8 text-white"></div>
+                        class="text-center p-4 sm:p-5 md:p-6 bg-sage-50 rounded-xl sm:rounded-2xl hover:bg-sage-100 transition-colors duration-300">
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-sage-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                            <div v-html="highlight.icon" class="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white"></div>
                         </div>
-                        <h4 class="text-base md:text-lg font-bold text-gray-800 mb-2 md:mb-3 font-montserrat">{{ highlight.title }}</h4>
-                        <p class="text-gray-600 text-xs md:text-sm leading-relaxed font-jost">{{ highlight.description }}</p>
+                        <h4 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-2 sm:mb-3 font-montserrat">{{ highlight.title }}</h4>
+                        <p class="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed font-jost">{{ highlight.description }}</p>
                     </div>
                 </div>
             </div>
@@ -175,6 +172,7 @@
 
 <script setup>
 import Team from './Team.vue'
+import AnimatedTestimonials from './AnimatedTestimonials.vue'
 
 const scrollToContact = () => {
     const element = document.querySelector('#contact')
@@ -227,6 +225,45 @@ const keyPoints = [
     }
 ]
 
+const clientTestimonials = [
+    {
+        quote: "Eshaka Wijaya Logistics has been our trusted partner for international trade for the past 5 years. Their professional service and on-time delivery make our business operations much more efficient.",
+        name: "Our Team",
+        designation: "Complete Logistics Team",
+        src: "/images/team/all-team.png"
+    },
+    {
+        quote: "The team's expertise in handling complex logistics requirements is remarkable. They consistently deliver beyond our expectations with competitive pricing and excellent customer service.",
+        name: "Customer Service",
+        designation: "Name... | +6285213866455",
+        src: "/images/team/cs-satu.png"
+    },
+    {
+        quote: "Real-time tracking system and transparent communication from Eshaka Wijaya Logistics give us complete confidence in every shipment. Highly recommended for international logistics needs.",
+        name: "Customer Service",
+        designation: "Name... | +62895334850224",
+        src: "/images/team/cs-dua.png"
+    },
+    {
+        quote: "Their comprehensive services from customs clearance to final delivery have simplified our export operations significantly. Professional team with deep understanding of international trade regulations.",
+        name: "Head of Operations",
+        designation: "Name...",
+        src: "/images/team/head-ops.png"
+    },
+    {
+        quote: "We provide innovative marketing strategies and business development solutions that drive growth and success for our logistics partners across international markets.",
+        name: "Marketing Team",
+        designation: "Name...",
+        src: "/images/team/marketing-satu.png"
+    },
+    {
+        quote: "Our dedicated marketing professionals work tirelessly to build strong relationships and expand our network, ensuring the best service delivery for all our valued clients.",
+        name: "Marketing Team",
+        designation: "Name...",
+        src: "/images/team/marketing-dua.png"
+    }
+]
+
 const teamHighlights = [
     {
         title: 'Expert Leadership',
@@ -258,14 +295,23 @@ const teamHighlights = [
     font-family: 'jost', sans-serif;
 }
 
+.font-inter {
+    font-family: 'Inter', sans-serif;
+}
+
 
 /* Custom Sage Colors */
+
+.btn-primary-sage{
+    background-color: #556B2F;
+}
+
 .text-sage-600 {
     color: #8DB580;
 }
 
 .text-sage-700 {
-    color: #7BA169;
+    color: #556B2F !important;
 }
 
 .bg-sage-50 {
@@ -285,11 +331,15 @@ const teamHighlights = [
 }
 
 .bg-sage-600 {
-    background-color: #8DB580;
+    background-color: #556B2F !important;
 }
 
 .bg-sage-700 {
-    background-color: #7BA169;
+    background-color: #556B2F !important;
+}
+
+.bg-sage-400 {
+    background-color: #556B2F !important;
 }
 
 .border-sage-100 {

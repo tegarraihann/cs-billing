@@ -9,7 +9,7 @@
           </svg>
           Contact Our Professional Team
         </div>
-        <h2 id="contact-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 font-montserrat">
+        <h2 id="contact-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 font-inter">
           Let's Discuss Your Needs
         </h2>
         <p class="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed font-jost">
@@ -20,7 +20,7 @@
       <div class="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
         <!-- Contact Form -->
         <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-10 lg:p-12 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
-          <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 lg:mb-8 font-montserrat" id="contact-form-heading">Send Your Message</h3>
+          <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 lg:mb-8 font-inter" id="contact-form-heading">Send Your Message</h3>
 
           <form @submit.prevent="submitForm" class="space-y-4 md:space-y-6" aria-labelledby="contact-form-heading" novalidate>
             <div class="grid md:grid-cols-2 gap-4 md:gap-6">
@@ -162,7 +162,7 @@
           <div class="grid gap-6">
             <h3 id="contact-info-heading" class="sr-only">Contact Information</h3>
             <div v-for="office in offices" :key="office.id" class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-              <h4 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4 font-montserrat">{{ office.name }}</h4>
+              <h4 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4 font-inter">{{ office.name }}</h4>
               <div class="space-y-2 md:space-y-3">
                 <div class="flex items-start">
                   <svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mt-0.5 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +189,7 @@
 
           <!-- Why Choose Us -->
           <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20" role="complementary" aria-labelledby="why-choose-us-heading">
-            <h4 id="why-choose-us-heading" class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 font-montserrat">Why Choose Us?</h4>
+            <h4 id="why-choose-us-heading" class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 font-inter">Why Choose Us?</h4>
             <div class="space-y-3 md:space-y-4">
               <div v-for="reason in whyChooseUs" :key="reason.title" class="flex items-start group">
                 <div class="w-2 h-2 bg-white rounded-full mt-2 mr-3 md:mr-4 group-hover:scale-125 transition-transform duration-300 flex-shrink-0"></div>
@@ -361,6 +361,10 @@ const whyChooseUs = [
 
 .font-jost {
     font-family: 'Jost', sans-serif;
+}
+
+.font-inter {
+    font-family: 'Inter', sans-serif;
 }
 
 /* Custom Sage Colors - optimized for used classes only */
