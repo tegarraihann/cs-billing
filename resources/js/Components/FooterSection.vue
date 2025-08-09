@@ -6,10 +6,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 lg:gap-16">
                 <!-- Company Info -->
                 <div class="md:col-span-2 lg:col-span-1" role="complementary" aria-labelledby="company-info-heading">
-                    <!-- Company Logo -->
+                    <!-- Company Logo & Name -->
                     <div class="mb-6">
                         <h3 id="company-info-heading" class="sr-only">Company Information</h3>
-                        <Logo size="large" :show-text="false" :show-tagline="false" />
+                        <div class="text-center mb-4">
+                            <Logo size="large" :show-text="false" :show-tagline="false" class="mx-auto mb-3" />
+                            <h3 class="text-lg md:text-xl font-bold text-white font-inter whitespace-nowrap">
+                                ESHAKA WIJAYA LOGISTICS
+                            </h3>
+                        </div>
                     </div>
 
                     <p class="text-gray-300 mb-6 md:mb-8 leading-relaxed font-jost text-sm md:text-base">
@@ -138,15 +143,55 @@
             </div>
         </div>
 
-        <!-- Back to Top Button -->
-        <button @click="scrollToTop" v-show="showBackToTop"
-            class="fixed bottom-6 right-6 md:bottom-8 md:right-8 w-12 h-12 md:w-14 md:h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-50"
-            aria-label="Scroll back to top of page"
-            type="button">
-            <svg class="w-5 h-5 md:w-6 md:h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-        </button>
+        <!-- WhatsApp Contact Button -->
+        <div class="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50">
+            <!-- CS Options (collapsible) -->
+            <div v-show="isExpanded" class="flex flex-col items-center space-y-3 mb-3 transition-all duration-300">
+                <div v-for="cs in csContacts" :key="cs.id" 
+                    class="relative flex items-center group">
+                    <!-- CS Name Badge - positioned to the left of button, shows on hover -->
+                    <div class="absolute right-14 bg-green-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap">
+                        {{ cs.name }}
+                    </div>
+                    <!-- CS WhatsApp Button -->
+                    <button @click="openWhatsApp(cs.phone)"
+                        class="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Badge "Hubungi CS" - appears when not expanded, positioned like notification -->
+            <div v-show="!isExpanded" class="absolute -left-32 top-1/2 transform -translate-y-1/2">
+                <div class="flex items-center bg-green-500/90 backdrop-blur-sm text-white px-3 py-2 rounded-full shadow-lg animate-pulse-slow">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="text-xs font-semibold whitespace-nowrap">Hubungi CS</span>
+                </div>
+                <!-- Notification arrow pointing to WhatsApp button -->
+                <div class="absolute right-0 top-1/2 transform translate-x-2 -translate-y-1/2">
+                    <div class="w-0 h-0 border-l-8 border-l-green-500/90 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                </div>
+            </div>
+
+            <!-- Main WhatsApp Toggle Button -->
+            <button @click="toggleExpanded"
+                class="w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center relative overflow-hidden animate-pulse-slow">
+                
+                <!-- WhatsApp Icon -->
+                <svg v-show="!isExpanded" class="w-8 h-8 transition-all duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                </svg>
+                
+                <!-- Close Icon (X) -->
+                <svg v-show="isExpanded" class="w-6 h-6 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
     </footer>
 </template>
 
@@ -155,6 +200,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Logo from '@/Components/Logo.vue'
 
 const showBackToTop = ref(false)
+const isExpanded = ref(false)
 
 const currentYear = computed(() => new Date().getFullYear())
 
@@ -245,6 +291,20 @@ const certifications = [
     }
 ]
 
+// Customer Service contacts
+const csContacts = [
+    {
+        id: 1,
+        name: 'CS 1',
+        phone: '6285213866455'
+    },
+    {
+        id: 2,
+        name: 'CS 2', 
+        phone: '62895334850224'
+    }
+]
+
 // These functions are now defined in the enhanced scroll handler above
 
 
@@ -310,6 +370,20 @@ const scrollToSection = (sectionId) => {
     }
 }
 
+// Toggle WhatsApp menu
+const toggleExpanded = () => {
+    isExpanded.value = !isExpanded.value
+}
+
+// Open WhatsApp with specific CS number
+const openWhatsApp = (phoneNumber) => {
+    const message = encodeURIComponent("Halo, saya ingin konsultasi tentang layanan logistics Eshaka Wijaya.")
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
+    window.open(whatsappUrl, '_blank')
+    // Close the menu after opening WhatsApp
+    isExpanded.value = false
+}
+
 onMounted(() => {
     window.addEventListener('scroll', handleScroll, { passive: true })
 })
@@ -366,6 +440,20 @@ onUnmounted(() => {
     will-change: transform, background-color, color, box-shadow;
 }
 
+/* Custom slow pulse animation */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
     .transition-all,
@@ -374,7 +462,8 @@ onUnmounted(() => {
         transition: none;
     }
 
-    .animate-pulse {
+    .animate-pulse,
+    .animate-pulse-slow {
         animation: none;
     }
 

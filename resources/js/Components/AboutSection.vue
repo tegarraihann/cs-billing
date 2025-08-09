@@ -1,5 +1,5 @@
 <template>
-    <section id="about" class="py-24 bg-gradient-to-br from-gray-50 to-sage-50" aria-labelledby="about-heading">
+    <section id="about" class="py-24 bg-gradient-to-b from-gray-50 to-sage-50" aria-labelledby="about-heading">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Section Header -->
             <div class="text-center mb-12 lg:mb-20">
@@ -14,7 +14,7 @@
                     About Eshaka Wijaya Logistics
                 </h2>
                 <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-jost">
-                    With more than 20 years of experience in the Indonesian logistics industry, we are here as a trusted
+                With more than 20 years of experience in the Indonesian logistics industry, we are here as a trusted
                     partner for efficient and professional international trade solutions.
                 </p>
             </div>
@@ -149,9 +149,83 @@
                     </p>
                 </div>
 
-                <!-- Client Testimonials -->
-                <div class="mb-6 sm:mb-8 md:mb-12">
-                    <AnimatedTestimonials :testimonials="clientTestimonials" :autoplay="false" />
+                <!-- Team Carousel -->
+                <div class="mb-6 sm:mb-8 md:mb-12 max-w-4xl mx-auto px-4">
+                    <div class="relative">
+                        <!-- Carousel Container -->
+                        <div class="overflow-hidden rounded-xl">
+                            <div class="flex transition-transform duration-500 ease-in-out"
+                                :style="`transform: translate3d(-${currentSlide * 100}%, 0, 0)`"
+                                style="will-change: transform;">
+                                <div v-for="(member, index) in clientTestimonials" :key="member.name"
+                                    class="flex-shrink-0 w-full">
+                                    <!-- Single Team Member Card -->
+                                    <div class="flex justify-center px-8 py-6">
+                                        <div class="relative rounded-xl shadow-lg overflow-hidden group cursor-pointer" style="max-width: 400px;">
+                                            <!-- Team Member Image with original aspect ratio -->
+                                            <img :src="member.src" :alt="member.name"
+                                                class="w-full h-auto transition-all duration-500 group-hover:scale-110 object-cover"
+                                                style="will-change: transform;" loading="lazy">
+                                            <!-- Overlay positioned over image -->
+                                            <div class="absolute inset-0">
+                                                <!-- Black gradient overlay for text readability -->
+                                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 group-hover:from-black/90 group-hover:via-black/60 group-hover:to-black/30 transition-all duration-500"></div>
+                                            </div>
+
+                                            <!-- WhatsApp Contact for Customer Service (responsive positioning) -->
+                                            <div v-if="member.name === 'Customer Support'" class="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-2">
+                                                <!-- Contact Badge - hidden on mobile, shown on larger screens -->
+                                                <div class="hidden sm:block bg-green-500/90 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold shadow-lg">
+                                                    Hubungi CS
+                                                </div>
+                                                <!-- WhatsApp Icon - smaller on mobile -->
+                                                <button @click="openWhatsApp(member.designation)"
+                                                    class="w-8 h-8 sm:w-12 sm:h-12 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300">
+                                                    <svg class="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Content Section - Bottom Left Corner -->
+                                            <div class="absolute bottom-4 left-4 z-10">
+                                                <!-- Text container -->
+                                                <div>
+                                                    <h4 class="text-lg md:text-xl font-bold text-white mb-1 font-montserrat drop-shadow-lg">
+                                                        {{ member.name }}
+                                                    </h4>
+                                                    <p class="text-sage-200 text-sm md:text-base font-jost drop-shadow-md">
+                                                        {{ member.designation }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carousel Navigation - Positioned at sides of image -->
+                        <div class="flex justify-between items-center absolute top-1/2 left-4 right-4 z-30 pointer-events-none" style="transform: translateY(-50%);">
+                            <!-- Previous Button -->
+                            <button @click="previousSlide" :disabled="currentSlide === 0"
+                                class="w-10 h-10 bg-white/80 hover:bg-white disabled:bg-gray-200/50 disabled:text-gray-400 text-sage-600 rounded-full flex items-center justify-center transition-all duration-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg pointer-events-auto backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+
+                            <!-- Next Button -->
+                            <button @click="nextSlide" :disabled="currentSlide >= totalSlides - 1"
+                                class="w-10 h-10 bg-white/80 hover:bg-white disabled:bg-gray-200/50 disabled:text-gray-400 text-sage-600 rounded-full flex items-center justify-center transition-all duration-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg pointer-events-auto backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Team Highlights -->
@@ -171,13 +245,55 @@
 </template>
 
 <script setup>
-import Team from './Team.vue'
-import AnimatedTestimonials from './AnimatedTestimonials.vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const scrollToContact = () => {
     const element = document.querySelector('#contact')
     if (element) {
         element.scrollIntoView({ behavior: 'smooth' })
+    }
+}
+
+// Carousel functionality
+const currentSlide = ref(0)
+
+const totalSlides = computed(() => {
+    return clientTestimonials.length
+})
+
+const nextSlide = () => {
+    if (currentSlide.value < totalSlides.value - 1) {
+        currentSlide.value++
+    }
+}
+
+const previousSlide = () => {
+    if (currentSlide.value > 0) {
+        currentSlide.value--
+    }
+}
+
+const goToSlide = (index) => {
+    currentSlide.value = index
+}
+
+onMounted(() => {
+    // Auto slide disabled per user request
+})
+
+onUnmounted(() => {
+    // Cleanup if needed
+})
+
+// WhatsApp function
+const openWhatsApp = (designation) => {
+    // Extract phone number from designation
+    const phoneMatch = designation.match(/\+(\d+)/);
+    if (phoneMatch) {
+        const phoneNumber = phoneMatch[1]; // Extract the number without + sign
+        const message = encodeURIComponent("Halo, saya ingin konsultasi tentang layanan logistics Eshaka Wijaya.");
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+        window.open(whatsappUrl, '_blank');
     }
 }
 
@@ -234,13 +350,13 @@ const clientTestimonials = [
     },
     {
         quote: "The team's expertise in handling complex logistics requirements is remarkable. They consistently deliver beyond our expectations with competitive pricing and excellent customer service.",
-        name: "Customer Service",
+        name: "Customer Support",
         designation: "Name... | +6285213866455",
         src: "/images/team/cs-satu.png"
     },
     {
         quote: "Real-time tracking system and transparent communication from Eshaka Wijaya Logistics give us complete confidence in every shipment. Highly recommended for international logistics needs.",
-        name: "Customer Service",
+        name: "Customer Support",
         designation: "Name... | +62895334850224",
         src: "/images/team/cs-dua.png"
     },
@@ -314,6 +430,10 @@ const teamHighlights = [
     color: #556B2F !important;
 }
 
+.text-sage-200 {
+    color: #D4DDD0 !important;
+}
+
 .bg-sage-50 {
     background-color: #F4F6F3;
 }
@@ -356,6 +476,10 @@ const teamHighlights = [
 
 .hover\:bg-sage-700:hover {
     background-color: #7BA169;
+}
+
+.hover\:bg-sage-400:hover {
+    background-color: #8DB580;
 }
 
 </style>

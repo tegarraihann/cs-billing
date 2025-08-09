@@ -297,17 +297,38 @@ const submitForm = async () => {
   submitStatus.value = ''
 
   try {
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Prepare email content
+    const subject = encodeURIComponent(`Contact Form: ${form.service ? form.service : 'General Inquiry'} - ${form.name}`)
+    const emailBody = encodeURIComponent(`
+Nama: ${form.name}
+Email: ${form.email}
+Telepon: ${form.phone}
+Layanan: ${form.service || 'Tidak dipilih'}
 
-    // Reset form after successful submission
-    Object.keys(form).forEach(key => form[key] = '')
-    submitStatus.value = 'success'
+Pesan:
+${form.message}
 
-    // Clear success message after 5 seconds
+---
+Pesan ini dikirim melalui form kontak website Eshaka Wijaya Logistics.
+    `.trim())
+
+    // Company email address
+    const companyEmail = 'eshakawijayalogistics@ewilog.com'
+    const mailtoUrl = `mailto:${companyEmail}?subject=${subject}&body=${emailBody}`
+
+    // Open email client
+    window.location.href = mailtoUrl
+
+    // Reset form after opening email client
     setTimeout(() => {
-      submitStatus.value = ''
-    }, 5000)
+      Object.keys(form).forEach(key => form[key] = '')
+      submitStatus.value = 'success'
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        submitStatus.value = ''
+      }, 5000)
+    }, 500)
 
   } catch (error) {
     submitStatus.value = 'error'

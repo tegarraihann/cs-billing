@@ -52,7 +52,7 @@
                         </div>
 
 
-                        <div class="space-y-2 mb-8 bg-black/8 rounded-lg p-4 backdrop-blur-sm rounded-xl">
+                        <div class="space-y-2 mb-8 bg-black/20 rounded-lg p-4 backdrop-blur-none rounded-xl">
                             <h3
                                 class="text-2xl font-bold text-white mb-3 font-inter drop-shadow-lg  rounded-lg py-2 ">
                                 Export & Import
@@ -95,7 +95,7 @@
                             </div>
                         </div>
 
-                        <div class="relative flex items-start bg-black/8 rounded-lg p-4 backdrop-blur-sm">
+                        <div class="relative flex items-start bg-black/25 rounded-lg p-4 backdrop-blur-none">
                             <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4 hover:scale-105 transition-transform duration-200"
                                 :class="service.iconBg">
                                 <div v-html="service.icon" class="w-5 h-5 text-white"></div>
@@ -128,40 +128,39 @@
                             style="will-change: transform;">
                             <div v-for="(addon, index) in additionalServices" :key="addon.title"
                                 class="flex-shrink-0 w-full">
-                                <!-- Single Service Card -->
-                                <div
-                                    class="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden h-80 md:h-80 group">
-                                    <!-- Image Section (Left) -->
-                                    <div class="w-full md:w-1/2 h-48 md:h-full relative overflow-hidden">
-                                        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                                            :style="`background-image: url('${addon.backgroundImage}');`"
-                                            style="will-change: transform;" loading="lazy">
-                                            <div
-                                                class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300">
-                                            </div>
-                                        </div>
+                                <!-- Single Service Card with Full Background -->
+                                <div class="relative rounded-xl shadow-lg overflow-hidden h-80 md:h-80 group cursor-pointer">
+                                    <!-- Full Background Image with Blur Effect -->
+                                    <div class="absolute inset-0 bg-cover bg-center transition-all duration-500 group-hover:scale-110"
+                                        :style="`background-image: url('${addon.backgroundImage}');`"
+                                        style="will-change: transform;" loading="lazy">
+                                        <!-- Blur filter on hover -->
+                                        <div class="absolute inset-0 backdrop-blur-0 group-hover:backdrop-blur-sm transition-all duration-500"></div>
+                                        <!-- Black gradient overlay for text readability -->
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 group-hover:from-black/90 group-hover:via-black/60 group-hover:to-black/30 transition-all duration-500"></div>
+                                    </div>
 
-                                        <!-- Icon on Image -->
-                                        <div class="absolute top-6 left-6">
-                                            <div
-                                                class="w-16 h-16 bg-primary-sage backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-accent-sage transition-all duration-300 relative">
-                                                <div v-html="addon.icon"
-                                                    class="w-8 h-8 text-white group-hover:text-pale-sage transition-colors duration-300 icon-hover relative z-20">
-                                                </div>
+                                    <!-- Icon positioned at top -->
+                                    <div class="absolute top-6 left-6 z-10">
+                                        <div class="w-16 h-16 bg-primary-sage/90 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-accent-sage/90 group-hover:scale-110 transition-all duration-300 relative shadow-lg">
+                                            <div v-html="addon.icon"
+                                                class="w-8 h-8 text-white group-hover:text-pale-sage transition-colors duration-300 icon-hover relative z-20">
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Content Section (Right) -->
-                                    <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center">
-                                        <h4
-                                            class="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4 font-inter group-hover:text-primary-sage transition-colors duration-300">
-                                            {{ addon.title }}
-                                        </h4>
-                                        <p
-                                            class="text-gray-600 leading-relaxed font-jost group-hover:text-gray-700 transition-colors duration-300">
-                                            {{ addon.description }}
-                                        </p>
+                                    <!-- Content Section - Animated from bottom -->
+                                    <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10">
+                                        <!-- Text container with slide up animation -->
+                                        <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                                            <h4 class="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 font-inter drop-shadow-lg opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                                                {{ addon.title }}
+                                            </h4>
+                                            <!-- Description with delayed animation -->
+                                            <p class="text-white/90 leading-relaxed font-jost drop-shadow-md opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-150">
+                                                {{ addon.description }}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
