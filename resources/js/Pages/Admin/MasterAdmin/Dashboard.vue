@@ -220,37 +220,106 @@
           <span class="font-medium">User Management</span>
         </a>
 
-        <!-- Website Settings -->
-        <a
-          :href="websiteSettingsRoute"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
-          :class="
-            currentRoute.startsWith('masteradmin.website-settings')
-              ? 'bg-sage-100 text-sage-800'
-              : ''
-          "
-        >
-          <svg
-            class="w-5 h-5 group-hover:scale-110 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <!-- Website Settings with Dropdown -->
+        <div class="space-y-1">
+          <button
+            @click="toggleWebsiteSettingsDropdown"
+            class="w-full flex items-center justify-between space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+            :class="
+              currentRoute.startsWith('masteradmin.website-settings')
+                ? 'bg-sage-100 text-sage-800'
+                : ''
+            "
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          <span class="font-medium">Website Settings</span>
-        </a>
+            <div class="flex items-center space-x-3">
+              <svg
+                class="w-5 h-5 group-hover:scale-110 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <span class="font-medium">Website Settings</span>
+            </div>
+            <svg
+              class="w-4 h-4 transition-transform duration-200"
+              :class="{ 'rotate-90': isWebsiteSettingsOpen }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+
+          <!-- Website Settings Dropdown -->
+          <div
+            v-if="isWebsiteSettingsOpen"
+            class="ml-8 space-y-1 border-l-2 border-sage-200 pl-4"
+          >
+            <a
+              :href="pengaturanUmumRoute"
+              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
+              :class="
+                currentRoute === 'masteradmin.website-settings.pengaturan-umum.index'
+                  ? 'bg-sage-50 text-sage-700 font-medium'
+                  : ''
+              "
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+              </svg>
+              <span>Pengaturan Umum</span>
+            </a>
+
+            <a
+              :href="serviceRoute"
+              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
+              :class="
+                currentRoute.startsWith('masteradmin.website-settings.service')
+                  ? 'bg-sage-50 text-sage-700 font-medium'
+                  : ''
+              "
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"/>
+              </svg>
+              <span>Service</span>
+            </a>
+
+            <a
+              :href="teamRoute"
+              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
+              :class="
+                currentRoute.startsWith('masteradmin.website-settings.team')
+                  ? 'bg-sage-50 text-sage-700 font-medium'
+                  : ''
+              "
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span>Team</span>
+            </a>
+          </div>
+        </div>
 
         <!-- Divider -->
         <div class="my-4 border-t border-sage-200"></div>
@@ -477,7 +546,7 @@
 
             <!-- Website Settings -->
             <a
-              :href="websiteSettingsRoute"
+              :href="pengaturanUmumRoute"
               class="p-6 border border-sage-200 rounded-lg hover:bg-sage-50 transition-colors group"
             >
               <div class="flex items-center space-x-4">
@@ -575,11 +644,14 @@ const currentRoute = computed(() => route().current() || "");
 const dashboardRoute = route("masteradmin.dashboard");
 const usersRoute = route("masteradmin.users.index");
 const createUserRoute = route("masteradmin.users.create");
-const websiteSettingsRoute = route("masteradmin.website-settings.index");
+const pengaturanUmumRoute = route("masteradmin.website-settings.pengaturan-umum.index");
+const serviceRoute = route("masteradmin.website-settings.service.index");
+const teamRoute = route("masteradmin.website-settings.team.index");
 const homeRoute = route("home");
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
+const isWebsiteSettingsOpen = ref(false);
 
 // Methods
 const toggleMobileSidebar = () => {
@@ -588,6 +660,10 @@ const toggleMobileSidebar = () => {
 
 const closeMobileSidebar = () => {
   isMobileSidebarOpen.value = false;
+};
+
+const toggleWebsiteSettingsDropdown = () => {
+  isWebsiteSettingsOpen.value = !isWebsiteSettingsOpen.value;
 };
 
 const getInitials = (name) => {
@@ -610,6 +686,12 @@ const handleResize = () => {
 // Lifecycle hooks
 onMounted(() => {
   window.addEventListener("resize", handleResize);
+
+  // Auto-open website settings dropdown if current route is website settings
+  if (currentRoute.value.startsWith('masteradmin.website-settings')) {
+    isWebsiteSettingsOpen.value = true;
+  }
+
   console.log("Dashboard props:", props);
   console.log("User stats:", userStats.value);
   console.log("Current route:", currentRoute.value);

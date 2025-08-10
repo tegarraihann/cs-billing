@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-sage-50">
-    <!-- Top Navigation Bar (sama seperti yang lain) -->
+    <!-- Top Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-sage-200 fixed top-0 left-0 right-0 z-50">
       <div class="px-4 sm:px-6 lg:ml-64 lg:px-8">
         <div class="flex justify-between items-center h-16">
@@ -15,7 +15,7 @@
 
           <!-- Page Title -->
           <div class="flex-1 lg:flex-none">
-            <h1 class="text-lg sm:text-xl font-semibold text-sage-800">Kelola Service</h1>
+            <h1 class="text-lg sm:text-xl font-semibold text-sage-800">Kelola Tim</h1>
           </div>
 
           <!-- User Profile Dropdown -->
@@ -62,9 +62,6 @@
         </div>
       </div>
     </nav>
-
-    <!-- Mobile Sidebar Overlay -->
-    <div v-if="isMobileSidebarOpen" @click="closeMobileSidebar" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
     <!-- Sidebar -->
     <aside class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0" :class="{ 'translate-x-0': isMobileSidebarOpen, '-translate-x-full': !isMobileSidebarOpen }">
@@ -122,14 +119,14 @@
               <span>Pengaturan Umum</span>
             </a>
 
-            <a :href="serviceRoute" class="flex items-center space-x-3 p-2 rounded-lg bg-sage-50 text-sage-700 font-medium text-sm">
+            <a :href="serviceRoute" class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"/>
               </svg>
               <span>Service</span>
             </a>
 
-            <a :href="teamRoute" class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm">
+            <a :href="teamRoute" class="flex items-center space-x-3 p-2 rounded-lg bg-sage-50 text-sage-700 font-medium text-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
               </svg>
@@ -164,7 +161,7 @@
                   <svg class="w-4 h-4 text-sage-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                   </svg>
-                  <span class="ml-1 text-sage-500 md:ml-2">Kelola Service</span>
+                  <span class="ml-1 text-sage-500 md:ml-2">Kelola Tim</span>
                 </div>
               </li>
             </ol>
@@ -175,85 +172,87 @@
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 class="text-2xl font-bold text-sage-800 mb-2">Kelola Service</h2>
-              <p class="text-sage-600">Tambah, edit, dan kelola layanan yang ditampilkan di website</p>
+              <h2 class="text-2xl font-bold text-sage-800 mb-2">Kelola Tim</h2>
+              <p class="text-sage-600">Tambah, edit, dan kelola anggota tim yang ditampilkan di website</p>
             </div>
             <div class="mt-4 sm:mt-0">
-              <a :href="createServiceRoute" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
+              <a :href="createTeamRoute" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
-                Tambah Service
+                Tambah Anggota Tim
               </a>
             </div>
           </div>
         </div>
 
-        <!-- Services List -->
+        <!-- Team Members Grid -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
           <div class="px-6 py-4 border-b border-sage-200">
-            <h3 class="text-lg font-semibold text-sage-800">Daftar Service</h3>
-            <p class="text-sm text-sage-600 mt-1">Total: {{ services?.length || 0 }} service</p>
+            <h3 class="text-lg font-semibold text-sage-800">Daftar Anggota Tim</h3>
+            <p class="text-sm text-sage-600 mt-1">Total: {{ teamMembers?.length || 0 }} anggota tim</p>
           </div>
 
-          <div v-if="!services || services.length === 0" class="p-8 text-center">
+          <div v-if="!teamMembers || teamMembers.length === 0" class="p-8 text-center">
             <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada service</h3>
-            <p class="text-gray-500 mb-4">Mulai dengan menambahkan service pertama Anda.</p>
-            <a :href="createServiceRoute" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada anggota tim</h3>
+            <p class="text-gray-500 mb-4">Mulai dengan menambahkan anggota tim pertama Anda.</p>
+            <a :href="createTeamRoute" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
-              Tambah Service
+              Tambah Anggota Tim
             </a>
           </div>
 
-          <div v-else class="divide-y divide-sage-200">
-            <div v-for="service in services" :key="service.id" class="p-6 hover:bg-sage-50 transition-colors">
-              <div class="flex justify-between items-start">
-                <div class="flex space-x-4 flex-1">
-                  <!-- Service Image -->
-                  <div v-if="service.image_path" class="flex-shrink-0">
-                    <img :src="`/storage/${service.image_path}`" :alt="service.title" class="w-20 h-20 object-cover rounded border"/>
-                  </div>
-                  <div v-else class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded border flex items-center justify-center">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          <div v-else class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div v-for="member in teamMembers" :key="member.id" class="bg-gray-50 rounded-lg p-6 text-center hover:bg-gray-100 transition-colors border border-gray-200">
+                <!-- Member Photo -->
+                <div class="mx-auto w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+                  <img v-if="member.photo_path" :src="`/storage/${member.photo_path}`" :alt="member.name" class="w-full h-full object-cover"/>
+                  <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
-                  </div>
-
-                  <!-- Service Info -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center space-x-3 mb-2">
-                      <h3 class="text-lg font-medium text-gray-900 truncate">{{ service.title }}</h3>
-                      <span :class="[
-                        'px-2 py-1 text-xs rounded-full',
-                        service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      ]">
-                        {{ service.is_active ? 'Aktif' : 'Tidak Aktif' }}
-                      </span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ service.description }}</p>
-                    <div class="flex items-center text-xs text-gray-500 space-x-4">
-                      <span>Urutan: {{ service.order_index }}</span>
-                      <span>Dibuat: {{ formatDate(service.created_at) }}</span>
-                      <span v-if="service.updated_at !== service.created_at">Diperbarui: {{ formatDate(service.updated_at) }}</span>
-                    </div>
                   </div>
                 </div>
 
+                <!-- Member Info -->
+                <h3 class="font-semibold text-gray-900 mb-1">{{ member.name }}</h3>
+                <p class="text-sm text-gray-600 mb-2">{{ member.position }}</p>
+
+                <!-- Phone Number -->
+                <div v-if="member.phone_number" class="text-xs text-blue-600 mb-3 flex items-center justify-center space-x-1">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                  </svg>
+                  <span>{{ member.phone_number }}</span>
+                </div>
+
+                <!-- Status and Order -->
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                  <span :class="[
+                    'px-2 py-1 text-xs rounded-full',
+                    member.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  ]">
+                    {{ member.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                  </span>
+                  <span class="text-xs text-gray-500">Urutan: {{ member.order_index }}</span>
+                </div>
+
                 <!-- Actions -->
-                <div class="flex items-center space-x-2 ml-4">
-                  <a :href="getEditRoute(service.id)" class="text-blue-600 hover:text-blue-800 p-2 rounded transition-colors" title="Edit">
+                <div class="flex justify-center space-x-2">
+                  <a :href="getEditRoute(member.id)" class="text-blue-600 hover:text-blue-800 p-2 rounded transition-colors" title="Edit">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                   </a>
 
-                  <button @click="toggleServiceStatus(service)" class="p-2 rounded transition-colors" :class="service.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'" :title="service.is_active ? 'Nonaktifkan' : 'Aktifkan'">
-                    <svg v-if="service.is_active" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button @click="toggleMemberStatus(member)" class="p-2 rounded transition-colors" :class="member.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'" :title="member.is_active ? 'Nonaktifkan' : 'Aktifkan'">
+                    <svg v-if="member.is_active" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
                     </svg>
                     <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,7 +260,7 @@
                     </svg>
                   </button>
 
-                  <button @click="confirmDelete(service)" class="text-red-600 hover:text-red-800 p-2 rounded transition-colors" title="Hapus">
+                  <button @click="confirmDelete(member)" class="text-red-600 hover:text-red-800 p-2 rounded transition-colors" title="Hapus">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -279,13 +278,13 @@
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Konfirmasi Hapus</h3>
         <p class="text-gray-600 mb-6">
-          Apakah Anda yakin ingin menghapus service "{{ serviceToDelete?.title }}"? Tindakan ini tidak dapat dibatalkan.
+          Apakah Anda yakin ingin menghapus anggota tim "{{ memberToDelete?.name }}"? Tindakan ini tidak dapat dibatalkan.
         </p>
         <div class="flex justify-end space-x-3">
           <button @click="cancelDelete" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
             Batal
           </button>
-          <button @click="deleteService" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+          <button @click="deleteMember" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
             Hapus
           </button>
         </div>
@@ -302,7 +301,7 @@ import DropdownLink from "@/Components/DropdownLink.vue";
 
 // Props
 const props = defineProps({
-  services: Array,
+  teamMembers: Array,
 });
 
 // Routes
@@ -311,12 +310,12 @@ const usersRoute = "/master-admin/users";
 const pengaturanUmumRoute = "/master-admin/website-settings/pengaturan-umum";
 const serviceRoute = "/master-admin/website-settings/service";
 const teamRoute = "/master-admin/website-settings/team";
-const createServiceRoute = "/master-admin/website-settings/service/create";
+const createTeamRoute = "/master-admin/website-settings/team/create";
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
 const showDeleteModal = ref(false);
-const serviceToDelete = ref(null);
+const memberToDelete = ref(null);
 
 // Methods
 const toggleMobileSidebar = () => {
@@ -337,45 +336,37 @@ const getInitials = (name) => {
     .substring(0, 2);
 };
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("id-ID", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+const getEditRoute = (memberId) => {
+  return `/master-admin/website-settings/team/${memberId}/edit`;
 };
 
-const getEditRoute = (serviceId) => {
-  return `/master-admin/website-settings/service/${serviceId}/edit`;
-};
-
-const toggleServiceStatus = (service) => {
+const toggleMemberStatus = (member) => {
   const formData = new FormData();
   formData.append('_method', 'PUT');
-  formData.append('is_active', !service.is_active);
+  formData.append('is_active', !member.is_active);
   formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
 
-  router.post(`/master-admin/website-settings/service/${service.id}`, formData, {
+  router.post(`/master-admin/website-settings/team/${member.id}`, formData, {
     preserveState: false,
   });
 };
 
-const confirmDelete = (service) => {
-  serviceToDelete.value = service;
+const confirmDelete = (member) => {
+  memberToDelete.value = member;
   showDeleteModal.value = true;
 };
 
 const cancelDelete = () => {
-  serviceToDelete.value = null;
+  memberToDelete.value = null;
   showDeleteModal.value = false;
 };
 
-const deleteService = () => {
-  if (serviceToDelete.value) {
-    router.delete(`/master-admin/website-settings/service/${serviceToDelete.value.id}`, {
+const deleteMember = () => {
+  if (memberToDelete.value) {
+    router.delete(`/master-admin/website-settings/team/${memberToDelete.value.id}`, {
       preserveState: false,
     });
-    serviceToDelete.value = null;
+    memberToDelete.value = null;
     showDeleteModal.value = false;
   }
 };
@@ -390,7 +381,7 @@ const handleResize = () => {
 // Lifecycle hooks
 onMounted(() => {
   window.addEventListener("resize", handleResize);
-  console.log("Services data:", props.services);
+  console.log("Team members data:", props.teamMembers);
 });
 
 onUnmounted(() => {
@@ -415,12 +406,4 @@ onUnmounted(() => {
 .hover\:bg-sage-700:hover { background-color: #7ba169; }
 .hover\:text-sage-700:hover { color: #7ba169; }
 .hover\:text-sage-800:hover { color: #6b8f5e; }
-
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 </style>

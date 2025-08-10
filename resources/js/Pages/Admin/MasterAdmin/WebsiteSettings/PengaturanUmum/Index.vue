@@ -1,12 +1,17 @@
 <template>
   <div class="min-h-screen bg-sage-50">
-    <!-- Top Navigation Bar (sama seperti yang lain) -->
-    <nav class="bg-white shadow-sm border-b border-sage-200 fixed top-0 left-0 right-0 z-50">
+    <!-- Top Navigation Bar -->
+    <nav
+      class="bg-white shadow-sm border-b border-sage-200 fixed top-0 left-0 right-0 z-50"
+    >
       <div class="px-4 sm:px-6 lg:ml-64 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Mobile menu button -->
           <div class="lg:hidden">
-            <button @click="toggleMobileSidebar" class="p-2 rounded-lg text-sage-600 hover:bg-sage-100 transition-colors">
+            <button
+              @click="toggleMobileSidebar"
+              class="p-2 rounded-lg text-sage-600 hover:bg-sage-100 transition-colors"
+            >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
@@ -15,7 +20,7 @@
 
           <!-- Page Title -->
           <div class="flex-1 lg:flex-none">
-            <h1 class="text-lg sm:text-xl font-semibold text-sage-800">Kelola Service</h1>
+            <h1 class="text-lg sm:text-xl font-semibold text-sage-800">Pengaturan Umum</h1>
           </div>
 
           <!-- User Profile Dropdown -->
@@ -66,7 +71,7 @@
     <!-- Mobile Sidebar Overlay -->
     <div v-if="isMobileSidebarOpen" @click="closeMobileSidebar" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
-    <!-- Sidebar -->
+    <!-- Sidebar (sama seperti dashboard) -->
     <aside class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0" :class="{ 'translate-x-0': isMobileSidebarOpen, '-translate-x-full': !isMobileSidebarOpen }">
       <!-- Sidebar Header -->
       <div class="px-6 py-6 border-b border-sage-200">
@@ -115,14 +120,14 @@
 
           <!-- Sub Navigation -->
           <div class="ml-8 space-y-1 border-l-2 border-sage-200 pl-4">
-            <a :href="pengaturanUmumRoute" class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm">
+            <a :href="pengaturanUmumRoute" class="flex items-center space-x-3 p-2 rounded-lg bg-sage-50 text-sage-700 font-medium text-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
               </svg>
               <span>Pengaturan Umum</span>
             </a>
 
-            <a :href="serviceRoute" class="flex items-center space-x-3 p-2 rounded-lg bg-sage-50 text-sage-700 font-medium text-sm">
+            <a :href="serviceRoute" class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"/>
               </svg>
@@ -164,7 +169,7 @@
                   <svg class="w-4 h-4 text-sage-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                   </svg>
-                  <span class="ml-1 text-sage-500 md:ml-2">Kelola Service</span>
+                  <span class="ml-1 text-sage-500 md:ml-2">Pengaturan Umum</span>
                 </div>
               </li>
             </ol>
@@ -175,134 +180,127 @@
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 class="text-2xl font-bold text-sage-800 mb-2">Kelola Service</h2>
-              <p class="text-sage-600">Tambah, edit, dan kelola layanan yang ditampilkan di website</p>
-            </div>
-            <div class="mt-4 sm:mt-0">
-              <a :href="createServiceRoute" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                Tambah Service
-              </a>
+              <h2 class="text-2xl font-bold text-sage-800 mb-2">Pengaturan Umum Website</h2>
+              <p class="text-sage-600">Kelola pengaturan dasar dan konten utama website</p>
             </div>
           </div>
         </div>
 
-        <!-- Services List -->
+        <!-- Settings Form -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
           <div class="px-6 py-4 border-b border-sage-200">
-            <h3 class="text-lg font-semibold text-sage-800">Daftar Service</h3>
-            <p class="text-sm text-sage-600 mt-1">Total: {{ services?.length || 0 }} service</p>
+            <h3 class="text-lg font-semibold text-sage-800">Pengaturan Umum</h3>
+            <p class="text-sm text-sage-600 mt-1">Ubah pengaturan dasar website Anda</p>
           </div>
 
-          <div v-if="!services || services.length === 0" class="p-8 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"/>
-            </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada service</h3>
-            <p class="text-gray-500 mb-4">Mulai dengan menambahkan service pertama Anda.</p>
-            <a :href="createServiceRoute" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-              </svg>
-              Tambah Service
-            </a>
-          </div>
-
-          <div v-else class="divide-y divide-sage-200">
-            <div v-for="service in services" :key="service.id" class="p-6 hover:bg-sage-50 transition-colors">
-              <div class="flex justify-between items-start">
-                <div class="flex space-x-4 flex-1">
-                  <!-- Service Image -->
-                  <div v-if="service.image_path" class="flex-shrink-0">
-                    <img :src="`/storage/${service.image_path}`" :alt="service.title" class="w-20 h-20 object-cover rounded border"/>
-                  </div>
-                  <div v-else class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded border flex items-center justify-center">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
-
-                  <!-- Service Info -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center space-x-3 mb-2">
-                      <h3 class="text-lg font-medium text-gray-900 truncate">{{ service.title }}</h3>
-                      <span :class="[
-                        'px-2 py-1 text-xs rounded-full',
-                        service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      ]">
-                        {{ service.is_active ? 'Aktif' : 'Tidak Aktif' }}
-                      </span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ service.description }}</p>
-                    <div class="flex items-center text-xs text-gray-500 space-x-4">
-                      <span>Urutan: {{ service.order_index }}</span>
-                      <span>Dibuat: {{ formatDate(service.created_at) }}</span>
-                      <span v-if="service.updated_at !== service.created_at">Diperbarui: {{ formatDate(service.updated_at) }}</span>
-                    </div>
-                  </div>
+          <form @submit.prevent="updateSettings" class="p-6 space-y-6">
+            <!-- Hero Background Image -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Background Hero</label>
+              <div class="flex items-center space-x-4">
+                <div v-if="settings?.hero_background_image" class="relative">
+                  <img :src="`/storage/${settings.hero_background_image}`" alt="Hero Background" class="w-32 h-20 object-cover rounded border"/>
                 </div>
-
-                <!-- Actions -->
-                <div class="flex items-center space-x-2 ml-4">
-                  <a :href="getEditRoute(service.id)" class="text-blue-600 hover:text-blue-800 p-2 rounded transition-colors" title="Edit">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                  </a>
-
-                  <button @click="toggleServiceStatus(service)" class="p-2 rounded transition-colors" :class="service.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'" :title="service.is_active ? 'Nonaktifkan' : 'Aktifkan'">
-                    <svg v-if="service.is_active" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
-                    </svg>
-                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                  </button>
-
-                  <button @click="confirmDelete(service)" class="text-red-600 hover:text-red-800 p-2 rounded transition-colors" title="Hapus">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                  </button>
+                <div>
+                  <input type="file" @change="handleFileUpload($event, 'hero_background_image')" accept="image/*" class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-sage-50 file:text-sage-700 hover:file:bg-sage-100"/>
+                  <p class="text-xs text-gray-500 mt-1">Maksimal 5MB (JPEG, PNG, JPG, GIF)</p>
                 </div>
               </div>
             </div>
-          </div>
+
+            <!-- Company Logo -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Logo Perusahaan</label>
+              <div class="flex items-center space-x-4">
+                <div v-if="settings?.company_logo" class="relative">
+                  <img :src="`/storage/${settings.company_logo}`" alt="Company Logo" class="w-32 h-20 object-contain rounded border"/>
+                </div>
+                <div>
+                  <input type="file" @change="handleFileUpload($event, 'company_logo')" accept="image/*" class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-sage-50 file:text-sage-700 hover:file:bg-sage-100"/>
+                  <p class="text-xs text-gray-500 mt-1">Maksimal 5MB (JPEG, PNG, JPG, GIF, SVG)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Company Name -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Nama Perusahaan <span class="text-red-500">*</span></label>
+              <input v-model="form.company_name" type="text" required placeholder="PT ESHAKA WIJAYA LOGISTICS" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"/>
+              <p class="text-xs text-gray-500 mt-1">Nama perusahaan yang akan ditampilkan di hero section</p>
+            </div>
+
+            <!-- Company Description -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Deskripsi Perusahaan</label>
+              <textarea v-model="form.company_description" rows="4" placeholder="Trusted solutions for your international export-import and logistics needs with professional and experienced services." class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"></textarea>
+              <p class="text-xs text-gray-500 mt-1">Deskripsi singkat perusahaan yang akan ditampilkan di bawah nama perusahaan</p>
+            </div>
+
+            <!-- Trust Badge Text -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Badge Kepercayaan</label>
+              <input v-model="form.trust_badge_text" type="text" placeholder="Trusted for over 20 Years" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"/>
+              <p class="text-xs text-gray-500 mt-1">Teks badge kepercayaan yang akan ditampilkan di hero section</p>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Nomor Telepon</label>
+                <input v-model="form.contact_phone" type="text" placeholder="+62 21 1234567" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Email</label>
+                <input v-model="form.contact_email" type="email" placeholder="info@example.com" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">WhatsApp (format: 628xxxxxxxxx)</label>
+                <input v-model="form.whatsapp_number" type="text" placeholder="628123456789" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"/>
+              </div>
+            </div>
+
+            <!-- SEO Settings -->
+            <div class="pt-6 border-t border-sage-200">
+              <h4 class="text-lg font-medium text-sage-800 mb-4">SEO Settings</h4>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Meta Description</label>
+                  <textarea v-model="form.meta_description" rows="3" placeholder="Deskripsi website untuk SEO" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"></textarea>
+                  <p class="text-xs text-gray-500 mt-1">Maksimal 160 karakter untuk hasil pencarian yang optimal</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Meta Keywords</label>
+                  <input v-model="form.meta_keywords" type="text" placeholder="logistics, export, import, shipping" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"/>
+                  <p class="text-xs text-gray-500 mt-1">Pisahkan dengan koma untuk kata kunci yang berbeda</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end pt-6 border-t border-sage-200">
+              <button type="submit" :disabled="loading" class="bg-sage-600 text-white px-6 py-2 rounded-md hover:bg-sage-700 disabled:opacity-50 transition-colors">
+                <span v-if="loading">Menyimpan...</span>
+                <span v-else>Simpan Pengaturan</span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </main>
-
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Konfirmasi Hapus</h3>
-        <p class="text-gray-600 mb-6">
-          Apakah Anda yakin ingin menghapus service "{{ serviceToDelete?.title }}"? Tindakan ini tidak dapat dibatalkan.
-        </p>
-        <div class="flex justify-end space-x-3">
-          <button @click="cancelDelete" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-            Batal
-          </button>
-          <button @click="deleteService" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-            Hapus
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, reactive, onMounted, onUnmounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 
 // Props
 const props = defineProps({
-  services: Array,
+  settings: Object,
 });
 
 // Routes
@@ -311,12 +309,24 @@ const usersRoute = "/master-admin/users";
 const pengaturanUmumRoute = "/master-admin/website-settings/pengaturan-umum";
 const serviceRoute = "/master-admin/website-settings/service";
 const teamRoute = "/master-admin/website-settings/team";
-const createServiceRoute = "/master-admin/website-settings/service/create";
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
-const showDeleteModal = ref(false);
-const serviceToDelete = ref(null);
+const loading = ref(false);
+
+// Form data
+const form = reactive({
+  company_name: props.settings?.company_name || "",
+  company_description: props.settings?.company_description || "",
+  trust_badge_text: props.settings?.trust_badge_text || "Trusted for over 20 Years",
+  contact_phone: props.settings?.contact_phone || "",
+  contact_email: props.settings?.contact_email || "",
+  whatsapp_number: props.settings?.whatsapp_number || "",
+  meta_description: props.settings?.meta_description || "",
+  meta_keywords: props.settings?.meta_keywords || "",
+  hero_background_image: null,
+  company_logo: null,
+});
 
 // Methods
 const toggleMobileSidebar = () => {
@@ -337,47 +347,57 @@ const getInitials = (name) => {
     .substring(0, 2);
 };
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("id-ID", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+const handleFileUpload = (event, type) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (type === "hero_background_image") {
+    form.hero_background_image = file;
+  } else if (type === "company_logo") {
+    form.company_logo = file;
+  }
 };
 
-const getEditRoute = (serviceId) => {
-  return `/master-admin/website-settings/service/${serviceId}/edit`;
-};
+const updateSettings = () => {
+  loading.value = true;
 
-const toggleServiceStatus = (service) => {
   const formData = new FormData();
-  formData.append('_method', 'PUT');
-  formData.append('is_active', !service.is_active);
-  formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
 
-  router.post(`/master-admin/website-settings/service/${service.id}`, formData, {
+  // Add text fields
+  const textFields = ['company_name', 'company_description', 'trust_badge_text', 'contact_phone', 'contact_email', 'whatsapp_number', 'meta_description', 'meta_keywords'];
+
+  textFields.forEach(field => {
+    const value = form[field];
+    if (value !== null && value !== '' && value !== undefined) {
+      formData.append(field, value);
+    }
+  });
+
+  // Handle file uploads
+  if (form.hero_background_image && form.hero_background_image instanceof File) {
+    formData.append('hero_background_image', form.hero_background_image);
+  }
+
+  if (form.company_logo && form.company_logo instanceof File) {
+    formData.append('company_logo', form.company_logo);
+  }
+
+  formData.append("_method", "PUT");
+
+  router.post(route("masteradmin.website-settings.pengaturan-umum.update"), formData, {
+    onSuccess: () => {
+      form.hero_background_image = null;
+      form.company_logo = null;
+    },
+    onError: (errors) => {
+      console.error('Errors:', errors);
+      alert('Error: ' + JSON.stringify(errors));
+    },
+    onFinish: () => {
+      loading.value = false;
+    },
     preserveState: false,
   });
-};
-
-const confirmDelete = (service) => {
-  serviceToDelete.value = service;
-  showDeleteModal.value = true;
-};
-
-const cancelDelete = () => {
-  serviceToDelete.value = null;
-  showDeleteModal.value = false;
-};
-
-const deleteService = () => {
-  if (serviceToDelete.value) {
-    router.delete(`/master-admin/website-settings/service/${serviceToDelete.value.id}`, {
-      preserveState: false,
-    });
-    serviceToDelete.value = null;
-    showDeleteModal.value = false;
-  }
 };
 
 // Auto-close mobile sidebar on screen resize
@@ -390,7 +410,7 @@ const handleResize = () => {
 // Lifecycle hooks
 onMounted(() => {
   window.addEventListener("resize", handleResize);
-  console.log("Services data:", props.services);
+  console.log("Settings data:", props.settings);
 });
 
 onUnmounted(() => {
@@ -415,12 +435,6 @@ onUnmounted(() => {
 .hover\:bg-sage-700:hover { background-color: #7ba169; }
 .hover\:text-sage-700:hover { color: #7ba169; }
 .hover\:text-sage-800:hover { color: #6b8f5e; }
-
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.focus\:ring-sage-500:focus { --tw-ring-color: #8db580; }
+.focus\:border-sage-500:focus { border-color: #8db580; }
 </style>

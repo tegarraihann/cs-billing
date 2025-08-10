@@ -75,35 +75,72 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
         Route::post('/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
     });
 
-    // Website Settings Routes
+    // Website Settings Routes - UPDATED STRUCTURE
     Route::prefix('website-settings')->name('website-settings.')->group(function () {
-        // Pengaturan Umum
+
+        // Pengaturan Umum Routes
         Route::prefix('pengaturan-umum')->name('pengaturan-umum.')->group(function () {
-            Route::get('/', [WebsiteSettingsController::class, 'pengaturanUmum'])->name('index');
-            Route::put('/', [WebsiteSettingsController::class, 'updatePengaturanUmum'])->name('update');
+            Route::get('/', function () {
+                $settings = \App\Models\WebsiteSettings::first();
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/PengaturanUmum/Index', [
+                    'settings' => $settings
+                ]);
+            })->name('index');
+
+            Route::put('/', [WebsiteSettingsController::class, 'updateSettings'])->name('update');
         });
 
-        // Services
+        // Service Routes
         Route::prefix('service')->name('service.')->group(function () {
-            Route::get('/', [WebsiteSettingsController::class, 'serviceIndex'])->name('index');
-            Route::get('/create', [WebsiteSettingsController::class, 'serviceCreate'])->name('create');
-            Route::post('/', [WebsiteSettingsController::class, 'serviceStore'])->name('store');
-            Route::get('/{service}/edit', [WebsiteSettingsController::class, 'serviceEdit'])->name('edit');
-            Route::put('/{service}', [WebsiteSettingsController::class, 'serviceUpdate'])->name('update');
-            Route::delete('/{service}', [WebsiteSettingsController::class, 'serviceDestroy'])->name('destroy');
+            Route::get('/', function () {
+                $services = \App\Models\Service::orderBy('order_index')->get();
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/Index', [
+                    'services' => $services
+                ]);
+            })->name('index');
+
+            Route::get('/create', function () {
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/Create');
+            })->name('create');
+
+            Route::post('/', [WebsiteSettingsController::class, 'createService'])->name('store');
+
+            Route::get('/{service}/edit', function (\App\Models\Service $service) {
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/Edit', [
+                    'service' => $service
+                ]);
+            })->name('edit');
+
+            Route::put('/{service}', [WebsiteSettingsController::class, 'updateService'])->name('update');
+            Route::delete('/{service}', [WebsiteSettingsController::class, 'deleteService'])->name('destroy');
         });
 
-        // Team
+        // Team Routes
         Route::prefix('team')->name('team.')->group(function () {
-            Route::get('/', [WebsiteSettingsController::class, 'teamIndex'])->name('index');
-            Route::get('/create', [WebsiteSettingsController::class, 'teamCreate'])->name('create');
-            Route::post('/', [WebsiteSettingsController::class, 'teamStore'])->name('store');
-            Route::get('/{teamMember}/edit', [WebsiteSettingsController::class, 'teamEdit'])->name('edit');
-            Route::put('/{teamMember}', [WebsiteSettingsController::class, 'teamUpdate'])->name('update');
-            Route::delete('/{teamMember}', [WebsiteSettingsController::class, 'teamDestroy'])->name('destroy');
+            Route::get('/', function () {
+                $teamMembers = \App\Models\TeamMember::orderBy('order_index')->get();
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Team/Index', [
+                    'teamMembers' => $teamMembers
+                ]);
+            })->name('index');
+
+            Route::get('/create', function () {
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Team/Create');
+            })->name('create');
+
+            Route::post('/', [WebsiteSettingsController::class, 'createTeamMember'])->name('store');
+
+            Route::get('/{teamMember}/edit', function (\App\Models\TeamMember $teamMember) {
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Team/Edit', [
+                    'member' => $teamMember
+                ]);
+            })->name('edit');
+
+            Route::put('/{teamMember}', [WebsiteSettingsController::class, 'updateTeamMember'])->name('update');
+            Route::delete('/{teamMember}', [WebsiteSettingsController::class, 'deleteTeamMember'])->name('destroy');
         });
 
-        // Route lama untuk compatibility
+        // Backward compatibility routes (optional - dapat dihapus jika tidak dibutuhkan)
         Route::get('/', [WebsiteSettingsController::class, 'index'])->name('index');
         Route::put('/settings', [WebsiteSettingsController::class, 'updateSettings'])->name('update-settings');
         Route::post('/services', [WebsiteSettingsController::class, 'createService'])->name('services.create');
@@ -178,6 +215,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
 });
 
+// DEBUG ROUTES (Remove in production)
 Route::get('/debug-website-settings', function () {
     try {
         // Test 1: Cek database table
@@ -201,7 +239,6 @@ Route::get('/debug-website-settings', function () {
         $testData = [
             'company_name' => 'Test Company ' . now(),
             'company_description' => 'Test Description',
-            'hero_title' => 'Test Title'
         ];
 
         $created = \App\Models\WebsiteSettings::create($testData);

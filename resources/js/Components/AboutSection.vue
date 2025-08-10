@@ -137,15 +137,15 @@
             </div>
 
             <!-- Team Section -->
-<<<<<<< HEAD
+
             <!-- <div class="bg-white rounded-3xl p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100">
                 <div class="text-center mb-6 md:mb-8">
                     <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4 font-montserrat">
-=======
+
             <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100">
                 <div class="text-center mb-6 sm:mb-8 md:mb-10">
                     <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6 font-montserrat">
->>>>>>> 3ed81757a753494b3ed79badfc150ee47f2c643f
+
                         Our Professional Team
                     </h3>
                     <p class="text-sm sm:text-base md:text-lg text-gray-600 max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto leading-relaxed font-jost px-2 sm:px-0">
@@ -155,7 +155,7 @@
                     </p>
                 </div> -->
 
-<<<<<<< HEAD
+
                 <!-- Team Photo Component -->
                 <!-- <div class="flex justify-center mb-8 md:mb-12">
                     <Team size="large" layout="vertical" :show-text="false" :show-overlay="true" :show-stats="true"
@@ -165,8 +165,8 @@
 
                 <!-- Team Highlights -->
                 <!-- <div class="grid md:grid-cols-3 gap-4 md:gap-8">
-=======
-                <!-- Team Carousel -->
+
+                <-- Team Carousel -->
                 <div class="mb-6 sm:mb-8 md:mb-12 max-w-4xl mx-auto px-4">
                     <div class="relative">
                         <!-- Carousel Container -->
@@ -247,7 +247,7 @@
 
                 <!-- Team Highlights -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
->>>>>>> 3ed81757a753494b3ed79badfc150ee47f2c643f
+
                     <div v-for="highlight in teamHighlights" :key="highlight.title"
                         class="text-center p-4 sm:p-5 md:p-6 bg-sage-50 rounded-xl sm:rounded-2xl hover:bg-sage-100 transition-colors duration-300">
                         <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-sage-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -256,18 +256,15 @@
                         <h4 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-2 sm:mb-3 font-montserrat">{{ highlight.title }}</h4>
                         <p class="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed font-jost">{{ highlight.description }}</p>
                     </div>
-                </div> -->
+                </div>
             <!-- </div> -->
         </div>
     </section>
 </template>
 
 <script setup>
-<<<<<<< HEAD
 // import Team from './Team.vue'
-=======
 import { ref, computed, onMounted, onUnmounted } from 'vue'
->>>>>>> 3ed81757a753494b3ed79badfc150ee47f2c643f
 
 const scrollToContact = () => {
     const element = document.querySelector('#contact')
