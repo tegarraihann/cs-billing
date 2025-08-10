@@ -191,6 +191,30 @@
           </svg>
           <span class="font-medium">Dashboard</span>
         </Link>
+
+        <!-- Customer Management -->
+        <Link
+          :href="route('admin-cs.customers.index')"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+          :class="{
+            'bg-sage-100 text-sage-800': route().current('admin-cs.customers.*'),
+          }"
+        >
+          <svg
+            class="w-5 h-5 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+            />
+          </svg>
+          <span class="font-medium">Pelanggan</span>
+        </Link>
       </nav>
 
       <!-- User Profile Section -->

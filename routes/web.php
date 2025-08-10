@@ -133,6 +133,17 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
             ]
         ]);
     })->name('dashboard');
+
+    // Customer Management Routes
+    Route::controller(\App\Http\Controllers\CustomerController::class)->prefix('customers')->name('customers.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{customer}', 'show')->name('show');
+        Route::get('/{customer}/edit', 'edit')->name('edit');
+        Route::put('/{customer}', 'update')->name('update');
+        Route::delete('/{customer}', 'destroy')->name('destroy');
+    });
 });
 
 // ADMIN KEUANGAN ROUTES

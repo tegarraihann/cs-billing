@@ -9,7 +9,7 @@
           </svg>
           Contact Our Professional Team
         </div>
-        <h2 id="contact-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 font-montserrat">
+        <h2 id="contact-heading" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 font-inter">
           Let's Discuss Your Needs
         </h2>
         <p class="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed font-jost">
@@ -20,7 +20,7 @@
       <div class="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
         <!-- Contact Form -->
         <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-10 lg:p-12 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
-          <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 lg:mb-8 font-montserrat" id="contact-form-heading">Send Your Message</h3>
+          <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 lg:mb-8 font-inter" id="contact-form-heading">Send Your Message</h3>
 
           <form @submit.prevent="submitForm" class="space-y-4 md:space-y-6" aria-labelledby="contact-form-heading" novalidate>
             <div class="grid md:grid-cols-2 gap-4 md:gap-6">
@@ -126,7 +126,7 @@
               </svg>
               Your message has been sent successfully! Our team will contact you soon.
             </div>
-            
+
             <div v-if="submitStatus === 'error'" class="mb-4 p-3 bg-red-500/20 border border-red-400/30 rounded-xl text-red-300 text-sm font-jost flex items-center">
               <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -139,8 +139,8 @@
               :disabled="isSubmitting || !isFormValid"
               :class="[
                 'w-full px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300',
-                isFormValid && !isSubmitting 
-                  ? 'bg-white text-sage-500 hover:bg-white/90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5' 
+                isFormValid && !isSubmitting
+                  ? 'bg-white text-sage-500 hover:bg-white/90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   : 'bg-white/50 text-sage-400 cursor-not-allowed'
               ]"
             >
@@ -162,7 +162,7 @@
           <div class="grid gap-6">
             <h3 id="contact-info-heading" class="sr-only">Contact Information</h3>
             <div v-for="office in offices" :key="office.id" class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-              <h4 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4 font-montserrat">{{ office.name }}</h4>
+              <h4 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4 font-inter">{{ office.name }}</h4>
               <div class="space-y-2 md:space-y-3">
                 <div class="flex items-start">
                   <svg class="w-4 h-4 md:w-5 md:h-5 text-white/80 mt-0.5 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +189,7 @@
 
           <!-- Why Choose Us -->
           <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20" role="complementary" aria-labelledby="why-choose-us-heading">
-            <h4 id="why-choose-us-heading" class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 font-montserrat">Why Choose Us?</h4>
+            <h4 id="why-choose-us-heading" class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 font-inter">Why Choose Us?</h4>
             <div class="space-y-3 md:space-y-4">
               <div v-for="reason in whyChooseUs" :key="reason.title" class="flex items-start group">
                 <div class="w-2 h-2 bg-white rounded-full mt-2 mr-3 md:mr-4 group-hover:scale-125 transition-transform duration-300 flex-shrink-0"></div>
@@ -240,9 +240,9 @@ const validatePhone = (phone) => {
 const validateForm = () => {
   // Clear previous errors
   Object.keys(formErrors).forEach(key => formErrors[key] = '')
-  
+
   let isValid = true
-  
+
   if (!form.name.trim()) {
     formErrors.name = 'Full name is required'
     isValid = false
@@ -250,7 +250,7 @@ const validateForm = () => {
     formErrors.name = 'Name must be at least 2 characters'
     isValid = false
   }
-  
+
   if (!form.email.trim()) {
     formErrors.email = 'Email is required'
     isValid = false
@@ -258,7 +258,7 @@ const validateForm = () => {
     formErrors.email = 'Please enter a valid email address'
     isValid = false
   }
-  
+
   if (!form.phone.trim()) {
     formErrors.phone = 'Phone number is required'
     isValid = false
@@ -266,7 +266,7 @@ const validateForm = () => {
     formErrors.phone = 'Please enter a valid phone number'
     isValid = false
   }
-  
+
   if (!form.message.trim()) {
     formErrors.message = 'Message is required'
     isValid = false
@@ -274,15 +274,15 @@ const validateForm = () => {
     formErrors.message = 'Message must be at least 10 characters'
     isValid = false
   }
-  
+
   return isValid
 }
 
 const isFormValid = computed(() => {
-  return form.name.trim() && 
-         form.email.trim() && 
+  return form.name.trim() &&
+         form.email.trim() &&
          validateEmail(form.email) &&
-         form.phone.trim() && 
+         form.phone.trim() &&
          validatePhone(form.phone) &&
          form.message.trim() &&
          form.message.trim().length >= 10
@@ -292,22 +292,43 @@ const submitForm = async () => {
   if (!validateForm()) {
     return
   }
-  
+
   isSubmitting.value = true
   submitStatus.value = ''
 
   try {
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Prepare email content
+    const subject = encodeURIComponent(`Contact Form: ${form.service ? form.service : 'General Inquiry'} - ${form.name}`)
+    const emailBody = encodeURIComponent(`
+Nama: ${form.name}
+Email: ${form.email}
+Telepon: ${form.phone}
+Layanan: ${form.service || 'Tidak dipilih'}
 
-    // Reset form after successful submission
-    Object.keys(form).forEach(key => form[key] = '')
-    submitStatus.value = 'success'
-    
-    // Clear success message after 5 seconds
+Pesan:
+${form.message}
+
+---
+Pesan ini dikirim melalui form kontak website Eshaka Wijaya Logistics.
+    `.trim())
+
+    // Company email address
+    const companyEmail = 'eshakawijayalogistics@ewilog.com'
+    const mailtoUrl = `mailto:${companyEmail}?subject=${subject}&body=${emailBody}`
+
+    // Open email client
+    window.location.href = mailtoUrl
+
+    // Reset form after opening email client
     setTimeout(() => {
-      submitStatus.value = ''
-    }, 5000)
+      Object.keys(form).forEach(key => form[key] = '')
+      submitStatus.value = 'success'
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        submitStatus.value = ''
+      }, 5000)
+    }, 500)
 
   } catch (error) {
     submitStatus.value = 'error'
@@ -363,6 +384,10 @@ const whyChooseUs = [
     font-family: 'Jost', sans-serif;
 }
 
+.font-inter {
+    font-family: 'Inter', sans-serif;
+}
+
 /* Custom Sage Colors - optimized for used classes only */
 .text-sage-500 { color: #8DB580; }
 .text-sage-400 { color: #A5C49A; }
@@ -406,7 +431,7 @@ const whyChooseUs = [
     .transition-transform {
         transition: none;
     }
-    
+
     .animate-spin,
     .animate-pulse {
         animation: none;

@@ -1,17 +1,16 @@
 <template>
   <div class="logo-parallax relative group">
-    <!-- Logo container with floating animation -->
-    <div class="relative z-10 logo-float transition-all duration-500">
+    <!-- Optimized Logo container -->
+    <div class="relative z-10 logo-float">
       <img
         :src="logoSrc"
         :alt="altText"
         :class="logoClass"
-        class="object-contain filter contrast-125 brightness-110 saturate-110 drop-shadow-2xl group-hover:contrast-130 group-hover:brightness-115 transition-all duration-500"
+        class="object-contain drop-shadow-xl transition-transform duration-300 hover:scale-105"
         loading="eager"
-        style="filter: contrast(125%) brightness(110%) saturate(110%) drop-shadow(0 25px 25px rgb(0 0 0 / 0.25)) drop-shadow(0 0 15px rgb(255 255 255 / 0.3));"
         @error="handleImageError"
       />
-      
+
       <!-- Fallback for SVG loading error -->
       <div v-if="imageError" class="flex items-center justify-center text-white/70 text-lg font-medium">
         <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
@@ -69,17 +68,24 @@ const sizeConfig = computed(() => {
 
 const logoClass = computed(() => sizeConfig.value)
 
-// Parallax effect for logo
+// Optimized parallax effect
+let ticking = false
+
 const handleParallax = () => {
-  if (!props.enableParallax) return
-  
-  const scrolled = window.pageYOffset
-  const logoElement = document.querySelector('.logo-parallax')
-  
-  if (logoElement) {
-    const rate = scrolled * -0.3
-    logoElement.style.transform = `translateY(${rate}px)`
-  }
+  if (!props.enableParallax || ticking) return
+
+  requestAnimationFrame(() => {
+    const scrolled = window.pageYOffset
+    const logoElement = document.querySelector('.logo-parallax')
+
+    if (logoElement) {
+      const rate = scrolled * -0.2
+      logoElement.style.transform = `translateY(${rate}px)`
+    }
+    ticking = false
+  })
+
+  ticking = true
 }
 
 const handleImageError = () => {
@@ -89,7 +95,7 @@ const handleImageError = () => {
 
 onMounted(() => {
   if (props.enableParallax) {
-    window.addEventListener('scroll', handleParallax)
+    window.addEventListener('scroll', handleParallax, { passive: true })
   }
 })
 
@@ -101,29 +107,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Logo floating animation */
+/* Simplified logo floating animation */
 @keyframes logo-float {
   0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-5px) rotate(1deg);
+    transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px) rotate(0deg);
-  }
-  75% {
-    transform: translateY(-5px) rotate(-1deg);
+    transform: translateY(-8px);
   }
 }
 
 .logo-float {
-  animation: logo-float 6s ease-in-out infinite;
-  will-change: transform;
+  animation: logo-float 8s ease-in-out infinite;
 }
 
 .logo-parallax {
-  will-change: transform;
   transition: transform 0.1s ease-out;
 }
 

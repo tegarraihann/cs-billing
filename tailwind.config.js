@@ -18,18 +18,18 @@ export default {
                 display: ['Inter', 'system-ui', 'sans-serif'],
             },
             colors: {
-                // Custom Sage Color Palette
+                // Custom Sage Color Palette - Updated to match new brand colors
                 sage: {
-                    50: '#F4F6F3',   // Very light sage - backgrounds
+                    50: '#A8B897',   // Light - backgrounds (#A8B897)
                     100: '#E8ECE5',  // Light sage - subtle backgrounds
-                    200: '#D4DDD0',  // Light sage - borders, dividers
+                    200: '#8A9B7A',  // Accent - hover states (#8A9B7A)
                     300: '#BFD0B8',  // Medium light sage - muted text
                     400: '#A5C49A',  // Medium sage - icons, accents
-                    500: '#8DB580',  // Base sage - primary color
-                    600: '#8DB580',  // Primary sage - buttons, links
-                    700: '#7BA169',  // Dark sage - hover states
-                    800: '#6B8F5E',  // Darker sage - text
-                    900: '#5A7D52',  // Darkest sage - headings
+                    500: '#6B7F5A',  // Secondary - logo match (#6B7F5A)
+                    600: '#556B2F',  // Primary - buttons, headers (#556B2F)
+                    700: '#556B2F',  // Primary - buttons, headers (#556B2F)
+                    800: '#4A5D28',  // Darker primary
+                    900: '#3F4F22',  // Darkest primary
                 },
                 // Enhanced gray palette to complement sage
                 gray: {
