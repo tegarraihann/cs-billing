@@ -20,11 +20,11 @@ class CustomerController extends Controller
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company', 'like', "%{$search}%");
             });
         }
 
@@ -114,7 +114,7 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $customer->load('handler');
-        
+
         return Inertia::render('Admin/AdminCS/Customers/Show', [
             'customer' => $customer
         ]);
@@ -162,8 +162,10 @@ class CustomerController extends Controller
         ]);
 
         // Update last_contact_at if status changed to contacted, quoted, or converted
-        if (in_array($validated['status'], ['contacted', 'quoted', 'converted']) && 
-            $customer->status !== $validated['status']) {
+        if (
+            in_array($validated['status'], ['contacted', 'quoted', 'converted']) &&
+            $customer->status !== $validated['status']
+        ) {
             $validated['last_contact_at'] = now();
         }
 

@@ -1,24 +1,21 @@
 <template>
-  <div 
+  <div
     class="dotted-map-container"
     :class="containerClass"
     :style="containerStyle"
   >
     <!-- Base Pattern Layer -->
-    <div 
-      class="dotted-pattern base-pattern"
-      :style="basePatternStyle"
-    ></div>
-    
+    <div class="dotted-pattern base-pattern" :style="basePatternStyle"></div>
+
     <!-- Country Highlight Layer (if enabled) -->
-    <div 
+    <div
       v-if="showCountryHighlights"
       class="dotted-pattern country-highlights"
       :style="highlightPatternStyle"
     ></div>
-    
+
     <!-- Animated Layer (if enabled) -->
-    <div 
+    <div
       v-if="animated"
       class="dotted-pattern animated-pattern"
       :style="animatedPatternStyle"
@@ -27,180 +24,185 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
   // Dot configuration
   dotSize: {
     type: Number,
-    default: 2
+    default: 2,
   },
   dotColor: {
     type: String,
-    default: 'rgba(255, 255, 255, 0.4)'
+    default: "rgba(255, 255, 255, 0.4)",
   },
   dotSpacing: {
     type: Number,
-    default: 20
+    default: 20,
   },
-  
+
   // Pattern variations
   pattern: {
     type: String,
-    default: 'regular', // regular, diagonal, hexagon, random, worldmap
-    validator: (value) => ['regular', 'diagonal', 'hexagon', 'random', 'worldmap'].includes(value)
+    default: "regular", // regular, diagonal, hexagon, random, worldmap
+    validator: (value) =>
+      ["regular", "diagonal", "hexagon", "random", "worldmap"].includes(value),
   },
-  
+
   // Animation
   animated: {
     type: Boolean,
-    default: false
+    default: false,
   },
   animationDuration: {
     type: String,
-    default: '20s'
+    default: "20s",
   },
-  
+
   // Country highlights
   showCountryHighlights: {
     type: Boolean,
-    default: false
+    default: false,
   },
   highlightColor: {
     type: String,
-    default: 'rgba(255, 255, 255, 0.8)'
+    default: "rgba(255, 255, 255, 0.8)",
   },
-  
+
   // Container styling
   opacity: {
     type: Number,
-    default: 1
+    default: 1,
   },
   height: {
     type: String,
-    default: '100%'
+    default: "100%",
   },
   width: {
     type: String,
-    default: '100%'
-  }
-})
+    default: "100%",
+  },
+});
 
 const containerClass = computed(() => {
-  return [
-    'relative',
-    'overflow-hidden',
-    props.animated ? 'animated' : ''
-  ]
-})
+  return ["relative", "overflow-hidden", props.animated ? "animated" : ""];
+});
 
 const containerStyle = computed(() => ({
   width: props.width,
   height: props.height,
-  opacity: props.opacity
-}))
+  opacity: props.opacity,
+}));
 
 const basePatternStyle = computed(() => {
-  const size = props.dotSpacing
-  let backgroundImage = ''
-  
+  const size = props.dotSpacing;
+  let backgroundImage = "";
+
   switch (props.pattern) {
-    case 'worldmap':
+    case "worldmap":
       // Create a world map-like pattern with continent shapes
       backgroundImage = [
         // Asia-Pacific region (top-right)
         `radial-gradient(ellipse 120px 80px at 75% 25%, ${props.dotColor} 1px, transparent 1px),
          radial-gradient(ellipse 60px 40px at 85% 35%, ${props.dotColor} 1px, transparent 1px),
          radial-gradient(ellipse 40px 60px at 90% 45%, ${props.dotColor} 1px, transparent 1px)`,
-        
+
         // Europe-Africa region (center)
         `radial-gradient(ellipse 80px 100px at 55% 30%, ${props.dotColor} 1px, transparent 1px),
          radial-gradient(ellipse 70px 120px at 52% 55%, ${props.dotColor} 1px, transparent 1px)`,
-        
+
         // Americas region (left)
         `radial-gradient(ellipse 60px 150px at 25% 35%, ${props.dotColor} 1px, transparent 1px),
          radial-gradient(ellipse 80px 100px at 20% 65%, ${props.dotColor} 1px, transparent 1px)`,
-        
+
         // Australia region (bottom-right)
         `radial-gradient(ellipse 50px 30px at 80% 75%, ${props.dotColor} 1px, transparent 1px)`,
-        
+
         // Island chains and connections
         `radial-gradient(circle at 70% 50%, ${props.dotColor} 0.5px, transparent 0.5px),
          radial-gradient(circle at 45% 40%, ${props.dotColor} 0.5px, transparent 0.5px),
-         radial-gradient(circle at 35% 60%, ${props.dotColor} 0.5px, transparent 0.5px)`
-      ].join(', ')
-      
+         radial-gradient(circle at 35% 60%, ${props.dotColor} 0.5px, transparent 0.5px)`,
+      ].join(", ");
+
       return {
         backgroundImage,
         backgroundSize: `800px 400px, 600px 350px, 500px 450px, 300px 200px, ${size}px ${size}px`,
-        backgroundPosition: '0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%',
-        backgroundRepeat: 'no-repeat, no-repeat, no-repeat, no-repeat, repeat'
-      }
-      
-    case 'diagonal':
-      backgroundImage = `radial-gradient(circle at ${props.dotSize}px ${props.dotSize}px, ${props.dotColor} 1px, transparent 0)`
+        backgroundPosition: "0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%",
+        backgroundRepeat: "no-repeat, no-repeat, no-repeat, no-repeat, repeat",
+      };
+
+    case "diagonal":
+      backgroundImage = `radial-gradient(circle at ${props.dotSize}px ${props.dotSize}px, ${props.dotColor} 1px, transparent 0)`;
       return {
         backgroundImage,
         backgroundSize: `${size}px ${size}px`,
-        transform: 'rotate(45deg) scale(1.4)',
-        transformOrigin: 'center'
-      }
-      
-    case 'hexagon':
-      backgroundImage = `radial-gradient(circle at ${props.dotSize}px ${props.dotSize}px, ${props.dotColor} 1px, transparent 0)`
+        transform: "rotate(45deg) scale(1.4)",
+        transformOrigin: "center",
+      };
+
+    case "hexagon":
+      backgroundImage = `radial-gradient(circle at ${props.dotSize}px ${props.dotSize}px, ${props.dotColor} 1px, transparent 0)`;
       return {
         backgroundImage,
         backgroundSize: `${size}px ${size * 0.866}px`,
-        backgroundPosition: `0 0, ${size/2}px ${size * 0.433}px`
-      }
-      
-    case 'random':
+        backgroundPosition: `0 0, ${size / 2}px ${size * 0.433}px`,
+      };
+
+    case "random":
       // Create multiple background layers for random effect
       backgroundImage = [
         `radial-gradient(circle at 25% 25%, ${props.dotColor} 1px, transparent 0)`,
         `radial-gradient(circle at 75% 50%, ${props.dotColor} 1px, transparent 0)`,
         `radial-gradient(circle at 50% 75%, ${props.dotColor} 1px, transparent 0)`,
         `radial-gradient(circle at 20% 80%, ${props.dotColor} 1px, transparent 0)`,
-        `radial-gradient(circle at 80% 20%, ${props.dotColor} 1px, transparent 0)`
-      ].join(', ')
+        `radial-gradient(circle at 80% 20%, ${props.dotColor} 1px, transparent 0)`,
+      ].join(", ");
       return {
         backgroundImage,
-        backgroundSize: `${size * 2}px ${size * 2}px, ${size * 1.5}px ${size * 1.5}px, ${size * 1.8}px ${size * 1.8}px, ${size * 2.2}px ${size * 2.2}px, ${size * 1.3}px ${size * 1.3}px`,
-        backgroundPosition: '0 0, 10px 5px, -5px 15px, 8px -8px, -12px -3px'
-      }
-      
+        backgroundSize: `${size * 2}px ${size * 2}px, ${size * 1.5}px ${
+          size * 1.5
+        }px, ${size * 1.8}px ${size * 1.8}px, ${size * 2.2}px ${
+          size * 2.2
+        }px, ${size * 1.3}px ${size * 1.3}px`,
+        backgroundPosition: "0 0, 10px 5px, -5px 15px, 8px -8px, -12px -3px",
+      };
+
     default: // regular
-      backgroundImage = `radial-gradient(circle at ${props.dotSize}px ${props.dotSize}px, ${props.dotColor} 1px, transparent 0)`
+      backgroundImage = `radial-gradient(circle at ${props.dotSize}px ${props.dotSize}px, ${props.dotColor} 1px, transparent 0)`;
       return {
         backgroundImage,
-        backgroundSize: `${size}px ${size}px`
-      }
+        backgroundSize: `${size}px ${size}px`,
+      };
   }
-})
+});
 
 const highlightPatternStyle = computed(() => {
-  if (!props.showCountryHighlights) return {}
-  
-  const size = props.dotSpacing * 1.5
+  if (!props.showCountryHighlights) return {};
+
+  const size = props.dotSpacing * 1.5;
   return {
-    backgroundImage: `radial-gradient(circle at ${props.dotSize * 1.5}px ${props.dotSize * 1.5}px, ${props.highlightColor} 2px, transparent 0)`,
+    backgroundImage: `radial-gradient(circle at ${props.dotSize * 1.5}px ${
+      props.dotSize * 1.5
+    }px, ${props.highlightColor} 2px, transparent 0)`,
     backgroundSize: `${size}px ${size}px`,
     backgroundPosition: `${size * 0.3}px ${size * 0.5}px`,
-    animationDelay: '2s'
-  }
-})
+    animationDelay: "2s",
+  };
+});
 
 const animatedPatternStyle = computed(() => {
-  if (!props.animated) return {}
-  
-  const size = props.dotSpacing * 0.8
+  if (!props.animated) return {};
+
+  const size = props.dotSpacing * 0.8;
   return {
-    backgroundImage: `radial-gradient(circle at ${props.dotSize * 0.8}px ${props.dotSize * 0.8}px, ${props.dotColor} 0.8px, transparent 0)`,
+    backgroundImage: `radial-gradient(circle at ${props.dotSize * 0.8}px ${
+      props.dotSize * 0.8
+    }px, ${props.dotColor} 0.8px, transparent 0)`,
     backgroundSize: `${size}px ${size}px`,
     animationDuration: props.animationDuration,
-    animationDelay: '1s'
-  }
-})
+    animationDelay: "1s",
+  };
+});
 </script>
 
 <style scoped>
@@ -239,7 +241,8 @@ const animatedPatternStyle = computed(() => {
 
 /* Keyframe animations */
 @keyframes pulse-highlight {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(1);
   }

@@ -47,14 +47,14 @@ class TeamMember extends Model
         if (str_starts_with($phone, '62')) {
             // International format: +62 xxx xxxx xxxx
             return '+' . substr($phone, 0, 2) . ' ' .
-                   substr($phone, 2, 3) . ' ' .
-                   substr($phone, 5, 4) . ' ' .
-                   substr($phone, 9);
+                substr($phone, 2, 3) . ' ' .
+                substr($phone, 5, 4) . ' ' .
+                substr($phone, 9);
         } elseif (str_starts_with($phone, '0')) {
             // Local format: 0xxx-xxxx-xxxx
             return substr($phone, 0, 4) . '-' .
-                   substr($phone, 4, 4) . '-' .
-                   substr($phone, 8);
+                substr($phone, 4, 4) . '-' .
+                substr($phone, 8);
         }
 
         return $this->phone_number;

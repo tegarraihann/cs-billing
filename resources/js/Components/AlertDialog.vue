@@ -117,7 +117,7 @@
                 @click="handleCancel"
                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors"
               >
-                {{ cancelText || 'Batal' }}
+                {{ cancelText || "Batal" }}
               </button>
 
               <!-- Primary Button -->
@@ -137,124 +137,125 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   type: {
     type: String,
-    default: 'info', // success, error, warning, info, confirm
-    validator: value => ['success', 'error', 'warning', 'info', 'confirm'].includes(value)
+    default: "info", // success, error, warning, info, confirm
+    validator: (value) =>
+      ["success", "error", "warning", "info", "confirm"].includes(value),
   },
   title: {
     type: String,
-    default: ''
+    default: "",
   },
   message: {
     type: String,
-    required: true
+    required: true,
   },
   confirmText: {
     type: String,
-    default: ''
+    default: "",
   },
   cancelText: {
     type: String,
-    default: ''
+    default: "",
   },
   closeOnBackdrop: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
-const emit = defineEmits(['confirm', 'cancel', 'close'])
+const emit = defineEmits(["confirm", "cancel", "close"]);
 
 const defaultTitle = computed(() => {
   switch (props.type) {
-    case 'success':
-      return 'Berhasil'
-    case 'error':
-      return 'Terjadi Kesalahan'
-    case 'warning':
-      return 'Peringatan'
-    case 'confirm':
-      return 'Konfirmasi'
-    case 'info':
+    case "success":
+      return "Berhasil";
+    case "error":
+      return "Terjadi Kesalahan";
+    case "warning":
+      return "Peringatan";
+    case "confirm":
+      return "Konfirmasi";
+    case "info":
     default:
-      return 'Informasi'
+      return "Informasi";
   }
-})
+});
 
 const defaultConfirmText = computed(() => {
   switch (props.type) {
-    case 'success':
-    case 'info':
-      return 'OK'
-    case 'error':
-      return 'Tutup'
-    case 'warning':
-      return 'Mengerti'
-    case 'confirm':
-      return 'Ya, Hapus'
+    case "success":
+    case "info":
+      return "OK";
+    case "error":
+      return "Tutup";
+    case "warning":
+      return "Mengerti";
+    case "confirm":
+      return "Ya, Hapus";
     default:
-      return 'OK'
+      return "OK";
   }
-})
+});
 
 const headerClass = computed(() => {
   switch (props.type) {
-    case 'success':
-      return 'bg-green-50'
-    case 'error':
-      return 'bg-red-50'
-    case 'warning':
-      return 'bg-yellow-50'
-    case 'confirm':
-      return 'bg-red-50'
-    case 'info':
+    case "success":
+      return "bg-green-50";
+    case "error":
+      return "bg-red-50";
+    case "warning":
+      return "bg-yellow-50";
+    case "confirm":
+      return "bg-red-50";
+    case "info":
     default:
-      return 'bg-blue-50'
+      return "bg-blue-50";
   }
-})
+});
 
 const primaryButtonClass = computed(() => {
   switch (props.type) {
-    case 'success':
-      return 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
-    case 'error':
-      return 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-    case 'warning':
-      return 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500'
-    case 'confirm':
-      return 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-    case 'info':
+    case "success":
+      return "bg-green-600 hover:bg-green-700 focus:ring-green-500";
+    case "error":
+      return "bg-red-600 hover:bg-red-700 focus:ring-red-500";
+    case "warning":
+      return "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500";
+    case "confirm":
+      return "bg-red-600 hover:bg-red-700 focus:ring-red-500";
+    case "info":
     default:
-      return 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+      return "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500";
   }
-})
+});
 
 const handleConfirm = () => {
-  emit('confirm')
-  emit('close')
-}
+  emit("confirm");
+  emit("close");
+};
 
 const handleCancel = () => {
-  emit('cancel')
-  emit('close')
-}
+  emit("cancel");
+  emit("close");
+};
 
 const handleBackdropClick = () => {
   if (props.closeOnBackdrop) {
-    if (props.type === 'confirm') {
-      emit('cancel')
+    if (props.type === "confirm") {
+      emit("cancel");
     }
-    emit('close')
+    emit("close");
   }
-}
+};
 </script>
 
 <style scoped>

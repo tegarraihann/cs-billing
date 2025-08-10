@@ -45,7 +45,7 @@
       :settings="settings"
     />
 
-     <ContactSection />
+    <ContactSection />
     <!-- Footer -->
     <FooterSection :settings="settings" />
   </div>

@@ -18,11 +18,16 @@
           v-else
           class="w-full h-full bg-gradient-to-br from-sage-400 to-sage-600 flex items-center justify-center"
         >
-          <component :is="getServiceIcon(service)" class="w-16 h-16 text-white" />
+          <component
+            :is="getServiceIcon(service)"
+            class="w-16 h-16 text-white"
+          />
         </div>
 
         <!-- Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        ></div>
 
         <!-- Featured Badge -->
         <div
@@ -35,7 +40,9 @@
 
       <!-- Service Content -->
       <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-sage-700 transition-colors duration-300">
+        <h3
+          class="text-xl font-bold text-gray-900 mb-3 group-hover:text-sage-700 transition-colors duration-300"
+        >
           {{ service.title }}
         </h3>
 
@@ -50,13 +57,18 @@
             :key="feature"
             class="flex items-start gap-2"
           >
-            <div class="w-5 h-5 bg-sage-100 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+            <div
+              class="w-5 h-5 bg-sage-100 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"
+            >
               <CheckIcon class="w-3 h-3 text-sage-600" />
             </div>
             <span class="text-sm text-gray-600">{{ feature }}</span>
           </div>
 
-          <div v-if="service.features.length > 3" class="text-xs text-sage-600 font-medium pl-7">
+          <div
+            v-if="service.features.length > 3"
+            class="text-xs text-sage-600 font-medium pl-7"
+          >
             +{{ service.features.length - 3 }} more features
           </div>
         </div>
@@ -75,42 +87,53 @@
 </template>
 
 <script setup>
-import { CheckIcon, TruckIcon, GlobeAltIcon, BuildingOfficeIcon } from '@heroicons/vue/24/outline'
+import {
+  CheckIcon,
+  TruckIcon,
+  GlobeAltIcon,
+  BuildingOfficeIcon,
+} from "@heroicons/vue/24/outline";
 
 defineProps({
   services: { type: Array, required: true },
-  showButtons: { type: Boolean, default: true }
-})
+  showButtons: { type: Boolean, default: true },
+});
 
-defineEmits(['service-click'])
+defineEmits(["service-click"]);
 
 const getServiceImageUrl = (imagePath) => {
-  if (!imagePath) return null
+  if (!imagePath) return null;
 
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    return imagePath
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
   }
 
-  if (imagePath.startsWith('/storage/')) {
-    return imagePath
+  if (imagePath.startsWith("/storage/")) {
+    return imagePath;
   }
 
-  if (imagePath.startsWith('storage/')) {
-    return `/${imagePath}`
+  if (imagePath.startsWith("storage/")) {
+    return `/${imagePath}`;
   }
 
-  return `/storage/${imagePath}`
-}
+  return `/storage/${imagePath}`;
+};
 
 const getServiceIcon = (service) => {
-  const title = service.title?.toLowerCase() || ''
+  const title = service.title?.toLowerCase() || "";
 
-  if (title.includes('truck') || title.includes('transport')) return TruckIcon
-  if (title.includes('export') || title.includes('import') || title.includes('global')) return GlobeAltIcon
-  if (title.includes('warehouse') || title.includes('storage')) return BuildingOfficeIcon
+  if (title.includes("truck") || title.includes("transport")) return TruckIcon;
+  if (
+    title.includes("export") ||
+    title.includes("import") ||
+    title.includes("global")
+  )
+    return GlobeAltIcon;
+  if (title.includes("warehouse") || title.includes("storage"))
+    return BuildingOfficeIcon;
 
-  return TruckIcon // default
-}
+  return TruckIcon; // default
+};
 </script>
 
 <style scoped>

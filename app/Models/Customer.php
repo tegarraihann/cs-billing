@@ -31,7 +31,7 @@ class Customer extends Model
 
     public function getInquirySourceLabelAttribute(): string
     {
-        return match($this->inquiry_source) {
+        return match ($this->inquiry_source) {
             'whatsapp' => 'WhatsApp',
             'email' => 'Email',
             'phone' => 'Telepon',
@@ -42,7 +42,7 @@ class Customer extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'new' => 'Baru',
             'contacted' => 'Dihubungi',
             'quoted' => 'Dikutip',
@@ -54,7 +54,7 @@ class Customer extends Model
 
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'new' => 'bg-blue-100 text-blue-800',
             'contacted' => 'bg-yellow-100 text-yellow-800',
             'quoted' => 'bg-purple-100 text-purple-800',

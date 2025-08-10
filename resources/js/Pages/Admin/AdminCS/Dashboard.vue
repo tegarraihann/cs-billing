@@ -197,7 +197,9 @@
           :href="route('admin-cs.customers.index')"
           class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
           :class="{
-            'bg-sage-100 text-sage-800': route().current('admin-cs.customers.*'),
+            'bg-sage-100 text-sage-800': route().current(
+              'admin-cs.customers.*'
+            ),
           }"
         >
           <svg
