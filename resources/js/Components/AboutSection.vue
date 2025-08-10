@@ -137,7 +137,7 @@
             </div>
 
             <!-- Team Section -->
-            <div class="bg-white rounded-3xl p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100">
+            <!-- <div class="bg-white rounded-3xl p-6 md:p-8 lg:p-12 shadow-xl border border-sage-100">
                 <div class="text-center mb-6 md:mb-8">
                     <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4 font-montserrat">
                         Our Professional Team
@@ -147,17 +147,17 @@
                         commitment to customer satisfaction. Our solid and experienced team is ready to provide the best
                         service for your logistics needs.
                     </p>
-                </div>
+                </div> -->
 
                 <!-- Team Photo Component -->
-                <div class="flex justify-center mb-8 md:mb-12">
+                <!-- <div class="flex justify-center mb-8 md:mb-12">
                     <Team size="large" layout="vertical" :show-text="false" :show-overlay="true" :show-stats="true"
                         team-title="Tim Expert Logistics"
                         team-description="Profesional berpengalaman dengan dedikasi tinggi dalam melayani kebutuhan logistik internasional Anda." />
-                </div>
+                </div> -->
 
                 <!-- Team Highlights -->
-                <div class="grid md:grid-cols-3 gap-4 md:gap-8">
+                <!-- <div class="grid md:grid-cols-3 gap-4 md:gap-8">
                     <div v-for="highlight in teamHighlights" :key="highlight.title"
                         class="text-center p-4 md:p-6 bg-sage-50 rounded-2xl hover:bg-sage-100 transition-colors duration-300">
                         <div class="w-14 h-14 md:w-16 md:h-16 bg-sage-600 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
@@ -166,14 +166,14 @@
                         <h4 class="text-base md:text-lg font-bold text-gray-800 mb-2 md:mb-3 font-montserrat">{{ highlight.title }}</h4>
                         <p class="text-gray-600 text-xs md:text-sm leading-relaxed font-jost">{{ highlight.description }}</p>
                     </div>
-                </div>
-            </div>
+                </div> -->
+            <!-- </div> -->
         </div>
     </section>
 </template>
 
 <script setup>
-import Team from './Team.vue'
+// import Team from './Team.vue'
 
 const scrollToContact = () => {
     const element = document.querySelector('#contact')
@@ -243,6 +243,8 @@ const teamHighlights = [
         icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
     }
 ]
+
+
 </script>
 
 <style scoped>

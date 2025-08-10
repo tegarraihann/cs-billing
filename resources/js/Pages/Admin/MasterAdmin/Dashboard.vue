@@ -171,7 +171,12 @@
         <!-- Dashboard -->
         <a
           :href="dashboardRoute"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group bg-sage-100 text-sage-800"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+          :class="
+            currentRoute === 'masteradmin.dashboard'
+              ? 'bg-sage-100 text-sage-800'
+              : ''
+          "
         >
           <svg
             class="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -193,6 +198,11 @@
         <a
           :href="usersRoute"
           class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+          :class="
+            currentRoute.startsWith('masteradmin.users')
+              ? 'bg-sage-100 text-sage-800'
+              : ''
+          "
         >
           <svg
             class="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -208,6 +218,76 @@
             />
           </svg>
           <span class="font-medium">User Management</span>
+        </a>
+
+        <!-- Website Settings -->
+        <a
+          :href="websiteSettingsRoute"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
+          :class="
+            currentRoute.startsWith('masteradmin.website-settings')
+              ? 'bg-sage-100 text-sage-800'
+              : ''
+          "
+        >
+          <svg
+            class="w-5 h-5 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <span class="font-medium">Website Settings</span>
+        </a>
+
+        <!-- Divider -->
+        <div class="my-4 border-t border-sage-200"></div>
+
+        <!-- View Website -->
+        <a
+          :href="homeRoute"
+          target="_blank"
+          class="flex items-center space-x-3 p-3 rounded-lg text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all duration-200 group"
+        >
+          <svg
+            class="w-5 h-5 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-5 0-9-4-9-9s4-9 9-9"
+            />
+          </svg>
+          <span class="font-medium">View Website</span>
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            />
+          </svg>
         </a>
       </nav>
 
@@ -277,7 +357,7 @@
             </div>
           </div>
 
-          <!-- Active Users -->
+          <!-- Total Services -->
           <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
             <div class="flex items-center">
               <div class="p-3 rounded-lg bg-green-100">
@@ -291,47 +371,20 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"
                   />
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Active Users</p>
+                <p class="text-sm font-medium text-gray-600">Total Services</p>
                 <p class="text-2xl font-semibold text-green-600">
-                  {{ userStats.activeUsers || 0 }}
+                  {{ userStats.totalServices || 0 }}
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Inactive Users -->
-          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-            <div class="flex items-center">
-              <div class="p-3 rounded-lg bg-red-100">
-                <svg
-                  class="w-6 h-6 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
-                  />
-                </svg>
-              </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Inactive Users</p>
-                <p class="text-2xl font-semibold text-red-600">
-                  {{ userStats.inactiveUsers || 0 }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Admins -->
+          <!-- Team Members -->
           <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
             <div class="flex items-center">
               <div class="p-3 rounded-lg bg-purple-100">
@@ -345,14 +398,41 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Admins</p>
+                <p class="text-sm font-medium text-gray-600">Team Members</p>
                 <p class="text-2xl font-semibold text-purple-600">
-                  {{ adminCount }}
+                  {{ userStats.totalTeamMembers || 0 }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Services -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center">
+              <div class="p-3 rounded-lg bg-orange-100">
+                <svg
+                  class="w-6 h-6 text-orange-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Active Services</p>
+                <p class="text-2xl font-semibold text-orange-600">
+                  {{ userStats.activeServices || 0 }}
                 </p>
               </div>
             </div>
@@ -362,7 +442,8 @@
         <!-- Quick Actions -->
         <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
           <h3 class="text-xl font-bold text-sage-800 mb-4">Quick Actions</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Manage Users -->
             <a
               :href="usersRoute"
               class="p-6 border border-sage-200 rounded-lg hover:bg-sage-50 transition-colors group"
@@ -394,13 +475,54 @@
               </div>
             </a>
 
+            <!-- Website Settings -->
+            <a
+              :href="websiteSettingsRoute"
+              class="p-6 border border-sage-200 rounded-lg hover:bg-sage-50 transition-colors group"
+            >
+              <div class="flex items-center space-x-4">
+                <div
+                  class="p-3 bg-sage-100 rounded-lg group-hover:bg-green-200 transition-colors"
+                >
+                  <svg
+                    class="w-6 h-6 text-sage-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage-800 mb-1">
+                    Website Settings
+                  </h4>
+                  <p class="text-sm text-sage-600">
+                    Manage homepage, services & team content
+                  </p>
+                </div>
+              </div>
+            </a>
+
+            <!-- Add New User -->
             <a
               :href="createUserRoute"
               class="p-6 border border-sage-200 rounded-lg hover:bg-sage-50 transition-colors group"
             >
               <div class="flex items-center space-x-4">
                 <div
-                  class="p-3 bg-sage-100 rounded-lg group-hover:bg-green-200 transition-colors"
+                  class="p-3 bg-sage-100 rounded-lg group-hover:bg-purple-200 transition-colors"
                 >
                   <svg
                     class="w-6 h-6 text-sage-600"
@@ -447,23 +569,17 @@ const props = defineProps({
 // Computed properties
 const authUser = computed(() => props.user);
 const userStats = computed(() => props.stats || {});
-const adminCount = computed(() => {
-  const roleStats = userStats.value.roleStats || {};
-  return (
-    (roleStats.admin_cs || 0) +
-    (roleStats.admin_keuangan || 0) +
-    (roleStats.masteradmin || 0)
-  );
-});
+const currentRoute = computed(() => route().current() || "");
 
-// Routes - Using route() helper for better consistency
+// Routes
 const dashboardRoute = route("masteradmin.dashboard");
 const usersRoute = route("masteradmin.users.index");
 const createUserRoute = route("masteradmin.users.create");
+const websiteSettingsRoute = route("masteradmin.website-settings.index");
+const homeRoute = route("home");
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
-const showDropdown = ref(false);
 
 // Methods
 const toggleMobileSidebar = () => {
@@ -472,14 +588,6 @@ const toggleMobileSidebar = () => {
 
 const closeMobileSidebar = () => {
   isMobileSidebarOpen.value = false;
-};
-
-const toggleDropdown = () => {
-  showDropdown.value = !showDropdown.value;
-};
-
-const closeDropdown = () => {
-  showDropdown.value = false;
 };
 
 const getInitials = (name) => {
@@ -492,43 +600,6 @@ const getInitials = (name) => {
     .substring(0, 2);
 };
 
-// Emergency logout method - direct browser navigation
-const emergencyLogout = () => {
-  if (confirm("Use emergency logout? This will refresh the page.")) {
-    window.location.href = "/logout";
-  }
-};
-
-// Fallback logout method using hidden form
-const logoutWithForm = () => {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = "/logout";
-  form.style.display = "none";
-
-  // Add CSRF token
-  const csrfToken = document
-    .querySelector('meta[name="csrf-token"]')
-    ?.getAttribute("content");
-  if (csrfToken) {
-    const csrfInput = document.createElement("input");
-    csrfInput.type = "hidden";
-    csrfInput.name = "_token";
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-};
-
-// Close dropdown when clicking outside
-const handleClickOutside = (event) => {
-  if (!event.target.closest(".relative")) {
-    showDropdown.value = false;
-  }
-};
-
 // Auto-close mobile sidebar on screen resize
 const handleResize = () => {
   if (window.innerWidth >= 1024) {
@@ -539,14 +610,13 @@ const handleResize = () => {
 // Lifecycle hooks
 onMounted(() => {
   window.addEventListener("resize", handleResize);
-  window.addEventListener("click", handleClickOutside);
   console.log("Dashboard props:", props);
   console.log("User stats:", userStats.value);
+  console.log("Current route:", currentRoute.value);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
-  window.removeEventListener("click", handleClickOutside);
 });
 </script>
 

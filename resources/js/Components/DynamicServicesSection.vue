@@ -159,68 +159,9 @@
         </div>
       </div>
 
-      <!-- Contact CTA Section with Dotted Map -->
-      <div class="mt-20 lg:mt-24">
-        <div class="relative bg-sage-600 rounded-2xl overflow-hidden">
-          <!-- Background Map -->
-          <div class="absolute inset-0 opacity-30">
-            <DottedMap
-              :countries="['ID', 'SG', 'MY', 'TH', 'VN', 'PH', 'CN', 'JP', 'KR', 'IN', 'AU', 'NZ', 'US', 'GB', 'DE', 'FR', 'NL', 'AE', 'SA']"
-              :animated="true"
-              :showNodes="true"
-              :showConnections="true"
-              dotColor="rgba(255, 255, 255, 0.4)"
-              backgroundColor="transparent"
-            />
-          </div>
-
-          <!-- Content Grid -->
-          <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12">
-            <!-- Left Content -->
-            <div class="text-white">
-              <h3 class="text-3xl lg:text-4xl font-bold mb-4 font-montserrat">
-                Ready to Handle Your
-                <br>
-                <span class="text-sage-200">Logistics Needs</span>
-              </h3>
-              <p class="text-lg text-sage-100 mb-8 font-jost leading-relaxed">
-                Get a free consultation with our expert team. We provide the best solutions for export-import, trucking, and other logistics services.
-              </p>
-            </div>
-
-            <!-- Right Content - Contact Button -->
-            <div class="flex items-center justify-center lg:justify-end">
-              <button
-                @click="scrollToContact"
-                class="inline-flex items-center px-8 py-4 bg-white text-sage-700 rounded-full font-semibold text-lg hover:bg-sage-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                </svg>
-                Contact Us →
-              </button>
-            </div>
-          </div>
-
-          <!-- Stats Section -->
-          <div class="relative z-10 border-t border-sage-500/30 p-8 lg:p-12">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <div v-for="stat in globalStats" :key="stat.label" class="text-center">
-                <div class="text-2xl lg:text-3xl font-bold text-white mb-1 font-montserrat">
-                  {{ stat.value }}
-                </div>
-                <div class="text-sage-200 text-sm lg:text-base font-jost">
-                  {{ stat.label }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Original Contact CTA (can be removed if not needed) -->
+      <!-- Contact CTA Section -->
       <ContactCTA
-        v-if="showContactCTA && false"
+        v-if="showContactCTA"
         :settings="settings"
         :stats="globalStats"
         class="mt-20 lg:mt-24"
@@ -234,7 +175,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { TruckIcon, GlobeAltIcon, CurrencyDollarIcon, ShieldCheckIcon, DocumentTextIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import ContactCTA from './Services/ContactCTA.vue'
-import DottedMap from '@/Components/DottedMap.vue'
 
 // Props
 const props = defineProps({
