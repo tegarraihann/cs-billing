@@ -90,8 +90,8 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
             Route::put('/', [WebsiteSettingsController::class, 'updateSettings'])->name('update');
         });
 
-        // Service Routes
-        Route::prefix('service')->name('service.')->group(function () {
+        // Main Services Routes
+        Route::prefix('services')->name('services.')->group(function () {
             Route::get('/', function () {
                 $services = \App\Models\Service::orderBy('order_index')->get();
                 return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/Index', [
@@ -100,19 +100,31 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
             })->name('index');
 
             Route::get('/create', function () {
-                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/Create');
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/create');
             })->name('create');
 
             Route::post('/', [WebsiteSettingsController::class, 'createService'])->name('store');
 
             Route::get('/{service}/edit', function (\App\Models\Service $service) {
-                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/Edit', [
+                return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/edit', [
                     'service' => $service
                 ]);
             })->name('edit');
 
             Route::put('/{service}', [WebsiteSettingsController::class, 'updateService'])->name('update');
+            Route::patch('/{service}/toggle-status', [WebsiteSettingsController::class, 'toggleServiceStatus'])->name('toggle-status');
             Route::delete('/{service}', [WebsiteSettingsController::class, 'deleteService'])->name('destroy');
+        });
+
+        // Support Services Routes  
+        Route::prefix('support-services')->name('support-services.')->group(function () {
+            Route::get('/', [WebsiteSettingsController::class, 'supportServiceIndex'])->name('index');
+            Route::get('/create', [WebsiteSettingsController::class, 'supportServiceCreate'])->name('create');
+            Route::post('/', [WebsiteSettingsController::class, 'createSupportService'])->name('store');
+            Route::get('/{supportService}/edit', [WebsiteSettingsController::class, 'supportServiceEdit'])->name('edit');
+            Route::put('/{supportService}', [WebsiteSettingsController::class, 'updateSupportService'])->name('update');
+            Route::patch('/{supportService}/toggle-status', [WebsiteSettingsController::class, 'toggleSupportServiceStatus'])->name('toggle-status');
+            Route::delete('/{supportService}', [WebsiteSettingsController::class, 'deleteSupportService'])->name('destroy');
         });
 
         // Team Routes
@@ -137,18 +149,11 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
             })->name('edit');
 
             Route::put('/{teamMember}', [WebsiteSettingsController::class, 'updateTeamMember'])->name('update');
+            Route::patch('/{teamMember}/toggle-status', [WebsiteSettingsController::class, 'toggleTeamMemberStatus'])->name('toggle-status');
             Route::delete('/{teamMember}', [WebsiteSettingsController::class, 'deleteTeamMember'])->name('destroy');
         });
 
-        // Backward compatibility routes (optional - dapat dihapus jika tidak dibutuhkan)
-        Route::get('/', [WebsiteSettingsController::class, 'index'])->name('index');
-        Route::put('/settings', [WebsiteSettingsController::class, 'updateSettings'])->name('update-settings');
-        Route::post('/services', [WebsiteSettingsController::class, 'createService'])->name('services.create');
-        Route::put('/services/{service}', [WebsiteSettingsController::class, 'updateService'])->name('services.update');
-        Route::delete('/services/{service}', [WebsiteSettingsController::class, 'deleteService'])->name('services.delete');
-        Route::post('/team-members', [WebsiteSettingsController::class, 'createTeamMember'])->name('team-members.create');
-        Route::put('/team-members/{teamMember}', [WebsiteSettingsController::class, 'updateTeamMember'])->name('team-members.update');
-        Route::delete('/team-members/{teamMember}', [WebsiteSettingsController::class, 'deleteTeamMember'])->name('team-members.delete');
+
     });
 });
 
@@ -215,46 +220,3 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
 });
 
-// DEBUG ROUTES (Remove in production)
-Route::get('/debug-website-settings', function () {
-    try {
-        // Test 1: Cek database table
-        $tableExists = Schema::hasTable('website_settings');
-        echo "Table exists: " . ($tableExists ? 'YES' : 'NO') . "<br>";
-
-        if (!$tableExists) {
-            echo "ERROR: Table website_settings tidak ada!<br>";
-            return "Jalankan: php artisan migrate";
-        }
-
-        // Test 2: Cek columns
-        $columns = Schema::getColumnListing('website_settings');
-        echo "Columns: " . implode(', ', $columns) . "<br>";
-
-        // Test 3: Count existing records
-        $count = \App\Models\WebsiteSettings::count();
-        echo "Existing records: $count<br>";
-
-        // Test 4: Test manual create
-        $testData = [
-            'company_name' => 'Test Company ' . now(),
-            'company_description' => 'Test Description',
-        ];
-
-        $created = \App\Models\WebsiteSettings::create($testData);
-        echo "Test record created with ID: " . $created->id . "<br>";
-
-        // Test 5: Verify fillable
-        $model = new \App\Models\WebsiteSettings();
-        echo "Fillable: " . implode(', ', $model->getFillable()) . "<br>";
-
-        return "Debug complete!";
-    } catch (\Exception $e) {
-        return "ERROR: " . $e->getMessage() . "<br>Trace: " . $e->getTraceAsString();
-    }
-});
-
-Route::put('/test-put-method', function (Request $request) {
-    Log::info('Test PUT method received:', $request->all());
-    return response()->json(['success' => true, 'message' => 'PUT method works!']);
-});

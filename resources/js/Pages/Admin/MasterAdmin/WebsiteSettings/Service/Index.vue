@@ -275,10 +275,30 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              <span>Services</span>
+            </a>
+
+            <a
+              :href="supportServiceRoute"
+              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
                   d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"
                 />
               </svg>
-              <span>Service</span>
+              <span>Support Services</span>
             </a>
 
             <a
@@ -652,9 +672,10 @@ const props = defineProps({
 const dashboardRoute = "/master-admin/dashboard";
 const usersRoute = "/master-admin/users";
 const pengaturanUmumRoute = "/master-admin/website-settings/pengaturan-umum";
-const serviceRoute = "/master-admin/website-settings/service";
+const serviceRoute = "/master-admin/website-settings/services";
+const supportServiceRoute = "/master-admin/website-settings/support-services";
 const teamRoute = "/master-admin/website-settings/team";
-const createServiceRoute = "/master-admin/website-settings/service/create";
+const createServiceRoute = "/master-admin/website-settings/services/create";
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
@@ -689,20 +710,19 @@ const formatDate = (dateString) => {
 };
 
 const getEditRoute = (serviceId) => {
-  return `/master-admin/website-settings/service/${serviceId}/edit`;
+  return `/master-admin/website-settings/services/${serviceId}/edit`;
 };
 
 const toggleServiceStatus = (service) => {
   const formData = new FormData();
-  formData.append("_method", "PUT");
-  formData.append("is_active", !service.is_active);
+  formData.append("_method", "PATCH");
   formData.append(
     "_token",
     document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
   );
 
   router.post(
-    `/master-admin/website-settings/service/${service.id}`,
+    `/master-admin/website-settings/services/${service.id}/toggle-status`,
     formData,
     {
       preserveState: false,
@@ -723,7 +743,7 @@ const cancelDelete = () => {
 const deleteService = () => {
   if (serviceToDelete.value) {
     router.delete(
-      `/master-admin/website-settings/service/${serviceToDelete.value.id}`,
+      `/master-admin/website-settings/services/${serviceToDelete.value.id}`,
       {
         preserveState: false,
       }

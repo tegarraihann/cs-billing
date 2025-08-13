@@ -301,10 +301,35 @@
             </a>
 
             <a
-              :href="serviceRoute"
+              :href="servicesRoute"
               class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
               :class="
-                currentRoute.startsWith('masteradmin.website-settings.service')
+                currentRoute.startsWith('masteradmin.website-settings.services')
+                  ? 'bg-sage-50 text-sage-700 font-medium'
+                  : ''
+              "
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              <span>Services</span>
+            </a>
+
+            <a
+              :href="supportServicesRoute"
+              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
+              :class="
+                currentRoute.startsWith('masteradmin.website-settings.support-services')
                   ? 'bg-sage-50 text-sage-700 font-medium'
                   : ''
               "
@@ -322,7 +347,7 @@
                   d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"
                 />
               </svg>
-              <span>Service</span>
+              <span>Support Services</span>
             </a>
 
             <a
@@ -678,7 +703,8 @@ const createUserRoute = route("masteradmin.users.create");
 const pengaturanUmumRoute = route(
   "masteradmin.website-settings.pengaturan-umum.index"
 );
-const serviceRoute = route("masteradmin.website-settings.service.index");
+const servicesRoute = route("masteradmin.website-settings.services.index");
+const supportServicesRoute = route("masteradmin.website-settings.support-services.index");
 const teamRoute = route("masteradmin.website-settings.team.index");
 const homeRoute = route("home");
 

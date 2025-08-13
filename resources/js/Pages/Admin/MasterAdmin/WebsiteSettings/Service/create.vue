@@ -771,8 +771,8 @@ const submitForm = async () => {
       formData.append("icon_path", form.icon_path);
     }
 
-    // Submit form using router
-    router.post(route("masteradmin.website-settings.service.store"), formData, {
+    // Submit form using router with direct URL
+    router.post("/master-admin/website-settings/services", formData, {
       onSuccess: () => {
         // Redirect handled by backend
       },

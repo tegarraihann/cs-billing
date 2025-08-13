@@ -15,6 +15,7 @@ class WebsiteSettings extends Model
         'company_description',
         'hero_title',
         'hero_subtitle',
+        'trust_badge_text',
         'contact_phone',
         'contact_email',
         'whatsapp_number',

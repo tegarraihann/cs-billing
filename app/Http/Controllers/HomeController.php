@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WebsiteSettings;
 use App\Models\Service;
+use App\Models\SupportService;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,12 +22,16 @@ class HomeController extends Controller
         // Get active services ordered by order_index
         $services = Service::active()->ordered()->get();
 
+        // Get active support services ordered by order_index
+        $supportServices = SupportService::active()->ordered()->get();
+
         // Get active team members ordered by order_index
         $teamMembers = TeamMember::active()->ordered()->get();
 
         return Inertia::render('Home', [
             'settings' => $settings,
             'services' => $services,
+            'supportServices' => $supportServices,
             'teamMembers' => $teamMembers,
             'meta' => [
                 'title' => $settings->company_name ?: 'PT Dunia Ekspor Indonesia',

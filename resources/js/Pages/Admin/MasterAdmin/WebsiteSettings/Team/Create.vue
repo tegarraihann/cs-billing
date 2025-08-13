@@ -728,6 +728,8 @@ const submitForm = async () => {
         isSubmitting.value = false;
       },
       preserveState: false,
+      preserveScroll: false,
+      forceFormData: true,
     });
   } catch (error) {
     console.error("Form submission error:", error);

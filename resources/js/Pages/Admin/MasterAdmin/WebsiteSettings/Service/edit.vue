@@ -717,6 +717,8 @@ const errors = ref(props.errors || {});
 const form = reactive({
   title: props.service?.title || "",
   description: props.service?.description || "",
+  features: props.service?.features || [],
+  category: props.service?.category || "",
   image_path: null,
   icon_path: null,
   order_index: props.service?.order_index || 0,
@@ -770,49 +772,92 @@ const submitForm = async () => {
   errors.value = {};
 
   try {
-    const formData = new FormData();
+    console.log("Form data before submit:", form);
 
-    // Add CSRF token and method
-    const csrfToken = document
-      .querySelector('meta[name="csrf-token"]')
-      ?.getAttribute("content");
-    if (csrfToken) {
-      formData.append("_token", csrfToken);
-    }
-    formData.append("_method", "PUT");
+    // Check if we have files to upload
+    const hasFiles = form.image_path || form.icon_path;
 
-    // Add form fields
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("order_index", form.order_index);
-    formData.append("is_active", form.is_active ? 1 : 0);
+    if (hasFiles) {
+      // Use FormData for file uploads
+      const formData = new FormData();
 
-    // Add files if selected
-    if (form.image_path) {
-      formData.append("image_path", form.image_path);
-    }
-    if (form.icon_path) {
-      formData.append("icon_path", form.icon_path);
-    }
-
-    // Submit form using router
-    router.post(
-      route("masteradmin.website-settings.service.update", props.service.id),
-      formData,
-      {
-        onSuccess: () => {
-          // Redirect handled by backend
-        },
-        onError: (formErrors) => {
-          errors.value = formErrors;
-          console.error("Form errors:", formErrors);
-        },
-        onFinish: () => {
-          isSubmitting.value = false;
-        },
-        preserveState: false,
+      // Add basic fields
+      formData.append("_method", "PUT");
+      formData.append("title", form.title || "");
+      formData.append("description", form.description || "");
+      formData.append("order_index", form.order_index || 0);
+      formData.append("is_active", form.is_active ? 1 : 0);
+      
+      // Add features array
+      if (form.features && Array.isArray(form.features)) {
+        form.features.forEach((feature, index) => {
+          formData.append(`features[${index}]`, feature);
+        });
       }
-    );
+      
+      // Add category
+      if (form.category) {
+        formData.append("category", form.category);
+      }
+
+      // Add files if selected
+      if (form.image_path) {
+        formData.append("image_path", form.image_path);
+      }
+      if (form.icon_path) {
+        formData.append("icon_path", form.icon_path);
+      }
+
+      // Submit with FormData
+      router.post(
+        `/master-admin/website-settings/services/${props.service.id}`,
+        formData,
+        {
+          onSuccess: () => {
+            // Redirect handled by backend
+          },
+          onError: (formErrors) => {
+            errors.value = formErrors;
+            console.error("Form errors:", formErrors);
+          },
+          onFinish: () => {
+            isSubmitting.value = false;
+          },
+          preserveState: false,
+        }
+      );
+    } else {
+      // Use regular object for non-file submissions
+      const data = {
+        title: form.title || "",
+        description: form.description || "",
+        order_index: form.order_index || 0,
+        is_active: form.is_active ? 1 : 0,
+        features: form.features || [],
+        category: form.category || "",
+      };
+
+      console.log("Submitting data:", data);
+
+      // Submit with PUT method
+      router.put(
+        `/master-admin/website-settings/services/${props.service.id}`,
+        data,
+        {
+          onSuccess: () => {
+            // Redirect handled by backend
+          },
+          onError: (formErrors) => {
+            errors.value = formErrors;
+            console.error("Form errors:", formErrors);
+          },
+          onFinish: () => {
+            isSubmitting.value = false;
+          },
+          preserveState: false,
+        }
+      );
+    }
   } catch (error) {
     console.error("Form submission error:", error);
     alert("Terjadi kesalahan saat mengirim data: " + error.message);
@@ -831,6 +876,7 @@ const handleResize = () => {
 onMounted(() => {
   window.addEventListener("resize", handleResize);
   console.log("Service data:", props.service);
+  console.log("Form data:", form);
   console.log("Errors:", props.errors);
 });
 

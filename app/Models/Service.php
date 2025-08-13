@@ -12,6 +12,8 @@ class Service extends Model
     protected $fillable = [
         'title',
         'description',
+        'features',
+        'category',
         'icon_path',
         'image_path',
         'order_index',
@@ -21,6 +23,7 @@ class Service extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'order_index' => 'integer',
+        'features' => 'array',
     ];
 
     public function scopeActive($query)

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('position');
             $table->string('photo_path')->nullable();
-            $table->text('phone_number')->nullable();
+            $table->string('phone_number', 20)->nullable();
             $table->integer('order_index')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

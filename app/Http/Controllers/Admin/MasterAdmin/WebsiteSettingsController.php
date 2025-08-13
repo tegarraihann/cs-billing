@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\MasterAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\WebsiteSettings;
 use App\Models\Service;
+use App\Models\SupportService;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,11 +18,13 @@ class WebsiteSettingsController extends Controller
     {
         $settings = WebsiteSettings::getSetting();
         $services = Service::active()->ordered()->get();
+        $supportServices = SupportService::active()->ordered()->get();
         $teamMembers = TeamMember::active()->ordered()->get();
 
         return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Index', [
             'settings' => $settings,
             'services' => $services,
+            'supportServices' => $supportServices,
             'teamMembers' => $teamMembers,
         ]);
     }
@@ -151,81 +154,7 @@ class WebsiteSettingsController extends Controller
         }
     }
 
-    // Services CRUD (sudah bekerja)
-    public function createService(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'icon_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'order_index' => 'nullable|integer|min:0',
-        ]);
-
-        // Handle file uploads
-        if ($request->hasFile('icon_path')) {
-            $validated['icon_path'] = $request->file('icon_path')->store('service-icons', 'public');
-        }
-
-        if ($request->hasFile('image_path')) {
-            $validated['image_path'] = $request->file('image_path')->store('service-images', 'public');
-        }
-
-        // Set order index
-        if (!isset($validated['order_index'])) {
-            $validated['order_index'] = Service::max('order_index') + 1;
-        }
-
-        Service::create($validated);
-
-        return redirect()->back()->with('success', 'Service berhasil ditambahkan.');
-    }
-
-    public function updateService(Request $request, Service $service)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'icon_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'order_index' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-        ]);
-
-        // Handle file uploads
-        if ($request->hasFile('icon_path')) {
-            if ($service->icon_path) {
-                Storage::disk('public')->delete($service->icon_path);
-            }
-            $validated['icon_path'] = $request->file('icon_path')->store('service-icons', 'public');
-        }
-
-        if ($request->hasFile('image_path')) {
-            if ($service->image_path) {
-                Storage::disk('public')->delete($service->image_path);
-            }
-            $validated['image_path'] = $request->file('image_path')->store('service-images', 'public');
-        }
-
-        $service->update($validated);
-
-        return redirect()->back()->with('success', 'Service berhasil diperbarui.');
-    }
-
-    public function deleteService(Service $service)
-    {
-        // Delete associated files
-        if ($service->icon_path) {
-            Storage::disk('public')->delete($service->icon_path);
-        }
-        if ($service->image_path) {
-            Storage::disk('public')->delete($service->image_path);
-        }
-
-        $service->delete();
-
-        return redirect()->back()->with('success', 'Service berhasil dihapus.');
-    }
+    // Services CRUD methods (moved to bottom to avoid duplication)
 
     // Team Members CRUD - Updated untuk phone_number
     public function createTeamMember(Request $request)
@@ -234,8 +163,9 @@ class WebsiteSettingsController extends Controller
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'phone_number' => 'nullable|string|max:20', // Changed from quote to phone_number
+            'phone_number' => 'nullable|string|max:20',
             'order_index' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
         ]);
 
         // Handle photo upload
@@ -248,9 +178,14 @@ class WebsiteSettingsController extends Controller
             $validated['order_index'] = TeamMember::max('order_index') + 1;
         }
 
+        // Set default is_active if not provided
+        if (!isset($validated['is_active'])) {
+            $validated['is_active'] = true;
+        }
+
         TeamMember::create($validated);
 
-        return redirect()->back()->with('success', 'Anggota tim berhasil ditambahkan.');
+        return redirect()->route('masteradmin.website-settings.team.index')->with('success', 'Anggota tim berhasil ditambahkan.');
     }
 
     public function updateTeamMember(Request $request, TeamMember $teamMember)
@@ -289,61 +224,222 @@ class WebsiteSettingsController extends Controller
         return redirect()->back()->with('success', 'Anggota tim berhasil dihapus.');
     }
 
-    // Method untuk Pengaturan Umum
-    public function pengaturanUmum()
+    public function toggleTeamMemberStatus(TeamMember $teamMember)
     {
-        $settings = WebsiteSettings::first();
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/PengaturanUmum/index', [
-            'settings' => $settings
+        $teamMember->update([
+            'is_active' => !$teamMember->is_active
+        ]);
+
+        $status = $teamMember->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->back()->with('success', "Anggota tim berhasil {$status}.");
+    }
+
+
+    // Support Services CRUD
+    public function createSupportService(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'icon_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_index' => 'nullable|integer|min:0',
+        ]);
+
+        // Handle file uploads
+        if ($request->hasFile('icon_path')) {
+            $validated['icon_path'] = $request->file('icon_path')->store('support-service-icons', 'public');
+        }
+
+        if ($request->hasFile('image_path')) {
+            $validated['image_path'] = $request->file('image_path')->store('support-service-images', 'public');
+        }
+
+        // Set order index
+        if (!isset($validated['order_index'])) {
+            $validated['order_index'] = SupportService::max('order_index') + 1;
+        }
+
+        SupportService::create($validated);
+
+        return redirect()->back()->with('success', 'Support Service berhasil ditambahkan.');
+    }
+
+    public function updateSupportService(Request $request, SupportService $supportService)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'icon_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_index' => 'nullable|integer|min:0',
+            'is_active' => 'boolean',
+        ]);
+
+        // Handle file uploads
+        if ($request->hasFile('icon_path')) {
+            if ($supportService->icon_path) {
+                Storage::disk('public')->delete($supportService->icon_path);
+            }
+            $validated['icon_path'] = $request->file('icon_path')->store('support-service-icons', 'public');
+        }
+
+        if ($request->hasFile('image_path')) {
+            if ($supportService->image_path) {
+                Storage::disk('public')->delete($supportService->image_path);
+            }
+            $validated['image_path'] = $request->file('image_path')->store('support-service-images', 'public');
+        }
+
+        $supportService->update($validated);
+
+        return redirect()->back()->with('success', 'Support Service berhasil diperbarui.');
+    }
+
+    public function deleteSupportService(SupportService $supportService)
+    {
+        // Delete associated files
+        if ($supportService->icon_path) {
+            Storage::disk('public')->delete($supportService->icon_path);
+        }
+        if ($supportService->image_path) {
+            Storage::disk('public')->delete($supportService->image_path);
+        }
+
+        $supportService->delete();
+
+        return redirect()->back()->with('success', 'Support Service berhasil dihapus.');
+    }
+
+    public function toggleSupportServiceStatus(SupportService $supportService)
+    {
+        $supportService->update([
+            'is_active' => !$supportService->is_active
+        ]);
+
+        $status = $supportService->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->back()->with('success', "Support Service berhasil {$status}.");
+    }
+
+    // Method untuk Support Service Index
+    public function supportServiceIndex()
+    {
+        $supportServices = SupportService::orderBy('order_index')->get();
+        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/SupportService/Index', [
+            'supportServices' => $supportServices
         ]);
     }
 
-    public function updatePengaturanUmum(Request $request)
+    public function supportServiceCreate()
     {
-        // Logic update pengaturan umum
+        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/SupportService/Create');
     }
 
-    // Method untuk Service
-    public function serviceIndex()
+    public function supportServiceEdit($id)
     {
-        $services = Service::orderBy('order_index')->get();
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/index', [
-            'services' => $services
+        $supportService = SupportService::findOrFail($id);
+        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/SupportService/Edit', [
+            'supportService' => $supportService
         ]);
     }
 
-    public function serviceCreate()
+    // Main Services CRUD Methods
+    public function createService(Request $request)
     {
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/create');
-    }
-
-    public function serviceEdit($id)
-    {
-        $service = Service::findOrFail($id);
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Service/edit', [
-            'service' => $service
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'features' => 'nullable|array',
+            'features.*' => 'string|max:255',
+            'category' => 'nullable|string|max:100',
+            'icon_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_index' => 'nullable|integer|min:0',
         ]);
+
+        // Handle file uploads
+        if ($request->hasFile('icon_path')) {
+            $validated['icon_path'] = $request->file('icon_path')->store('service-icons', 'public');
+        }
+
+        if ($request->hasFile('image_path')) {
+            $validated['image_path'] = $request->file('image_path')->store('service-images', 'public');
+        }
+
+        // Set order index
+        if (!isset($validated['order_index'])) {
+            $validated['order_index'] = Service::max('order_index') + 1;
+        }
+
+        // Set default active status
+        $validated['is_active'] = true;
+
+        Service::create($validated);
+
+        return redirect()->route('masteradmin.website-settings.services.index')
+            ->with('success', 'Service berhasil ditambahkan.');
     }
 
-    // Method untuk Team
-    public function teamIndex()
+    // Service CRUD methods - final versions with all features
+    public function updateService(Request $request, Service $service)
     {
-        $teamMembers = TeamMember::orderBy('order_index')->get();
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Team/index', [
-            'teamMembers' => $teamMembers
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'features' => 'nullable|array',
+            'features.*' => 'string|max:255',
+            'category' => 'nullable|string|max:100',
+            'icon_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_index' => 'nullable|integer|min:0',
+            'is_active' => 'boolean',
         ]);
+
+        // Handle file uploads
+        if ($request->hasFile('icon_path')) {
+            if ($service->icon_path) {
+                Storage::disk('public')->delete($service->icon_path);
+            }
+            $validated['icon_path'] = $request->file('icon_path')->store('service-icons', 'public');
+        }
+
+        if ($request->hasFile('image_path')) {
+            if ($service->image_path) {
+                Storage::disk('public')->delete($service->image_path);
+            }
+            $validated['image_path'] = $request->file('image_path')->store('service-images', 'public');
+        }
+
+        $service->update($validated);
+
+        return redirect()->route('masteradmin.website-settings.services.index')
+            ->with('success', 'Service berhasil diperbarui.');
     }
 
-    public function teamCreate()
+    public function deleteService(Service $service)
     {
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Team/create');
+        // Delete associated files
+        if ($service->icon_path) {
+            Storage::disk('public')->delete($service->icon_path);
+        }
+
+        if ($service->image_path) {
+            Storage::disk('public')->delete($service->image_path);
+        }
+
+        $service->delete();
+
+        return redirect()->route('masteradmin.website-settings.services.index')
+            ->with('success', 'Service berhasil dihapus.');
     }
 
-    public function teamEdit($id)
+    public function toggleServiceStatus(Service $service)
     {
-        $teamMember = TeamMember::findOrFail($id);
-        return Inertia::render('Admin/MasterAdmin/WebsiteSettings/Team/edit', [
-            'member' => $teamMember
+        $service->update([
+            'is_active' => !$service->is_active
         ]);
+
+        $status = $service->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->back()->with('success', "Service berhasil {$status}.");
     }
 }

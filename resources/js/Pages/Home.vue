@@ -32,18 +32,12 @@
     <DynamicServicesSection
       v-if="hasServices"
       :services="services"
+      :support-services="supportServices"
       :settings="settings"
     />
 
     <!-- About Section -->
-    <AboutSection />
-
-    <!-- Dynamic Team Section -->
-    <DynamicTeamSection
-      v-if="hasTeamMembers"
-      :team-members="teamMembers"
-      :settings="settings"
-    />
+    <AboutSection :team-members="teamMembers" :settings="settings" />
 
     <ContactSection />
     <!-- Footer -->
@@ -59,7 +53,6 @@ import { computed } from "vue";
 import NavBar from "@/Components/homePage/Navbar.vue";
 import DynamicHeroSection from "@/Components/DynamicHeroSection.vue";
 import DynamicServicesSection from "@/Components/DynamicServicesSection.vue";
-import DynamicTeamSection from "@/Components/DynamicTeamSection.vue";
 import AboutSection from "@/Components/AboutSection.vue";
 // import ContactButton from "@/Components/ContactButton.vue";
 import ContactSection from "@/Components/ContactSection.vue";
@@ -73,6 +66,10 @@ const props = defineProps({
     default: () => ({}),
   },
   services: {
+    type: Array,
+    default: () => [],
+  },
+  supportServices: {
     type: Array,
     default: () => [],
   },
@@ -119,10 +116,6 @@ const heroImageUrl = computed(() => {
 
 const hasServices = computed(() => {
   return props.services && props.services.length > 0;
-});
-
-const hasTeamMembers = computed(() => {
-  return props.teamMembers && props.teamMembers.length > 0;
 });
 
 // Dynamic URLs
