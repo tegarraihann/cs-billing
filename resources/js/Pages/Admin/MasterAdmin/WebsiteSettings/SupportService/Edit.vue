@@ -132,259 +132,10 @@
     ></div>
 
     <!-- Sidebar -->
-    <aside
-      class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
-      :class="{
-        'translate-x-0': isMobileSidebarOpen,
-        '-translate-x-full': !isMobileSidebarOpen,
-      }"
-    >
-      <!-- Sidebar Header -->
-      <div class="px-6 py-6 border-b border-sage-200">
-        <div class="flex items-center space-x-3">
-          <div
-            class="w-10 h-10 bg-sage-600 rounded-lg flex items-center justify-center"
-          >
-            <svg
-              class="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-sage-700">Master Admin</h2>
-            <p class="text-xs text-sage-500">Full System Control</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation Menu -->
-      <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
-        <!-- Dashboard -->
-        <Link
-          :href="dashboardRoute"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
-        >
-          <svg
-            class="w-5 h-5 group-hover:scale-110 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-          <span class="font-medium">Dashboard</span>
-        </Link>
-
-        <!-- Users Management -->
-        <Link
-          :href="usersRoute"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
-        >
-          <svg
-            class="w-5 h-5 group-hover:scale-110 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-          <span class="font-medium">User Management</span>
-        </Link>
-
-        <!-- Website Settings with Dropdown -->
-        <div class="space-y-1">
-          <div
-            class="w-full flex items-center justify-between space-x-3 p-3 rounded-lg bg-sage-100 text-sage-800"
-          >
-            <div class="flex items-center space-x-3">
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <span class="font-medium">Website Settings</span>
-            </div>
-          </div>
-
-          <!-- Website Settings Dropdown -->
-          <div class="ml-8 space-y-1 border-l-2 border-sage-200 pl-4">
-            <Link
-              :href="pengaturanUmumRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                />
-              </svg>
-              <span>Pengaturan Umum</span>
-            </Link>
-
-            <Link
-              :href="servicesRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-              <span>Services</span>
-            </Link>
-
-            <Link
-              :href="supportServicesRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg bg-sage-50 text-sage-700 font-medium text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"
-                />
-              </svg>
-              <span>Support Services</span>
-            </Link>
-
-            <Link
-              :href="teamRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              <span>Team</span>
-            </Link>
-          </div>
-        </div>
-
-        <!-- Divider -->
-        <div class="my-4 border-t border-sage-200"></div>
-
-        <!-- View Website -->
-        <Link
-          :href="homeRoute"
-          target="_blank"
-          class="flex items-center space-x-3 p-3 rounded-lg text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all duration-200 group"
-        >
-          <svg
-            class="w-5 h-5 group-hover:scale-110 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-5 0-9-4-9-9s4-9 9-9"
-            />
-          </svg>
-          <span class="font-medium">View Website</span>
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-        </Link>
-      </nav>
-
-      <!-- User Profile Section -->
-      <div class="p-4 border-t border-sage-200 bg-sage-50">
-        <div
-          class="flex items-center space-x-3 p-3 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
-        >
-          <div
-            class="w-10 h-10 bg-sage-600 rounded-full flex items-center justify-center"
-          >
-            <span class="text-white font-semibold text-sm">
-              {{ getInitials($page.props.auth.user?.name) }}
-            </span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-sage-700 truncate">
-              {{ $page.props.auth.user?.name }}
-            </p>
-            <p class="text-xs text-sage-500 truncate">
-              {{ $page.props.auth.user?.email }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </aside>
+    <SidebarNavigation
+      :is-mobile-sidebar-open="isMobileSidebarOpen"
+      @close-mobile-sidebar="closeMobileSidebar"
+    />
 
     <!-- Main Content Area -->
     <main class="lg:ml-64 pt-16 min-h-screen">
@@ -414,7 +165,9 @@
                       clip-rule="evenodd"
                     />
                   </svg>
-                  <span class="ml-1 text-sage-500 md:ml-2">Website Settings</span>
+                  <span class="ml-1 text-sage-500 md:ml-2"
+                    >Website Settings</span
+                  >
                 </div>
               </li>
               <li>
@@ -451,7 +204,9 @@
                       clip-rule="evenodd"
                     />
                   </svg>
-                  <span class="ml-1 text-sage-700 md:ml-2 font-medium">Edit</span>
+                  <span class="ml-1 text-sage-700 md:ml-2 font-medium"
+                    >Edit</span
+                  >
                 </div>
               </li>
             </ol>
@@ -459,15 +214,17 @@
         </div>
 
         <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div
+          class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
+        >
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
+          >
             <div>
               <h2 class="text-2xl font-bold text-sage-800 mb-2">
                 Edit Support Service
               </h2>
-              <p class="text-sage-600">
-                Update support service information
-              </p>
+              <p class="text-sage-600">Update support service information</p>
             </div>
             <div class="mt-4 sm:mt-0">
               <Link
@@ -509,10 +266,14 @@
         </div>
 
         <!-- Form -->
-        <div class="bg-white shadow-sm border border-sage-200 sm:rounded-lg overflow-hidden">
+        <div
+          class="bg-white shadow-sm border border-sage-200 sm:rounded-lg overflow-hidden"
+        >
           <form @submit.prevent="submitForm" enctype="multipart/form-data">
             <div class="px-6 py-4 border-b border-sage-200">
-              <h3 class="text-lg font-semibold text-sage-800">Support Service Information</h3>
+              <h3 class="text-lg font-semibold text-sage-800">
+                Support Service Information
+              </h3>
               <p class="text-sm text-sage-600 mt-1">
                 Update the details for this support service
               </p>
@@ -523,7 +284,10 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Title -->
                 <div>
-                  <label for="title" class="block text-sm font-medium text-sage-700 mb-2">
+                  <label
+                    for="title"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
                     Title <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -542,7 +306,10 @@
 
                 <!-- Order Index -->
                 <div>
-                  <label for="order_index" class="block text-sm font-medium text-sage-700 mb-2">
+                  <label
+                    for="order_index"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
                     Display Order
                   </label>
                   <input
@@ -557,7 +324,10 @@
                   <p class="mt-1 text-xs text-gray-500">
                     Order in which this service appears (0 = first)
                   </p>
-                  <p v-if="errors.order_index" class="mt-1 text-sm text-red-600">
+                  <p
+                    v-if="errors.order_index"
+                    class="mt-1 text-sm text-red-600"
+                  >
                     {{ errors.order_index }}
                   </p>
                 </div>
@@ -565,7 +335,10 @@
 
               <!-- Description -->
               <div>
-                <label for="description" class="block text-sm font-medium text-sage-700 mb-2">
+                <label
+                  for="description"
+                  class="block text-sm font-medium text-sage-700 mb-2"
+                >
                   Description <span class="text-red-500">*</span>
                 </label>
                 <textarea
@@ -591,11 +364,17 @@
                   <!-- Image Preview -->
                   <div class="flex-shrink-0">
                     <div
-                      v-if="imagePreview || (supportService.image_path && !imageRemoved)"
+                      v-if="
+                        imagePreview ||
+                        (supportService.image_path && !imageRemoved)
+                      "
                       class="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200"
                     >
                       <img
-                        :src="imagePreview || `/storage/${supportService.image_path}`"
+                        :src="
+                          imagePreview ||
+                          `/storage/${supportService.image_path}`
+                        "
                         alt="Preview"
                         class="w-full h-full object-cover"
                       />
@@ -647,13 +426,21 @@
                           d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                         />
                       </svg>
-                      {{ imagePreview || (supportService.image_path && !imageRemoved) ? 'Change Image' : 'Upload Image' }}
+                      {{
+                        imagePreview ||
+                        (supportService.image_path && !imageRemoved)
+                          ? "Change Image"
+                          : "Upload Image"
+                      }}
                     </button>
                     <p class="mt-2 text-sm text-gray-500">
                       PNG, JPG, GIF up to 2MB. Recommended size: 400x300px
                     </p>
                     <button
-                      v-if="imagePreview || (supportService.image_path && !imageRemoved)"
+                      v-if="
+                        imagePreview ||
+                        (supportService.image_path && !imageRemoved)
+                      "
                       type="button"
                       @click="removeImage"
                       class="mt-2 text-sm text-red-600 hover:text-red-800"
@@ -676,7 +463,10 @@
                     type="checkbox"
                     class="h-4 w-4 text-sage-600 focus:ring-sage-500 border-gray-300 rounded"
                   />
-                  <label for="is_active" class="ml-2 block text-sm font-medium text-sage-700">
+                  <label
+                    for="is_active"
+                    class="ml-2 block text-sm font-medium text-sage-700"
+                  >
                     Active
                   </label>
                 </div>
@@ -687,7 +477,9 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="px-6 py-4 bg-gray-50 border-t border-sage-200 flex justify-end space-x-4">
+            <div
+              class="px-6 py-4 bg-gray-50 border-t border-sage-200 flex justify-end space-x-4"
+            >
               <Link
                 :href="supportServicesRoute"
                 class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
@@ -719,7 +511,7 @@
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                {{ loading ? 'Updating...' : 'Update Support Service' }}
+                {{ loading ? "Updating..." : "Update Support Service" }}
               </button>
             </div>
           </form>
@@ -735,6 +527,7 @@ import { Link, useForm } from "@inertiajs/vue3";
 import { router } from "@inertiajs/vue3";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
+import SidebarNavigation from "@/Pages/Admin/MasterAdmin/Components/SidebarNavigation.vue";
 
 // Props
 const props = defineProps({
@@ -747,9 +540,13 @@ const props = defineProps({
 // Routes
 const dashboardRoute = route("masteradmin.dashboard");
 const usersRoute = route("masteradmin.users.index");
-const pengaturanUmumRoute = route("masteradmin.website-settings.pengaturan-umum.index");
+const pengaturanUmumRoute = route(
+  "masteradmin.website-settings.pengaturan-umum.index"
+);
 const servicesRoute = route("masteradmin.website-settings.services.index");
-const supportServicesRoute = route("masteradmin.website-settings.support-services.index");
+const supportServicesRoute = route(
+  "masteradmin.website-settings.support-services.index"
+);
 const teamRoute = route("masteradmin.website-settings.team.index");
 const homeRoute = route("home");
 
@@ -761,11 +558,11 @@ const imageRemoved = ref(false);
 
 // Form setup
 const form = useForm({
-  title: props.supportService.title || '',
-  description: props.supportService.description || '',
+  title: props.supportService.title || "",
+  description: props.supportService.description || "",
   image_path: null,
   order_index: props.supportService.order_index || 0,
-  is_active: props.supportService.is_active || false
+  is_active: props.supportService.is_active || false,
 });
 
 // Error handling
@@ -795,7 +592,7 @@ const handleImageUpload = (event) => {
   if (file) {
     form.image_path = file;
     imageRemoved.value = false;
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -815,17 +612,23 @@ const submitForm = () => {
   loading.value = true;
   errors.value = {};
 
-  form.put(route('masteradmin.website-settings.support-services.update', props.supportService.id), {
-    onSuccess: () => {
-      // Success will be handled by redirect or flash message
-    },
-    onError: (formErrors) => {
-      errors.value = formErrors;
-    },
-    onFinish: () => {
-      loading.value = false;
+  form.put(
+    route(
+      "masteradmin.website-settings.support-services.update",
+      props.supportService.id
+    ),
+    {
+      onSuccess: () => {
+        // Success will be handled by redirect or flash message
+      },
+      onError: (formErrors) => {
+        errors.value = formErrors;
+      },
+      onFinish: () => {
+        loading.value = false;
+      },
     }
-  });
+  );
 };
 
 // Auto-close mobile sidebar on screen resize

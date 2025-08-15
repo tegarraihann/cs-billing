@@ -132,178 +132,10 @@
     ></div>
 
     <!-- Sidebar -->
-    <aside
-      class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
-      :class="{
-        'translate-x-0': isMobileSidebarOpen,
-        '-translate-x-full': !isMobileSidebarOpen,
-      }"
-    >
-      <!-- Sidebar Header -->
-      <div class="px-6 py-6 border-b border-sage-200">
-        <div class="flex items-center space-x-3">
-          <div
-            class="w-10 h-10 bg-sage-600 rounded-lg flex items-center justify-center"
-          >
-            <svg
-              class="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-sage-700">Master Admin</h2>
-            <p class="text-xs text-sage-500">Full System Control</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation Menu -->
-      <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
-        <!-- Dashboard -->
-        <a
-          :href="dashboardRoute"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-          <span class="font-medium">Dashboard</span>
-        </a>
-
-        <!-- User Management -->
-        <a
-          :href="usersRoute"
-          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-          <span class="font-medium">User Management</span>
-        </a>
-
-        <!-- Website Settings -->
-        <div class="space-y-1">
-          <div
-            class="w-full flex items-center justify-between space-x-3 p-3 rounded-lg bg-sage-100 text-sage-800"
-          >
-            <div class="flex items-center space-x-3">
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <span class="font-medium">Website Settings</span>
-            </div>
-          </div>
-
-          <!-- Sub Navigation -->
-          <div class="ml-8 space-y-1 border-l-2 border-sage-200 pl-4">
-            <a
-              :href="pengaturanUmumRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                />
-              </svg>
-              <span>Pengaturan Umum</span>
-            </a>
-
-            <a
-              :href="serviceRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg bg-sage-50 text-sage-700 font-medium text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"
-                />
-              </svg>
-              <span>Service</span>
-            </a>
-
-            <a
-              :href="teamRoute"
-              class="flex items-center space-x-3 p-2 rounded-lg text-sage-600 hover:bg-sage-50 hover:text-sage-700 transition-colors text-sm"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              <span>Team</span>
-            </a>
-          </div>
-        </div>
-      </nav>
-    </aside>
+    <SidebarNavigation
+      :is-mobile-sidebar-open="isMobileSidebarOpen"
+      @close-mobile-sidebar="closeMobileSidebar"
+    />
 
     <!-- Main Content -->
     <main class="lg:ml-64 pt-16 min-h-screen">
@@ -328,10 +160,10 @@
           <nav class="flex" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
               <li class="inline-flex items-center">
-                <a
+                <Link
                   :href="dashboardRoute"
                   class="text-sage-600 hover:text-sage-800"
-                  >Dashboard</a
+                  >Dashboard</Link
                 >
               </li>
               <li>
@@ -347,10 +179,10 @@
                       clip-rule="evenodd"
                     ></path>
                   </svg>
-                  <a
-                    :href="serviceRoute"
+                  <Link
+                    :href="servicesRoute"
                     class="ml-1 text-sage-600 hover:text-sage-800 md:ml-2"
-                    >Kelola Service</a
+                    >Kelola Service</Link
                   >
                 </div>
               </li>
@@ -390,8 +222,9 @@
               </p>
             </div>
             <div class="mt-4 sm:mt-0">
-              <a
-                :href="serviceRoute"
+              <!-- FIXED: Using proper route helper -->
+              <Link
+                :href="servicesRoute"
                 class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
                 <svg
@@ -408,7 +241,7 @@
                   />
                 </svg>
                 Kembali ke Daftar
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -643,18 +476,19 @@
             <div
               class="mt-8 pt-6 border-t border-sage-200 flex justify-end space-x-3"
             >
-              <a
-                :href="serviceRoute"
+              <!-- FIXED: Using proper route helper -->
+              <Link
+                :href="servicesRoute"
                 class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Batal
-              </a>
+              </Link>
               <button
                 type="submit"
-                :disabled="isSubmitting"
+                :disabled="form.processing"
                 class="px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span v-if="isSubmitting">Menyimpan...</span>
+                <span v-if="form.processing">Menyimpan...</span>
                 <span v-else>Simpan Service</span>
               </button>
             </div>
@@ -667,31 +501,38 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, useForm } from "@inertiajs/vue3";
+import { Link } from "@inertiajs/vue3";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
+import SidebarNavigation from "@/Pages/Admin/MasterAdmin/Components/SidebarNavigation.vue";
 
 // Props
 const props = defineProps({
   errors: Object,
 });
 
-// Routes
-const dashboardRoute = "/master-admin/dashboard";
-const usersRoute = "/master-admin/users";
-const pengaturanUmumRoute = "/master-admin/website-settings/pengaturan-umum";
-const serviceRoute = "/master-admin/website-settings/service";
-const teamRoute = "/master-admin/website-settings/team";
+// FIXED: Using proper route helpers like other files
+const dashboardRoute = route("masteradmin.dashboard");
+const usersRoute = route("masteradmin.users.index");
+const pengaturanUmumRoute = route(
+  "masteradmin.website-settings.pengaturan-umum.index"
+);
+const servicesRoute = route("masteradmin.website-settings.services.index");
+const supportServicesRoute = route(
+  "masteradmin.website-settings.support-services.index"
+);
+const teamRoute = route("masteradmin.website-settings.team.index");
+const homeRoute = route("home");
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
-const isSubmitting = ref(false);
 const imagePreview = ref(null);
 const iconPreview = ref(null);
 const errors = ref(props.errors || {});
 
-// Form data
-const form = reactive({
+// FIXED: Using useForm from Inertia.js like other files
+const form = useForm({
   title: "",
   description: "",
   image_path: null,
@@ -740,56 +581,18 @@ const handleFileUpload = (event, type) => {
   }
 };
 
-const submitForm = async () => {
-  if (isSubmitting.value) return;
-
-  isSubmitting.value = true;
+// FIXED: Using useForm.post() method like other files
+const submitForm = () => {
   errors.value = {};
 
-  try {
-    const formData = new FormData();
-
-    // Add CSRF token
-    const csrfToken = document
-      .querySelector('meta[name="csrf-token"]')
-      ?.getAttribute("content");
-    if (csrfToken) {
-      formData.append("_token", csrfToken);
-    }
-
-    // Add form fields
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("order_index", form.order_index);
-    formData.append("is_active", form.is_active ? 1 : 0);
-
-    // Add files if selected
-    if (form.image_path) {
-      formData.append("image_path", form.image_path);
-    }
-    if (form.icon_path) {
-      formData.append("icon_path", form.icon_path);
-    }
-
-    // Submit form using router with direct URL
-    router.post("/master-admin/website-settings/services", formData, {
-      onSuccess: () => {
-        // Redirect handled by backend
-      },
-      onError: (formErrors) => {
-        errors.value = formErrors;
-        console.error("Form errors:", formErrors);
-      },
-      onFinish: () => {
-        isSubmitting.value = false;
-      },
-      preserveState: false,
-    });
-  } catch (error) {
-    console.error("Form submission error:", error);
-    alert("Terjadi kesalahan saat mengirim data: " + error.message);
-    isSubmitting.value = false;
-  }
+  form.post(route("masteradmin.website-settings.services.store"), {
+    onSuccess: () => {
+      // Success will be handled by redirect or flash message
+    },
+    onError: (formErrors) => {
+      errors.value = formErrors;
+    },
+  });
 };
 
 // Auto-close mobile sidebar on screen resize
