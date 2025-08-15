@@ -186,6 +186,19 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
         Route::put('/{customer}', 'update')->name('update');
         Route::delete('/{customer}', 'destroy')->name('destroy');
     });
+
+    // Sales Order Management Routes
+    Route::controller(\App\Http\Controllers\SalesOrderController::class)->prefix('sales-orders')->name('sales-orders.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{salesOrder}', 'show')->name('show');
+        Route::get('/{salesOrder}/edit', 'edit')->name('edit');
+        Route::put('/{salesOrder}', 'update')->name('update');
+        Route::delete('/{salesOrder}', 'destroy')->name('destroy');
+        Route::get('/{salesOrder}/print', 'print')->name('print');
+        Route::get('/customer/{customer}/data', 'getCustomerData')->name('customer.data');
+    });
 });
 
 // ADMIN KEUANGAN ROUTES
