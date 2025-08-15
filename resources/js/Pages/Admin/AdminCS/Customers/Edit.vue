@@ -28,7 +28,7 @@
             </div>
             <div>
               <h2 class="text-2xl font-bold text-sage-800">
-                Edit Pelanggan: {{ customer.name }}
+                Edit Pelanggan: {{ customer.customer_code || customer.no }}
               </h2>
               <p class="text-sage-600">
                 Perbarui informasi pelanggan dan status komunikasi
@@ -73,187 +73,368 @@
         </div>
 
         <div class="p-6">
-          <form @submit.prevent="submit" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Nama -->
-              <div>
-                <label
-                  for="name"
-                  class="block text-sm font-medium text-sage-700 mb-2"
+          <form @submit.prevent="submit" class="space-y-8">
+            <!-- Shipping Information Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="toggleShippingInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+              >
+                <h4 class="text-lg font-semibold text-sage-800">
+                  Informasi Pengiriman
+                </h4>
+                <svg
+                  :class="{'rotate-180': isShippingInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Nama Lengkap <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.name"
-                  type="text"
-                  id="name"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                />
-                <div v-if="form.errors.name" class="mt-2 text-sm text-red-600">
-                  {{ form.errors.name }}
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isShippingInfoOpen" class="p-4 space-y-4">
+                <!-- SO NUMBER -->
+                <div>
+                  <label
+                    for="so_number"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    SO Number <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.so_number"
+                    type="text"
+                    id="so_number"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.so_number" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.so_number }}
+                  </div>
                 </div>
-              </div>
 
-              <!-- Email -->
-              <div>
-                <label
-                  for="email"
-                  class="block text-sm font-medium text-sage-700 mb-2"
-                >
-                  Email <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.email"
-                  type="email"
-                  id="email"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                />
-                <div v-if="form.errors.email" class="mt-2 text-sm text-red-600">
-                  {{ form.errors.email }}
+                <!-- CUSTOMER CODE -->
+                <div>
+                  <label
+                    for="customer_code"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Customer Code <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.customer_code"
+                    type="text"
+                    id="customer_code"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.customer_code" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.customer_code }}
+                  </div>
                 </div>
-              </div>
 
-              <!-- Telepon -->
-              <div>
-                <label
-                  for="phone"
-                  class="block text-sm font-medium text-sage-700 mb-2"
-                >
-                  Nomor Telepon <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.phone"
-                  type="tel"
-                  id="phone"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                />
-                <div v-if="form.errors.phone" class="mt-2 text-sm text-red-600">
-                  {{ form.errors.phone }}
+                <!-- CONSIGNEE/SHIPPER -->
+                <div>
+                  <label
+                    for="consignee_shipper"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Consignee/Shipper <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.consignee_shipper"
+                    type="text"
+                    id="consignee_shipper"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.consignee_shipper" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.consignee_shipper }}
+                  </div>
                 </div>
-              </div>
 
-              <!-- Perusahaan -->
-              <div>
-                <label
-                  for="company"
-                  class="block text-sm font-medium text-sage-700 mb-2"
-                >
-                  Nama Perusahaan
-                </label>
-                <input
-                  v-model="form.company"
-                  type="text"
-                  id="company"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                />
-                <div
-                  v-if="form.errors.company"
-                  class="mt-2 text-sm text-red-600"
-                >
-                  {{ form.errors.company }}
+                <!-- AWB/BL NUMBER -->
+                <div>
+                  <label
+                    for="awb_bl_number"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    AWB/BL Number <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.awb_bl_number"
+                    type="text"
+                    id="awb_bl_number"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.awb_bl_number" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.awb_bl_number }}
+                  </div>
                 </div>
-              </div>
 
-              <!-- Sumber Inquiry -->
-              <div>
-                <label
-                  for="inquiry_source"
-                  class="block text-sm font-medium text-sage-700 mb-2"
-                >
-                  Sumber Inquiry <span class="text-red-500">*</span>
-                </label>
-                <select
-                  v-model="form.inquiry_source"
-                  id="inquiry_source"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                >
-                  <option value="">Pilih Sumber</option>
-                  <option value="whatsapp">WhatsApp</option>
-                  <option value="email">Email</option>
-                  <option value="phone">Telepon</option>
-                  <option value="website">Website</option>
-                </select>
-                <div
-                  v-if="form.errors.inquiry_source"
-                  class="mt-2 text-sm text-red-600"
-                >
-                  {{ form.errors.inquiry_source }}
+                <!-- CUST DOC NAME -->
+                <div>
+                  <label
+                    for="cust_doc_name"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Cust Doc Name
+                  </label>
+                  <input
+                    v-model="form.cust_doc_name"
+                    type="text"
+                    id="cust_doc_name"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.cust_doc_name" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.cust_doc_name }}
+                  </div>
                 </div>
-              </div>
 
-              <!-- Status -->
-              <div>
-                <label
-                  for="status"
-                  class="block text-sm font-medium text-sage-700 mb-2"
-                >
-                  Status <span class="text-red-500">*</span>
-                </label>
-                <select
-                  v-model="form.status"
-                  id="status"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                >
-                  <option value="">Pilih Status</option>
-                  <option value="new">Baru</option>
-                  <option value="contacted">Dihubungi</option>
-                  <option value="quoted">Dikutip</option>
-                  <option value="converted">Konversi</option>
-                  <option value="closed">Ditutup</option>
-                </select>
-                <div
-                  v-if="form.errors.status"
-                  class="mt-2 text-sm text-red-600"
-                >
-                  {{ form.errors.status }}
+                <!-- TYPE QTY -->
+                <div>
+                  <label
+                    for="type_qty"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Type Qty
+                  </label>
+                  <input
+                    v-model="form.type_qty"
+                    type="text"
+                    id="type_qty"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.type_qty" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.type_qty }}
+                  </div>
+                </div>
+
+                <!-- NO KONT/PALLET -->
+                <div>
+                  <label
+                    for="no_kont_pallet"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    No Kont/Pallet
+                  </label>
+                  <input
+                    v-model="form.no_kont_pallet"
+                    type="text"
+                    id="no_kont_pallet"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.no_kont_pallet" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.no_kont_pallet }}
+                  </div>
+                </div>
+
+                <!-- POL/POD -->
+                <div>
+                  <label
+                    for="pol_pod"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    POL/POD
+                  </label>
+                  <input
+                    v-model="form.pol_pod"
+                    type="text"
+                    id="pol_pod"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.pol_pod" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.pol_pod }}
+                  </div>
+                </div>
+
+                <!-- ETA -->
+                <div>
+                  <label
+                    for="eta"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    ETA
+                  </label>
+                  <input
+                    v-model="form.eta"
+                    type="date"
+                    id="eta"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.eta" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.eta }}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Alamat -->
-            <div>
-              <label
-                for="address"
-                class="block text-sm font-medium text-sage-700 mb-2"
+            <!-- Buying to Vendor Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="toggleVendorInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
               >
-                Alamat
-              </label>
-              <textarea
-                v-model="form.address"
-                id="address"
-                rows="3"
-                placeholder="Masukkan alamat lengkap pelanggan..."
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
-              >
-              </textarea>
-              <div v-if="form.errors.address" class="mt-2 text-sm text-red-600">
-                {{ form.errors.address }}
-              </div>
-            </div>
+                <h4 class="text-lg font-semibold text-sage-800">
+                  Buying to Vendor
+                </h4>
+                <svg
+                  :class="{'rotate-180': isVendorInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isVendorInfoOpen" class="p-4 space-y-4">
+                <div v-for="(vendor, index) in form.vendors" :key="index" class="border border-sage-200 rounded-lg bg-sage-50">
+                  <button
+                    type="button"
+                    @click="toggleVendorCollapse(index)"
+                    class="w-full flex items-center justify-between p-4 bg-sage-100 hover:bg-sage-200 transition-colors rounded-t-lg"
+                  >
+                    <h5 class="font-medium text-sage-800">Vendor {{ index + 1 }}</h5>
+                    <div class="flex items-center space-x-2">
+                      <button
+                        v-if="form.vendors.length > 1"
+                        type="button"
+                        @click.stop="removeVendor(index)"
+                        class="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-red-50"
+                      >
+                        Hapus
+                      </button>
+                      <svg
+                        :class="{'rotate-180': !isVendorOpen(index)}"
+                        class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+                  <div v-show="isVendorOpen(index)" class="p-4 space-y-4">
+                    <!-- DESKRIPSI -->
+                    <div>
+                      <label
+                        :for="'deskripsi_' + index"
+                        class="block text-sm font-medium text-sage-700 mb-2"
+                      >
+                        Deskripsi <span class="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        v-model="vendor.deskripsi"
+                        :id="'deskripsi_' + index"
+                        rows="2"
+                        required
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
+                      ></textarea>
+                      <div v-if="form.errors[`vendors.${index}.deskripsi`]" class="mt-2 text-sm text-red-600">
+                        {{ form.errors[`vendors.${index}.deskripsi`] }}
+                      </div>
+                    </div>
 
-            <!-- Catatan -->
-            <div>
-              <label
-                for="notes"
-                class="block text-sm font-medium text-sage-700 mb-2"
-              >
-                Catatan
-              </label>
-              <textarea
-                v-model="form.notes"
-                id="notes"
-                rows="4"
-                placeholder="Catatan tentang pelanggan, inquiry, atau komunikasi..."
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
-              >
-              </textarea>
-              <div v-if="form.errors.notes" class="mt-2 text-sm text-red-600">
-                {{ form.errors.notes }}
+                    <!-- NOMINAL -->
+                    <div>
+                      <label
+                        :for="'nominal_' + index"
+                        class="block text-sm font-medium text-sage-700 mb-2"
+                      >
+                        Nominal <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        v-model="vendor.nominalFormatted"
+                        type="text"
+                        :id="'nominal_' + index"
+                        required
+                        @input="formatNominal(vendor, $event)"
+                        @blur="updateNominalValue(vendor)"
+                        placeholder="0"
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                      />
+                      <div v-if="form.errors[`vendors.${index}.nominal`]" class="mt-2 text-sm text-red-600">
+                        {{ form.errors[`vendors.${index}.nominal`] }}
+                      </div>
+                    </div>
+
+                    <!-- NO REKENING -->
+                    <div>
+                      <label
+                        :for="'no_rekening_' + index"
+                        class="block text-sm font-medium text-sage-700 mb-2"
+                      >
+                        No Rekening <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        v-model="vendor.no_rekening"
+                        type="text"
+                        :id="'no_rekening_' + index"
+                        required
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                      />
+                      <div v-if="form.errors[`vendors.${index}.no_rekening`]" class="mt-2 text-sm text-red-600">
+                        {{ form.errors[`vendors.${index}.no_rekening`] }}
+                      </div>
+                    </div>
+
+                    <!-- COMPANY NAME -->
+                    <div>
+                      <label
+                        :for="'company_name_' + index"
+                        class="block text-sm font-medium text-sage-700 mb-2"
+                      >
+                        Company Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        v-model="vendor.company_name"
+                        type="text"
+                        :id="'company_name_' + index"
+                        required
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                      />
+                      <div v-if="form.errors[`vendors.${index}.company_name`]" class="mt-2 text-sm text-red-600">
+                        {{ form.errors[`vendors.${index}.company_name`] }}
+                      </div>
+                    </div>
+
+                    <!-- RCVD INV -->
+                    <div>
+                      <label
+                        :for="'rcvd_inv_' + index"
+                        class="block text-sm font-medium text-sage-700 mb-2"
+                      >
+                        RCVD INV
+                      </label>
+                      <input
+                        v-model="vendor.rcvd_inv"
+                        type="text"
+                        :id="'rcvd_inv_' + index"
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                      />
+                      <div v-if="form.errors[`vendors.${index}.rcvd_inv`]" class="mt-2 text-sm text-red-600">
+                        {{ form.errors[`vendors.${index}.rcvd_inv`] }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <button
+                  type="button"
+                  @click="addVendor"
+                  class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Tambah Vendor
+                </button>
               </div>
             </div>
 
@@ -337,16 +518,75 @@ const alertDialog = ref({
   onConfirm: null,
 });
 
+// Collapsible states
+const isShippingInfoOpen = ref(true);
+const isVendorInfoOpen = ref(true);
+const vendorCollapseStates = ref([]);
+
+const toggleShippingInfo = () => {
+  isShippingInfoOpen.value = !isShippingInfoOpen.value;
+};
+
+const toggleVendorInfo = () => {
+  isVendorInfoOpen.value = !isVendorInfoOpen.value;
+};
+
+const toggleVendorCollapse = (index) => {
+  if (vendorCollapseStates.value[index] === undefined) {
+    vendorCollapseStates.value[index] = false;
+  } else {
+    vendorCollapseStates.value[index] = !vendorCollapseStates.value[index];
+  }
+};
+
+const isVendorOpen = (index) => {
+  return vendorCollapseStates.value[index] !== false;
+};
+
 const form = useForm({
-  name: props.customer.name || "",
-  email: props.customer.email || "",
-  phone: props.customer.phone || "",
-  company: props.customer.company || "",
-  address: props.customer.address || "",
-  inquiry_source: props.customer.inquiry_source || "",
-  status: props.customer.status || "new",
-  notes: props.customer.notes || "",
+  so_number: props.customer.so_number || "",
+  customer_code: props.customer.customer_code || "",
+  consignee_shipper: props.customer.consignee_shipper || "",
+  awb_bl_number: props.customer.awb_bl_number || "",
+  cust_doc_name: props.customer.cust_doc_name || "",
+  type_qty: props.customer.type_qty || "",
+  no_kont_pallet: props.customer.no_kont_pallet || "",
+  pol_pod: props.customer.pol_pod || "",
+  eta: props.customer.eta || "",
+  vendors: (props.customer.vendors || [
+    {
+      deskripsi: "",
+      nominal: "",
+      no_rekening: "",
+      company_name: "",
+      rcvd_inv: ""
+    }
+  ]).map(vendor => ({
+    ...vendor,
+    nominalFormatted: vendor.nominal ? vendor.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''
+  }))
 });
+
+const addVendor = () => {
+  form.vendors.push({
+    deskripsi: "",
+    nominal: "",
+    nominalFormatted: "",
+    no_rekening: "",
+    company_name: "",
+    rcvd_inv: ""
+  });
+  // Set new vendor as open by default
+  vendorCollapseStates.value[form.vendors.length - 1] = true;
+};
+
+const removeVendor = (index) => {
+  if (form.vendors.length > 1) {
+    form.vendors.splice(index, 1);
+    // Remove the corresponding collapse state
+    vendorCollapseStates.value.splice(index, 1);
+  }
+};
 
 const showAlert = (type, title, message, confirmText = "", cancelText = "") => {
   alertDialog.value = {
@@ -372,6 +612,24 @@ const handleAlertCancel = () => {
 
 const closeAlert = () => {
   alertDialog.value.show = false;
+};
+
+const formatNominal = (vendor, event) => {
+  let value = event.target.value;
+  // Remove all non-digit characters
+  value = value.replace(/\D/g, '');
+  
+  // Add thousand separators (dots)
+  if (value) {
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  
+  vendor.nominalFormatted = value;
+};
+
+const updateNominalValue = (vendor) => {
+  // Convert formatted value back to number for form submission
+  vendor.nominal = vendor.nominalFormatted ? parseInt(vendor.nominalFormatted.replace(/\./g, '')) : '';
 };
 
 const submit = () => {
