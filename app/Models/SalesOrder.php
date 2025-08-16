@@ -73,7 +73,18 @@ class SalesOrder extends Model
         // System fields
         'created_by',
         'created_at',
-        'updated_at'
+        'updated_at',
+        
+        // Release tracking fields
+        'released_at',
+        'released_by',
+        
+        // Admin Keuangan approval/rejection fields
+        'approved_at',
+        'approved_by',
+        'rejected_at',
+        'rejected_by',
+        'rejection_reason'
     ];
 
     protected $casts = [
@@ -81,6 +92,9 @@ class SalesOrder extends Model
         'eta' => 'date',
         'sppb_date' => 'date',
         'invoice_date' => 'date',
+        'released_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
         'exchange_rate' => 'decimal:4',
         'buying' => 'decimal:2',
         'selling' => 'decimal:2',
@@ -91,5 +105,20 @@ class SalesOrder extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function releasedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'released_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 }

@@ -202,7 +202,7 @@
 
         <!-- Finance Management Menu Items -->
         <a
-          href="#"
+          :href="route('admin-keuangan.sales-orders.index')"
           class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-100 hover:text-sage-800 transition-all duration-200 group"
         >
           <svg
@@ -218,7 +218,7 @@
               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             />
           </svg>
-          <span class="font-medium">Invoices</span>
+          <span class="font-medium">Sales Orders dari CS</span>
         </a>
 
         <a
@@ -595,6 +595,14 @@ const props = defineProps({
 
 // Computed properties
 const authUser = computed(() => props.user);
+
+// Route function
+const route = (name, params = {}) => {
+  const routes = {
+    'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
+  };
+  return routes[name] || '#';
+};
 
 // Routes
 const dashboardRoute = "/admin-keuangan/dashboard";

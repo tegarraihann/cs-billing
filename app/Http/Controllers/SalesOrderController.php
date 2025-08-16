@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as DomPDF;
 
 class SalesOrderController extends Controller
 {
@@ -193,30 +194,98 @@ class SalesOrderController extends Controller
     }
 
     /**
+     * Release the specified sales order
+     */
+    public function release(SalesOrder $salesOrder)
+    {
+        // Check if sales order can be released
+        if ($salesOrder->status === 'released' || $salesOrder->status === 'confirmed' || $salesOrder->status === 'approved' || $salesOrder->status === 'rejected') {
+            return redirect()->back()->withErrors(['error' => 'Sales order sudah diproses sebelumnya.']);
+        }
+
+        // Validate required fields before release
+        $requiredFields = ['order_number', 'customer'];
+        $missingFields = [];
+        
+        foreach ($requiredFields as $field) {
+            if (empty($salesOrder->$field)) {
+                $missingFields[] = $field;
+            }
+        }
+
+        if (!empty($missingFields)) {
+            return redirect()->back()->withErrors(['error' => 'Field berikut harus diisi sebelum merilis: ' . implode(', ', $missingFields)]);
+        }
+
+        // Update status to released and set release timestamp
+        $salesOrder->update([
+            'status' => 'released',
+            'released_at' => now(),
+            'released_by' => Auth::id(),
+        ]);
+
+        // TODO: Send notification to admin keuangan (implement later)
+        // $this->notifyFinanceAdmin($salesOrder);
+
+        return redirect()->back()->with('success', 'Sales order berhasil dirilis dan dikirim ke admin keuangan.');
+    }
+
+    /**
      * Generate PDF for the specified sales order
      */
     public function print(SalesOrder $salesOrder)
     {
+        // Check if sales order has been released
+        if ($salesOrder->status !== 'released' && $salesOrder->status !== 'confirmed' && $salesOrder->status !== 'approved') {
+            return redirect()->back()->withErrors(['error' => 'Sales order harus dirilis terlebih dahulu sebelum dapat dicetak.']);
+        }
+
         // Load the creator relationship
         $salesOrder->load(['creator']);
 
-        // Generate PDF using the blade template
-        $pdf = Pdf::loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
-            ->setPaper('a4', 'portrait')
-            ->setOptions([
-                'defaultFont' => 'Arial',
-                'isRemoteEnabled' => true,
-                'isHtml5ParserEnabled' => true,
-                'isPhpEnabled' => true,
-                'debugPng' => false,
-                'debugKeepTemp' => false,
-                'debugCss' => false,
-                'debugLayout' => false,
-                'debugLayoutLines' => false,
-                'debugLayoutBlocks' => false,
-                'debugLayoutInline' => false,
-                'debugLayoutPaddingBox' => false,
-            ]);
+        try {
+            // Try using the Facade first
+            $pdf = Pdf::loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'defaultFont' => 'Arial',
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
+                    'isPhpEnabled' => true,
+                    'debugPng' => false,
+                    'debugKeepTemp' => false,
+                    'debugCss' => false,
+                    'debugLayout' => false,
+                    'debugLayoutLines' => false,
+                    'debugLayoutBlocks' => false,
+                    'debugLayoutInline' => false,
+                    'debugLayoutPaddingBox' => false,
+                ]);
+        } catch (\Exception $e) {
+            // Fallback: Use dependency injection if facade fails
+            try {
+                $dompdf = app('dompdf.wrapper');
+                $pdf = $dompdf->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'defaultFont' => 'Arial',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'isPhpEnabled' => true,
+                    ]);
+            } catch (\Exception $e2) {
+                // Final fallback: Use service container resolution
+                $pdfService = app(\Barryvdh\DomPDF\PDF::class);
+                $pdf = $pdfService->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'defaultFont' => 'Arial',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'isPhpEnabled' => true,
+                    ]);
+            }
+        }
 
         // Set filename
         $filename = 'Sales_Order_' . $salesOrder->order_number . '_' . date('Y-m-d') . '.pdf';

@@ -196,6 +196,7 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
         Route::get('/{salesOrder}/edit', 'edit')->name('edit');
         Route::put('/{salesOrder}', 'update')->name('update');
         Route::delete('/{salesOrder}', 'destroy')->name('destroy');
+        Route::post('/{salesOrder}/release', 'release')->name('release');
         Route::get('/{salesOrder}/print', 'print')->name('print');
         Route::get('/customer/{customer}/data', 'getCustomerData')->name('customer.data');
     });
@@ -219,6 +220,14 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
             ]
         ]);
     })->name('dashboard');
+
+    // Sales Order Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\SalesOrderController::class)->prefix('sales-orders')->name('sales-orders.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{salesOrder}', 'show')->name('show');
+        Route::post('/{salesOrder}/approve', 'approve')->name('approve');
+        Route::post('/{salesOrder}/reject', 'reject')->name('reject');
+    });
 });
 
 // SHARED ROUTES (All authenticated users)

@@ -190,16 +190,19 @@
                 <!-- Actions -->
                 <td class="px-6 py-4 text-sm font-medium">
                   <div class="flex items-center space-x-2">
-                    <a
-                      :href="route('admin-cs.sales-orders.print', salesOrder.id)"
-                      target="_blank"
-                      class="inline-flex items-center justify-center w-8 h-8 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-full transition-colors"
-                      title="Print PDF"
+                    <button
+                      @click="releaseSalesOrder(salesOrder.id)"
+                      :disabled="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved' || salesOrder.status === 'rejected'"
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors"
+                      :class="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved' || salesOrder.status === 'rejected'
+                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed' 
+                        : 'text-blue-600 hover:text-blue-900 hover:bg-blue-100'"
+                      :title="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved' || salesOrder.status === 'rejected' ? 'Sudah Diproses' : 'Rilis Sales Order'"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                       </svg>
-                    </a>
+                    </button>
                     <Link
                       :href="route('admin-cs.sales-orders.show', salesOrder.id)"
                       class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
@@ -291,6 +294,26 @@ const search = () => {
   });
 };
 
+const releaseSalesOrder = (salesOrderId) => {
+  if (confirm('Apakah Anda yakin ingin merilis sales order ini? Sales order yang sudah dirilis akan dikirim ke admin keuangan dan tidak dapat diubah lagi.')) {
+    router.post(route('admin-cs.sales-orders.release', salesOrderId), {}, {
+      onSuccess: () => {
+        // Refresh the page to show updated status
+        router.get(route("admin-cs.sales-orders.index"), {
+          search: form.search,
+          status: form.status
+        }, {
+          preserveState: true,
+          replace: true,
+        });
+      },
+      onError: (errors) => {
+        alert('Terjadi kesalahan saat merilis sales order: ' + Object.values(errors).join(', '));
+      }
+    });
+  }
+};
+
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("id-ID");
 };
@@ -308,7 +331,10 @@ const getStatusLabel = (status) => {
     draft: 'Draft',
     sent: 'Terkirim',
     confirmed: 'Dikonfirmasi',
-    cancelled: 'Dibatalkan'
+    cancelled: 'Dibatalkan',
+    released: 'Dirilis',
+    approved: 'Disetujui',
+    rejected: 'Ditolak'
   };
   return labels[status] || status;
 };
@@ -318,7 +344,10 @@ const getStatusColor = (status) => {
     draft: 'bg-gray-100 text-gray-800',
     sent: 'bg-blue-100 text-blue-800',
     confirmed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800'
+    cancelled: 'bg-red-100 text-red-800',
+    released: 'bg-purple-100 text-purple-800',
+    approved: 'bg-green-100 text-green-800',
+    rejected: 'bg-red-100 text-red-800'
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 };

@@ -21,6 +21,7 @@
           </div>
           <div class="mt-4 sm:mt-0 flex space-x-3">
             <a
+              v-if="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved'"
               :href="route('admin-cs.sales-orders.print', salesOrder.id)"
               target="_blank"
               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -30,6 +31,17 @@
               </svg>
               Print PDF
             </a>
+            <button
+              v-else
+              disabled
+              class="inline-flex items-center px-4 py-2 bg-gray-400 text-gray-700 rounded-lg cursor-not-allowed"
+              title="Sales order harus dirilis terlebih dahulu untuk dapat dicetak"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print PDF (Belum Dirilis)
+            </button>
             <Link
               :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -272,7 +284,10 @@ const getStatusLabel = (status) => {
     draft: 'Draft',
     sent: 'Terkirim',
     confirmed: 'Dikonfirmasi',
-    cancelled: 'Dibatalkan'
+    cancelled: 'Dibatalkan',
+    released: 'Dirilis',
+    approved: 'Disetujui',
+    rejected: 'Ditolak'
   };
   return labels[status] || status;
 };
@@ -282,7 +297,10 @@ const getStatusColor = (status) => {
     draft: 'bg-gray-100 text-gray-800',
     sent: 'bg-blue-100 text-blue-800',
     confirmed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800'
+    cancelled: 'bg-red-100 text-red-800',
+    released: 'bg-purple-100 text-purple-800',
+    approved: 'bg-green-100 text-green-800',
+    rejected: 'bg-red-100 text-red-800'
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 };
