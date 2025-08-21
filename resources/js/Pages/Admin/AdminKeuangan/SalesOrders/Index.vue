@@ -59,6 +59,9 @@
                   Revenue
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Vouchers
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -85,6 +88,18 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">
                     {{ salesOrder.revenue ? formatCurrency(salesOrder.revenue) : '-' }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    <div v-if="salesOrder.vouchers && salesOrder.vouchers.length > 0" class="flex flex-wrap gap-1">
+                      <span v-for="voucher in salesOrder.vouchers" :key="voucher.id" 
+                            class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
+                            :class="getVoucherTypeColor(voucher.type)">
+                        {{ voucher.voucher_no }}
+                      </span>
+                    </div>
+                    <span v-else class="text-gray-400">-</span>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -183,6 +198,14 @@ const getStatusColor = (status) => {
     rejected: 'bg-red-100 text-red-800'
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const getVoucherTypeColor = (type) => {
+  const colors = {
+    payment: 'bg-blue-100 text-blue-800',
+    receipt: 'bg-green-100 text-green-800'
+  };
+  return colors[type] || 'bg-gray-100 text-gray-800';
 };
 </script>
 

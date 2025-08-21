@@ -96,6 +96,32 @@
         <span class="font-medium">Customer Management</span>
       </a>
 
+      <!-- Vendor Management -->
+      <a
+        :href="route('admin-cs.vendors.index')"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-cs.vendors.*')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          />
+        </svg>
+        <span class="font-medium">Vendor</span>
+      </a>
+
       <!-- Sales Orders -->
       <a
         :href="route('admin-cs.sales-orders.index')"
@@ -147,6 +173,25 @@
             />
           </svg>
           <span class="font-medium">Add Customer</span>
+        </a>
+        <a
+          :href="route('admin-cs.vendors.create')"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <span class="font-medium">Add Vendor</span>
         </a>
         <a
           :href="route('admin-cs.sales-orders.create')"

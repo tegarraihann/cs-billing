@@ -74,6 +74,370 @@
 
         <div class="p-6">
           <form @submit.prevent="submit" class="space-y-8">
+            <!-- Company Information Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="toggleCompanyInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+              >
+                <h4 class="text-lg font-semibold text-sage-800">
+                  🏢 Informasi Perusahaan/Perorangan
+                </h4>
+                <svg
+                  :class="{'rotate-180': isCompanyInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isCompanyInfoOpen" class="p-4 space-y-4">
+                <!-- Nama PT/Perorangan -->
+                <div>
+                  <label
+                    for="company_name"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Nama PT/Perorangan <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.company_name"
+                    type="text"
+                    id="company_name"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Masukkan nama perusahaan atau nama lengkap"
+                  />
+                  <div v-if="form.errors.company_name" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.company_name }}
+                  </div>
+                </div>
+
+                <!-- Jenis Usaha -->
+                <div>
+                  <label
+                    for="company_type"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Jenis Usaha <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    v-model="form.company_type"
+                    id="company_type"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  >
+                    <option value="">Pilih jenis usaha...</option>
+                    <option value="PT">PT (Perseroan Terbatas)</option>
+                    <option value="CV">CV (Commanditaire Vennootschap)</option>
+                    <option value="Perorangan">Perorangan</option>
+                    <option value="Yayasan">Yayasan</option>
+                    <option value="Koperasi">Koperasi</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                  <div v-if="form.errors.company_type" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.company_type }}
+                  </div>
+                </div>
+
+                <!-- Alamat PT/Domisili -->
+                <div>
+                  <label
+                    for="company_address"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Alamat PT/Domisili <span class="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    v-model="form.company_address"
+                    id="company_address"
+                    rows="3"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
+                    placeholder="Masukkan alamat lengkap perusahaan/domisili"
+                  ></textarea>
+                  <div v-if="form.errors.company_address" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.company_address }}
+                  </div>
+                </div>
+
+                <!-- Alamat Kirim Invoice -->
+                <div>
+                  <label
+                    for="invoice_address"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Alamat Kirim Invoice
+                  </label>
+                  <textarea
+                    v-model="form.invoice_address"
+                    id="invoice_address"
+                    rows="3"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
+                    placeholder="Masukkan alamat untuk pengiriman invoice (opsional)"
+                  ></textarea>
+                  <div v-if="form.errors.invoice_address" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.invoice_address }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legal Information Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="toggleLegalInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+              >
+                <h4 class="text-lg font-semibold text-sage-800">
+                  📄 Data Legalitas
+                </h4>
+                <svg
+                  :class="{'rotate-180': isLegalInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isLegalInfoOpen" class="p-4 space-y-4">
+                <!-- NIB -->
+                <div>
+                  <label
+                    for="nib"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    NIB (Nomor Induk Berusaha)
+                  </label>
+                  <input
+                    v-model="form.nib"
+                    type="text"
+                    id="nib"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Masukkan nomor induk berusaha"
+                  />
+                  <div v-if="form.errors.nib" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.nib }}
+                  </div>
+                </div>
+
+                <!-- NPWP -->
+                <div>
+                  <label
+                    for="npwp"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    NPWP
+                  </label>
+                  <input
+                    v-model="form.npwp"
+                    type="text"
+                    id="npwp"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Masukkan nomor NPWP"
+                  />
+                  <div v-if="form.errors.npwp" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.npwp }}
+                  </div>
+                </div>
+
+                <!-- KTP (jika perorangan) -->
+                <div v-show="form.company_type === 'Perorangan'">
+                  <label
+                    for="ktp_number"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Nomor KTP
+                  </label>
+                  <input
+                    v-model="form.ktp_number"
+                    type="text"
+                    id="ktp_number"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Masukkan nomor KTP"
+                  />
+                  <div v-if="form.errors.ktp_number" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.ktp_number }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PIC Information Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="togglePicInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+              >
+                <h4 class="text-lg font-semibold text-sage-800">
+                  👤 Data PIC (Person In Charge)
+                </h4>
+                <svg
+                  :class="{'rotate-180': isPicInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isPicInfoOpen" class="p-4 space-y-4">
+                <!-- Nama PIC -->
+                <div>
+                  <label
+                    for="pic_name"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Nama PIC <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.pic_name"
+                    type="text"
+                    id="pic_name"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Masukkan nama lengkap PIC"
+                  />
+                  <div v-if="form.errors.pic_name" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.pic_name }}
+                  </div>
+                </div>
+
+                <!-- Kontak/Telepon PIC -->
+                <div>
+                  <label
+                    for="pic_phone"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Kontak/Telepon Aktif PIC <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.pic_phone"
+                    type="tel"
+                    id="pic_phone"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Contoh: 08123456789"
+                  />
+                  <div v-if="form.errors.pic_phone" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.pic_phone }}
+                  </div>
+                </div>
+
+                <!-- Email PIC -->
+                <div>
+                  <label
+                    for="pic_email"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Email Aktif PIC <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.pic_email"
+                    type="email"
+                    id="pic_email"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="contoh@email.com"
+                  />
+                  <div v-if="form.errors.pic_email" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.pic_email }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Marketing Information Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="toggleMarketingInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+              >
+                <h4 class="text-lg font-semibold text-sage-800">
+                  📈 Data Marketing
+                </h4>
+                <svg
+                  :class="{'rotate-180': isMarketingInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isMarketingInfoOpen" class="p-4 space-y-4">
+                <!-- Nama Marketing -->
+                <div>
+                  <label
+                    for="marketing_name"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Nama Marketing
+                  </label>
+                  <input
+                    v-model="form.marketing_name"
+                    type="text"
+                    id="marketing_name"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Masukkan nama marketing yang bertanggung jawab"
+                  />
+                  <div v-if="form.errors.marketing_name" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.marketing_name }}
+                  </div>
+                </div>
+
+                <!-- Nomor Telepon Marketing -->
+                <div>
+                  <label
+                    for="marketing_phone"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Nomor Telepon Marketing
+                  </label>
+                  <input
+                    v-model="form.marketing_phone"
+                    type="tel"
+                    id="marketing_phone"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Contoh: 08123456789"
+                  />
+                  <div v-if="form.errors.marketing_phone" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.marketing_phone }}
+                  </div>
+                </div>
+
+                <!-- Email Marketing -->
+                <div>
+                  <label
+                    for="marketing_email"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Email Marketing
+                  </label>
+                  <input
+                    v-model="form.marketing_email"
+                    type="email"
+                    id="marketing_email"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="marketing@email.com"
+                  />
+                  <div v-if="form.errors.marketing_email" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.marketing_email }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Shipping Information Section -->
             <div class="border border-sage-200 rounded-lg">
               <button
@@ -272,6 +636,75 @@
               </div>
             </div>
 
+            <!-- Document Upload Section -->
+            <div class="border border-sage-200 rounded-lg">
+              <button
+                type="button"
+                @click="toggleDocumentInfo"
+                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+              >
+                <h4 class="text-lg font-semibold text-sage-800">
+                  Dokumen & Foto
+                </h4>
+                <svg
+                  :class="{'rotate-180': isDocumentInfoOpen}"
+                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-show="isDocumentInfoOpen" class="p-4 space-y-4">
+                <!-- FOTO -->
+                <div>
+                  <label
+                    for="photo"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Foto Pelanggan
+                  </label>
+                  <input
+                    type="file"
+                    id="photo"
+                    @change="handlePhotoChange"
+                    accept="image/*"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sage-100 file:text-sage-700 hover:file:bg-sage-200"
+                  />
+                  <p class="mt-1 text-xs text-gray-500">
+                    Format yang didukung: JPG, PNG, GIF. Maksimal 2MB.
+                  </p>
+                  <div v-if="form.errors.photo" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.photo }}
+                  </div>
+                </div>
+
+                <!-- DOKUMEN LEGAL -->
+                <div>
+                  <label
+                    for="legal_document"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Dokumen Legal
+                  </label>
+                  <input
+                    type="file"
+                    id="legal_document"
+                    @change="handleLegalDocumentChange"
+                    accept=".pdf"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sage-100 file:text-sage-700 hover:file:bg-sage-200"
+                  />
+                  <p class="mt-1 text-xs text-gray-500">
+                    Format yang didukung: PDF. Maksimal 10MB.
+                  </p>
+                  <div v-if="form.errors.legal_document" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.legal_document }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Buying to Vendor Section -->
             <div class="border border-sage-200 rounded-lg">
               <button
@@ -293,148 +726,108 @@
                 </svg>
               </button>
               <div v-show="isVendorInfoOpen" class="p-4 space-y-4">
-                <div v-for="(vendor, index) in form.vendors" :key="index" class="border border-sage-200 rounded-lg bg-sage-50">
-                  <button
-                    type="button"
-                    @click="toggleVendorCollapse(index)"
-                    class="w-full flex items-center justify-between p-4 bg-sage-100 hover:bg-sage-200 transition-colors rounded-t-lg"
+                <!-- DESKRIPSI -->
+                <div>
+                  <label
+                    for="deskripsi"
+                    class="block text-sm font-medium text-sage-700 mb-2"
                   >
-                    <h5 class="font-medium text-sage-800">Vendor {{ index + 1 }}</h5>
-                    <div class="flex items-center space-x-2">
-                      <button
-                        v-if="form.vendors.length > 1"
-                        type="button"
-                        @click.stop="removeVendor(index)"
-                        class="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-red-50"
-                      >
-                        Hapus
-                      </button>
-                      <svg
-                        :class="{'rotate-180': !isVendorOpen(index)}"
-                        class="w-5 h-5 text-sage-600 transition-transform duration-200"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </button>
-                  <div v-show="isVendorOpen(index)" class="p-4 space-y-4">
-                    <!-- DESKRIPSI -->
-                    <div>
-                      <label
-                        :for="'deskripsi_' + index"
-                        class="block text-sm font-medium text-sage-700 mb-2"
-                      >
-                        Deskripsi <span class="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        v-model="vendor.deskripsi"
-                        :id="'deskripsi_' + index"
-                        rows="2"
-                        required
-                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
-                      ></textarea>
-                      <div v-if="form.errors[`vendors.${index}.deskripsi`]" class="mt-2 text-sm text-red-600">
-                        {{ form.errors[`vendors.${index}.deskripsi`] }}
-                      </div>
-                    </div>
-
-                    <!-- NOMINAL -->
-                    <div>
-                      <label
-                        :for="'nominal_' + index"
-                        class="block text-sm font-medium text-sage-700 mb-2"
-                      >
-                        Nominal <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="vendor.nominalFormatted"
-                        type="text"
-                        :id="'nominal_' + index"
-                        required
-                        @input="formatNominal(vendor, $event)"
-                        @blur="updateNominalValue(vendor)"
-                        placeholder="0"
-                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                      />
-                      <div v-if="form.errors[`vendors.${index}.nominal`]" class="mt-2 text-sm text-red-600">
-                        {{ form.errors[`vendors.${index}.nominal`] }}
-                      </div>
-                    </div>
-
-                    <!-- NO REKENING -->
-                    <div>
-                      <label
-                        :for="'no_rekening_' + index"
-                        class="block text-sm font-medium text-sage-700 mb-2"
-                      >
-                        No Rekening <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="vendor.no_rekening"
-                        type="text"
-                        :id="'no_rekening_' + index"
-                        required
-                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                      />
-                      <div v-if="form.errors[`vendors.${index}.no_rekening`]" class="mt-2 text-sm text-red-600">
-                        {{ form.errors[`vendors.${index}.no_rekening`] }}
-                      </div>
-                    </div>
-
-                    <!-- COMPANY NAME -->
-                    <div>
-                      <label
-                        :for="'company_name_' + index"
-                        class="block text-sm font-medium text-sage-700 mb-2"
-                      >
-                        Company Name <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="vendor.company_name"
-                        type="text"
-                        :id="'company_name_' + index"
-                        required
-                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                      />
-                      <div v-if="form.errors[`vendors.${index}.company_name`]" class="mt-2 text-sm text-red-600">
-                        {{ form.errors[`vendors.${index}.company_name`] }}
-                      </div>
-                    </div>
-
-                    <!-- RCVD INV -->
-                    <div>
-                      <label
-                        :for="'rcvd_inv_' + index"
-                        class="block text-sm font-medium text-sage-700 mb-2"
-                      >
-                        RCVD INV
-                      </label>
-                      <input
-                        v-model="vendor.rcvd_inv"
-                        type="text"
-                        :id="'rcvd_inv_' + index"
-                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                      />
-                      <div v-if="form.errors[`vendors.${index}.rcvd_inv`]" class="mt-2 text-sm text-red-600">
-                        {{ form.errors[`vendors.${index}.rcvd_inv`] }}
-                      </div>
-                    </div>
+                    Deskripsi <span class="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    v-model="form.vendor.deskripsi"
+                    id="deskripsi"
+                    rows="2"
+                    required
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
+                  ></textarea>
+                  <div v-if="form.errors.vendor?.deskripsi" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.vendor.deskripsi }}
                   </div>
                 </div>
-                
-                <button
-                  type="button"
-                  @click="addVendor"
-                  class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-                >
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Tambah Vendor
-                </button>
+
+                <!-- NOMINAL -->
+                <div>
+                  <label
+                    for="nominal"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Nominal <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="form.vendor.nominalFormatted"
+                    type="text"
+                    id="nominal"
+                    required
+                    @input="formatNominal($event)"
+                    @blur="updateNominalValue()"
+                    placeholder="0"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.vendor?.nominal" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.vendor.nominal }}
+                  </div>
+                </div>
+
+                <!-- PILIH VENDOR -->
+                <div>
+                  <label
+                    for="vendor_id"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Pilih Vendor <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    v-model="form.vendor.vendor_id"
+                    id="vendor_id"
+                    required
+                    @change="onVendorChange()"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  >
+                    <option value="">Pilih vendor...</option>
+                    <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
+                      {{ vendorOption.nama_vendor }}
+                    </option>
+                  </select>
+                  <div v-if="form.errors.vendor?.vendor_id" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.vendor.vendor_id }}
+                  </div>
+                </div>
+
+                <!-- INFO VENDOR (Auto-filled from selected vendor) -->
+                <div v-if="form.vendor.vendor_id" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-sage-100 rounded-lg">
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">
+                      Nomor Rekening
+                    </label>
+                    <p class="text-sm text-gray-900 font-mono">{{ form.vendor.no_rekening || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">
+                      Nama Rekening
+                    </label>
+                    <p class="text-sm text-gray-900">{{ form.vendor.nama_rekening || '-' }}</p>
+                  </div>
+                </div>
+
+                <!-- RCVD INV -->
+                <div>
+                  <label
+                    for="rcvd_inv"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    RCVD INV
+                  </label>
+                  <input
+                    v-model="form.vendor.rcvd_inv"
+                    type="text"
+                    id="rcvd_inv"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                  />
+                  <div v-if="form.errors.vendor?.rcvd_inv" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.vendor.rcvd_inv }}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -503,6 +896,11 @@ import { useForm, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
 
+// Props
+const props = defineProps({
+  vendors: Array,
+});
+
 // Alert Dialog State
 const alertDialog = ref({
   show: false,
@@ -515,33 +913,63 @@ const alertDialog = ref({
 });
 
 // Collapsible states
+const isCompanyInfoOpen = ref(true);
+const isLegalInfoOpen = ref(true);
+const isPicInfoOpen = ref(true);
+const isMarketingInfoOpen = ref(true);
 const isShippingInfoOpen = ref(true);
+const isDocumentInfoOpen = ref(true);
 const isVendorInfoOpen = ref(true);
-const vendorCollapseStates = ref([]);
+
+const toggleCompanyInfo = () => {
+  isCompanyInfoOpen.value = !isCompanyInfoOpen.value;
+};
+
+const toggleLegalInfo = () => {
+  isLegalInfoOpen.value = !isLegalInfoOpen.value;
+};
+
+const togglePicInfo = () => {
+  isPicInfoOpen.value = !isPicInfoOpen.value;
+};
+
+const toggleMarketingInfo = () => {
+  isMarketingInfoOpen.value = !isMarketingInfoOpen.value;
+};
 
 const toggleShippingInfo = () => {
   isShippingInfoOpen.value = !isShippingInfoOpen.value;
+};
+
+const toggleDocumentInfo = () => {
+  isDocumentInfoOpen.value = !isDocumentInfoOpen.value;
 };
 
 const toggleVendorInfo = () => {
   isVendorInfoOpen.value = !isVendorInfoOpen.value;
 };
 
-const toggleVendorCollapse = (index) => {
-  if (vendorCollapseStates.value[index] === undefined) {
-    vendorCollapseStates.value[index] = false;
-  } else {
-    vendorCollapseStates.value[index] = !vendorCollapseStates.value[index];
-  }
-};
-
-const isVendorOpen = (index) => {
-  return vendorCollapseStates.value[index] !== false;
-};
-
 const form = useForm({
   so_number: "",
   customer_code: "",
+  // Informasi Perusahaan/Perorangan
+  company_name: "",
+  company_type: "",
+  company_address: "",
+  invoice_address: "",
+  // Data Legalitas
+  nib: "",
+  npwp: "",
+  ktp_number: "",
+  // Data PIC
+  pic_name: "",
+  pic_phone: "",
+  pic_email: "",
+  // Data Marketing
+  marketing_name: "",
+  marketing_phone: "",
+  marketing_email: "",
+  // Data Pengiriman
   consignee_shipper: "",
   awb_bl_number: "",
   cust_doc_name: "",
@@ -549,40 +977,39 @@ const form = useForm({
   no_kont_pallet: "",
   pol_pod: "",
   eta: "",
-  vendors: [
-    {
-      deskripsi: "",
-      nominal: "",
-      nominalFormatted: "",
-      no_rekening: "",
-      company_name: "",
-      rcvd_inv: ""
-    }
-  ]
-});
-
-const addVendor = () => {
-  form.vendors.push({
+  photo: null,
+  legal_document: null,
+  vendor: {
+    vendor_id: "",
     deskripsi: "",
     nominal: "",
     nominalFormatted: "",
     no_rekening: "",
     company_name: "",
+    nama_rekening: "",
     rcvd_inv: ""
-  });
-  // Set new vendor as open by default
-  vendorCollapseStates.value[form.vendors.length - 1] = true;
-};
+  }
+});
 
-const removeVendor = (index) => {
-  if (form.vendors.length > 1) {
-    form.vendors.splice(index, 1);
-    // Remove the corresponding collapse state
-    vendorCollapseStates.value.splice(index, 1);
+
+const onVendorChange = () => {
+  const selectedVendorId = form.vendor.vendor_id;
+  if (selectedVendorId) {
+    const selectedVendor = props.vendors.find(v => v.id == selectedVendorId);
+    if (selectedVendor) {
+      form.vendor.no_rekening = selectedVendor.nomor_rekening;
+      form.vendor.company_name = selectedVendor.nama_vendor;
+      form.vendor.nama_rekening = selectedVendor.nama_rekening;
+    }
+  } else {
+    // Clear vendor data if no vendor selected
+    form.vendor.no_rekening = "";
+    form.vendor.company_name = "";
+    form.vendor.nama_rekening = "";
   }
 };
 
-const formatNominal = (vendor, event) => {
+const formatNominal = (event) => {
   let value = event.target.value;
   // Remove all non-digit characters
   value = value.replace(/\D/g, '');
@@ -592,12 +1019,22 @@ const formatNominal = (vendor, event) => {
     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   }
   
-  vendor.nominalFormatted = value;
+  form.vendor.nominalFormatted = value;
 };
 
-const updateNominalValue = (vendor) => {
+const updateNominalValue = () => {
   // Convert formatted value back to number for form submission
-  vendor.nominal = vendor.nominalFormatted ? parseInt(vendor.nominalFormatted.replace(/\./g, '')) : '';
+  form.vendor.nominal = form.vendor.nominalFormatted ? parseInt(form.vendor.nominalFormatted.replace(/\./g, '')) : '';
+};
+
+const handlePhotoChange = (event) => {
+  const file = event.target.files[0];
+  form.photo = file || null;
+};
+
+const handleLegalDocumentChange = (event) => {
+  const file = event.target.files[0];
+  form.legal_document = file || null;
 };
 
 const showAlert = (type, title, message, confirmText = "", cancelText = "") => {

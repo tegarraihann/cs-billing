@@ -27,17 +27,6 @@
 
 <body class="font-sans antialiased">
     @inertia
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-            window.Laravel = window.Laravel || {};
-            window.Laravel.csrfToken = csrfToken;
-
-            console.log('All cookies:', document.cookie);
-        });
-    </script>
 </body>
 
 </html>

@@ -21,7 +21,7 @@ const setupCSRF = () => {
             window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
         }
 
-        console.log("CSRF token loaded:", token.getAttribute("content"));
+        // console.log("CSRF token loaded:", token.getAttribute("content"));
     } else {
         console.warn("CSRF token not found in meta tags");
     }

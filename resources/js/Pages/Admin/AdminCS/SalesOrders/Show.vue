@@ -163,6 +163,20 @@
                 <p class="text-gray-900">{{ salesOrder.goods || '-' }}</p>
               </div>
               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">COMMODITY/URAIAN BARANG</label>
+                <p class="text-gray-900">{{ salesOrder.commodity || '-' }}</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">QTY</label>
+                  <p class="text-gray-900">{{ salesOrder.qty || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">NET WEIGHT (KG)</label>
+                  <p class="text-gray-900">{{ salesOrder.net_weight ? formatWeight(salesOrder.net_weight) : '-' }}</p>
+                </div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER NO</label>
                 <p class="text-gray-900">{{ salesOrder.container_no || '-' }}</p>
               </div>
@@ -178,6 +192,131 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">T.O.P</label>
                 <p class="text-gray-900">{{ salesOrder.top || '-' }}</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Voucher Information -->
+          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">Voucher Information</h3>
+            </div>
+            <div class="p-6 space-y-6">
+              
+              <!-- Payment Vouchers -->
+              <div v-if="paymentVouchers && paymentVouchers.length > 0" class="space-y-4">
+                <h4 class="text-md font-semibold text-sage-700 border-b border-gray-200 pb-2">Payment Vouchers</h4>
+                <div class="grid grid-cols-1 gap-4">
+                  <div
+                    v-for="voucher in paymentVouchers"
+                    :key="voucher.id"
+                    class="border border-gray-200 rounded-lg p-4 space-y-3"
+                  >
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <h5 class="font-medium text-gray-900">{{ voucher.voucher_no }}</h5>
+                        <span 
+                          class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1"
+                          :class="getVoucherStatusColor(voucher.status)"
+                        >
+                          {{ getVoucherStatusLabel(voucher.status) }}
+                        </span>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-lg font-semibold text-gray-900">{{ formatCurrency(voucher.amount) }}</p>
+                        <p class="text-sm text-gray-500">{{ formatDate(voucher.date) }}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <p class="text-gray-900">{{ voucher.description }}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div v-if="voucher.prepared_by">
+                        <label class="block font-medium text-gray-700">Prepared By</label>
+                        <p class="text-gray-900">{{ voucher.prepared_by }}</p>
+                      </div>
+                      <div v-if="voucher.authorized_by">
+                        <label class="block font-medium text-gray-700">Authorized By</label>
+                        <p class="text-gray-900">{{ voucher.authorized_by }}</p>
+                      </div>
+                      <div v-if="voucher.finance_by">
+                        <label class="block font-medium text-gray-700">Finance By</label>
+                        <p class="text-gray-900">{{ voucher.finance_by }}</p>
+                      </div>
+                      <div v-if="voucher.receipt_by">
+                        <label class="block font-medium text-gray-700">Receipt By</label>
+                        <p class="text-gray-900">{{ voucher.receipt_by }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Receipt Vouchers -->
+              <div v-if="receiptVouchers && receiptVouchers.length > 0" class="space-y-4">
+                <h4 class="text-md font-semibold text-sage-700 border-b border-gray-200 pb-2">Receipt Vouchers</h4>
+                <div class="grid grid-cols-1 gap-4">
+                  <div
+                    v-for="voucher in receiptVouchers"
+                    :key="voucher.id"
+                    class="border border-green-200 rounded-lg p-4 space-y-3 bg-green-50"
+                  >
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <h5 class="font-medium text-gray-900">{{ voucher.voucher_no }}</h5>
+                        <span 
+                          class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1"
+                          :class="getVoucherStatusColor(voucher.status)"
+                        >
+                          {{ getVoucherStatusLabel(voucher.status) }}
+                        </span>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-lg font-semibold text-green-900">{{ formatCurrency(voucher.amount) }}</p>
+                        <p class="text-sm text-gray-500">{{ formatDate(voucher.date) }}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <p class="text-gray-900">{{ voucher.description }}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div v-if="voucher.prepared_by">
+                        <label class="block font-medium text-gray-700">Prepared By</label>
+                        <p class="text-gray-900">{{ voucher.prepared_by }}</p>
+                      </div>
+                      <div v-if="voucher.authorized_by">
+                        <label class="block font-medium text-gray-700">Authorized By</label>
+                        <p class="text-gray-900">{{ voucher.authorized_by }}</p>
+                      </div>
+                      <div v-if="voucher.finance_by">
+                        <label class="block font-medium text-gray-700">Finance By</label>
+                        <p class="text-gray-900">{{ voucher.finance_by }}</p>
+                      </div>
+                      <div v-if="voucher.receipt_by">
+                        <label class="block font-medium text-gray-700">Receipt By</label>
+                        <p class="text-gray-900">{{ voucher.receipt_by }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- No Vouchers Message -->
+              <div v-if="(!paymentVouchers || paymentVouchers.length === 0) && (!receiptVouchers || receiptVouchers.length === 0)" 
+                   class="text-center py-8">
+                <div class="text-gray-400 mb-2">
+                  <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p class="text-gray-500">No vouchers created for this sales order</p>
+              </div>
+              
             </div>
           </div>
 
@@ -259,6 +398,8 @@ import AdminLayout from "@/Layouts/AdminLayout.vue";
 
 const props = defineProps({
   salesOrder: Object,
+  paymentVouchers: Array,
+  receiptVouchers: Array,
 });
 
 const formatDate = (dateString) => {
@@ -277,6 +418,13 @@ const formatCurrency = (amount, currency = 'IDR') => {
     currency: currency,
     minimumFractionDigits: 0,
   }).format(amount);
+};
+
+const formatWeight = (weight) => {
+  return new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(weight) + ' kg';
 };
 
 const getStatusLabel = (status) => {
@@ -301,6 +449,25 @@ const getStatusColor = (status) => {
     released: 'bg-purple-100 text-purple-800',
     approved: 'bg-green-100 text-green-800',
     rejected: 'bg-red-100 text-red-800'
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+// Voucher status functions
+const getVoucherStatusLabel = (status) => {
+  const labels = {
+    draft: 'Draft',
+    released: 'Released',
+    approved: 'Approved'
+  };
+  return labels[status] || status;
+};
+
+const getVoucherStatusColor = (status) => {
+  const colors = {
+    draft: 'bg-yellow-100 text-yellow-800',
+    released: 'bg-blue-100 text-blue-800',
+    approved: 'bg-green-100 text-green-800'
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 };

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SalesOrder;
 use App\Models\Customer;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -80,10 +81,34 @@ class SalesOrderController extends Controller
             'revenue' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string',
             'goods' => 'nullable|string',
+            'commodity' => 'nullable|string',
+            'qty' => 'nullable|integer|min:0',
+            'net_weight' => 'nullable|numeric|min:0',
             'container_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
+            
+            // Voucher data
+            'payment_vouchers' => 'nullable|array',
+            'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
+            'payment_vouchers.*.date' => 'required_with:payment_vouchers|date',
+            'payment_vouchers.*.description' => 'required_with:payment_vouchers|string',
+            'payment_vouchers.*.amount' => 'required_with:payment_vouchers|numeric|min:0',
+            'payment_vouchers.*.prepared_by' => 'nullable|string|max:255',
+            'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
+            'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
+            'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
+            
+            'receipt_vouchers' => 'nullable|array',
+            'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
+            'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
+            'receipt_vouchers.*.description' => 'required_with:receipt_vouchers|string',
+            'receipt_vouchers.*.amount' => 'required_with:receipt_vouchers|numeric|min:0',
+            'receipt_vouchers.*.prepared_by' => 'nullable|string|max:255',
+            'receipt_vouchers.*.authorized_by' => 'nullable|string|max:255',
+            'receipt_vouchers.*.finance_by' => 'nullable|string|max:255',
+            'receipt_vouchers.*.receipt_by' => 'nullable|string|max:255',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -99,7 +124,16 @@ class SalesOrderController extends Controller
         $validated['total_amount'] = $validated['selling'] ?? 0;
         $validated['status'] = 'draft';
 
-        SalesOrder::create($validated);
+        // Remove voucher data from sales order data
+        $paymentVouchers = $validated['payment_vouchers'] ?? [];
+        $receiptVouchers = $validated['receipt_vouchers'] ?? [];
+        unset($validated['payment_vouchers'], $validated['receipt_vouchers']);
+
+        $salesOrder = SalesOrder::create($validated);
+
+        // Create vouchers
+        $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
+        $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
 
         return redirect()
             ->route('admin-cs.sales-orders.index')
@@ -111,10 +145,12 @@ class SalesOrderController extends Controller
      */
     public function show(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['creator']);
+        $salesOrder->load(['creator', 'vouchers']);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Show', [
-            'salesOrder' => $salesOrder
+            'salesOrder' => $salesOrder,
+            'paymentVouchers' => $salesOrder->paymentVouchers,
+            'receiptVouchers' => $salesOrder->receiptVouchers,
         ]);
     }
 
@@ -157,6 +193,9 @@ class SalesOrderController extends Controller
             'revenue' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string',
             'goods' => 'nullable|string',
+            'commodity' => 'nullable|string',
+            'qty' => 'nullable|integer|min:0',
+            'net_weight' => 'nullable|numeric|min:0',
             'container_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
@@ -292,6 +331,67 @@ class SalesOrderController extends Controller
 
         // Return the PDF as download
         return $pdf->download($filename);
+    }
+
+    /**
+     * Create vouchers for a sales order
+     */
+    private function createVouchers(SalesOrder $salesOrder, array $vouchers, string $type)
+    {
+        foreach ($vouchers as $voucherData) {
+            if (empty($voucherData['voucher_no']) || empty($voucherData['description']) || empty($voucherData['amount'])) {
+                continue; // Skip empty vouchers
+            }
+
+            $salesOrder->vouchers()->create([
+                'type' => $type,
+                'voucher_no' => $voucherData['voucher_no'],
+                'date' => $voucherData['date'],
+                'description' => $voucherData['description'],
+                'amount' => $voucherData['amount'],
+                'total' => $voucherData['amount'], // For now, total = amount (will be calculated later if needed)
+                'status' => Voucher::STATUS_DRAFT,
+                'prepared_by' => $voucherData['prepared_by'] ?? Auth::user()->name,
+                'authorized_by' => $voucherData['authorized_by'] ?? null,
+                'finance_by' => $voucherData['finance_by'] ?? null,
+                'receipt_by' => $voucherData['receipt_by'] ?? null,
+            ]);
+        }
+    }
+
+    /**
+     * Release vouchers for a sales order
+     */
+    public function releaseVouchers(SalesOrder $salesOrder)
+    {
+        $unreleasedVouchers = $salesOrder->vouchers()->where('status', Voucher::STATUS_DRAFT)->get();
+        
+        foreach ($unreleasedVouchers as $voucher) {
+            $voucher->update([
+                'status' => Voucher::STATUS_RELEASED,
+                'released_at' => now(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Vouchers berhasil dirilis.');
+    }
+
+    /**
+     * Update voucher status (for Admin Finance)
+     */
+    public function approveVoucher(Voucher $voucher)
+    {
+        if (!$voucher->canBeApproved()) {
+            return redirect()->back()->withErrors(['error' => 'Voucher tidak dapat disetujui pada status saat ini.']);
+        }
+
+        $voucher->update([
+            'status' => Voucher::STATUS_APPROVED,
+            'approved_at' => now(),
+            'finance_by' => Auth::user()->name,
+        ]);
+
+        return redirect()->back()->with('success', 'Voucher berhasil disetujui.');
     }
 
 }

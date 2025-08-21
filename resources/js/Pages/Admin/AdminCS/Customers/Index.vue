@@ -165,26 +165,43 @@
 
                 <!-- Vendors -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  <div v-if="customer.vendors && customer.vendors.length > 0">
-                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                      {{ customer.vendors.length }} vendor(s)
-                    </span>
+                  <div v-if="getVendorInfo(customer.vendors)">
+                    <div class="space-y-1">
+                      <div class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full inline-block">
+                        {{ getVendorInfo(customer.vendors).company_name || 'Vendor' }}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        {{ formatCurrency(getVendorInfo(customer.vendors).nominal) }}
+                      </div>
+                    </div>
                   </div>
                   <span v-else class="text-gray-400">-</span>
                 </td>
 
                 <!-- Actions -->
                 <td class="px-6 py-4 text-sm font-medium">
-                  <Link
-                    :href="route('admin-cs.customers.show', customer.id)"
-                    class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
-                    title="Lihat Detail"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </Link>
+                  <div class="flex items-center space-x-2">
+                    <a
+                      :href="`/admin-cs/customers/${customer.id}/print`"
+                      class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
+                      title="Cetak PDF"
+                      target="_blank"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                    </a>
+                    <Link
+                      :href="route('admin-cs.customers.show', customer.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
+                      title="Lihat Detail"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </Link>
+                  </div>
                 </td>
               </tr>
 
@@ -256,6 +273,32 @@ const search = () => {
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("id-ID");
+};
+
+const getVendorInfo = (vendors) => {
+  if (!vendors) return null;
+  
+  // Handle if vendors is an array
+  if (Array.isArray(vendors) && vendors.length > 0) {
+    return vendors[0];
+  }
+  
+  // Handle if vendors is an object
+  if (typeof vendors === 'object' && !Array.isArray(vendors)) {
+    return vendors;
+  }
+  
+  return null;
+};
+
+const formatCurrency = (amount) => {
+  if (!amount) return '-';
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
 };
 
 // Watch for changes in search input and trigger search after a delay

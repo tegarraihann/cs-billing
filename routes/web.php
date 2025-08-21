@@ -185,6 +185,18 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
         Route::get('/{customer}/edit', 'edit')->name('edit');
         Route::put('/{customer}', 'update')->name('update');
         Route::delete('/{customer}', 'destroy')->name('destroy');
+        Route::get('/{customer}/print', 'print')->name('print');
+    });
+
+    // Vendor Management Routes
+    Route::controller(\App\Http\Controllers\VendorController::class)->prefix('vendors')->name('vendors.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{vendor}', 'show')->name('show');
+        Route::get('/{vendor}/edit', 'edit')->name('edit');
+        Route::put('/{vendor}', 'update')->name('update');
+        Route::delete('/{vendor}', 'destroy')->name('destroy');
     });
 
     // Sales Order Management Routes
@@ -227,6 +239,8 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{salesOrder}', 'show')->name('show');
         Route::post('/{salesOrder}/approve', 'approve')->name('approve');
         Route::post('/{salesOrder}/reject', 'reject')->name('reject');
+        Route::post('/{salesOrder}/vouchers/{voucher}/approve', 'approveVoucher')->name('vouchers.approve');
+        Route::post('/{salesOrder}/vouchers/{voucher}/reject', 'rejectVoucher')->name('vouchers.reject');
     });
 });
 

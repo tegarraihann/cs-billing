@@ -173,11 +173,24 @@
 
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">SHIPMENT TYPE</label>
-              <input
+              <select
                 v-model="form.shipment_type"
-                type="text"
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
+              >
+                <option value="">Pilih Shipment Type</option>
+                <option value="FCL">FCL</option>
+                <option value="LCL">LCL</option>
+                <option value="AIR">AIR</option>
+                <option value="SEA">SEA</option>
+                <option value="LAND">LAND</option>
+                <option value="Trucking">Trucking</option>
+                <option value="Import">Import</option>
+                <option value="Domestik">Domestik</option>
+                <option value="Door to Door Domestik">Door to Door Domestik</option>
+                <option value="Warehouse">Warehouse</option>
+                <option value="Door to Door Import">Door to Door Import</option>
+                <option value="Export">Export</option>
+              </select>
               <div v-if="errors.shipment_type" class="text-red-600 text-sm mt-1">{{ errors.shipment_type }}</div>
             </div>
 
@@ -338,12 +351,47 @@
           <div v-show="sections.goods" class="p-6 space-y-4">
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">GOODS</label>
-              <input
+              <textarea
                 v-model="form.goods"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
+                rows="3"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
+              ></textarea>
               <div v-if="errors.goods" class="text-red-600 text-sm mt-1">{{ errors.goods }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/URAIAN BARANG</label>
+              <textarea
+                v-model="form.commodity"
+                rows="3"
+                placeholder="Masukkan uraian barang/commodity yang detail"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
+              ></textarea>
+              <div v-if="errors.commodity" class="text-red-600 text-sm mt-1">{{ errors.commodity }}</div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
+                <input
+                  v-model="form.qty"
+                  type="number"
+                  min="0"
+                  placeholder="Masukkan quantity"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="errors.qty" class="text-red-600 text-sm mt-1">{{ errors.qty }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">NET WEIGHT (KG)</label>
+                <input
+                  v-model="form.net_weight"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Masukkan berat netto dalam kg"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="errors.net_weight" class="text-red-600 text-sm mt-1">{{ errors.net_weight }}</div>
+              </div>
             </div>
 
             <div>
@@ -467,6 +515,9 @@ const form = useForm({
   revenue: props.salesOrder.revenue || '',
   remarks: props.salesOrder.remarks || '',
   goods: props.salesOrder.goods || '',
+  commodity: props.salesOrder.commodity || '',
+  qty: props.salesOrder.qty || '',
+  net_weight: props.salesOrder.net_weight || '',
   container_no: props.salesOrder.container_no || '',
   invoice_number: props.salesOrder.invoice_number || '',
   invoice_date: props.salesOrder.invoice_date || '',

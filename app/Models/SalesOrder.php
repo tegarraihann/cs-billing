@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SalesOrder extends Model
 {
@@ -31,6 +32,9 @@ class SalesOrder extends Model
         'revenue',
         'remarks',
         'goods',
+        'commodity',
+        'qty',
+        'net_weight',
         'container_no',
         'invoice_number',
         'invoice_date',
@@ -120,5 +124,37 @@ class SalesOrder extends Model
     public function rejectedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    // Relationship with Vouchers
+    public function vouchers(): HasMany
+    {
+        return $this->hasMany(Voucher::class);
+    }
+
+    public function paymentVouchers(): HasMany
+    {
+        return $this->hasMany(Voucher::class)->where('type', Voucher::TYPE_PAYMENT);
+    }
+
+    public function receiptVouchers(): HasMany
+    {
+        return $this->hasMany(Voucher::class)->where('type', Voucher::TYPE_RECEIPT);
+    }
+
+    // Helper methods for vouchers
+    public function getTotalPaymentVouchers(): float
+    {
+        return $this->paymentVouchers()->sum('total');
+    }
+
+    public function getTotalReceiptVouchers(): float
+    {
+        return $this->receiptVouchers()->sum('total');
+    }
+
+    public function hasUnreleasedVouchers(): bool
+    {
+        return $this->vouchers()->where('status', Voucher::STATUS_DRAFT)->exists();
     }
 }

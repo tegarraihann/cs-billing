@@ -166,6 +166,85 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">T.O.P</label>
                 <p class="text-gray-900">{{ salesOrder.top || '-' }}</p>
               </div>
+              
+              <!-- New fields -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">COMMODITY</label>
+                <p class="text-gray-900">{{ salesOrder.commodity || '-' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">QTY</label>
+                <p class="text-gray-900">{{ salesOrder.qty || '-' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">NET WEIGHT</label>
+                <p class="text-gray-900">{{ salesOrder.net_weight || '-' }} KG</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Voucher Management Section -->
+          <div v-if="salesOrder.vouchers && salesOrder.vouchers.length > 0" 
+               class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
+              <h3 class="text-lg font-semibold text-blue-800">Voucher Management</h3>
+            </div>
+            <div class="p-6">
+              <div v-for="voucher in salesOrder.vouchers" :key="voucher.id" 
+                   class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 class="font-semibold text-gray-900 flex items-center">
+                      <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium mr-2"
+                            :class="getVoucherTypeColor(voucher.type)">
+                        {{ voucher.type === 'payment' ? 'Payment' : 'Receipt' }}
+                      </span>
+                      {{ voucher.voucher_no }}
+                    </h4>
+                    <p class="text-sm text-gray-600">{{ voucher.description }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-semibold text-gray-900">{{ formatCurrency(voucher.amount) }}</p>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                          :class="getVoucherStatusColor(voucher.status)">
+                      {{ getVoucherStatusLabel(voucher.status) }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span class="text-gray-500">Date:</span>
+                    <span class="ml-1 text-gray-900">{{ formatDate(voucher.date) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Prepared by:</span>
+                    <span class="ml-1 text-gray-900">{{ voucher.prepared_by || '-' }}</span>
+                  </div>
+                </div>
+
+                <!-- Action buttons for vouchers -->
+                <div v-if="voucher.status === 'released'" class="mt-3 flex space-x-2">
+                  <button
+                    @click="approveVoucher(voucher)"
+                    class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  >
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approve
+                  </button>
+                  <button
+                    @click="showVoucherRejectModalFn(voucher)"
+                    class="inline-flex items-center px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                  >
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Reject
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -252,6 +331,36 @@
         </div>
       </div>
     </div>
+
+    <!-- Voucher Reject Modal -->
+    <div v-if="showVoucherRejectModal && selectedVoucher" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Tolak Voucher</h3>
+        <p class="text-gray-600 mb-2">Voucher: <strong>{{ selectedVoucher.voucher_no }}</strong></p>
+        <p class="text-gray-600 mb-4">Berikan alasan penolakan:</p>
+        <textarea
+          v-model="voucherRejectionReason"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          rows="4"
+          placeholder="Masukkan alasan penolakan voucher..."
+        ></textarea>
+        <div class="flex justify-end space-x-3 mt-4">
+          <button
+            @click="closeVoucherRejectModal"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            @click="rejectVoucher"
+            :disabled="!voucherRejectionReason.trim()"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Tolak Voucher
+          </button>
+        </div>
+      </div>
+    </div>
   </AdminKeuanganLayout>
 </template>
 
@@ -266,6 +375,9 @@ const props = defineProps({
 
 const showRejectModal = ref(false);
 const rejectionReason = ref('');
+const showVoucherRejectModal = ref(false);
+const voucherRejectionReason = ref('');
+const selectedVoucher = ref(null);
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -331,6 +443,84 @@ const rejectSalesOrder = () => {
     onSuccess: () => {
       showRejectModal.value = false;
       rejectionReason.value = '';
+      router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
+        preserveState: false,
+        replace: true,
+      });
+    },
+    onError: (errors) => {
+      alert('Terjadi kesalahan: ' + Object.values(errors).join(', '));
+    }
+  });
+};
+
+const getVoucherTypeColor = (type) => {
+  const colors = {
+    payment: 'bg-blue-100 text-blue-800',
+    receipt: 'bg-green-100 text-green-800'
+  };
+  return colors[type] || 'bg-gray-100 text-gray-800';
+};
+
+const getVoucherStatusLabel = (status) => {
+  const labels = {
+    draft: 'Draft',
+    released: 'Released',
+    approved: 'Approved',
+    rejected: 'Rejected'
+  };
+  return labels[status] || status;
+};
+
+const getVoucherStatusColor = (status) => {
+  const colors = {
+    draft: 'bg-gray-100 text-gray-800',
+    released: 'bg-purple-100 text-purple-800',
+    approved: 'bg-green-100 text-green-800',
+    rejected: 'bg-red-100 text-red-800'
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const approveVoucher = (voucher) => {
+  if (confirm(`Apakah Anda yakin ingin menyetujui voucher ${voucher.voucher_no}?`)) {
+    router.post(route('admin-keuangan.sales-orders.vouchers.approve', [props.salesOrder.id, voucher.id]), {}, {
+      onSuccess: () => {
+        router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
+          preserveState: false,
+          replace: true,
+        });
+      },
+      onError: (errors) => {
+        alert('Terjadi kesalahan: ' + Object.values(errors).join(', '));
+      }
+    });
+  }
+};
+
+const showVoucherRejectModalFn = (voucher) => {
+  selectedVoucher.value = voucher;
+  showVoucherRejectModal.value = true;
+  voucherRejectionReason.value = '';
+};
+
+const closeVoucherRejectModal = () => {
+  showVoucherRejectModal.value = false;
+  selectedVoucher.value = null;
+  voucherRejectionReason.value = '';
+};
+
+const rejectVoucher = () => {
+  if (!voucherRejectionReason.value.trim()) {
+    alert('Alasan penolakan harus diisi');
+    return;
+  }
+
+  router.post(route('admin-keuangan.sales-orders.vouchers.reject', [props.salesOrder.id, selectedVoucher.value.id]), {
+    rejection_reason: voucherRejectionReason.value
+  }, {
+    onSuccess: () => {
+      closeVoucherRejectModal();
       router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
         preserveState: false,
         replace: true,

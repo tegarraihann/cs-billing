@@ -105,12 +105,7 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  SO Number
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Tanggal SO
+                  Order Number
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -120,12 +115,22 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Consignee/Shipper
+                  Shipper
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Total Amount
+                  Shipment Type
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  Commodity
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  QTY
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -145,36 +150,43 @@
                 :key="salesOrder.id"
                 class="hover:bg-sage-50 transition-colors"
               >
-                <!-- SO Number -->
+                <!-- Order Number -->
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  {{ salesOrder.so_number }}
-                </td>
-
-                <!-- SO Date -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ formatDate(salesOrder.so_date) }}
+                  {{ salesOrder.order_number || salesOrder.so_number }}
                 </td>
 
                 <!-- Customer -->
                 <td class="px-6 py-4 text-sm text-gray-900">
                   <div>
-                    <div class="font-medium">{{ salesOrder.customer_name }}</div>
+                    <div class="font-medium">{{ salesOrder.customer || salesOrder.customer_name }}</div>
                     <div class="text-gray-500" v-if="salesOrder.customer_code">
                       {{ salesOrder.customer_code }}
                     </div>
                   </div>
                 </td>
 
-                <!-- Consignee/Shipper -->
+                <!-- Shipper -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ salesOrder.consignee_shipper }}
+                  {{ salesOrder.shipper || salesOrder.consignee_shipper || '-' }}
                 </td>
 
-                <!-- Total Amount -->
+                <!-- Shipment Type -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  <span class="font-medium">
-                    {{ formatCurrency(salesOrder.total_amount, salesOrder.currency) }}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ salesOrder.shipment_type || '-' }}
                   </span>
+                </td>
+
+                <!-- Commodity -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  <div class="max-w-32 truncate" :title="salesOrder.commodity">
+                    {{ salesOrder.commodity || salesOrder.goods || '-' }}
+                  </div>
+                </td>
+
+                <!-- QTY -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ salesOrder.qty || '-' }}
                 </td>
 
                 <!-- Status -->
