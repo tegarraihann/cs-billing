@@ -6,23 +6,23 @@
     <title>Sales Order - {{ $salesOrder->order_number }}</title>
     <style>
         @page {
-            margin: 2cm 1.5cm;
+            margin: 1cm 1cm;
             font-family: 'Times New Roman', serif;
         }
         
         body {
             font-family: 'Times New Roman', serif;
-            font-size: 11px;
-            line-height: 1.5;
+            font-size: 9px;
+            line-height: 1.2;
             color: #000;
             margin: 0;
             padding: 0;
         }
         
         .header {
-            margin-bottom: 40px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #000;
-            padding-bottom: 15px;
+            padding-bottom: 8px;
         }
         
         .company-info {
@@ -31,16 +31,16 @@
         }
         
         .company-name {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: #000;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         
         .company-address {
-            font-size: 10px;
+            font-size: 8px;
             color: #333;
-            line-height: 1.3;
+            line-height: 1.2;
         }
         
         .document-info {
@@ -50,16 +50,16 @@
         }
         
         .document-title {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         
         .document-details {
-            font-size: 10px;
-            line-height: 1.4;
+            font-size: 8px;
+            line-height: 1.2;
         }
         
         .clear {
@@ -67,35 +67,36 @@
         }
         
         .content {
-            margin-top: 30px;
+            margin-top: 10px;
         }
         
         .section {
-            margin-bottom: 30px;
+            margin-bottom: 12px;
             page-break-inside: avoid;
         }
         
         .section-title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
             color: #000;
             border-bottom: 1px solid #000;
-            padding-bottom: 3px;
-            margin-bottom: 15px;
+            padding-bottom: 2px;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
         
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
         
         .info-table td {
-            padding: 4px 8px;
+            padding: 2px 4px;
             vertical-align: top;
             border-bottom: 1px solid #eee;
+            font-size: 8px;
         }
         
         .info-label {
@@ -111,8 +112,8 @@
         
         .pricing-section {
             border: 1px solid #ddd;
-            padding: 15px;
-            margin-top: 20px;
+            padding: 8px;
+            margin-top: 10px;
             background-color: #fafafa;
         }
         
@@ -122,8 +123,9 @@
         }
         
         .pricing-table td {
-            padding: 8px;
+            padding: 3px;
             border-bottom: 1px dotted #ccc;
+            font-size: 8px;
         }
         
         .pricing-label {
@@ -134,38 +136,38 @@
         .pricing-value {
             text-align: right;
             font-family: monospace;
-            font-size: 11px;
+            font-size: 8px;
         }
         
         .total-row {
             border-top: 2px solid #000;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 9px;
         }
         
         .footer {
             position: fixed;
-            bottom: 1cm;
+            bottom: 0.5cm;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 9px;
+            font-size: 7px;
             color: #666;
             border-top: 1px solid #ccc;
-            padding-top: 8px;
+            padding-top: 4px;
             background: white;
         }
         
         .status-info {
-            float: right;
-            margin-top: 10px;
+            margin-top: 8px;
+            text-align: right;
         }
         
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 2px 6px;
             border: 1px solid #333;
-            font-size: 10px;
+            font-size: 7px;
             font-weight: bold;
             text-transform: uppercase;
             background-color: white;
@@ -173,14 +175,14 @@
         
         .print-info {
             text-align: right;
-            font-size: 9px;
+            font-size: 7px;
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             font-style: italic;
         }
         
         .signature-section {
-            margin-top: 50px;
+            margin-top: 20px;
             page-break-inside: avoid;
         }
         
@@ -193,34 +195,35 @@
             width: 33.33%;
             text-align: center;
             vertical-align: top;
-            padding: 20px 10px;
+            padding: 8px 5px;
         }
         
         .signature-line {
             border-bottom: 1px solid #000;
-            margin-bottom: 5px;
-            height: 50px;
+            margin-bottom: 3px;
+            height: 25px;
         }
         
         .signature-label {
-            font-size: 10px;
+            font-size: 8px;
             font-weight: bold;
         }
         
         .remarks-section {
-            margin-top: 20px;
+            margin-top: 10px;
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 6px;
         }
         
         .remarks-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            font-size: 8px;
         }
         
         .remarks-content {
-            font-size: 10px;
-            line-height: 1.4;
+            font-size: 8px;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -228,18 +231,18 @@
     <!-- Header -->
     <div class="header">
         <div class="company-info">
-            <div class="company-name">PT. OFFICE MANAGEMENT SYSTEM</div>
+            <div class="company-name">PT. ESHAKA WIJAYA LOGISTICS</div>
             <div class="company-address">
-                Jl. Contoh Alamat No. 123<br>
-                Jakarta Selatan 12345<br>
-                Telp: (021) 123-4567 | Email: info@officems.com
+                Ruko Aerohub Citra 8 No.C7-10<br>
+                Pegadungan, Kec.Kalideres, Jakarta Barat 11830<br>
+                Telp: (021) 538-1234 | Email: info@eshakawijaya.com
             </div>
         </div>
         <div class="document-info">
             <div class="document-title">Sales Order</div>
             <div class="document-details">
                 <strong>No: {{ $salesOrder->order_number }}</strong><br>
-                Tanggal: {{ $salesOrder->created_at ? $salesOrder->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y') }}
+                Tanggal: {{ $salesOrder->created_at ? $salesOrder->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y') }}<br>
                 <div class="status-info">
                     <span class="status-badge">{{ strtoupper($salesOrder->status ?: 'draft') }}</span>
                 </div>
@@ -256,140 +259,197 @@
     <!-- Content -->
     <div class="content">
         
-        <!-- Customer & Basic Information -->
+        <!-- Primary Information -->
         <div class="section">
-            <div class="section-title">Informasi Pelanggan & Order</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">Customer</td>
-                    <td class="info-value">{{ $salesOrder->customer }}</td>
-                    <td class="info-label">Prepared By</td>
-                    <td class="info-value">{{ $salesOrder->prepared_by ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Shipper</td>
-                    <td class="info-value">{{ $salesOrder->shipper ?: '-' }}</td>
-                    <td class="info-label">Dibuat Oleh</td>
-                    <td class="info-value">{{ $salesOrder->creator->name ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">BL/AWB</td>
-                    <td class="info-value">{{ $salesOrder->bl_awb ?: '-' }}</td>
-                    <td class="info-label">Shipment Type</td>
-                    <td class="info-value">{{ $salesOrder->shipment_type ?: '-' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Shipping Details -->
-        <div class="section">
-            <div class="section-title">Detail Pengiriman</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">Liner</td>
-                    <td class="info-value">{{ $salesOrder->liner ?: '-' }}</td>
-                    <td class="info-label">Vessel</td>
-                    <td class="info-value">{{ $salesOrder->vessel ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">POL (Port of Loading)</td>
-                    <td class="info-value">{{ $salesOrder->pol ?: '-' }}</td>
-                    <td class="info-label">POD (Port of Discharge)</td>
-                    <td class="info-value">{{ $salesOrder->pod ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">ETA</td>
-                    <td class="info-value">{{ $salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
-                    <td class="info-label">SPPB Date</td>
-                    <td class="info-value">{{ $salesOrder->sppb_date ? \Carbon\Carbon::parse($salesOrder->sppb_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">AJU</td>
-                    <td class="info-value">{{ $salesOrder->aju ?: '-' }}</td>
-                    <td class="info-label">Gudang/UTC</td>
-                    <td class="info-value">{{ $salesOrder->gudang_utc ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Party/LCL</td>
-                    <td class="info-value">{{ $salesOrder->party_lcl ?: '-' }}</td>
-                    <td class="info-label">Container No</td>
-                    <td class="info-value">{{ $salesOrder->container_no ?: '-' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Goods Information -->
-        <div class="section">
-            <div class="section-title">Informasi Barang</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">Goods Description</td>
-                    <td class="info-value" colspan="3">{{ $salesOrder->goods ?: '-' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Financial Information -->
-        <div class="section">
-            <div class="section-title">Informasi Keuangan</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">Exchange Rate</td>
-                    <td class="info-value">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 2, ',', '.') : '-' }}</td>
-                    <td class="info-label">Jenis Biaya</td>
-                    <td class="info-value">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
-                </tr>
-            </table>
+            <div class="section-title">Informasi Sales Order</div>
             
-            @if($salesOrder->buying || $salesOrder->selling || $salesOrder->revenue)
-            <div class="pricing-section">
-                <table class="pricing-table">
-                    @if($salesOrder->buying)
+            <!-- Two Column Layout -->
+            <div style="width: 100%; display: table; margin-bottom: 15px;">
+                <!-- Left Column -->
+                <div style="width: 48%; display: table-cell; vertical-align: top; padding-right: 2%;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">ORDER NUMB</td>
+                            <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="width: 60%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">{{ $salesOrder->order_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">CUSTOMER</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->customer }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SHIPPER</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->shipper ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">BL/AWB</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->bl_awb ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">LINER</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->liner ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">VESSEL</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->vessel ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">ETA</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Right Column -->
+                <div style="width: 48%; display: table-cell; vertical-align: top; padding-left: 2%;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">AJU</td>
+                            <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->aju ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SPPB DATE</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->sppb_date ? \Carbon\Carbon::parse($salesOrder->sppb_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SHIPMENT TYPE</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->shipment_type ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">POL/POD</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ ($salesOrder->pol && $salesOrder->pod) ? $salesOrder->pol . ' / ' . $salesOrder->pod : ($salesOrder->pol ?: ($salesOrder->pod ?: '-')) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">GUDANG/UTC</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->gudang_utc ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">PARTY/LCL</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->party_lcl ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">PREPARED BY</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->prepared_by ?: '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Information -->
+        <div class="section">
+            <div class="section-title">Detail Informasi</div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                <tbody style="background: white;">
                     <tr>
-                        <td class="pricing-label">Buying Price</td>
-                        <td class="pricing-value">{{ 'Rp ' . number_format($salesOrder->buying, 0, ',', '.') }}</td>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; width: 25%; border-bottom: 1px solid #ddd;">EXCHANGE RATE</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 2, ',', '.') : '-' }}</td>
                     </tr>
-                    @endif
-                    @if($salesOrder->selling)
                     <tr>
-                        <td class="pricing-label">Selling Price</td>
-                        <td class="pricing-value">{{ 'Rp ' . number_format($salesOrder->selling, 0, ',', '.') }}</td>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">JENIS BIAYA</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
                     </tr>
-                    @endif
-                    @if($salesOrder->revenue)
-                    <tr class="total-row">
-                        <td class="pricing-label">Revenue</td>
-                        <td class="pricing-value">{{ 'Rp ' . number_format($salesOrder->revenue, 0, ',', '.') }}</td>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">BUYING</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->buying ? 'Rp ' . number_format($salesOrder->buying, 0, ',', '.') : '-' }}</td>
                     </tr>
-                    @endif
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">SELLING</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->selling ? 'Rp ' . number_format($salesOrder->selling, 0, ',', '.') : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">REVENUE</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->revenue ? 'Rp ' . number_format($salesOrder->revenue, 0, ',', '.') : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">REMARKS</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->remarks ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">GOODS</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->goods ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">COMMODITY/URAIAN BARANG</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->commodity ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">QTY</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->qty ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">NET WEIGHT (KG)</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->net_weight ? number_format($salesOrder->net_weight, 2, ',', '.') . ' kg' : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">CONTAINER NO</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->container_no ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">INVOICE NUMB</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->invoice_number ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">INVOICE DATE</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">T.O.P</td>
+                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->top ?: '-' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vendor Information -->
+        @if($salesOrder->vendors)
+        @php
+            $vendorInfo = is_array($salesOrder->vendors) ? 
+                (count($salesOrder->vendors) > 0 ? $salesOrder->vendors[0] : null) : 
+                (is_object($salesOrder->vendors) ? $salesOrder->vendors : null);
+        @endphp
+        @if($vendorInfo)
+        <div class="section">
+            <div class="section-title">Buying to Vendor</div>
+            <div style="border: 1px solid #ddd; padding: 6px; background-color: #fafafa;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; width: 25%;">Deskripsi:</td>
+                        <td style="padding: 3px 6px; font-size: 8px;" colspan="3">{{ $vendorInfo['deskripsi'] ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">Nominal:</td>
+                        <td style="padding: 3px 6px; font-size: 8px;">{{ isset($vendorInfo['nominal']) ? 'Rp ' . number_format($vendorInfo['nominal'], 0, ',', '.') : '-' }}</td>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">Company:</td>
+                        <td style="padding: 3px 6px; font-size: 8px;">{{ $vendorInfo['company_name'] ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">No Rekening:</td>
+                        <td style="padding: 3px 6px; font-size: 8px;">{{ $vendorInfo['no_rekening'] ?? '-' }}</td>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">Nama Rekening:</td>
+                        <td style="padding: 3px 6px; font-size: 8px;">{{ $vendorInfo['nama_rekening'] ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">RCVD INV:</td>
+                        <td style="padding: 3px 6px; font-size: 8px;" colspan="3">{{ $vendorInfo['rcvd_inv'] ?? '-' }}</td>
+                    </tr>
                 </table>
             </div>
-            @endif
         </div>
-
-        <!-- Invoice Information -->
-        <div class="section">
-            <div class="section-title">Informasi Invoice</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">Invoice Number</td>
-                    <td class="info-value">{{ $salesOrder->invoice_number ?: '-' }}</td>
-                    <td class="info-label">Invoice Date</td>
-                    <td class="info-value">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Terms of Payment (T.O.P)</td>
-                    <td class="info-value" colspan="3">{{ $salesOrder->top ?: '-' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Remarks -->
-        @if($salesOrder->remarks)
-        <div class="remarks-section">
-            <div class="remarks-title">Remarks / Catatan:</div>
-            <div class="remarks-content">{{ $salesOrder->remarks }}</div>
-        </div>
+        @endif
         @endif
 
         <!-- Signature Section -->
@@ -416,7 +476,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        Sales Order No: {{ $salesOrder->order_number }} | PT. Office Management System | Halaman 1 dari 1
+        Sales Order No: {{ $salesOrder->order_number }} | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1
     </div>
 </body>
 </html>

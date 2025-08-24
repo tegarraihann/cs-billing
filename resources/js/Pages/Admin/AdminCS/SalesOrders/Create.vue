@@ -485,6 +485,115 @@
           </div>
         </div>
 
+        <!-- Vendor Information -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div 
+            @click="toggleSection('vendor')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Buying to Vendor</h3>
+            <svg 
+              :class="{'rotate-180': !sections.vendor}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.vendor" class="p-6 space-y-4">
+            <!-- DESKRIPSI -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                Deskripsi <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                v-model="form.vendor.deskripsi"
+                rows="2"
+                required
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
+                placeholder="Masukkan deskripsi layanan vendor"
+              ></textarea>
+              <div v-if="form.errors.vendor?.deskripsi" class="mt-2 text-sm text-red-600">
+                {{ form.errors.vendor.deskripsi }}
+              </div>
+            </div>
+
+            <!-- NOMINAL -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                Nominal <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="form.vendor.nominalFormatted"
+                type="text"
+                required
+                @input="formatNominal($event)"
+                @blur="updateNominalValue()"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+              />
+              <div v-if="form.errors.vendor?.nominal" class="mt-2 text-sm text-red-600">
+                {{ form.errors.vendor.nominal }}
+              </div>
+            </div>
+
+            <!-- PILIH VENDOR -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                Pilih Vendor <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.vendor.vendor_id"
+                required
+                @change="onVendorChange()"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+              >
+                <option value="">Pilih vendor...</option>
+                <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
+                  {{ vendorOption.nama_vendor }}
+                </option>
+              </select>
+              <div v-if="form.errors.vendor?.vendor_id" class="mt-2 text-sm text-red-600">
+                {{ form.errors.vendor.vendor_id }}
+              </div>
+            </div>
+
+            <!-- INFO VENDOR (Auto-filled from selected vendor) -->
+            <div v-if="form.vendor.vendor_id" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-sage-100 rounded-lg">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-1">
+                  Nomor Rekening
+                </label>
+                <p class="text-sm text-gray-900 font-mono">{{ form.vendor.no_rekening || '-' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-1">
+                  Nama Rekening
+                </label>
+                <p class="text-sm text-gray-900">{{ form.vendor.nama_rekening || '-' }}</p>
+              </div>
+            </div>
+
+            <!-- RCVD INV -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                RCVD INV
+              </label>
+              <input
+                v-model="form.vendor.rcvd_inv"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                placeholder="Masukkan nomor invoice yang diterima"
+              />
+              <div v-if="form.errors.vendor?.rcvd_inv" class="mt-2 text-sm text-red-600">
+                {{ form.errors.vendor.rcvd_inv }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Voucher Section -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
           <div 
@@ -737,6 +846,7 @@ import AlertDialog from "@/Components/AlertDialog.vue";
 
 const props = defineProps({
   customers: Array,
+  vendors: Array,
 });
 
 // Alert Dialog State
@@ -765,6 +875,7 @@ const sections = ref({
   pricing: false,
   goods: false,
   invoice: false,
+  vendor: false,
   voucher: false,
 });
 
@@ -799,6 +910,16 @@ const form = useForm({
   invoice_number: "",
   invoice_date: "",
   top: "",
+  vendor: {
+    vendor_id: "",
+    deskripsi: "",
+    nominal: "",
+    nominalFormatted: "",
+    no_rekening: "",
+    company_name: "",
+    nama_rekening: "",
+    rcvd_inv: ""
+  }
 });
 
 const toggleSection = (section) => {
@@ -826,6 +947,41 @@ const onCustomerSelect = () => {
       form.eta = "";
     }
   }
+};
+
+const onVendorChange = () => {
+  const selectedVendorId = form.vendor.vendor_id;
+  if (selectedVendorId) {
+    const selectedVendor = props.vendors.find(v => v.id == selectedVendorId);
+    if (selectedVendor) {
+      form.vendor.no_rekening = selectedVendor.nomor_rekening;
+      form.vendor.company_name = selectedVendor.nama_vendor;
+      form.vendor.nama_rekening = selectedVendor.nama_rekening;
+    }
+  } else {
+    // Clear vendor data if no vendor selected
+    form.vendor.no_rekening = "";
+    form.vendor.company_name = "";
+    form.vendor.nama_rekening = "";
+  }
+};
+
+const formatNominal = (event) => {
+  let value = event.target.value;
+  // Remove all non-digit characters
+  value = value.replace(/\D/g, '');
+  
+  // Add thousand separators (dots)
+  if (value) {
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  
+  form.vendor.nominalFormatted = value;
+};
+
+const updateNominalValue = () => {
+  // Convert formatted value back to number for form submission
+  form.vendor.nominal = form.vendor.nominalFormatted ? parseInt(form.vendor.nominalFormatted.replace(/\./g, '')) : '';
 };
 
 // Voucher management methods

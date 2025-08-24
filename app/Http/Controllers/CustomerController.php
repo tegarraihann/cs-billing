@@ -45,13 +45,7 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        $vendors = \App\Models\Vendor::select('id', 'nama_vendor', 'nomor_rekening', 'nama_rekening', 'nib')
-            ->orderBy('nama_vendor')
-            ->get();
-
-        return Inertia::render('Admin/AdminCS/Customers/Create', [
-            'vendors' => $vendors
-        ]);
+        return Inertia::render('Admin/AdminCS/Customers/Create');
     }
 
     /**
@@ -87,14 +81,6 @@ class CustomerController extends Controller
             'no_kont_pallet' => 'nullable|string|max:255',
             'pol_pod' => 'nullable|string|max:255',
             'eta' => 'nullable|date',
-            'vendor' => 'required|array',
-            'vendor.vendor_id' => 'required|exists:vendors,id',
-            'vendor.deskripsi' => 'required|string|max:500',
-            'vendor.nominal' => 'nullable|numeric|min:0',
-            'vendor.no_rekening' => 'required|string|max:255',
-            'vendor.company_name' => 'required|string|max:255',
-            'vendor.nama_rekening' => 'required|string|max:255',
-            'vendor.rcvd_inv' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'legal_document' => 'nullable|file|mimes:pdf|max:10240',
         ], [
@@ -102,14 +88,6 @@ class CustomerController extends Controller
             'customer_code.required' => 'Customer Code wajib diisi.',
             'consignee_shipper.required' => 'Consignee/Shipper wajib diisi.',
             'awb_bl_number.required' => 'AWB/BL Number wajib diisi.',
-            'vendor.required' => 'Data vendor harus diisi.',
-            'vendor.vendor_id.required' => 'Vendor wajib dipilih.',
-            'vendor.vendor_id.exists' => 'Vendor yang dipilih tidak valid.',
-            'vendor.deskripsi.required' => 'Deskripsi vendor wajib diisi.',
-            'vendor.nominal.numeric' => 'Nominal harus berupa angka.',
-            'vendor.no_rekening.required' => 'No Rekening vendor wajib diisi.',
-            'vendor.company_name.required' => 'Company Name vendor wajib diisi.',
-            'vendor.nama_rekening.required' => 'Nama Rekening vendor wajib diisi',
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
@@ -136,11 +114,6 @@ class CustomerController extends Controller
         $validated['handled_by'] = Auth::id();
         $validated['last_contact_at'] = now();
 
-        // Prepare vendor data for storage
-        $vendorInfo = $validated['vendor'];
-        unset($validated['vendor']); // Remove vendor from main validated data
-        $validated['vendors'] = $vendorInfo; // Store vendor data in vendors field
-
         Customer::create($validated);
 
         return redirect()
@@ -165,16 +138,10 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        $vendors = \App\Models\Vendor::select('id', 'nama_vendor', 'nomor_rekening', 'nama_rekening', 'nib')
-            ->orderBy('nama_vendor')
-            ->get();
-
-        // Load customer dengan data vendor yang sudah ada
         $customer->load('handler');
 
         return Inertia::render('Admin/AdminCS/Customers/Edit', [
-            'customer' => $customer,
-            'vendors' => $vendors
+            'customer' => $customer
         ]);
     }
 
@@ -186,6 +153,24 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'so_number' => 'required|string|max:255',
             'customer_code' => 'required|string|max:255',
+            // Informasi Perusahaan/Perorangan
+            'company_name' => 'required|string|max:255',
+            'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
+            'company_address' => 'required|string|max:1000',
+            'invoice_address' => 'nullable|string|max:1000',
+            // Data Legalitas
+            'nib' => 'nullable|string|max:255',
+            'npwp' => 'nullable|string|max:255',
+            'ktp_number' => 'nullable|string|max:255',
+            // Data PIC
+            'pic_name' => 'required|string|max:255',
+            'pic_phone' => 'required|string|max:255',
+            'pic_email' => 'required|email|max:255',
+            // Data Marketing
+            'marketing_name' => 'nullable|string|max:255',
+            'marketing_phone' => 'nullable|string|max:255',
+            'marketing_email' => 'nullable|email|max:255',
+            // Data Pengiriman
             'consignee_shipper' => 'required|string|max:255',
             'awb_bl_number' => 'required|string|max:255',
             'cust_doc_name' => 'nullable|string|max:255',
@@ -193,14 +178,6 @@ class CustomerController extends Controller
             'no_kont_pallet' => 'nullable|string|max:255',
             'pol_pod' => 'nullable|string|max:255',
             'eta' => 'nullable|date',
-            'vendor' => 'required|array',
-            'vendor.vendor_id' => 'required|exists:vendors,id',
-            'vendor.deskripsi' => 'required|string|max:500',
-            'vendor.nominal' => 'nullable|numeric|min:0',
-            'vendor.no_rekening' => 'required|string|max:255',
-            'vendor.company_name' => 'required|string|max:255',
-            'vendor.nama_rekening' => 'required|string|max:255',
-            'vendor.rcvd_inv' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'legal_document' => 'nullable|file|mimes:pdf|max:10240',
         ], [
@@ -208,14 +185,6 @@ class CustomerController extends Controller
             'customer_code.required' => 'Customer Code wajib diisi.',
             'consignee_shipper.required' => 'Consignee/Shipper wajib diisi.',
             'awb_bl_number.required' => 'AWB/BL Number wajib diisi.',
-            'vendor.required' => 'Data vendor harus diisi.',
-            'vendor.vendor_id.required' => 'Vendor wajib dipilih.',
-            'vendor.vendor_id.exists' => 'Vendor yang dipilih tidak valid.',
-            'vendor.deskripsi.required' => 'Deskripsi vendor wajib diisi.',
-            'vendor.nominal.numeric' => 'Nominal harus berupa angka.',
-            'vendor.no_rekening.required' => 'No Rekening vendor wajib diisi.',
-            'vendor.company_name.required' => 'Company Name vendor wajib diisi.',
-            'vendor.nama_rekening.required' => 'Nama Rekening vendor wajib diisi',
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
@@ -242,11 +211,6 @@ class CustomerController extends Controller
             $legalDocPath = $request->file('legal_document')->store('customers/documents', 'public');
             $validated['legal_document_path'] = $legalDocPath;
         }
-
-        // Prepare vendor data for storage
-        $vendorInfo = $validated['vendor'];
-        unset($validated['vendor']); // Remove vendor from main validated data
-        $validated['vendors'] = $vendorInfo; // Store vendor data in vendors field
 
         $customer->update($validated);
 

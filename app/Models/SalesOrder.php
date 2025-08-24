@@ -39,6 +39,7 @@ class SalesOrder extends Model
         'invoice_number',
         'invoice_date',
         'top',
+        'vendors',
         
         // Legacy fields for backward compatibility (now nullable)
         'so_number',
@@ -103,6 +104,7 @@ class SalesOrder extends Model
         'buying' => 'decimal:2',
         'selling' => 'decimal:2',
         'revenue' => 'decimal:2',
+        'vendors' => 'array',
     ];
 
     // Relationships
@@ -156,5 +158,15 @@ class SalesOrder extends Model
     public function hasUnreleasedVouchers(): bool
     {
         return $this->vouchers()->where('status', Voucher::STATUS_DRAFT)->exists();
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

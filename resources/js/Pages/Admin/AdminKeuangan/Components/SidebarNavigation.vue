@@ -46,7 +46,7 @@
     <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
       <!-- Dashboard -->
       <a
-        :href="route('admin-keuangan.dashboard')"
+        href="/admin-keuangan/dashboard"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.dashboard')
@@ -70,12 +70,64 @@
         <span class="font-medium">Dashboard</span>
       </a>
 
-      <!-- Sales Orders -->
+      <!-- Customers -->
       <a
-        :href="route('admin-keuangan.sales-orders.index')"
+        href="/admin-keuangan/customers"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
-          isActive('admin-keuangan.sales-orders.*')
+          isActive('admin-keuangan.customers')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+        <span class="font-medium">Customers</span>
+      </a>
+
+      <!-- Vendors -->
+      <a
+        href="/admin-keuangan/vendors"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.vendors')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          />
+        </svg>
+        <span class="font-medium">Vendors</span>
+      </a>
+
+      <!-- Sales Orders -->
+      <a
+        href="/admin-keuangan/sales-orders"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.sales-orders')
             ? 'bg-sage-100 text-sage-800 shadow-sm'
             : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
         "
@@ -94,6 +146,58 @@
           />
         </svg>
         <span class="font-medium">Sales Orders</span>
+      </a>
+
+      <!-- Invoices -->
+      <a
+        href="/admin-keuangan/invoices"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.invoices')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        <span class="font-medium">Invoices</span>
+      </a>
+
+      <!-- Payment Monitoring -->
+      <a
+        href="/admin-keuangan/invoices/payment-history"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.payment-history')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m-4-3.5c0-1.55 1.88-2.75 4-2.75s4 1.2 4 2.75"
+          />
+        </svg>
+        <span class="font-medium">Payment Monitoring</span>
       </a>
 
       <!-- Financial Reports -->
@@ -146,7 +250,7 @@
           Quick Actions
         </div>
         <a
-          :href="route('admin-keuangan.sales-orders.index')"
+          href="/admin-keuangan/sales-orders"
           class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200"
         >
           <svg
@@ -211,22 +315,56 @@ const emit = defineEmits(["closeMobileSidebar"]);
 // Get current route
 const page = usePage();
 
+// Use global route function if available
+const route = window.route || function(name, params) {
+  const routes = {
+    'admin-keuangan.dashboard': '/admin-keuangan/dashboard',
+    'admin-keuangan.customers.index': '/admin-keuangan/customers',
+    'admin-keuangan.vendors.index': '/admin-keuangan/vendors',
+    'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
+  };
+  return routes[name] || '#';
+};
+
 // Methods
 const closeMobileSidebar = () => {
   emit("closeMobileSidebar");
 };
 
 const isActive = (routePattern) => {
-  const currentRoute = page.props.ziggy?.route;
-  if (!currentRoute) return false;
-
+  const currentUrl = window.location.pathname;
+  
   // Handle wildcard patterns
   if (routePattern.includes("*")) {
     const basePattern = routePattern.replace("*", "");
-    return currentRoute.startsWith(basePattern);
+    const routeMap = {
+      'admin-keuangan.dashboard': '/admin-keuangan/dashboard',
+      'admin-keuangan.customers': '/admin-keuangan/customers',
+      'admin-keuangan.vendors': '/admin-keuangan/vendors',
+      'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
+    };
+    
+    const basePath = routeMap[basePattern] || basePattern;
+    return currentUrl.startsWith(basePath);
   }
 
-  return currentRoute === routePattern;
+  // Direct route matching  
+  const routeMap = {
+    'admin-keuangan.dashboard': '/admin-keuangan/dashboard',
+    'admin-keuangan.customers': '/admin-keuangan/customers',
+    'admin-keuangan.vendors': '/admin-keuangan/vendors',
+    'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
+    'admin-keuangan.invoices': '/admin-keuangan/invoices',
+    'admin-keuangan.payment-history': '/admin-keuangan/invoices/payment-history',
+  };
+  
+  const routePath = routeMap[routePattern];
+  if (routePath) {
+    // Check if current URL starts with the route path (for sub-pages like create, edit)
+    return currentUrl.startsWith(routePath);
+  }
+  
+  return currentUrl === routePattern;
 };
 </script>
 

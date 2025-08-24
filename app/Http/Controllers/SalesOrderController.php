@@ -47,8 +47,13 @@ class SalesOrderController extends Controller
             ->orderBy('customer_code')
             ->get();
 
+        $vendors = \App\Models\Vendor::select('id', 'nama_vendor', 'nomor_rekening', 'nama_rekening', 'nib')
+            ->orderBy('nama_vendor')
+            ->get();
+
         return Inertia::render('Admin/AdminCS/SalesOrders/Create', [
-            'customers' => $customers
+            'customers' => $customers,
+            'vendors' => $vendors
         ]);
     }
 
@@ -89,6 +94,16 @@ class SalesOrderController extends Controller
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
             
+            // Vendor data
+            'vendor' => 'required|array',
+            'vendor.vendor_id' => 'required|exists:vendors,id',
+            'vendor.deskripsi' => 'required|string|max:500',
+            'vendor.nominal' => 'nullable|numeric|min:0',
+            'vendor.no_rekening' => 'required|string|max:255',
+            'vendor.company_name' => 'required|string|max:255',
+            'vendor.nama_rekening' => 'required|string|max:255',
+            'vendor.rcvd_inv' => 'nullable|string|max:255',
+            
             // Voucher data
             'payment_vouchers' => 'nullable|array',
             'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
@@ -123,6 +138,11 @@ class SalesOrderController extends Controller
         $validated['service_description'] = 'Sales Order';
         $validated['total_amount'] = $validated['selling'] ?? 0;
         $validated['status'] = 'draft';
+
+        // Prepare vendor data for storage
+        $vendorInfo = $validated['vendor'];
+        unset($validated['vendor']); // Remove vendor from main validated data
+        $validated['vendors'] = $vendorInfo; // Store vendor data in vendors field
 
         // Remove voucher data from sales order data
         $paymentVouchers = $validated['payment_vouchers'] ?? [];
@@ -159,8 +179,13 @@ class SalesOrderController extends Controller
      */
     public function edit(SalesOrder $salesOrder)
     {
+        $vendors = \App\Models\Vendor::select('id', 'nama_vendor', 'nomor_rekening', 'nama_rekening', 'nib')
+            ->orderBy('nama_vendor')
+            ->get();
+
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
-            'salesOrder' => $salesOrder
+            'salesOrder' => $salesOrder,
+            'vendors' => $vendors
         ]);
     }
 
@@ -200,7 +225,22 @@ class SalesOrderController extends Controller
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
+            
+            // Vendor data
+            'vendor' => 'required|array',
+            'vendor.vendor_id' => 'required|exists:vendors,id',
+            'vendor.deskripsi' => 'required|string|max:500',
+            'vendor.nominal' => 'nullable|numeric|min:0',
+            'vendor.no_rekening' => 'required|string|max:255',
+            'vendor.company_name' => 'required|string|max:255',
+            'vendor.nama_rekening' => 'required|string|max:255',
+            'vendor.rcvd_inv' => 'nullable|string|max:255',
         ]);
+
+        // Prepare vendor data for storage
+        $vendorInfo = $validated['vendor'];
+        unset($validated['vendor']); // Remove vendor from main validated data
+        $validated['vendors'] = $vendorInfo; // Store vendor data in vendors field
 
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];

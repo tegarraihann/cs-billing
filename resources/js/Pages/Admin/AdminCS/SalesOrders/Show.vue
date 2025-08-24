@@ -73,124 +73,139 @@
             <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
               <h3 class="text-lg font-semibold text-sage-800">Informasi Sales Order</h3>
             </div>
-            <div class="p-6 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ORDER NUMB</label>
-                <p class="text-gray-900 font-semibold">{{ salesOrder.order_number }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">CUSTOMER</label>
-                <p class="text-gray-900">{{ salesOrder.customer }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SHIPPER</label>
-                <p class="text-gray-900">{{ salesOrder.shipper || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">BL/AWB</label>
-                <p class="text-gray-900">{{ salesOrder.bl_awb || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">LINER</label>
-                <p class="text-gray-900">{{ salesOrder.liner || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">VESSEL</label>
-                <p class="text-gray-900">{{ salesOrder.vessel || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ETA</label>
-                <p class="text-gray-900">{{ salesOrder.eta ? formatDate(salesOrder.eta) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">AJU</label>
-                <p class="text-gray-900">{{ salesOrder.aju || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SPPB DATE</label>
-                <p class="text-gray-900">{{ salesOrder.sppb_date ? formatDate(salesOrder.sppb_date) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SHIPMENT TYPE</label>
-                <p class="text-gray-900">{{ salesOrder.shipment_type || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">POL</label>
-                <p class="text-gray-900">{{ salesOrder.pol || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">POD</label>
-                <p class="text-gray-900">{{ salesOrder.pod || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">GUDANG/UTC</label>
-                <p class="text-gray-900">{{ salesOrder.gudang_utc || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">PARTY/LCL</label>
-                <p class="text-gray-900">{{ salesOrder.party_lcl || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">PREPARED BY</label>
-                <p class="text-gray-900">{{ salesOrder.prepared_by || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">EXCHANGE RATE</label>
-                <p class="text-gray-900">{{ salesOrder.exchange_rate || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">JENIS BIAYA</label>
-                <p class="text-gray-900">{{ salesOrder.jenis_biaya || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">BUYING</label>
-                <p class="text-gray-900">{{ salesOrder.buying ? formatCurrency(salesOrder.buying) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SELLING</label>
-                <p class="text-gray-900">{{ salesOrder.selling ? formatCurrency(salesOrder.selling) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">REVENUE</label>
-                <p class="text-gray-900">{{ salesOrder.revenue ? formatCurrency(salesOrder.revenue) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">REMARKS</label>
-                <p class="text-gray-900">{{ salesOrder.remarks || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">GOODS</label>
-                <p class="text-gray-900">{{ salesOrder.goods || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">COMMODITY/URAIAN BARANG</label>
-                <p class="text-gray-900">{{ salesOrder.commodity || '-' }}</p>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">QTY</label>
-                  <p class="text-gray-900">{{ salesOrder.qty || '-' }}</p>
+            <div class="p-6">
+              <!-- Primary Information - Two Columns -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Left Column -->
+                <div class="space-y-3">
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">ORDER NUMB:</span> 
+                    <span class="font-semibold">{{ salesOrder.order_number }}</span>
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">CUSTOMER:</span> 
+                    {{ salesOrder.customer }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">SHIPPER:</span> 
+                    {{ salesOrder.shipper || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">BL/AWB:</span> 
+                    {{ salesOrder.bl_awb || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">LINER:</span> 
+                    {{ salesOrder.liner || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">VESSEL:</span> 
+                    {{ salesOrder.vessel || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">ETA:</span> 
+                    {{ salesOrder.eta ? formatDate(salesOrder.eta) : '-' }}
+                  </p>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">NET WEIGHT (KG)</label>
-                  <p class="text-gray-900">{{ salesOrder.net_weight ? formatWeight(salesOrder.net_weight) : '-' }}</p>
+
+                <!-- Right Column -->
+                <div class="space-y-3">
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">AJU:</span> 
+                    {{ salesOrder.aju || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">SPPB DATE:</span> 
+                    {{ salesOrder.sppb_date ? formatDate(salesOrder.sppb_date) : '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">SHIPMENT TYPE:</span> 
+                    {{ salesOrder.shipment_type || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">POL/POD:</span> 
+                    {{ [salesOrder.pol, salesOrder.pod].filter(Boolean).join(' / ') || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">GUDANG/UTC:</span> 
+                    {{ salesOrder.gudang_utc || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">PARTY/LCL:</span> 
+                    {{ salesOrder.party_lcl || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">PREPARED BY:</span> 
+                    {{ salesOrder.prepared_by || '-' }}
+                  </p>
                 </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER NO</label>
-                <p class="text-gray-900">{{ salesOrder.container_no || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE NUMB</label>
-                <p class="text-gray-900">{{ salesOrder.invoice_number || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE DATE</label>
-                <p class="text-gray-900">{{ salesOrder.invoice_date ? formatDate(salesOrder.invoice_date) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">T.O.P</label>
-                <p class="text-gray-900">{{ salesOrder.top || '-' }}</p>
+
+              <!-- Detailed Information - Table Format -->
+              <div class="border-t border-gray-200 pt-6">
+                <h4 class="text-md font-semibold text-gray-800 mb-4">Detail Informasi</h4>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-200">
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 w-1/4">EXCHANGE RATE</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.exchange_rate || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">JENIS BIAYA</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.jenis_biaya || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">BUYING</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.buying ? formatCurrency(salesOrder.buying) : '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">SELLING</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.selling ? formatCurrency(salesOrder.selling) : '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">REVENUE</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.revenue ? formatCurrency(salesOrder.revenue) : '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">REMARKS</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.remarks || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">GOODS</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.goods || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">COMMODITY/URAIAN BARANG</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.commodity || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">QTY</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.qty || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">NET WEIGHT (KG)</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.net_weight ? formatWeight(salesOrder.net_weight) : '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">CONTAINER NO</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.container_no || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">INVOICE NUMB</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.invoice_number || '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">INVOICE DATE</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.invoice_date ? formatDate(salesOrder.invoice_date) : '-' }}</td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">T.O.P</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.top || '-' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -317,6 +332,101 @@
                 <p class="text-gray-500">No vouchers created for this sales order</p>
               </div>
               
+            </div>
+          </div>
+
+          <!-- Vendor Information -->
+          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">Buying to Vendor</h3>
+            </div>
+            <div class="p-6">
+              <div v-if="getVendorInfo(salesOrder.vendors)" class="space-y-6">
+                <div class="border border-sage-200 rounded-lg p-4 bg-sage-50">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-medium text-sage-800">Informasi Vendor</h4>
+                    <span
+                      v-if="getVendorInfo(salesOrder.vendors).nominal"
+                      class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full"
+                    >
+                      {{ formatCurrency(getVendorInfo(salesOrder.vendors).nominal) }}
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Deskripsi -->
+                    <div class="md:col-span-2 lg:col-span-3">
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        Deskripsi
+                      </label>
+                      <p class="text-gray-900 bg-white p-3 rounded border border-sage-200">
+                        {{ getVendorInfo(salesOrder.vendors).deskripsi || '-' }}
+                      </p>
+                    </div>
+
+                    <!-- Nominal -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        Nominal
+                      </label>
+                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).nominal ? formatCurrency(getVendorInfo(salesOrder.vendors).nominal) : '-' }}</p>
+                    </div>
+
+                    <!-- No Rekening -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        No Rekening
+                      </label>
+                      <p class="text-gray-900 font-mono">{{ getVendorInfo(salesOrder.vendors).no_rekening || '-' }}</p>
+                    </div>
+
+                    <!-- Company Name -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        Company Name
+                      </label>
+                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).company_name || '-' }}</p>
+                    </div>
+
+                    <!-- Nama Rekening -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        Nama Rekening
+                      </label>
+                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).nama_rekening || '-' }}</p>
+                    </div>
+
+                    <!-- RCVD INV -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        RCVD INV
+                      </label>
+                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).rcvd_inv || '-' }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div v-else class="text-center py-8">
+                <svg
+                  class="w-12 h-12 text-gray-300 mb-4 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+                <p class="text-lg font-medium text-gray-900 mb-2">Tidak ada data vendor</p>
+                <p class="text-sm text-gray-400">
+                  Belum ada vendor yang terdaftar untuk sales order ini
+                </p>
+              </div>
             </div>
           </div>
 
@@ -470,6 +580,22 @@ const getVoucherStatusColor = (status) => {
     approved: 'bg-green-100 text-green-800'
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const getVendorInfo = (vendors) => {
+  if (!vendors) return null;
+
+  // Handle if vendors is an array
+  if (Array.isArray(vendors) && vendors.length > 0) {
+    return vendors[0];
+  }
+
+  // Handle if vendors is an object
+  if (typeof vendors === 'object' && !Array.isArray(vendors)) {
+    return vendors;
+  }
+
+  return null;
 };
 </script>
 

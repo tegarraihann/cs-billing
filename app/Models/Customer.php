@@ -31,7 +31,6 @@ class Customer extends Model
         'no_kont_pallet',
         'pol_pod',
         'eta',
-        'vendors',
         'photo_path',
         'legal_document_path',
         'handled_by',
@@ -41,7 +40,6 @@ class Customer extends Model
     protected $casts = [
         'last_contact_at' => 'datetime',
         'eta' => 'date',
-        'vendors' => 'array',
     ];
 
 

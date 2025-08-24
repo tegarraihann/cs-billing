@@ -220,8 +220,17 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         $user = auth()->user();
 
         // Statistik khusus untuk Admin Keuangan
-        $totalRevenue = 0; // Ganti dengan query sesuai kebutuhan
-        $pendingPayments = 0;
+        $totalRevenue = \App\Models\Invoice::where('status', 'paid')->sum('total');
+        $pendingPayments = \App\Models\Invoice::where('status', '!=', 'paid')->sum('total');
+        $paidThisMonth = \App\Models\Invoice::where('status', 'paid')
+            ->whereMonth('payment_confirmed_at', now()->month)
+            ->whereYear('payment_confirmed_at', now()->year)
+            ->sum('total');
+        $overdueInvoices = \App\Models\Invoice::where('status', '!=', 'paid')
+            ->where('due_date', '<', now()->toDateString())
+            ->count();
+        $totalInvoices = \App\Models\Invoice::count();
+        $paidInvoices = \App\Models\Invoice::where('status', 'paid')->count();
 
         return Inertia::render('Admin/AdminKeuangan/Dashboard', [
             'user' => $user,
@@ -229,18 +238,66 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
             'stats' => [
                 'totalRevenue' => $totalRevenue,
                 'pendingPayments' => $pendingPayments,
+                'paidThisMonth' => $paidThisMonth,
+                'overdueInvoices' => $overdueInvoices,
+                'totalInvoices' => $totalInvoices,
+                'paidInvoices' => $paidInvoices,
             ]
         ]);
     })->name('dashboard');
 
+    // Customer Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\CustomerController::class)->prefix('customers')->name('customers.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{customer}', 'show')->name('show');
+        Route::get('/{customer}/edit', 'edit')->name('edit');
+        Route::put('/{customer}', 'update')->name('update');
+        Route::delete('/{customer}', 'destroy')->name('destroy');
+    });
+
+    // Vendor Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\VendorController::class)->prefix('vendors')->name('vendors.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{vendor}', 'show')->name('show');
+        Route::get('/{vendor}/edit', 'edit')->name('edit');
+        Route::put('/{vendor}', 'update')->name('update');
+        Route::delete('/{vendor}', 'destroy')->name('destroy');
+    });
+
     // Sales Order Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\SalesOrderController::class)->prefix('sales-orders')->name('sales-orders.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
         Route::get('/{salesOrder}', 'show')->name('show');
+        Route::get('/{salesOrder}/edit', 'edit')->name('edit');
+        Route::put('/{salesOrder}', 'update')->name('update');
+        Route::delete('/{salesOrder}', 'destroy')->name('destroy');
         Route::post('/{salesOrder}/approve', 'approve')->name('approve');
         Route::post('/{salesOrder}/reject', 'reject')->name('reject');
         Route::post('/{salesOrder}/vouchers/{voucher}/approve', 'approveVoucher')->name('vouchers.approve');
         Route::post('/{salesOrder}/vouchers/{voucher}/reject', 'rejectVoucher')->name('vouchers.reject');
+        Route::get('/{salesOrder}/print', 'print')->name('print');
+    });
+
+    // Invoice Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\InvoiceController::class)->prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::get('/payment-history', 'paymentHistory')->name('payment-history');
+        Route::get('/overdue-report', 'overdueReport')->name('overdue-report');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{invoice}', 'show')->name('show');
+        Route::get('/{invoice}/edit', 'edit')->name('edit');
+        Route::put('/{invoice}', 'update')->name('update');
+        Route::delete('/{invoice}', 'destroy')->name('destroy');
+        Route::get('/{invoice}/pdf', 'generatePdf')->name('pdf');
+        Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
+        Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
     });
 });
 

@@ -2,24 +2,45 @@
   <AdminKeuanganLayout>
     <div class="p-4 sm:p-6 lg:p-8">
       <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-blue-200">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-center">
-            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mr-4">
+            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div>
-              <h2 class="text-2xl font-bold text-blue-800">Sales Orders dari CS</h2>
-              <p class="text-blue-600">Kelola sales order yang sudah dirilis oleh CS</p>
+              <h2 class="text-2xl font-bold text-sage-800">Manajemen Sales Orders</h2>
+              <p class="text-sage-600">Kelola sales order dari CS dan buat sales order baru</p>
             </div>
+          </div>
+          <div class="mt-4 sm:mt-0">
+            <Link
+              :href="route('admin-keuangan.sales-orders.create')"
+              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              Buat Sales Order
+            </Link>
           </div>
         </div>
       </div>
 
       <!-- Search Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-blue-200">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
         <div class="flex flex-col sm:flex-row gap-4">
           <div class="flex-1">
             <input
@@ -27,50 +48,50 @@
               @input="search"
               type="text"
               placeholder="Cari berdasarkan nomor order, customer, atau invoice..."
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
             />
           </div>
         </div>
       </div>
 
       <!-- Table Section -->
-      <div class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
-          <h3 class="text-lg font-semibold text-blue-800">Daftar Sales Orders</h3>
+      <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+          <h3 class="text-lg font-semibold text-sage-800">Daftar Sales Orders</h3>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-sage-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Order Number
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Customer
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Dirilis Oleh
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Tanggal Rilis
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Revenue
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Vouchers
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-center text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Aksi
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="salesOrder in salesOrders.data" :key="salesOrder.id" class="hover:bg-gray-50">
+            <tbody class="bg-white divide-y divide-sage-200">
+              <tr v-for="salesOrder in salesOrders.data" :key="salesOrder.id" class="hover:bg-sage-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
                     {{ salesOrder.order_number }}
@@ -111,16 +132,27 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
-                  <Link
-                    :href="route('admin-keuangan.sales-orders.show', salesOrder.id)"
-                    class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-                  >
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    Detail
-                  </Link>
+                  <div class="flex items-center space-x-2">
+                    <Link
+                      :href="route('admin-keuangan.sales-orders.show', salesOrder.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
+                      title="Lihat Detail"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </Link>
+                    <Link
+                      :href="route('admin-keuangan.sales-orders.edit', salesOrder.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-full transition-colors"
+                      title="Edit"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </Link>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -136,7 +168,7 @@
         </div>
 
         <!-- Pagination -->
-        <div v-if="salesOrders.data.length > 0" class="px-6 py-4 border-t border-gray-200">
+        <div v-if="salesOrders.data.length > 0" class="px-6 py-4 border-t border-sage-200">
           <Pagination :data="salesOrders" />
         </div>
       </div>
@@ -210,28 +242,59 @@ const getVoucherTypeColor = (type) => {
 </script>
 
 <style scoped>
-.text-blue-600 {
-  color: #2563eb;
+/* Custom Sage Colors */
+.text-sage-500 {
+  color: #9fb894;
 }
-.text-blue-700 {
-  color: #1d4ed8;
+.text-sage-600 {
+  color: #8db580;
 }
-.text-blue-800 {
-  color: #1e40af;
+.text-sage-700 {
+  color: #7ba169;
 }
-.bg-blue-50 {
-  background-color: #eff6ff;
+.text-sage-800 {
+  color: #6b8f5e;
 }
-.bg-blue-600 {
-  background-color: #2563eb;
+.text-sage-900 {
+  color: #5a7a4f;
 }
-.bg-blue-700 {
-  background-color: #1d4ed8;
+.bg-sage-50 {
+  background-color: #f4f6f3;
 }
-.border-blue-200 {
-  border-color: #bfdbfe;
+.bg-sage-100 {
+  background-color: #e8ece5;
 }
-.hover\:bg-blue-700:hover {
-  background-color: #1d4ed8;
+.bg-sage-600 {
+  background-color: #8db580;
+}
+.bg-sage-700 {
+  background-color: #7ba169;
+}
+.border-sage-200 {
+  border-color: #d4ddd0;
+}
+.border-sage-300 {
+  border-color: #c0cdb8;
+}
+.divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #d4ddd0;
+}
+.hover\:bg-sage-50:hover {
+  background-color: #f4f6f3;
+}
+.hover\:bg-sage-100:hover {
+  background-color: #e8ece5;
+}
+.hover\:bg-sage-700:hover {
+  background-color: #7ba169;
+}
+.hover\:text-sage-900:hover {
+  color: #5a7a4f;
+}
+.focus\:ring-sage-500:focus {
+  --tw-ring-color: #8db580;
+}
+.focus\:border-sage-500:focus {
+  border-color: #8db580;
 }
 </style>

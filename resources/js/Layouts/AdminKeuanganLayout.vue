@@ -148,8 +148,18 @@ import SidebarNavigation from "@/Pages/Admin/AdminKeuangan/Components/SidebarNav
 const route = window.route || function(name, params) {
   const routes = {
     'admin-keuangan.dashboard': '/admin-keuangan/dashboard',
+    'admin-keuangan.customers.index': '/admin-keuangan/customers',
+    'admin-keuangan.customers.create': '/admin-keuangan/customers/create',
+    'admin-keuangan.customers.show': '/admin-keuangan/customers',
+    'admin-keuangan.customers.edit': '/admin-keuangan/customers',
+    'admin-keuangan.vendors.index': '/admin-keuangan/vendors',
+    'admin-keuangan.vendors.create': '/admin-keuangan/vendors/create',
+    'admin-keuangan.vendors.show': '/admin-keuangan/vendors',
+    'admin-keuangan.vendors.edit': '/admin-keuangan/vendors',
     'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
+    'admin-keuangan.sales-orders.create': '/admin-keuangan/sales-orders/create',
     'admin-keuangan.sales-orders.show': '/admin-keuangan/sales-orders',
+    'admin-keuangan.sales-orders.edit': '/admin-keuangan/sales-orders',
     'profile.edit': '/profile',
     'logout': '/logout'
   };

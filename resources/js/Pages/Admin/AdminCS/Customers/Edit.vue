@@ -744,136 +744,6 @@
               </div>
             </div>
 
-            <!-- Buying to Vendor Section -->
-            <div class="border border-sage-200 rounded-lg">
-              <button
-                type="button"
-                @click="toggleVendorInfo"
-                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
-              >
-                <h4 class="text-lg font-semibold text-sage-800">
-                  Buying to Vendor
-                </h4>
-                <svg
-                  :class="{'rotate-180': isVendorInfoOpen}"
-                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div v-show="isVendorInfoOpen" class="p-4 space-y-4">
-                <!-- DESKRIPSI -->
-                <div>
-                  <label
-                    for="deskripsi"
-                    class="block text-sm font-medium text-sage-700 mb-2"
-                  >
-                    Deskripsi <span class="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    v-model="form.vendor.deskripsi"
-                    id="deskripsi"
-                    rows="2"
-                    required
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
-                  ></textarea>
-                  <div v-if="form.errors.vendor?.deskripsi" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.vendor.deskripsi }}
-                  </div>
-                </div>
-
-                <!-- NOMINAL -->
-                <div>
-                  <label
-                    for="nominal"
-                    class="block text-sm font-medium text-sage-700 mb-2"
-                  >
-                    Nominal
-                  </label>
-                  <input
-                    v-model="form.vendor.nominalFormatted"
-                    type="text"
-                    id="nominal"
-                    @input="formatNominal($event)"
-                    @blur="updateNominalValue()"
-                    placeholder="0"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                  />
-                  <div v-if="form.errors.vendor?.nominal" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.vendor.nominal }}
-                  </div>
-                </div>
-
-                <!-- PILIH VENDOR -->
-                <div>
-                  <label
-                    for="vendor_id"
-                    class="block text-sm font-medium text-sage-700 mb-2"
-                  >
-                    Pilih Vendor <span class="text-red-500">*</span>
-                  </label>
-                  <select
-                    v-model="form.vendor.vendor_id"
-                    id="vendor_id"
-                    required
-                    @change="onVendorChange()"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                  >
-                    <option value="">Pilih vendor...</option>
-                    <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
-                      {{ vendorOption.nama_vendor }}
-                    </option>
-                  </select>
-                  <div v-if="form.errors.vendor?.vendor_id" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.vendor.vendor_id }}
-                  </div>
-                </div>
-
-                <!-- INFO VENDOR (Auto-filled from selected vendor) -->
-                <div v-if="form.vendor.vendor_id" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-3 bg-sage-100 rounded-lg">
-                  <div>
-                    <label class="block text-sm font-medium text-sage-700 mb-1">
-                      Nomor Rekening
-                    </label>
-                    <p class="text-sm text-gray-900 font-mono">{{ form.vendor.no_rekening || '-' }}</p>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-sage-700 mb-1">
-                      Nama Rekening
-                    </label>
-                    <p class="text-sm text-gray-900">{{ form.vendor.nama_rekening || '-' }}</p>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-sage-700 mb-1">
-                      NIB
-                    </label>
-                    <p class="text-sm text-gray-900 font-mono">{{ form.vendor.nib || '-' }}</p>
-                  </div>
-                </div>
-
-                <!-- RCVD INV -->
-                <div>
-                  <label
-                    for="rcvd_inv"
-                    class="block text-sm font-medium text-sage-700 mb-2"
-                  >
-                    RCVD INV
-                  </label>
-                  <input
-                    v-model="form.vendor.rcvd_inv"
-                    type="text"
-                    id="rcvd_inv"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                  />
-                  <div v-if="form.errors.vendor?.rcvd_inv" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.vendor.rcvd_inv }}
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <!-- Submit Buttons -->
             <div
@@ -942,7 +812,6 @@ import AlertDialog from "@/Components/AlertDialog.vue";
 
 const props = defineProps({
   customer: Object,
-  vendors: Array,
 });
 
 // Alert Dialog State
@@ -963,7 +832,6 @@ const isPicInfoOpen = ref(true);
 const isMarketingInfoOpen = ref(true);
 const isShippingInfoOpen = ref(true);
 const isDocumentInfoOpen = ref(true);
-const isVendorInfoOpen = ref(true);
 
 const toggleCompanyInfo = () => {
   isCompanyInfoOpen.value = !isCompanyInfoOpen.value;
@@ -987,9 +855,6 @@ const toggleShippingInfo = () => {
 
 const toggleDocumentInfo = () => {
   isDocumentInfoOpen.value = !isDocumentInfoOpen.value;
-};
-const toggleVendorInfo = () => {
-  isVendorInfoOpen.value = !isVendorInfoOpen.value;
 };
 
 const formatDate = (dateString) => {
@@ -1027,64 +892,10 @@ const form = useForm({
   no_kont_pallet: props.customer.no_kont_pallet || "",
   pol_pod: props.customer.pol_pod || "",
   eta: formatDate(props.customer.eta) || "",
-  vendor: (() => {
-    let vendorData = {
-      vendor_id: "",
-      deskripsi: "",
-      nominal: "",
-      no_rekening: "",
-      company_name: "",
-      nama_rekening: "",
-      rcvd_inv: ""
-    };
-
-    // Check if vendors data exists and is an array or object
-    if (props.customer.vendors) {
-      if (Array.isArray(props.customer.vendors) && props.customer.vendors.length > 0) {
-        vendorData = { ...vendorData, ...props.customer.vendors[0] };
-      } else if (typeof props.customer.vendors === 'object' && !Array.isArray(props.customer.vendors)) {
-        vendorData = { ...vendorData, ...props.customer.vendors };
-      }
-    }
-
-    // Try to find vendor_id from existing vendor data
-    let vendorId = vendorData.vendor_id || "";
-    if (!vendorId && vendorData.company_name && props.vendors) {
-      const foundVendor = props.vendors.find(v => v.nama_vendor === vendorData.company_name);
-      if (foundVendor) {
-        vendorId = foundVendor.id;
-      }
-    }
-
-    return {
-      ...vendorData,
-      vendor_id: vendorId,
-      nominalFormatted: vendorData.nominal ? vendorData.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''
-    };
-  })(),
   photo: null,
   legal_document: null
 });
 
-
-const onVendorChange = () => {
-  const selectedVendorId = form.vendor.vendor_id;
-  if (selectedVendorId) {
-    const selectedVendor = props.vendors.find(v => v.id == selectedVendorId);
-    if (selectedVendor) {
-      form.vendor.no_rekening = selectedVendor.nomor_rekening;
-      form.vendor.company_name = selectedVendor.nama_vendor;
-      form.vendor.nama_rekening = selectedVendor.nama_rekening;
-      form.vendor.nib = selectedVendor.nib || "";
-    }
-  } else {
-    // Clear vendor data if no vendor selected
-    form.vendor.no_rekening = "";
-    form.vendor.company_name = "";
-    form.vendor.nama_rekening = "";
-    form.vendor.nib = "";
-  }
-};
 
 const showAlert = (type, title, message, confirmText = "", cancelText = "") => {
   alertDialog.value = {
@@ -1112,27 +923,6 @@ const closeAlert = () => {
   alertDialog.value.show = false;
 };
 
-const formatNominal = (event) => {
-  let value = event.target.value;
-  // Remove all non-digit characters
-  value = value.replace(/\D/g, '');
-
-  // Add thousand separators (dots)
-  if (value) {
-    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
-
-  form.vendor.nominalFormatted = value;
-};
-
-const updateNominalValue = () => {
-  // Convert formatted value back to number for form submission
-  if (form.vendor.nominalFormatted && form.vendor.nominalFormatted.trim() !== '') {
-    form.vendor.nominal = parseInt(form.vendor.nominalFormatted.replace(/\./g, ''));
-  } else {
-    form.vendor.nominal = null;
-  }
-};
 
 const handlePhotoChange = (event) => {
   const file = event.target.files[0];
@@ -1145,9 +935,6 @@ const handleLegalDocumentChange = (event) => {
 };
 
 const submit = () => {
-  // Ensure nominal is properly set before submission
-  updateNominalValue();
-  
   // Check if there are any files to upload
   const hasFiles = form.photo || form.legal_document;
   
