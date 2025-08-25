@@ -299,6 +299,19 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
         Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
     });
+
+    // Petty Cash Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\PettyCashController::class)->prefix('petty-cash')->name('petty-cash.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/dashboard', 'dashboard')->name('dashboard');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{pettyCash}', 'show')->name('show');
+        Route::get('/{pettyCash}/edit', 'edit')->name('edit');
+        Route::put('/{pettyCash}', 'update')->name('update');
+        Route::delete('/{pettyCash}', 'destroy')->name('destroy');
+        Route::get('/export', 'export')->name('export');
+    });
 });
 
 // SHARED ROUTES (All authenticated users)

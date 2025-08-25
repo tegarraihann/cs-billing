@@ -200,6 +200,32 @@
         <span class="font-medium">Payment Monitoring</span>
       </a>
 
+      <!-- Petty Cash -->
+      <a
+        href="/admin-keuangan/petty-cash"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.petty-cash')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+        <span class="font-medium">Petty Cash</span>
+      </a>
+
       <!-- Financial Reports -->
       <a
         href="#"
@@ -356,6 +382,7 @@ const isActive = (routePattern) => {
     'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
     'admin-keuangan.invoices': '/admin-keuangan/invoices',
     'admin-keuangan.payment-history': '/admin-keuangan/invoices/payment-history',
+    'admin-keuangan.petty-cash': '/admin-keuangan/petty-cash',
   };
   
   const routePath = routeMap[routePattern];
