@@ -5,8 +5,12 @@
       "Bash(rm:*)",
       "Bash(npm run build:*)",
       "Bash(php artisan:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(mysql:*)"
     ],
-    "deny": []
+    "deny": [],
+    "additionalDirectories": [
+      "C:\\c\\laragon\\www"
+    ]
   }
 }

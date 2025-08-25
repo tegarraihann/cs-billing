@@ -71,7 +71,7 @@
             <!-- Kategori -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Kategori <span class="text-red-500">*</span>
+                Kategori <span v-if="form.type === 'expense'" class="text-red-500">*</span>
               </label>
               <select
                 v-model="form.category_id"

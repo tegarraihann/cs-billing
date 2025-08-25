@@ -312,6 +312,38 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::delete('/{pettyCash}', 'destroy')->name('destroy');
         Route::get('/export', 'export')->name('export');
     });
+
+    // Profit Loss Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\ProfitLossController::class)->prefix('profit-loss')->name('profit-loss.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{profitLoss}', 'show')->name('show');
+        Route::get('/{profitLoss}/edit', 'edit')->name('edit');
+        Route::put('/{profitLoss}', 'update')->name('update');
+        Route::delete('/{profitLoss}', 'destroy')->name('destroy');
+        Route::post('/{profitLoss}/finalize', 'finalize')->name('finalize');
+        Route::post('/{profitLoss}/regenerate', 'regenerateEntries')->name('regenerate');
+        Route::post('/{profitLoss}/entries', 'addEntry')->name('entries.store');
+        Route::put('/entries/{entry}', 'updateEntry')->name('entries.update');
+        Route::delete('/entries/{entry}', 'deleteEntry')->name('entries.destroy');
+    });
+
+    // Employee Salary Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\EmployeeSalaryController::class)->prefix('employee-salary')->name('employee-salary.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/bulk-create', 'bulkCreate')->name('bulk-create');
+        Route::post('/bulk-store', 'bulkStore')->name('bulk-store');
+        Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
+        Route::get('/{employeeSalary}', 'show')->name('show');
+        Route::get('/{employeeSalary}/edit', 'edit')->name('edit');
+        Route::put('/{employeeSalary}', 'update')->name('update');
+        Route::delete('/{employeeSalary}', 'destroy')->name('destroy');
+        Route::post('/{employeeSalary}/approve', 'approve')->name('approve');
+        Route::post('/{employeeSalary}/cancel', 'cancel')->name('cancel');
+    });
 });
 
 // SHARED ROUTES (All authenticated users)

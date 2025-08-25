@@ -269,6 +269,8 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             // Fallback: Use dependency injection if facade fails
             try {
+
+                
                 $dompdf = app('dompdf.wrapper');
                 $pdf = $dompdf->loadView('admin.admin-cs.customers.pdf', compact('customer'))
                     ->setPaper('a4', 'portrait')

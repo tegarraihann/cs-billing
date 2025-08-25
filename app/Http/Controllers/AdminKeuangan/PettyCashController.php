@@ -78,16 +78,24 @@ class PettyCashController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'transaction_date' => 'required|date',
             'description' => 'required|string|max:255',
-            'category_id' => 'required|exists:petty_cash_categories,id',
             'amount' => 'required|numeric|min:0.01',
             'type' => ['required', Rule::in(['expense', 'topup', 'refund'])],
             'so_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
+        ];
+
+        // Category is only required for expense transactions
+        if ($request->type === 'expense') {
+            $rules['category_id'] = 'required|exists:petty_cash_categories,id';
+        } else {
+            $rules['category_id'] = 'nullable|exists:petty_cash_categories,id';
+        }
+
+        $request->validate($rules);
 
         DB::transaction(function () use ($request) {
             $currentBalance = PettyCashBalance::getCurrentBalance();
@@ -109,7 +117,7 @@ class PettyCashController extends Controller
             PettyCashTransaction::create([
                 'transaction_date' => $request->transaction_date,
                 'description' => $request->description,
-                'category_id' => $request->category_id,
+                'category_id' => $request->type === 'expense' ? $request->category_id : null,
                 'amount' => $request->amount,
                 'type' => $request->type,
                 'so_number' => $request->so_number,
@@ -162,16 +170,24 @@ class PettyCashController extends Controller
      */
     public function update(Request $request, PettyCashTransaction $pettyCash)
     {
-        $request->validate([
+        $rules = [
             'transaction_date' => 'required|date',
             'description' => 'required|string|max:255',
-            'category_id' => 'required|exists:petty_cash_categories,id',
             'amount' => 'required|numeric|min:0.01',
             'type' => ['required', Rule::in(['expense', 'topup', 'refund'])],
             'so_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
+        ];
+
+        // Category is only required for expense transactions
+        if ($request->type === 'expense') {
+            $rules['category_id'] = 'required|exists:petty_cash_categories,id';
+        } else {
+            $rules['category_id'] = 'nullable|exists:petty_cash_categories,id';
+        }
+
+        $request->validate($rules);
 
         DB::transaction(function () use ($request, $pettyCash) {
             $oldAmount = $pettyCash->amount;
@@ -202,7 +218,7 @@ class PettyCashController extends Controller
             $pettyCash->update([
                 'transaction_date' => $request->transaction_date,
                 'description' => $request->description,
-                'category_id' => $request->category_id,
+                'category_id' => $request->type === 'expense' ? $request->category_id : null,
                 'amount' => $request->amount,
                 'type' => $request->type,
                 'so_number' => $request->so_number,
