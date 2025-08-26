@@ -20,9 +20,20 @@
             </div>
           </div>
           <div class="mt-4 sm:mt-0 flex space-x-3">
+            <!-- Debug: Force Refresh Button -->
             <button
-              v-if="salesOrder.status === 'released'"
-              @click="approveSalesOrder"
+              @click="forceRefresh"
+              class="inline-flex items-center px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+              title="Force refresh data (for debugging)"
+            >
+              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+            <button
+              v-if="salesOrder.status === 'released' || salesOrder.status === 'draft'"
+              @click="showApprovalDialog"
               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +42,7 @@
               Setujui
             </button>
             <button
-              v-if="salesOrder.status === 'released'"
+              v-if="salesOrder.status === 'released' || salesOrder.status === 'draft'"
               @click="showRejectModal = true"
               class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
@@ -130,25 +141,63 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">JENIS BIAYA</label>
                 <p class="text-gray-900">{{ salesOrder.jenis_biaya || '-' }}</p>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">BUYING</label>
-                <p class="text-gray-900">{{ salesOrder.buying ? formatCurrency(salesOrder.buying) : '-' }}</p>
+              <!-- Buying Breakdown -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">BUYING BREAKDOWN</label>
+                <div v-if="salesOrder.buying_breakdown && salesOrder.buying_breakdown.length" class="space-y-2 p-3 bg-gray-50 rounded-lg">
+                  <div v-for="(item, index) in salesOrder.buying_breakdown" :key="index" class="flex justify-between items-center p-2 bg-white rounded border">
+                    <span class="text-sm text-gray-700 font-medium">{{ item.vendor || 'Unknown Vendor' }}</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ formatCurrency(item.amount || 0) }}</span>
+                  </div>
+                  <div class="border-t pt-2 mt-2">
+                    <div class="flex justify-between items-center font-bold">
+                      <span class="text-sm text-blue-700">Total Buying:</span>
+                      <span class="text-lg text-blue-600">{{ formatCurrency(totalBuying) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <p v-else class="text-gray-500">-</p>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SELLING</label>
-                <p class="text-gray-900">{{ salesOrder.selling ? formatCurrency(salesOrder.selling) : '-' }}</p>
+              
+              <!-- Selling Breakdown -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">SELLING BREAKDOWN</label>
+                <div v-if="salesOrder.selling_breakdown && salesOrder.selling_breakdown.length" class="space-y-2 p-3 bg-gray-50 rounded-lg">
+                  <div v-for="(item, index) in salesOrder.selling_breakdown" :key="index" class="flex justify-between items-center p-2 bg-white rounded border">
+                    <span class="text-sm text-gray-700 font-medium">{{ item.description || 'Unknown Service' }}</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ formatCurrency(item.amount || 0) }}</span>
+                  </div>
+                  <div class="border-t pt-2 mt-2">
+                    <div class="flex justify-between items-center font-bold">
+                      <span class="text-sm text-green-700">Total Selling:</span>
+                      <span class="text-lg text-green-600">{{ formatCurrency(totalSelling) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <p v-else class="text-gray-500">-</p>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">REVENUE</label>
-                <p class="text-gray-900 font-semibold text-lg">{{ salesOrder.revenue ? formatCurrency(salesOrder.revenue) : '-' }}</p>
+              
+              <!-- Revenue -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">REVENUE (PROFIT)</label>
+                <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-2xl font-bold" :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
+                        {{ formatCurrency(totalRevenue) }}
+                      </div>
+                      <div class="text-xs text-gray-600 mt-1">Auto Calculated</div>
+                    </div>
+                    <div class="text-right text-sm text-gray-600">
+                      <div>Selling: {{ formatCurrency(totalSelling) }}</div>
+                      <div>Buying: {{ formatCurrency(totalBuying) }}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">REMARKS</label>
                 <p class="text-gray-900">{{ salesOrder.remarks || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">GOODS</label>
-                <p class="text-gray-900">{{ salesOrder.goods || '-' }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER NO</label>
@@ -303,6 +352,67 @@
       </div>
     </div>
 
+    <!-- Approval Dialog -->
+    <div v-if="showApprovalModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="flex items-center mb-4">
+          <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">Konfirmasi Persetujuan</h3>
+        </div>
+        
+        <div class="mb-6 space-y-3">
+          <p class="text-gray-600">Apakah Anda yakin ingin menyetujui sales order ini?</p>
+          
+          <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="font-medium">Order Number:</span>
+              <span>{{ salesOrder.order_number }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="font-medium">Customer:</span>
+              <span>{{ salesOrder.customer }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="font-medium">Status Saat Ini:</span>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
+                    :class="getStatusColor(salesOrder.status)">
+                {{ getStatusLabel(salesOrder.status) }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Debug Info (hanya tampil jika ada masalah) -->
+          <div v-if="debugInfo" class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+            <div class="text-sm font-medium text-yellow-800 mb-1">Debug Info:</div>
+            <div class="text-xs text-yellow-700">
+              <div>Status: {{ salesOrder.status }}</div>
+              <div>Released At: {{ salesOrder.released_at || 'NULL' }}</div>
+              <div>Released By: {{ salesOrder.released_by?.name || 'NULL' }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeApprovalDialog"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            @click="approveSalesOrder"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Ya, Setujui
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Reject Modal -->
     <div v-if="showRejectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
@@ -365,7 +475,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 
@@ -378,6 +488,8 @@ const rejectionReason = ref('');
 const showVoucherRejectModal = ref(false);
 const voucherRejectionReason = ref('');
 const selectedVoucher = ref(null);
+const showApprovalModal = ref(false);
+const debugInfo = ref(false);
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -397,6 +509,21 @@ const formatCurrency = (amount, currency = 'IDR') => {
   }).format(amount);
 };
 
+// Computed properties for breakdown totals
+const totalBuying = computed(() => {
+  if (!props.salesOrder.buying_breakdown) return 0;
+  return props.salesOrder.buying_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalSelling = computed(() => {
+  if (!props.salesOrder.selling_breakdown) return 0;
+  return props.salesOrder.selling_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalRevenue = computed(() => {
+  return totalSelling.value - totalBuying.value;
+});
+
 const getStatusLabel = (status) => {
   const labels = {
     released: 'Dirilis',
@@ -415,20 +542,71 @@ const getStatusColor = (status) => {
   return colors[status] || 'bg-gray-100 text-gray-800';
 };
 
-const approveSalesOrder = () => {
-  if (confirm('Apakah Anda yakin ingin menyetujui sales order ini?')) {
-    router.post(route('admin-keuangan.sales-orders.approve', props.salesOrder.id), {}, {
-      onSuccess: () => {
-        router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
-          preserveState: false,
-          replace: true,
-        });
-      },
-      onError: (errors) => {
-        alert('Terjadi kesalahan: ' + Object.values(errors).join(', '));
+const showApprovalDialog = () => {
+  // Refresh data sebelum menampilkan dialog untuk memastikan status terbaru
+  router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      // Setelah refresh, check status lagi
+      if (props.salesOrder.status !== 'released') {
+        // Tampilkan debug info jika status bukan 'released'
+        debugInfo.value = true;
+        showApprovalModal.value = true;
+        return;
       }
-    });
-  }
+      
+      debugInfo.value = false;
+      showApprovalModal.value = true;
+    },
+    onError: () => {
+      alert('Gagal memuat data terbaru. Silakan refresh halaman.');
+    }
+  });
+};
+
+const closeApprovalDialog = () => {
+  showApprovalModal.value = false;
+  debugInfo.value = false;
+};
+
+const approveSalesOrder = () => {
+  // Hapus validasi frontend karena backend sudah menangani dengan fresh data
+  // Frontend validation bisa menyebabkan false negative karena stale data
+
+  router.post(route('admin-keuangan.sales-orders.approve', props.salesOrder.id), {}, {
+    onSuccess: (response) => {
+      showApprovalModal.value = false;
+      debugInfo.value = false;
+      router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
+        preserveState: false,
+        replace: true,
+      });
+    },
+    onError: (errors) => {
+      let errorMessage = 'Terjadi kesalahan saat menyetujui sales order:\n\n';
+      
+      // Parse error messages
+      if (errors.error) {
+        errorMessage += `Error: ${errors.error}\n`;
+      }
+      
+      // Tambahkan informasi status untuk debugging
+      errorMessage += `\nInformasi Debug:`;
+      errorMessage += `\n- Status saat ini: ${props.salesOrder.status}`;
+      errorMessage += `\n- Tanggal rilis: ${props.salesOrder.released_at || 'Tidak ada'}`;
+      errorMessage += `\n- Dirilis oleh: ${props.salesOrder.released_by?.name || 'Tidak ada'}`;
+      
+      if (props.salesOrder.status !== 'released') {
+        errorMessage += `\n\nSaran: Pastikan CS sudah merilis sales order ini terlebih dahulu.`;
+      }
+      
+      alert(errorMessage);
+      
+      // Tampilkan debug info di modal
+      debugInfo.value = true;
+    }
+  });
 };
 
 const rejectSalesOrder = () => {
@@ -508,6 +686,23 @@ const closeVoucherRejectModal = () => {
   showVoucherRejectModal.value = false;
   selectedVoucher.value = null;
   voucherRejectionReason.value = '';
+};
+
+// Force refresh untuk debugging cache issues
+const forceRefresh = () => {
+  router.post(route('admin-keuangan.sales-orders.force-refresh', props.salesOrder.id), {}, {
+    onSuccess: () => {
+      // Redirect to show page to get fresh data
+      router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
+        preserveState: false,
+        replace: true,
+      });
+    },
+    onError: (errors) => {
+      console.error('Force refresh failed:', errors);
+      alert('Gagal melakukan refresh. Silakan coba lagi.');
+    }
+  });
 };
 
 const rejectVoucher = () => {

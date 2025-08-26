@@ -43,7 +43,7 @@ class InvoiceController extends Controller
                 $q->where('invoice_number', 'like', "%{$search}%")
                   ->orWhereHas('customer', function($customerQuery) use ($search) {
                       $customerQuery->where('company_name', 'like', "%{$search}%")
-                                  ->orWhere('consignee_shipper', 'like', "%{$search}%");
+                                  ;
                   })
                   ->orWhereHas('salesOrder', function($orderQuery) use ($search) {
                       $orderQuery->where('order_number', 'like', "%{$search}%")
@@ -123,20 +123,14 @@ class InvoiceController extends Controller
         $customerId = $salesOrder->customer_id;
         if (!$customerId) {
             // Jika tidak ada customer_id, cari berdasarkan customer name atau buat dummy
-            $customer = Customer::where('consignee_shipper', $salesOrder->customer)
-                              ->orWhere('consignee_shipper', $salesOrder->customer_name)
-                              ->orWhere('company_name', $salesOrder->customer)
+            $customer = Customer::where('company_name', $salesOrder->customer)
                               ->orWhere('company_name', $salesOrder->customer_name)
                               ->first();
             if (!$customer) {
                 // Buat dummy customer jika tidak ditemukan
                 $customer = Customer::create([
-                    'so_number' => $salesOrder->order_number ?? 'UNKNOWN',
-                    'customer_code' => 'AUTO-' . time(),
                     'company_name' => $salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer',
-                    'consignee_shipper' => $salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer',
                     'company_address' => $salesOrder->customer_address ?? 'N/A',
-                    'awb_bl_number' => $salesOrder->bl_awb ?? $salesOrder->awb_bl_number ?? 'N/A',
                     'pic_phone' => 'N/A',
                     'pic_email' => 'unknown@example.com',
                     'handled_by' => auth()->id()
@@ -366,7 +360,7 @@ class InvoiceController extends Controller
                 $q->where('invoice_number', 'like', "%{$search}%")
                   ->orWhereHas('customer', function($customerQuery) use ($search) {
                       $customerQuery->where('company_name', 'like', "%{$search}%")
-                                  ->orWhere('consignee_shipper', 'like', "%{$search}%");
+                                  ;
                   });
             });
         }
@@ -395,6 +389,18 @@ class InvoiceController extends Controller
             'overdueInvoices' => $overdueInvoices,
             'totalOverdue' => $totalOverdue,
             'averageDaysOverdue' => round($averageDaysOverdue, 1)
+        ]);
+    }
+
+    /**
+     * Preview invoice in browser (HTML format like PDF)
+     */
+    public function preview(Invoice $invoice)
+    {
+        $invoice->load(['customer', 'salesOrder', 'items']);
+        
+        return view('invoices.preview', [
+            'invoice' => $invoice
         ]);
     }
 }

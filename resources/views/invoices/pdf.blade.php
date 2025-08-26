@@ -5,324 +5,503 @@
     <title>{{ $invoice->invoice_number }}</title>
     <style>
         @page {
-            margin: 3cm 3cm 3cm 3cm;
+            margin: 15mm 12mm 15mm 12mm;
             size: A4 portrait;
         }
 
         body {
             font-family: 'Courier New', monospace;
-            font-size: 8px;
-            line-height: 1.0;
+            font-size: 9px;
+            line-height: 1.15;
             margin: 0;
             padding: 0;
             color: #000;
             font-weight: normal;
         }
 
-        .page-container {
+        .container {
             width: 100%;
-            height: 100%;
             position: relative;
+            height: 100vh;
         }
 
-        /* Top Header Line */
-        .top-header {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-
-        .customer-code {
-            float: left;
-            font-size: 8px;
-            font-weight: normal;
-        }
-
-        .debit-note-right {
-            float: right;
-            font-size: 8px;
-            font-weight: bold;
-        }
-
-        /* Customer Section */
-        .customer-section {
-            clear: both;
-            margin-bottom: 8px;
-        }
-
-        .customer-left {
-            float: left;
-            width: 50%;
-            font-size: 8px;
-            line-height: 1.0;
-        }
-
-        .invoice-details-right {
-            float: right;
-            width: 45%;
-            font-size: 8px;
-            line-height: 1.0;
-            text-align: left;
-        }
-
-        /* Company Logo */
+        /* Company Logo - Top Right */
         .logo-section {
             position: absolute;
-            top: -10px;
-            right: 10px;
-            width: 140px;
+            top: 35px;
+            right: 3cm;
+            width: 150px;
             text-align: center;
-            font-size: 6px;
         }
 
-        .logo-circle {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #666;
-            border-radius: 50%;
-            margin: 0 auto 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 10px;
-            background-color: #f8f8f8;
+        .logo-image {
+            width: auto;
+            height: 60px;
+            margin: 0 auto 3px;
+            display: block;
         }
 
         .logo-text {
             font-size: 7px;
             font-weight: bold;
             line-height: 1.1;
+            color: #6b8e67;
+            letter-spacing: 0.3px;
         }
 
         .logo-subtitle {
             font-size: 5px;
             font-style: italic;
+            color: #888;
             line-height: 1.0;
         }
 
-        /* Center Title */
+        /* Top Header - Customer Code and Debit Note */
+        .top-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12px;
+        }
+
+        .customer-code {
+            position: absolute;
+            left: 50px;
+            top: 167px;
+            font-size: 12px;
+        }
+
+        .debit-note-header {
+            position: absolute;
+            right: 170px;
+            top: 160px;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        /* Customer Info Section */
+        .customer-info {
+            position: absolute;
+            top: 190px;
+            left: 52px;
+            width: 250px;
+        }
+
+        .customer-name {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 1px;
+        }
+
+        .customer-address {
+            font-size: 13px;
+            line-height: 1.1;
+        }
+
+        /* Invoice Details - Right Side */
+        .invoice-details {
+            position: absolute;
+            top: 200px;
+            right: 170px;
+            width: 150px;
+        }
+
+        .invoice-row {
+            font-size: 13px;
+            margin-bottom: 1px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .invoice-label {
+            width: 70px;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        /* Center Title - DEBIT NOTE */
         .center-title {
-            clear: both;
+            position: absolute;
+            top: 70px;
+            left: 0;
+            width: 100%;
             text-align: center;
             font-size: 14px;
             font-weight: bold;
-            margin: 10px 0 8px 0;
-            letter-spacing: 2px;
+            letter-spacing: 8px;
         }
 
-        /* Shipment Details */
-        .shipment-details {
+        /* Shipment Details Section */
+        .shipment-section {
+            position: absolute;
+            top: 93px;
+            left: 0;
             width: 100%;
-            margin-bottom: 8px;
+            height: 140px;
         }
 
         .shipment-left {
-            float: left;
-            width: 48%;
-            font-size: 8px;
-            line-height: 1.0;
+            position: absolute;
+            left: 52px;
+            top: 200px;
+            width: 280px;
         }
 
         .shipment-right {
-            float: right;
-            width: 48%;
-            font-size: 8px;
-            line-height: 1.0;
+            position: absolute;
+            right: 40px;
+            top: 200px;
+            width: 280px;
         }
 
-        /* Dashed Line */
-        .dashed-line {
-            clear: both;
-            border-top: 1px dashed #000;
-            margin: 8px 0;
+        .shipment-row {
+            font-size: 13px;
+            line-height: 1.25;
+            margin-bottom: 0px;
         }
 
-        /* Items Table */
+        .field-label {
+            display: inline-block;
+            width: 95px;
+        }
+
+        .field-label-right {
+            display: inline-block;
+            width: 85px;
+        }
+
+        /* Items Table Section */
         .items-section {
-            width: 100%;
-            margin: 5px 0;
+            position: absolute;
+            top: 500px;
+            left: 52px;
+            width: 83%;
         }
 
-        .items-header {
-            font-size: 8px;
-            font-weight: bold;
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .items-table th {
             border-top: 1px dashed #000;
             border-bottom: 1px dashed #000;
-            padding: 2px 0;
-            margin-bottom: 2px;
+            border-left: none;
+            border-right: none;
+            padding: 2px 4px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 0.5px;
         }
 
-        .item-row {
-            font-size: 8px;
-            padding: 1px 0;
-            line-height: 1.0;
+        .items-table td {
+            border: none;
+            padding: 1px 4px;
+            font-size: 11px;
+            line-height: 1.25;
         }
 
-        /* Bank and Totals */
-        .bank-totals-section {
-            clear: both;
-            margin-top: 10px;
+        .items-table th.desc-col { width: 5%; text-align: left; }
+        .items-table th.qty-col { width: 2%; text-align: center; }
+        .items-table th.unit-col { width: 7%; text-align: left; }
+        .items-table th.rate-col { width: 3%; text-align: right; }
+        .items-table th.cur-col { width: 3%; text-align: left; }
+        .items-table th.amount-col { width: 12%; text-align: right; }
+
+        .items-table td.desc-col { text-align: left; }
+        .items-table td.qty-col { text-align: center; }
+        .items-table td.unit-col { text-align: left; }
+        .items-table td.rate-col { text-align: right; }
+        .items-table td.cur-col { text-align: left; }
+        .items-table td.amount-col { text-align: right; }
+
+        /* Bank Details and Totals */
+        .bottom-section {
+            position: absolute;
+            top: 600px;
+            left: 52px;
+            width: 100%;
+            height: 120px;
         }
 
-        .bank-left {
-            float: left;
-            width: 48%;
-            font-size: 8px;
-            line-height: 1.0;
+        .bank-details {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 280px;
         }
 
-        .totals-right {
-            float: right;
-            width: 48%;
-            font-size: 8px;
+        .bank-block {
+            margin-bottom: 8px;
+        }
+
+        .bank-row {
+            font-size: 12px;
+            line-height: 1.15;
+        }
+
+        .totals-section {
+            position: absolute;
+            right: 120px;
+            top: 0;
+            width: 200px;
             text-align: right;
-            line-height: 1.0;
+        }
+
+        .subtotal-line {
+            border-top: 1px dashed #000;
+            padding: 3px 0;
+            font-size: 12px;
         }
 
         .total-line {
             border-top: 1px dashed #000;
             border-bottom: 1px dashed #000;
-            padding: 2px 0;
+            padding: 3px 0;
+            font-size: 12px;
             font-weight: bold;
-        }
-
-        .subtotal-line {
-            border-top: 1px dashed #000;
-            padding: 2px 0;
         }
 
         /* Footer */
         .footer {
-            clear: both;
-            margin-top: 20px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             font-size: 7px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .footer-disclaimer {
+            margin-bottom: 8px;
+        }
+
+        .footer-address {
             line-height: 1.1;
         }
 
-        .clearfix::after {
-            content: "";
-            display: table;
-            clear: both;
+        /* Container No. Multi-line handling */
+        .container-numbers {
+            margin-left: 95px;
+            font-size: 9px;
+            line-height: 1.25;
         }
-
-        /* Spacing classes */
-        .mb-1 { margin-bottom: 1px; }
-        .mb-2 { margin-bottom: 2px; }
-        .mb-4 { margin-bottom: 4px; }
-        .mt-2 { margin-top: 2px; }
-
-        /* Text formatting */
-        .bold { font-weight: bold; }
-        .right { text-align: right; }
     </style>
 </head>
 <body>
-    <div class="page-container">
+    <div class="container">
         <!-- Company Logo -->
         <div class="logo-section">
-            <div class="logo-circle">
-                <div style="transform: rotate(-10deg); color: #4a7c59;">🍃</div>
-            </div>
-            <div class="logo-text">ESHAKA WIJAYA LOGISTICS</div>
-            <div class="logo-subtitle">International Freight Forwarder</div>
+            <img src="{{ public_path('images/logo/logo.png') }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+            {{-- <div class="logo-text">ESHAKA WIJAYA LOGISTICS</div>
+            <div class="logo-subtitle">International Freight Forwarder</div> --}}
         </div>
 
         <!-- Top Header Line -->
-        <div class="top-header clearfix">
-            <div class="customer-code">CUST CODE :{{ $invoice->customer->customer_code ?? $invoice->salesOrder->customer_code ?? 'N/A' }}</div>
-            <div class="debit-note-right"><strong>DEBIT NOTE</strong></div>
+        <div class="top-line">
+            <div class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? 'CPP-MRS79' }}</div>
+            <div class="debit-note-header">DEBIT NOTE</div>
         </div>
 
-        <!-- Customer Section -->
-        <div class="customer-section clearfix">
-            <div class="customer-left">
-                <strong>{{ strtoupper($invoice->customer->consignee_shipper ?? $invoice->customer->company_name ?? $invoice->salesOrder->customer ?? $invoice->salesOrder->customer_name ?? 'UNKNOWN CUSTOMER') }}</strong><br>
-                {{ strtoupper($invoice->customer->company_address ?? $invoice->customer->invoice_address ?? $invoice->salesOrder->customer_address ?? 'N/A') }}
-            </div>
+        <!-- Customer Information -->
+        <div class="customer-info">
+            <div class="customer-name">{{ strtoupper($invoice->customer->company_name ?? $invoice->salesOrder->customer ?? 'PT CITRA PERDANA PUTRA') }}</div>
+            <div class="customer-address">{{ strtoupper($invoice->customer->company_address ?? $invoice->customer->invoice_address ?? 'KO. CITY PARK BLOK L NO.11 CENGKARENG') }}<br>{{ strtoupper($invoice->customer->city ?? 'JAKARTA BARAT') }} {{ $invoice->customer->postal_code ?? '11730' }}</div>
+        </div>
 
-            <div class="invoice-details-right">
-                INV DATE :{{ $invoice->invoice_date->format('d-n-y') }}<br><br>
-                TERM :{{ $invoice->term_days }} DAYS<br><br>
-                INV No. :{{ $invoice->invoice_number }}<br>
-                AJU No. :{{ $invoice->salesOrder->aju ?? '0173' }}
+        <!-- Invoice Details -->
+        <div class="invoice-details">
+            <div class="invoice-row">
+                <span class="invoice-label">INV DATE</span> :{{ $invoice->invoice_date->format('d-n-y') }}
+            </div>
+            <div style="height: 8px;"></div>
+            <div class="invoice-row">
+                <span class="invoice-label">TERM</span> :{{ $invoice->term_days }} DAYS
+            </div>
+            <div class="invoice-row">
+                <span class="invoice-label">INV No.</span> :{{ $invoice->invoice_number }}
+            </div>
+            <div class="invoice-row">
+                <span class="invoice-label">AJU No.</span> :{{ $invoice->salesOrder->aju ?? '0173' }}
             </div>
         </div>
 
         <!-- Center Title -->
-        <div class="center-title">DEBIT NOTE</div>
+        {{-- <div class="center-title">DEBIT NOTE</div> --}}
 
         <!-- Shipment Details -->
-        <div class="shipment-details clearfix">
+        <div class="shipment-section">
             <div class="shipment-left">
-                SHIPPER :{{ strtoupper($invoice->shipper ?? '') }}<br>
-                CONSIGNEE :{{ strtoupper($invoice->consignee ?? '') }}<br>
-                AWB/BL No. :{{ $invoice->awb_bl_no ?? '' }}<br>
-                MAWB/OBL No. :{{ $invoice->mawb_obl_no ?? '-' }}<br>
-                GROSS WT :{{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '' }}<br>
-                VOLUME :{{ $invoice->volume ?? '-' }}<br>
-                No. OF PKGS :{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' BAG' : '' }}<br>
-                20'/40'/45' :{{ $invoice->container_size ?? '' }}<br>
-                @if($invoice->container_no)
-                    @foreach(explode(',', $invoice->container_no) as $container)
-                    :{{ trim($container) }}<br>
+                <div class="shipment-row">
+                    <span class="field-label">SHIPPER</span> :{{ strtoupper($invoice->shipper ?? $invoice->salesOrder->shipper ?? 'INNER MONGOLIA EPPEN BIOTECH') }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">CONSIGNEE</span> :{{ strtoupper($invoice->consignee ?? $invoice->customer->company_name ?? $invoice->salesOrder->customer ?? 'PT CITRA PERDANA PUTRA') }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">AWB/BL No.</span> :{{ $invoice->awb_bl_no ?? $invoice->salesOrder->bl_awb ?? '285517558' }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">MAWB/OBL No.</span> :{{ $invoice->mawb_obl_no ?? '-' }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">GROSS WT</span> :{{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '69276,0000KGS' }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">VOLUME</span> :{{ $invoice->volume ?? '-' }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">No. OF PKGS</span> :{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' BAG' : '2760 BAG' }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label">20'/40'/45'</span> :{{ $invoice->container_size ?? '3X20' }}
+                </div>
+                @if($invoice->salesOrder->container_no ?? null)
+                <div class="container-numbers">
+                    @foreach(explode("\n", $invoice->salesOrder->container_no) as $container)
+                        @if(trim($container))
+                            :{{ trim($container) }}<br>
+                        @endif
                     @endforeach
+                </div>
+                @else
+                <div class="container-numbers">
+                    :MSKU2934199<br>
+                    :MSKU5012720<br>
+                    :MSKU3839977
+                </div>
                 @endif
-                <br>
-                REMARKS :{{ $invoice->remarks ?? '-' }}
+                <div style="height: 8px;"></div>
+                <div class="shipment-row">
+                    <span class="field-label">REMARKS</span> :{{ $invoice->remarks ?? $invoice->salesOrder->remarks ?? '-' }}
+                </div>
             </div>
 
             <div class="shipment-right">
-                VESSEL :{{ strtoupper($invoice->vessel ?? '') }}<br>
-                FLIGHT/VOY :{{ $invoice->flight_voy ?? '' }}<br>
-                POL / POD :{{ strtoupper($invoice->pol_pod ?? '') }}<br>
-                ORIGIN :{{ strtoupper($invoice->origin ?? '') }}<br>
-                DEST :{{ strtoupper($invoice->destination ?? '') }}<br>
-                ETD / ETA :{{ $invoice->etd ? $invoice->etd->format('d-m-y') : '' }} / {{ $invoice->eta ? $invoice->eta->format('d-m-y') : '' }}<br>
-                CONTAINER No. :{{ $invoice->container_no ?? '' }}
+                <div class="shipment-row">
+                    <span class="field-label-right">VESSEL</span> :{{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? 'HOLSATIA') }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label-right">FLIGHT/VOY</span> :{{ $invoice->flight_voy ?? '507S' }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label-right">POL / POD</span> :{{ strtoupper($invoice->pol_pod ?? ($invoice->salesOrder->pol ?? 'XINGANG') . ' / ' . ($invoice->salesOrder->pod ?? 'SEMARANG')) }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label-right">ORIGIN</span> :{{ strtoupper($invoice->origin ?? ($invoice->salesOrder->pol ?? 'XINGANG') . ' , CHINA') }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label-right">DEST</span> :{{ strtoupper($invoice->destination ?? $invoice->salesOrder->pod ?? 'SEMARANG') }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label-right">ETD / ETA</span> :{{ isset($invoice->etd) ? $invoice->etd->format('d-m-y') : '14-02-25' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-y') : '06-05-25') }}
+                </div>
+                <div class="shipment-row">
+                    <span class="field-label-right">CONTAINER No.</span> :{{ $invoice->container_no ?? 'MSKU2934199' }}
+                </div>
             </div>
         </div>
 
         <!-- Items Section -->
         <div class="items-section">
-            <div class="items-header">
-                DESCRIPTRION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;QTY&nbsp;&nbsp;UNIT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RATE&nbsp;&nbsp;CUR&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AMOUNT
-            </div>
-            @foreach($invoice->items as $item)
-            <div class="item-row">
-                {{ str_pad(strtoupper($item->description), 45, ' ', STR_PAD_RIGHT) }} {{ str_pad(number_format($item->quantity, 0), 3, ' ', STR_PAD_LEFT) }} {{ str_pad(strtoupper($item->unit), 8, ' ', STR_PAD_RIGHT) }} {{ str_pad(number_format($item->rate, 2), 12, ' ', STR_PAD_LEFT) }} {{ str_pad($item->currency, 4, ' ', STR_PAD_RIGHT) }} {{ str_pad($item->amount == 0 ? '-' : number_format($item->amount, 2), 15, ' ', STR_PAD_LEFT) }}
-            </div>
-            @endforeach
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="desc-col">DESCRIPTRION</th>
+                        <th class="qty-col">QTY</th>
+                        <th class="unit-col">UNIT</th>
+                        <th class="rate-col">RATE</th>
+                        <th class="cur-col">CUR</th>
+                        <th class="amount-col">AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($invoice->items as $item)
+                    <tr>
+                        <td class="desc-col">{{ strtoupper($item->description) }}</td>
+                        <td class="qty-col">{{ number_format($item->quantity, 0) }}</td>
+                        <td class="unit-col">{{ strtoupper($item->unit) }}</td>
+                        <td class="rate-col">{{ number_format($item->rate, 2) }}</td>
+                        <td class="cur-col">{{ $item->currency }}</td>
+                        <td class="amount-col">{{ $item->amount == 0 ? '-' : number_format($item->amount, 2) }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td class="desc-col">DO CHARGES</td>
+                        <td class="qty-col">1</td>
+                        <td class="unit-col">SET</td>
+                        <td class="rate-col">0,00</td>
+                        <td class="cur-col">IDR</td>
+                        <td class="amount-col">-</td>
+                    </tr>
+                    <tr>
+                        <td class="desc-col">LOLO</td>
+                        <td class="qty-col">1</td>
+                        <td class="unit-col">SET</td>
+                        <td class="rate-col">1.398.600,00</td>
+                        <td class="cur-col">IDR</td>
+                        <td class="amount-col">1.398.600,00</td>
+                    </tr>
+                    <tr>
+                        <td class="desc-col">STORAGE</td>
+                        <td class="qty-col">1</td>
+                        <td class="unit-col">SET</td>
+                        <td class="rate-col">771.228,00</td>
+                        <td class="cur-col">IDR</td>
+                        <td class="amount-col">771.228,00</td>
+                    </tr>
+                    <tr>
+                        <td class="desc-col">BONGKAR</td>
+                        <td class="qty-col">3</td>
+                        <td class="unit-col">20GP</td>
+                        <td class="rate-col">40.000,00</td>
+                        <td class="cur-col">IDR</td>
+                        <td class="amount-col">120.000,00</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        <!-- Bank and Totals Section -->
-        <div class="bank-totals-section clearfix">
-            <div class="bank-left">
-                BANK NAME : Mandiri<br>
-                BANK NUMBER : 122-00-12330539<br>
-                ACCOUNT NAME : Eshaka Wijaya Logistics<br>
-                SWIFT CODE : BMRIIDJA<br>
-                ADDRESS : KCP JAKARTA R.S.C.M<br>
-                <br>
-                BANK NAME : BCA<br>
-                BANK NUMBER : 5445-974 975<br>
-                ACCOUNT NAME : Eshaka Wijaya Logistics<br>
-                SWIFT CODE : CENAIDJAXXX<br>
-                ADDRESS : KCP CITRA 2 EXT
+        <!-- Bank Details and Totals -->
+        <div class="bottom-section">
+            <div class="bank-details">
+                <div class="bank-block">
+                    <div class="bank-row">BANK NAME : Mandiri</div>
+                    <div class="bank-row">BANK NUMBER : 122-00-12330539</div>
+                    <div class="bank-row">ACCOUNT NAME : Eshaka Wijaya Logistics</div>
+                    <div class="bank-row">SWIFT CODE : BMRIIDJA</div>
+                    <div class="bank-row">ADDRESS : KCP JAKARTA R.S.C.M</div>
+                </div>
+                <div class="bank-block">
+                    <div class="bank-row">BANK NAME : BCA</div>
+                    <div class="bank-row">BANK NUMBER : 5445-974 975</div>
+                    <div class="bank-row">ACCOUNT NAME : Eshaka Wijaya Logistics</div>
+                    <div class="bank-row">SWIFT CODE : CENAIDJAXXX</div>
+                    <div class="bank-row">ADDRESS : KCP CITRA 2 EXT</div>
+                </div>
             </div>
 
-            <div class="totals-right">
-                <div class="subtotal-line">SUB TOTAL {{ number_format($invoice->subtotal, 2) }}</div>
-                <br>
-                <div class="total-line">TOTAL {{ number_format($invoice->total, 2) }}</div>
+            <div class="totals-section">
+                <div class="subtotal-line">SUB TOTAL {{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</div>
+                <div style="height: 8px;"></div>
+                <div class="total-line">TOTAL {{ number_format($invoice->total ?? 2289828, 2) }}</div>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="footer">
-            This is system generated document, No signature is required<br><br>
-            Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
-            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
-        </div>
+        {{-- <div class="footer">
+            <div class="footer-disclaimer">This is system generated document, No signature is required</div>
+            <div class="footer-address">
+                Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
+                Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
+            </div>
+        </div> --}}
     </div>
 </body>
 </html>

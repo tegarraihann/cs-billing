@@ -196,98 +196,129 @@
           </div>
         </div>
 
-        <!-- Vendor Information -->
+        <!-- Multiple Vendors Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
           <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-            <h3 class="text-lg font-semibold text-sage-800">Informasi Vendor</h3>
+            <h3 class="text-lg font-semibold text-sage-800">Vendor Information (Buying)</h3>
           </div>
           <div class="p-6 space-y-4">
-            <div>
-              <label for="vendor_id" class="block text-sm font-medium text-sage-700 mb-2">
-                Vendor <span class="text-red-500">*</span>
-              </label>
-              <select
-                v-model="form.vendor.vendor_id"
-                @change="onVendorSelect"
-                id="vendor_id"
-                required
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-sm text-gray-600">Tambahkan detail vendor untuk setiap item buying</p>
+              <button
+                type="button"
+                @click="addVendorDetail"
+                class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
               >
-                <option value="">-- Pilih Vendor --</option>
-                <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
-                  {{ vendor.nama_vendor }}
-                </option>
-              </select>
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Vendor
+              </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="vendor_company_name" class="block text-sm font-medium text-sage-700 mb-2">
-                  Company Name <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.vendor.company_name"
-                  type="text"
-                  id="vendor_company_name"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Nama perusahaan vendor"
-                />
+            <div v-if="vendorDetails.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              No vendor details added yet. Click "Add Vendor" to start.
+            </div>
+
+            <div v-for="(vendorDetail, index) in vendorDetails" :key="'vendor-detail-' + index" class="border border-sage-200 rounded-lg p-4 space-y-4">
+              <div class="flex justify-between items-center">
+                <h5 class="font-medium text-sage-700">Vendor #{{ index + 1 }}</h5>
+                <button
+                  type="button"
+                  @click="removeVendorDetail(index)"
+                  class="text-red-600 hover:text-red-800 p-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
 
-              <div>
-                <label for="vendor_no_rekening" class="block text-sm font-medium text-sage-700 mb-2">
-                  No Rekening <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.vendor.no_rekening"
-                  type="text"
-                  id="vendor_no_rekening"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Nomor rekening"
-                />
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Pilih Vendor -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Pilih Vendor <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    v-model="vendorDetail.vendor_id"
+                    @change="onVendorSelect(index)"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  >
+                    <option value="">Pilih vendor...</option>
+                    <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
+                      {{ vendorOption.nama_vendor }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Deskripsi -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Deskripsi Service
+                  </label>
+                  <input
+                    v-model="vendorDetail.deskripsi"
+                    type="text"
+                    placeholder="Deskripsi layanan vendor"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label for="vendor_nama_rekening" class="block text-sm font-medium text-sage-700 mb-2">
-                  Nama Rekening <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.vendor.nama_rekening"
-                  type="text"
-                  id="vendor_nama_rekening"
-                  required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Nama pemilik rekening"
-                />
+              <!-- Info Vendor (Auto-filled) -->
+              <div v-if="vendorDetail.vendor_id" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-sage-50 rounded-lg">
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Vendor</label>
+                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_vendor || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nomor Rekening</label>
+                  <p class="text-sm text-gray-900 font-mono">{{ vendorDetail.no_rekening || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Rekening</label>
+                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_rekening || '-' }}</p>
+                </div>
               </div>
 
-              <div>
-                <label for="vendor_nominal" class="block text-sm font-medium text-sage-700 mb-2">Nominal</label>
-                <input
-                  v-model="form.vendor.nominal"
-                  type="number"
-                  id="vendor_nominal"
-                  step="0.01"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="0.00"
-                />
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nominal -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Nominal <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="vendorDetail.nominal"
+                    type="number"
+                    step="0.01"
+                    placeholder="0"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+
+                <!-- RCVD INV -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    RCVD INV
+                  </label>
+                  <input
+                    v-model="vendorDetail.rcvd_inv"
+                    type="text"
+                    placeholder="Nomor invoice yang diterima"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label for="vendor_deskripsi" class="block text-sm font-medium text-sage-700 mb-2">
-                Deskripsi <span class="text-red-500">*</span>
-              </label>
-              <textarea
-                v-model="form.vendor.deskripsi"
-                id="vendor_deskripsi"
-                rows="3"
-                required
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
-                placeholder="Deskripsi layanan vendor"
-              ></textarea>
+            <!-- Total Vendor Costs -->
+            <div v-if="vendorDetails.length > 0" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="font-medium text-blue-700">Total Vendor Costs:</span>
+                <span class="text-xl font-bold text-blue-800">{{ formatCurrency(totalVendorCosts) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -335,6 +366,7 @@
 </template>
 
 <script setup>
+import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 
@@ -355,27 +387,62 @@ const form = useForm({
   buying: 0,
   selling: 0,
   revenue: 0,
-  vendor: {
-    vendor_id: "",
-    company_name: "",
-    no_rekening: "",
-    nama_rekening: "",
-    nominal: 0,
-    deskripsi: ""
-  }
 });
 
-const onVendorSelect = () => {
-  const selectedVendor = props.vendors.find(v => v.id == form.vendor.vendor_id);
+// Vendor details data - supports multiple vendors
+const vendorDetails = ref([]);
+
+// Add a new vendor detail entry
+const addVendorDetail = () => {
+  vendorDetails.value.push({
+    vendor_id: "",
+    nama_vendor: "",
+    no_rekening: "",
+    nama_rekening: "",
+    deskripsi: "",
+    nominal: 0,
+    rcvd_inv: ""
+  });
+};
+
+// Remove a vendor detail entry
+const removeVendorDetail = (index) => {
+  vendorDetails.value.splice(index, 1);
+};
+
+// Handle vendor selection and auto-fill data
+const onVendorSelect = (index) => {
+  const selectedVendor = props.vendors.find(v => v.id == vendorDetails.value[index].vendor_id);
   if (selectedVendor) {
-    form.vendor.company_name = selectedVendor.nama_vendor;
-    form.vendor.no_rekening = selectedVendor.nomor_rekening;
-    form.vendor.nama_rekening = selectedVendor.nama_rekening;
+    vendorDetails.value[index].nama_vendor = selectedVendor.nama_vendor;
+    vendorDetails.value[index].no_rekening = selectedVendor.nomor_rekening;
+    vendorDetails.value[index].nama_rekening = selectedVendor.nama_rekening;
   }
 };
 
+// Calculate total vendor costs
+const totalVendorCosts = computed(() => {
+  return vendorDetails.value.reduce((total, vendor) => {
+    return total + (parseFloat(vendor.nominal) || 0);
+  }, 0);
+});
+
+// Format currency helper
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR'
+  }).format(amount);
+};
+
 const submit = () => {
-  form.post(route("admin-keuangan.sales-orders.store"), {
+  // Add vendor details to form data
+  const formData = {
+    ...form.data(),
+    vendor_details: vendorDetails.value
+  };
+  
+  form.transform(data => formData).post(route("admin-keuangan.sales-orders.store"), {
     onSuccess: () => {
       // Handle success
     },

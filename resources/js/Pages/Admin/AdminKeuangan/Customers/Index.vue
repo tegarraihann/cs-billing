@@ -13,7 +13,7 @@
               Manajemen Data Pelanggan
             </h2>
             <p class="text-sage-600">
-              Kelola data pengiriman dan vendor pelanggan
+              Kelola data pelanggan dan informasi kontak
             </p>
           </div>
           <div class="mt-4 sm:mt-0">
@@ -53,7 +53,7 @@
             <input
               v-model="form.search"
               type="text"
-              placeholder="Cari Customer Code, Company Name, PIC Email..."
+              placeholder="Cari nama perusahaan, PIC, email, marketing..."
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
             />
           </div>
@@ -88,17 +88,12 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  No
+                  Nama Perusahaan
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Customer Code
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Company Name
+                  Jenis Usaha
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -113,12 +108,12 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  AWB/BL Number
+                  Marketing
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Status
+                  Handler
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -133,19 +128,14 @@
                 :key="customer.id"
                 class="hover:bg-sage-50 transition-colors"
               >
-                <!-- No -->
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  {{ customer.no }}
-                </td>
-
-                <!-- Customer Code -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.customer_code }}
-                </td>
-
                 <!-- Company Name -->
-                <td class="px-6 py-4 text-sm text-gray-900">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">
                   {{ customer.company_name }}
+                </td>
+
+                <!-- Company Type -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ customer.company_type }}
                 </td>
 
                 <!-- PIC Name -->
@@ -158,16 +148,14 @@
                   {{ customer.pic_email }}
                 </td>
 
-                <!-- AWB/BL Number -->
+                <!-- Marketing -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.awb_bl_number }}
+                  {{ customer.marketing_name || '-' }}
                 </td>
 
-                <!-- Status -->
-                <td class="px-6 py-4 text-sm">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Active
-                  </span>
+                <!-- Handler -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ customer.handler?.name || '-' }}
                 </td>
 
                 <!-- Actions -->
@@ -207,7 +195,7 @@
 
               <!-- Empty State -->
               <tr v-if="!customers.data || customers.data.length === 0">
-                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-12 h-12 text-gray-300 mb-4"
@@ -242,14 +230,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <AlertDialog
+      :show="showDeleteDialog"
+      type="confirm"
+      title="Konfirmasi Hapus Customer"
+      :message="`Apakah Anda yakin ingin menghapus customer '${customerToDelete?.company_name}'? Tindakan ini tidak dapat dibatalkan.`"
+      confirm-text="Ya, Hapus"
+      cancel-text="Batal"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+      @close="cancelDelete"
+    />
   </AdminKeuanganLayout>
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { reactive, watch, ref } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
+import AlertDialog from "@/Components/AlertDialog.vue";
 
 const props = defineProps({
   customers: Object,
@@ -271,15 +273,39 @@ const search = () => {
   });
 };
 
+// Delete dialog state
+const showDeleteDialog = ref(false);
+const customerToDelete = ref(null);
+
 const deleteCustomer = (customer) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus customer ${customer.customer_code}?`)) {
-    router.delete(route("admin-keuangan.customers.destroy", customer.id), {
-      preserveScroll: true,
+  customerToDelete.value = customer;
+  showDeleteDialog.value = true;
+};
+
+const confirmDelete = () => {
+  if (customerToDelete.value) {
+    router.delete(route("admin-keuangan.customers.destroy", customerToDelete.value.id), {
       onSuccess: () => {
-        // Handle success
+        // Refresh the page
+        router.get(route("admin-keuangan.customers.index"), {
+          search: form.search,
+        }, {
+          preserveState: true,
+          replace: true,
+        });
+      },
+      onError: (errors) => {
+        alert('Terjadi kesalahan saat menghapus customer: ' + Object.values(errors).join(', '));
       }
     });
   }
+  showDeleteDialog.value = false;
+  customerToDelete.value = null;
+};
+
+const cancelDelete = () => {
+  showDeleteDialog.value = false;
+  customerToDelete.value = null;
 };
 
 // Watch for changes in search input and trigger search after a delay

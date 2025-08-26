@@ -286,37 +286,121 @@
               <div v-if="errors.jenis_biaya" class="text-red-600 text-sm mt-1">{{ errors.jenis_biaya }}</div>
             </div>
 
+            <!-- Buying Breakdown -->
             <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">BUYING</label>
-              <input
-                v-model="form.buying"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="errors.buying" class="text-red-600 text-sm mt-1">{{ errors.buying }}</div>
+              <div class="flex items-center justify-between mb-3">
+                <label class="block text-sm font-medium text-sage-700">BUYING BREAKDOWN</label>
+                <button
+                  type="button"
+                  @click="addBuyingItem"
+                  class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Item
+                </button>
+              </div>
+              <div class="space-y-3">
+                <div v-for="(item, index) in form.buying_breakdown" :key="'buying-' + index" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 border border-gray-200 rounded-lg">
+                  <div class="md:col-span-6">
+                    <input
+                      v-model="item.vendor"
+                      type="text"
+                      placeholder="Vendor name"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    />
+                  </div>
+                  <div class="md:col-span-5">
+                    <input
+                      v-model="item.amount"
+                      type="number"
+                      step="0.01"
+                      placeholder="Amount"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    />
+                  </div>
+                  <div class="md:col-span-1">
+                    <button
+                      type="button"
+                      @click="removeBuyingItem(index)"
+                      class="w-full h-10 text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:border-red-400 transition-colors"
+                    >
+                      <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 p-2 bg-gray-50 rounded-md">
+                <strong>Total Buying: {{ formatCurrency(totalBuying) }}</strong>
+              </div>
             </div>
 
+            <!-- Selling Breakdown -->
             <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">SELLING</label>
-              <input
-                v-model="form.selling"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="errors.selling" class="text-red-600 text-sm mt-1">{{ errors.selling }}</div>
+              <div class="flex items-center justify-between mb-3">
+                <label class="block text-sm font-medium text-sage-700">SELLING BREAKDOWN</label>
+                <button
+                  type="button"
+                  @click="addSellingItem"
+                  class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Item
+                </button>
+              </div>
+              <div class="space-y-3">
+                <div v-for="(item, index) in form.selling_breakdown" :key="'selling-' + index" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 border border-gray-200 rounded-lg">
+                  <div class="md:col-span-6">
+                    <input
+                      v-model="item.description"
+                      type="text"
+                      placeholder="Service description"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    />
+                  </div>
+                  <div class="md:col-span-5">
+                    <input
+                      v-model="item.amount"
+                      type="number"
+                      step="0.01"
+                      placeholder="Amount"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    />
+                  </div>
+                  <div class="md:col-span-1">
+                    <button
+                      type="button"
+                      @click="removeSellingItem(index)"
+                      class="w-full h-10 text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:border-red-400 transition-colors"
+                    >
+                      <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 p-2 bg-gray-50 rounded-md">
+                <strong>Total Selling: {{ formatCurrency(totalSelling) }}</strong>
+              </div>
             </div>
 
+            <!-- Revenue Summary -->
             <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">REVENUE</label>
-              <input
-                v-model="form.revenue"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="errors.revenue" class="text-red-600 text-sm mt-1">{{ errors.revenue }}</div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">REVENUE (AUTO CALCULATED)</label>
+              <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                <div class="text-lg font-bold" :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
+                  {{ formatCurrency(totalRevenue) }}
+                </div>
+                <div class="text-sm text-gray-600 mt-1">
+                  Selling: {{ formatCurrency(totalSelling) }} - Buying: {{ formatCurrency(totalBuying) }}
+                </div>
+              </div>
             </div>
 
             <div>
@@ -349,15 +433,6 @@
             </svg>
           </div>
           <div v-show="sections.goods" class="p-6 space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">GOODS</label>
-              <textarea
-                v-model="form.goods"
-                rows="3"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
-              ></textarea>
-              <div v-if="errors.goods" class="text-red-600 text-sm mt-1">{{ errors.goods }}</div>
-            </div>
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/URAIAN BARANG</label>
               <textarea
@@ -456,13 +531,13 @@
           </div>
         </div>
 
-        <!-- Vendor Information -->
+        <!-- Multiple Vendors Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
           <div 
             @click="toggleSection('vendor')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
-            <h3 class="text-lg font-semibold text-sage-800">Buying to Vendor</h3>
+            <h3 class="text-lg font-semibold text-sage-800">Vendor Information (Buying)</h3>
             <svg 
               :class="{'rotate-180': !sections.vendor}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
@@ -474,92 +549,122 @@
             </svg>
           </div>
           <div v-show="sections.vendor" class="p-6 space-y-4">
-            <!-- DESKRIPSI -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                Deskripsi <span class="text-red-500">*</span>
-              </label>
-              <textarea
-                v-model="form.vendor.deskripsi"
-                rows="2"
-                required
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
-                placeholder="Masukkan deskripsi layanan vendor"
-              ></textarea>
-              <div v-if="errors.vendor?.deskripsi" class="mt-2 text-sm text-red-600">
-                {{ errors.vendor.deskripsi }}
-              </div>
-            </div>
-
-            <!-- NOMINAL -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                Nominal <span class="text-red-500">*</span>
-              </label>
-              <input
-                v-model="form.vendor.nominalFormatted"
-                type="text"
-                required
-                @input="formatNominal($event)"
-                @blur="updateNominalValue()"
-                placeholder="0"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-              />
-              <div v-if="errors.vendor?.nominal" class="mt-2 text-sm text-red-600">
-                {{ errors.vendor.nominal }}
-              </div>
-            </div>
-
-            <!-- PILIH VENDOR -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                Pilih Vendor <span class="text-red-500">*</span>
-              </label>
-              <select
-                v-model="form.vendor.vendor_id"
-                required
-                @change="onVendorChange()"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+            
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-sm text-gray-600">Tambahkan detail vendor untuk setiap item buying</p>
+              <button
+                type="button"
+                @click="addVendorDetail"
+                class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
               >
-                <option value="">Pilih vendor...</option>
-                <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
-                  {{ vendorOption.nama_vendor }}
-                </option>
-              </select>
-              <div v-if="errors.vendor?.vendor_id" class="mt-2 text-sm text-red-600">
-                {{ errors.vendor.vendor_id }}
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Vendor
+              </button>
+            </div>
+
+            <div v-if="vendorDetails.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              No vendor details added yet. Click "Add Vendor" to start.
+            </div>
+
+            <div v-for="(vendorDetail, index) in vendorDetails" :key="'vendor-detail-' + index" class="border border-sage-200 rounded-lg p-4 space-y-4">
+              <div class="flex justify-between items-center">
+                <h5 class="font-medium text-sage-700">Vendor #{{ index + 1 }}</h5>
+                <button
+                  type="button"
+                  @click="removeVendorDetail(index)"
+                  class="text-red-600 hover:text-red-800 p-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Pilih Vendor -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Pilih Vendor <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    v-model="vendorDetail.vendor_id"
+                    @change="onVendorSelect(index)"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  >
+                    <option value="">Pilih vendor...</option>
+                    <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
+                      {{ vendorOption.nama_vendor }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Deskripsi -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Deskripsi Service
+                  </label>
+                  <input
+                    v-model="vendorDetail.deskripsi"
+                    type="text"
+                    placeholder="Deskripsi layanan vendor"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+              </div>
+
+              <!-- Info Vendor (Auto-filled) -->
+              <div v-if="vendorDetail.vendor_id" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-sage-50 rounded-lg">
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Vendor</label>
+                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_vendor || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nomor Rekening</label>
+                  <p class="text-sm text-gray-900 font-mono">{{ vendorDetail.no_rekening || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Rekening</label>
+                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_rekening || '-' }}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nominal -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Nominal <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="vendorDetail.nominal"
+                    type="number"
+                    step="0.01"
+                    placeholder="0"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+
+                <!-- RCVD INV -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    RCVD INV
+                  </label>
+                  <input
+                    v-model="vendorDetail.rcvd_inv"
+                    type="text"
+                    placeholder="Nomor invoice yang diterima"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
               </div>
             </div>
 
-            <!-- INFO VENDOR (Auto-filled from selected vendor) -->
-            <div v-if="form.vendor.vendor_id" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-sage-100 rounded-lg">
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Nomor Rekening
-                </label>
-                <p class="text-sm text-gray-900 font-mono">{{ form.vendor.no_rekening || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Nama Rekening
-                </label>
-                <p class="text-sm text-gray-900">{{ form.vendor.nama_rekening || '-' }}</p>
-              </div>
-            </div>
-
-            <!-- RCVD INV -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                RCVD INV
-              </label>
-              <input
-                v-model="form.vendor.rcvd_inv"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                placeholder="Masukkan nomor invoice yang diterima"
-              />
-              <div v-if="errors.vendor?.rcvd_inv" class="mt-2 text-sm text-red-600">
-                {{ errors.vendor.rcvd_inv }}
+            <!-- Total Vendor Costs -->
+            <div v-if="vendorDetails.length > 0" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="font-medium text-blue-700">Total Vendor Costs:</span>
+                <span class="text-xl font-bold text-blue-800">{{ formatCurrency(totalVendorCosts) }}</span>
               </div>
             </div>
           </div>
@@ -590,7 +695,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
@@ -601,6 +706,9 @@ const props = defineProps({
   vendors: Array
 })
 
+// Vendor details data - supports multiple vendors
+const vendorDetails = ref([])
+
 // Form state
 const form = useForm({
   order_number: props.salesOrder.order_number || '',
@@ -609,9 +717,9 @@ const form = useForm({
   bl_awb: props.salesOrder.bl_awb || '',
   liner: props.salesOrder.liner || '',
   vessel: props.salesOrder.vessel || '',
-  eta: props.salesOrder.eta || '',
+  eta: props.salesOrder.eta ? new Date(props.salesOrder.eta).toISOString().split('T')[0] : '',
   aju: props.salesOrder.aju || '',
-  sppb_date: props.salesOrder.sppb_date || '',
+  sppb_date: props.salesOrder.sppb_date ? new Date(props.salesOrder.sppb_date).toISOString().split('T')[0] : '',
   shipment_type: props.salesOrder.shipment_type || '',
   pol: props.salesOrder.pol || '',
   pod: props.salesOrder.pod || '',
@@ -620,54 +728,16 @@ const form = useForm({
   prepared_by: props.salesOrder.prepared_by || '',
   exchange_rate: props.salesOrder.exchange_rate || '',
   jenis_biaya: props.salesOrder.jenis_biaya || '',
-  buying: props.salesOrder.buying || '',
-  selling: props.salesOrder.selling || '',
-  revenue: props.salesOrder.revenue || '',
+  buying_breakdown: props.salesOrder.buying_breakdown || [{ vendor: '', amount: 0 }],
+  selling_breakdown: props.salesOrder.selling_breakdown || [{ description: '', amount: 0 }],
   remarks: props.salesOrder.remarks || '',
-  goods: props.salesOrder.goods || '',
   commodity: props.salesOrder.commodity || '',
   qty: props.salesOrder.qty || '',
   net_weight: props.salesOrder.net_weight || '',
   container_no: props.salesOrder.container_no || '',
   invoice_number: props.salesOrder.invoice_number || '',
-  invoice_date: props.salesOrder.invoice_date || '',
-  top: props.salesOrder.top || '',
-  vendor: (() => {
-    let vendorData = {
-      vendor_id: "",
-      deskripsi: "",
-      nominal: "",
-      nominalFormatted: "",
-      no_rekening: "",
-      company_name: "",
-      nama_rekening: "",
-      rcvd_inv: ""
-    };
-
-    // Check if vendors data exists and is an array or object
-    if (props.salesOrder.vendors) {
-      if (Array.isArray(props.salesOrder.vendors) && props.salesOrder.vendors.length > 0) {
-        vendorData = { ...vendorData, ...props.salesOrder.vendors[0] };
-      } else if (typeof props.salesOrder.vendors === 'object' && !Array.isArray(props.salesOrder.vendors)) {
-        vendorData = { ...vendorData, ...props.salesOrder.vendors };
-      }
-    }
-
-    // Try to find vendor_id from existing vendor data
-    let vendorId = vendorData.vendor_id || "";
-    if (!vendorId && vendorData.company_name && props.vendors) {
-      const foundVendor = props.vendors.find(v => v.nama_vendor === vendorData.company_name);
-      if (foundVendor) {
-        vendorId = foundVendor.id;
-      }
-    }
-
-    return {
-      ...vendorData,
-      vendor_id: vendorId,
-      nominalFormatted: vendorData.nominal ? vendorData.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''
-    };
-  })()
+  invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : '',
+  top: props.salesOrder.top || ''
 })
 
 // Collapsible sections state
@@ -688,52 +758,142 @@ const toggleSection = (section) => {
   sections[section] = !sections[section]
 }
 
-const onVendorChange = () => {
-  const selectedVendorId = form.vendor.vendor_id;
-  if (selectedVendorId) {
-    const selectedVendor = props.vendors.find(v => v.id == selectedVendorId);
+// Initialize vendor details from existing data
+(() => {
+  if (props.salesOrder.vendors) {
+    if (Array.isArray(props.salesOrder.vendors) && props.salesOrder.vendors.length > 0) {
+      // If vendors is an array, add each vendor to vendorDetails
+      props.salesOrder.vendors.forEach(vendorData => {
+        vendorDetails.value.push({
+          vendor_id: vendorData.vendor_id || "",
+          nama_vendor: vendorData.company_name || vendorData.nama_vendor || "",
+          no_rekening: vendorData.no_rekening || "",
+          nama_rekening: vendorData.nama_rekening || "",
+          deskripsi: vendorData.deskripsi || "",
+          nominal: vendorData.nominal || 0,
+          rcvd_inv: vendorData.rcvd_inv || ""
+        });
+      });
+    } else if (typeof props.salesOrder.vendors === 'object' && !Array.isArray(props.salesOrder.vendors)) {
+      // If vendors is an object (legacy single vendor)
+      const vendorData = props.salesOrder.vendors;
+      vendorDetails.value.push({
+        vendor_id: vendorData.vendor_id || "",
+        nama_vendor: vendorData.company_name || vendorData.nama_vendor || "",
+        no_rekening: vendorData.no_rekening || "",
+        nama_rekening: vendorData.nama_rekening || "",
+        deskripsi: vendorData.deskripsi || "",
+        nominal: vendorData.nominal || 0,
+        rcvd_inv: vendorData.rcvd_inv || ""
+      });
+    }
+  }
+})();
+
+// Vendor detail management functions
+const addVendorDetail = () => {
+  vendorDetails.value.push({
+    vendor_id: "",
+    nama_vendor: "",
+    no_rekening: "",
+    nama_rekening: "",
+    deskripsi: "",
+    nominal: 0,
+    rcvd_inv: ""
+  });
+};
+
+const removeVendorDetail = (index) => {
+  if (vendorDetails.value.length > 0) {
+    vendorDetails.value.splice(index, 1);
+  }
+};
+
+const onVendorSelect = (index) => {
+  const vendorDetail = vendorDetails.value[index];
+  if (vendorDetail.vendor_id) {
+    const selectedVendor = props.vendors.find(v => v.id == vendorDetail.vendor_id);
     if (selectedVendor) {
-      form.vendor.no_rekening = selectedVendor.nomor_rekening;
-      form.vendor.company_name = selectedVendor.nama_vendor;
-      form.vendor.nama_rekening = selectedVendor.nama_rekening;
+      vendorDetail.nama_vendor = selectedVendor.nama_vendor;
+      vendorDetail.no_rekening = selectedVendor.nomor_rekening;
+      vendorDetail.nama_rekening = selectedVendor.nama_rekening;
     }
   } else {
     // Clear vendor data if no vendor selected
-    form.vendor.no_rekening = "";
-    form.vendor.company_name = "";
-    form.vendor.nama_rekening = "";
+    vendorDetail.nama_vendor = "";
+    vendorDetail.no_rekening = "";
+    vendorDetail.nama_rekening = "";
   }
 };
 
-const formatNominal = (event) => {
-  let value = event.target.value;
-  // Remove all non-digit characters
-  value = value.replace(/\D/g, '');
-  
-  // Add thousand separators (dots)
-  if (value) {
-    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
-  
-  form.vendor.nominalFormatted = value;
+// Breakdown management functions
+const addBuyingItem = () => {
+  form.buying_breakdown.push({ vendor: '', amount: 0 });
 };
 
-const updateNominalValue = () => {
-  // Convert formatted value back to number for form submission
-  if (form.vendor.nominalFormatted && form.vendor.nominalFormatted.trim() !== '') {
-    form.vendor.nominal = parseInt(form.vendor.nominalFormatted.replace(/\./g, ''));
-  } else {
-    form.vendor.nominal = null;
+const removeBuyingItem = (index) => {
+  if (form.buying_breakdown.length > 1) {
+    form.buying_breakdown.splice(index, 1);
   }
 };
+
+const addSellingItem = () => {
+  form.selling_breakdown.push({ description: '', amount: 0 });
+};
+
+const removeSellingItem = (index) => {
+  if (form.selling_breakdown.length > 1) {
+    form.selling_breakdown.splice(index, 1);
+  }
+};
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount || 0);
+};
+
+// Computed properties for totals
+const totalBuying = computed(() => {
+  return form.buying_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalSelling = computed(() => {
+  return form.selling_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalRevenue = computed(() => {
+  return totalSelling.value - totalBuying.value;
+});
+
+const calculateTotals = () => {
+  // This function is called to trigger reactivity if needed
+  // The actual calculation is done by computed properties
+  return {
+    totalBuying: totalBuying.value,
+    totalSelling: totalSelling.value,
+    totalRevenue: totalRevenue.value
+  };
+};
+
+// Computed property for total vendor costs
+const totalVendorCosts = computed(() => {
+  return vendorDetails.value.reduce((sum, vendor) => sum + (parseFloat(vendor.nominal) || 0), 0);
+});
 
 // Submit form
 const submit = () => {
-  // Ensure nominal is properly set before submission
-  updateNominalValue();
+  // Add vendor details to form data
+  const formData = {
+    ...form.data(),
+    vendor_details: vendorDetails.value.filter(v => v.vendor_id && v.nominal > 0)
+  };
   
-  processing.value = true
-  form.put(route('admin-cs.sales-orders.update', props.salesOrder.id), {
+  processing.value = true;
+  form.transform(() => formData).put(route('admin-cs.sales-orders.update', props.salesOrder.id), {
     onFinish: () => {
       processing.value = false
     }

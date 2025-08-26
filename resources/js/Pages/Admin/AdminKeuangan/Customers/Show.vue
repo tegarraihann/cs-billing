@@ -28,7 +28,7 @@
             </div>
             <div>
               <h2 class="text-2xl font-bold text-sage-800">
-                {{ customer.customer_code || customer.no }}
+                {{ customer.company_name }}
               </h2>
               <p class="text-sage-600">
                 Detail informasi pelanggan
@@ -135,42 +135,6 @@
             </div>
           </div>
 
-          <!-- Shipping Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-sage-200">
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800 flex items-center">
-                🚚 Informasi Pengiriman
-              </h3>
-            </div>
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-medium text-gray-500">SO Number</label>
-                  <p class="text-sage-900 font-medium">{{ customer.so_number || '-' }}</p>
-                </div>
-                <div>
-                  <label class="text-sm font-medium text-gray-500">Customer Code</label>
-                  <p class="text-sage-900 font-medium">{{ customer.customer_code || '-' }}</p>
-                </div>
-                <div>
-                  <label class="text-sm font-medium text-gray-500">Consignee/Shipper</label>
-                  <p class="text-sage-900 font-medium">{{ customer.consignee_shipper || '-' }}</p>
-                </div>
-                <div>
-                  <label class="text-sm font-medium text-gray-500">AWB/BL Number</label>
-                  <p class="text-sage-900 font-medium">{{ customer.awb_bl_number || '-' }}</p>
-                </div>
-                <div>
-                  <label class="text-sm font-medium text-gray-500">POL/POD</label>
-                  <p class="text-sage-900">{{ customer.pol_pod || '-' }}</p>
-                </div>
-                <div>
-                  <label class="text-sm font-medium text-gray-500">ETA</label>
-                  <p class="text-sage-900">{{ customer.eta ? formatDate(customer.eta) : '-' }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <!-- Legal Information -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200" v-if="customer.nib || customer.npwp || customer.ktp_number">
@@ -211,10 +175,6 @@
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   Aktif
                 </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-500">Nomor Urut</span>
-                <span class="text-sage-900 font-semibold">#{{ customer.no }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-gray-500">Dibuat</span>

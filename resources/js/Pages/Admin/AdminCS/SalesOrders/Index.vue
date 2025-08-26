@@ -226,6 +226,7 @@
                       </svg>
                   </Link>
                   <Link
+                    v-if="salesOrder.status === 'draft'"
                     :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
                     class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
                     title="Edit"
@@ -234,6 +235,15 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </Link>
+                  <span
+                    v-else
+                    class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
+                    title="Tidak dapat diedit (Sales Order sudah dirilis)"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </span>
                   </div>
                 </td>
               </tr>
@@ -275,14 +285,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Release Confirmation Dialog -->
+    <AlertDialog
+      :show="showReleaseDialog"
+      type="confirm"
+      title="Konfirmasi Rilis Sales Order"
+      message="Apakah Anda yakin ingin merilis sales order ini? Sales order yang sudah dirilis akan dikirim ke admin keuangan dan tidak dapat diubah lagi."
+      confirm-text="Ya, Rilis"
+      cancel-text="Batal"
+      @confirm="confirmRelease"
+      @cancel="cancelRelease"
+      @close="cancelRelease"
+    />
   </AdminLayout>
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { reactive, watch, ref } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
+import AlertDialog from "@/Components/AlertDialog.vue";
 
 const props = defineProps({
   salesOrders: Object,
@@ -306,9 +330,18 @@ const search = () => {
   });
 };
 
+// Alert Dialog State
+const showReleaseDialog = ref(false);
+const currentSalesOrderId = ref(null);
+
 const releaseSalesOrder = (salesOrderId) => {
-  if (confirm('Apakah Anda yakin ingin merilis sales order ini? Sales order yang sudah dirilis akan dikirim ke admin keuangan dan tidak dapat diubah lagi.')) {
-    router.post(route('admin-cs.sales-orders.release', salesOrderId), {}, {
+  currentSalesOrderId.value = salesOrderId;
+  showReleaseDialog.value = true;
+};
+
+const confirmRelease = () => {
+  if (currentSalesOrderId.value) {
+    router.post(route('admin-cs.sales-orders.release', currentSalesOrderId.value), {}, {
       onSuccess: () => {
         // Refresh the page to show updated status
         router.get(route("admin-cs.sales-orders.index"), {
@@ -324,6 +357,13 @@ const releaseSalesOrder = (salesOrderId) => {
       }
     });
   }
+  showReleaseDialog.value = false;
+  currentSalesOrderId.value = null;
+};
+
+const cancelRelease = () => {
+  showReleaseDialog.value = false;
+  currentSalesOrderId.value = null;
 };
 
 const formatDate = (dateString) => {

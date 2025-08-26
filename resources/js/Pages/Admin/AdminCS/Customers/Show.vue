@@ -28,10 +28,10 @@
             </div>
             <div>
               <h2 class="text-2xl font-bold text-sage-800">
-                {{ customer.customer_code || customer.no }}
+                {{ customer.company_name }}
               </h2>
               <p class="text-sage-600">
-                Detail informasi pelanggan dan data pengiriman
+                Detail informasi pelanggan
               </p>
             </div>
           </div>
@@ -292,148 +292,49 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Shipping Information -->
-        <div class="lg:col-span-2">
-          <div
-            class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">
-                🚚 Informasi Pengiriman
-              </h3>
-            </div>
-
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- No -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    No
-                  </label>
-                  <p class="text-gray-900">{{ customer.no || '-' }}</p>
-                </div>
-
-                <!-- SO Number -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    SO Number
-                  </label>
-                  <p class="text-gray-900">{{ customer.so_number || '-' }}</p>
-                </div>
-
-                <!-- Customer Code -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Customer Code
-                  </label>
-                  <p class="text-gray-900">{{ customer.customer_code || '-' }}</p>
-                </div>
-
-                <!-- Consignee/Shipper -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Consignee/Shipper
-                  </label>
-                  <p class="text-gray-900">{{ customer.consignee_shipper || '-' }}</p>
-                </div>
-
-                <!-- AWB/BL Number -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    AWB/BL Number
-                  </label>
-                  <p class="text-gray-900">{{ customer.awb_bl_number || '-' }}</p>
-                </div>
-
-                <!-- Cust Doc Name -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Cust Doc Name
-                  </label>
-                  <p class="text-gray-900">{{ customer.cust_doc_name || '-' }}</p>
-                </div>
-
-                <!-- Type Qty -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Type Qty
-                  </label>
-                  <p class="text-gray-900">{{ customer.type_qty || '-' }}</p>
-                </div>
-
-                <!-- No Kont/Pallet -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    No Kont/Pallet
-                  </label>
-                  <p class="text-gray-900">{{ customer.no_kont_pallet || '-' }}</p>
-                </div>
-
-                <!-- POL/POD -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    POL/POD
-                  </label>
-                  <p class="text-gray-900">{{ customer.pol_pod || '-' }}</p>
-                </div>
-
-                <!-- ETA -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    ETA
-                  </label>
-                  <p class="text-gray-900">{{ customer.eta ? formatDate(customer.eta) : '-' }}</p>
-                </div>
-              </div>
-            </div>
+      <!-- System Information -->
+      <div class="mb-6">
+        <div
+          class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
+        >
+          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+            <h3 class="text-lg font-semibold text-sage-800">
+              ℹ️ Informasi Sistem
+            </h3>
           </div>
-        </div>
 
-        <!-- System Information -->
-        <div>
-          <div
-            class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">
-                Informasi Sistem
-              </h3>
-            </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <!-- Handler -->
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-1">
+                  Ditangani Oleh
+                </label>
+                <p class="text-gray-900">{{ customer.handler?.name || '-' }}</p>
+              </div>
 
-            <div class="p-6">
-              <div class="space-y-4">
-                <!-- Handler -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Ditangani Oleh
-                  </label>
-                  <p class="text-gray-900">{{ customer.handler?.name || '-' }}</p>
-                </div>
+              <!-- Created At -->
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-1">
+                  Dibuat
+                </label>
+                <p class="text-gray-900">{{ formatDateTime(customer.created_at) }}</p>
+              </div>
 
-                <!-- Created At -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Dibuat
-                  </label>
-                  <p class="text-gray-900">{{ formatDateTime(customer.created_at) }}</p>
-                </div>
+              <!-- Updated At -->
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-1">
+                  Terakhir Diperbarui
+                </label>
+                <p class="text-gray-900">{{ formatDateTime(customer.updated_at) }}</p>
+              </div>
 
-                <!-- Updated At -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Terakhir Diperbarui
-                  </label>
-                  <p class="text-gray-900">{{ formatDateTime(customer.updated_at) }}</p>
-                </div>
-
-                <!-- Last Contact -->
-                <div v-if="customer.last_contact_at">
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    Kontak Terakhir
-                  </label>
-                  <p class="text-gray-900">{{ formatDateTime(customer.last_contact_at) }}</p>
-                </div>
+              <!-- Last Contact -->
+              <div v-if="customer.last_contact_at">
+                <label class="block text-sm font-medium text-sage-700 mb-1">
+                  Kontak Terakhir
+                </label>
+                <p class="text-gray-900">{{ formatDateTime(customer.last_contact_at) }}</p>
               </div>
             </div>
           </div>
@@ -461,7 +362,7 @@
                 <div class="border border-gray-200 rounded-lg p-4">
                   <img
                     :src="`/storage/${customer.photo_path}`"
-                    :alt="`Foto ${customer.customer_code}`"
+                    :alt="`Foto ${customer.company_name}`"
                     class="w-full max-w-sm h-auto rounded-lg shadow-sm"
                   />
                   <div class="mt-2">

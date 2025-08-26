@@ -23,12 +23,11 @@ class CustomerController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('no', 'like', "%{$search}%")
-                    ->orWhere('so_number', 'like', "%{$search}%")
-                    ->orWhere('customer_code', 'like', "%{$search}%")
-                    ->orWhere('consignee_shipper', 'like', "%{$search}%")
-                    ->orWhere('awb_bl_number', 'like', "%{$search}%")
-                    ->orWhere('cust_doc_name', 'like', "%{$search}%");
+                $q->where('company_name', 'like', "%{$search}%")
+                    ->orWhere('pic_name', 'like', "%{$search}%")
+                    ->orWhere('pic_phone', 'like', "%{$search}%")
+                    ->orWhere('pic_email', 'like', "%{$search}%")
+                    ->orWhere('marketing_name', 'like', "%{$search}%");
             });
         }
 
@@ -54,8 +53,6 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'so_number' => 'required|string|max:255',
-            'customer_code' => 'required|string|max:255',
             // Informasi Perusahaan/Perorangan
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
@@ -73,21 +70,17 @@ class CustomerController extends Controller
             'marketing_name' => 'nullable|string|max:255',
             'marketing_phone' => 'nullable|string|max:255',
             'marketing_email' => 'nullable|email|max:255',
-            // Data Pengiriman
-            'consignee_shipper' => 'required|string|max:255',
-            'awb_bl_number' => 'required|string|max:255',
-            'cust_doc_name' => 'nullable|string|max:255',
-            'type_qty' => 'nullable|string|max:255',
-            'no_kont_pallet' => 'nullable|string|max:255',
-            'pol_pod' => 'nullable|string|max:255',
-            'eta' => 'nullable|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'legal_document' => 'nullable|file|mimes:pdf|max:10240',
         ], [
-            'so_number.required' => 'SO Number wajib diisi.',
-            'customer_code.required' => 'Customer Code wajib diisi.',
-            'consignee_shipper.required' => 'Consignee/Shipper wajib diisi.',
-            'awb_bl_number.required' => 'AWB/BL Number wajib diisi.',
+            'company_name.required' => 'Nama perusahaan wajib diisi.',
+            'company_type.required' => 'Jenis usaha wajib dipilih.',
+            'company_address.required' => 'Alamat perusahaan wajib diisi.',
+            'pic_name.required' => 'Nama PIC wajib diisi.',
+            'pic_phone.required' => 'Nomor telepon PIC wajib diisi.',
+            'pic_email.required' => 'Email PIC wajib diisi.',
+            'pic_email.email' => 'Format email PIC tidak valid.',
+            'marketing_email.email' => 'Format email marketing tidak valid.',
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
@@ -107,9 +100,6 @@ class CustomerController extends Controller
             $validated['legal_document_path'] = $legalDocPath;
         }
 
-        // Auto increment no
-        $lastCustomer = Customer::orderBy('no', 'desc')->first();
-        $validated['no'] = $lastCustomer ? $lastCustomer->no + 1 : 1;
 
         $validated['handled_by'] = Auth::id();
         $validated['last_contact_at'] = now();
@@ -151,8 +141,6 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            'so_number' => 'required|string|max:255',
-            'customer_code' => 'required|string|max:255',
             // Informasi Perusahaan/Perorangan
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
@@ -170,21 +158,17 @@ class CustomerController extends Controller
             'marketing_name' => 'nullable|string|max:255',
             'marketing_phone' => 'nullable|string|max:255',
             'marketing_email' => 'nullable|email|max:255',
-            // Data Pengiriman
-            'consignee_shipper' => 'required|string|max:255',
-            'awb_bl_number' => 'required|string|max:255',
-            'cust_doc_name' => 'nullable|string|max:255',
-            'type_qty' => 'nullable|string|max:255',
-            'no_kont_pallet' => 'nullable|string|max:255',
-            'pol_pod' => 'nullable|string|max:255',
-            'eta' => 'nullable|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'legal_document' => 'nullable|file|mimes:pdf|max:10240',
         ], [
-            'so_number.required' => 'SO Number wajib diisi.',
-            'customer_code.required' => 'Customer Code wajib diisi.',
-            'consignee_shipper.required' => 'Consignee/Shipper wajib diisi.',
-            'awb_bl_number.required' => 'AWB/BL Number wajib diisi.',
+            'company_name.required' => 'Nama perusahaan wajib diisi.',
+            'company_type.required' => 'Jenis usaha wajib dipilih.',
+            'company_address.required' => 'Alamat perusahaan wajib diisi.',
+            'pic_name.required' => 'Nama PIC wajib diisi.',
+            'pic_phone.required' => 'Nomor telepon PIC wajib diisi.',
+            'pic_email.required' => 'Email PIC wajib diisi.',
+            'pic_email.email' => 'Format email PIC tidak valid.',
+            'marketing_email.email' => 'Format email marketing tidak valid.',
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
@@ -295,7 +279,7 @@ class CustomerController extends Controller
         }
 
         // Set filename
-        $filename = 'Customer_Data_' . $customer->customer_code . '_' . date('Y-m-d') . '.pdf';
+        $filename = 'Customer_Data_' . str_replace(' ', '_', $customer->company_name) . '_' . date('Y-m-d') . '.pdf';
 
         // Return the PDF as download
         return $pdf->download($filename);

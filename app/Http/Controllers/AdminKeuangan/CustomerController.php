@@ -51,9 +51,7 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'so_number' => 'required|string|max:255',
-            'customer_code' => 'required|string|max:255',
-            // Informasi Perusahaan/Perorangan
+                        // Informasi Perusahaan/Perorangan
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
             'company_address' => 'required|string|max:1000',
@@ -70,21 +68,10 @@ class CustomerController extends Controller
             'marketing_name' => 'nullable|string|max:255',
             'marketing_phone' => 'nullable|string|max:255',
             'marketing_email' => 'nullable|email|max:255',
-            // Data Pengiriman
-            'consignee_shipper' => 'required|string|max:255',
-            'awb_bl_number' => 'required|string|max:255',
-            'cust_doc_name' => 'nullable|string|max:255',
-            'type_qty' => 'nullable|string|max:255',
-            'no_kont_pallet' => 'nullable|string|max:255',
-            'pol_pod' => 'nullable|string|max:255',
-            'eta' => 'nullable|date',
+            // File uploads
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'legal_document' => 'nullable|file|mimes:pdf|max:10240',
         ], [
-            'so_number.required' => 'SO Number wajib diisi.',
-            'customer_code.required' => 'Customer Code wajib diisi.',
-            'consignee_shipper.required' => 'Consignee/Shipper wajib diisi.',
-            'awb_bl_number.required' => 'AWB/BL Number wajib diisi.',
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
@@ -147,9 +134,7 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            'so_number' => 'required|string|max:255',
-            'customer_code' => 'required|string|max:255',
-            // Informasi Perusahaan/Perorangan
+                        // Informasi Perusahaan/Perorangan
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
             'company_address' => 'required|string|max:1000',
@@ -166,21 +151,10 @@ class CustomerController extends Controller
             'marketing_name' => 'nullable|string|max:255',
             'marketing_phone' => 'nullable|string|max:255',
             'marketing_email' => 'nullable|email|max:255',
-            // Data Pengiriman
-            'consignee_shipper' => 'required|string|max:255',
-            'awb_bl_number' => 'required|string|max:255',
-            'cust_doc_name' => 'nullable|string|max:255',
-            'type_qty' => 'nullable|string|max:255',
-            'no_kont_pallet' => 'nullable|string|max:255',
-            'pol_pod' => 'nullable|string|max:255',
-            'eta' => 'nullable|date',
+            // File uploads
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'legal_document' => 'nullable|file|mimes:pdf|max:10240',
         ], [
-            'so_number.required' => 'SO Number wajib diisi.',
-            'customer_code.required' => 'Customer Code wajib diisi.',
-            'consignee_shipper.required' => 'Consignee/Shipper wajib diisi.',
-            'awb_bl_number.required' => 'AWB/BL Number wajib diisi.',
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',

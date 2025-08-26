@@ -233,8 +233,6 @@ const toggleCompanyInfo = () => {
 };
 
 const form = useForm({
-  so_number: props.customer.so_number || "",
-  customer_code: props.customer.customer_code || "",
   company_name: props.customer.company_name || "",
   company_type: props.customer.company_type || "",
   company_address: props.customer.company_address || "",
@@ -248,13 +246,6 @@ const form = useForm({
   marketing_name: props.customer.marketing_name || "",
   marketing_phone: props.customer.marketing_phone || "",
   marketing_email: props.customer.marketing_email || "",
-  consignee_shipper: props.customer.consignee_shipper || "",
-  awb_bl_number: props.customer.awb_bl_number || "",
-  cust_doc_name: props.customer.cust_doc_name || "",
-  type_qty: props.customer.type_qty || "",
-  no_kont_pallet: props.customer.no_kont_pallet || "",
-  pol_pod: props.customer.pol_pod || "",
-  eta: props.customer.eta || "",
   photo: null,
   legal_document: null
 });

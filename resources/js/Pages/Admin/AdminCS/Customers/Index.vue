@@ -13,7 +13,7 @@
               Manajemen Data Pelanggan
             </h2>
             <p class="text-sage-600">
-              Kelola data pengiriman dan vendor pelanggan
+              Kelola data pelanggan dan informasi kontak
             </p>
           </div>
           <div class="mt-4 sm:mt-0">
@@ -53,7 +53,7 @@
             <input
               v-model="form.search"
               type="text"
-              placeholder="Cari No, SO Number, Customer Code, AWB/BL..."
+              placeholder="Cari nama perusahaan, PIC, email, marketing..."
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
             />
           </div>
@@ -88,37 +88,32 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  No
+                  Nama Perusahaan
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  SO Number
+                  Jenis Usaha
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Customer Code
+                  PIC Name
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Consignee/Shipper
+                  PIC Email
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  AWB/BL Number
+                  Marketing
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  ETA
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Vendors
+                  Handler
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -133,49 +128,34 @@
                 :key="customer.id"
                 class="hover:bg-sage-50 transition-colors"
               >
-                <!-- No -->
+                <!-- Company Name -->
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  {{ customer.no }}
+                  {{ customer.company_name }}
                 </td>
 
-                <!-- SO Number -->
+                <!-- Company Type -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.so_number }}
+                  {{ customer.company_type }}
                 </td>
 
-                <!-- Customer Code -->
+                <!-- PIC Name -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.customer_code }}
+                  {{ customer.pic_name }}
                 </td>
 
-                <!-- Consignee/Shipper -->
+                <!-- PIC Email -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.consignee_shipper }}
+                  {{ customer.pic_email }}
                 </td>
 
-                <!-- AWB/BL Number -->
+                <!-- Marketing -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.awb_bl_number }}
+                  {{ customer.marketing_name || '-' }}
                 </td>
 
-                <!-- ETA -->
+                <!-- Handler -->
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.eta ? formatDate(customer.eta) : '-' }}
-                </td>
-
-                <!-- Vendors -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <div v-if="getVendorInfo(customer.vendors)">
-                    <div class="space-y-1">
-                      <div class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full inline-block">
-                        {{ getVendorInfo(customer.vendors).company_name || 'Vendor' }}
-                      </div>
-                      <div class="text-xs text-gray-500">
-                        {{ formatCurrency(getVendorInfo(customer.vendors).nominal) }}
-                      </div>
-                    </div>
-                  </div>
-                  <span v-else class="text-gray-400">-</span>
+                  {{ customer.handler?.name || '-' }}
                 </td>
 
                 <!-- Actions -->
@@ -201,13 +181,31 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     </Link>
+                    <Link
+                      :href="route('admin-cs.customers.edit', customer.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-full transition-colors"
+                      title="Edit"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </Link>
+                    <button
+                      @click="deleteCustomer(customer)"
+                      class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
+                      title="Hapus"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 </td>
               </tr>
 
               <!-- Empty State -->
               <tr v-if="!customers.data || customers.data.length === 0">
-                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-12 h-12 text-gray-300 mb-4"
@@ -242,14 +240,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <AlertDialog
+      :show="showDeleteDialog"
+      type="confirm"
+      title="Konfirmasi Hapus Customer"
+      :message="`Apakah Anda yakin ingin menghapus customer '${customerToDelete?.company_name}'? Tindakan ini tidak dapat dibatalkan.`"
+      confirm-text="Ya, Hapus"
+      cancel-text="Batal"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+      @close="cancelDelete"
+    />
   </AdminLayout>
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { reactive, watch, ref } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
+import AlertDialog from "@/Components/AlertDialog.vue";
 
 const props = defineProps({
   customers: Object,
@@ -261,6 +273,10 @@ const form = reactive({
   search: props.filters?.search || "",
 });
 
+// Delete dialog state
+const showDeleteDialog = ref(false);
+const customerToDelete = ref(null);
+
 const search = () => {
   const params = {};
   if (form.search) params.search = form.search;
@@ -271,35 +287,38 @@ const search = () => {
   });
 };
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("id-ID");
+// Delete functions
+const deleteCustomer = (customer) => {
+  customerToDelete.value = customer;
+  showDeleteDialog.value = true;
 };
 
-const getVendorInfo = (vendors) => {
-  if (!vendors) return null;
-  
-  // Handle if vendors is an array
-  if (Array.isArray(vendors) && vendors.length > 0) {
-    return vendors[0];
+const confirmDelete = () => {
+  if (customerToDelete.value) {
+    router.delete(route('admin-cs.customers.destroy', customerToDelete.value.id), {
+      onSuccess: () => {
+        // Refresh the page
+        router.get(route("admin-cs.customers.index"), {
+          search: form.search,
+        }, {
+          preserveState: true,
+          replace: true,
+        });
+      },
+      onError: (errors) => {
+        alert('Terjadi kesalahan saat menghapus customer: ' + Object.values(errors).join(', '));
+      }
+    });
   }
-  
-  // Handle if vendors is an object
-  if (typeof vendors === 'object' && !Array.isArray(vendors)) {
-    return vendors;
-  }
-  
-  return null;
+  showDeleteDialog.value = false;
+  customerToDelete.value = null;
 };
 
-const formatCurrency = (amount) => {
-  if (!amount) return '-';
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
+const cancelDelete = () => {
+  showDeleteDialog.value = false;
+  customerToDelete.value = null;
 };
+
 
 // Watch for changes in search input and trigger search after a delay
 watch(

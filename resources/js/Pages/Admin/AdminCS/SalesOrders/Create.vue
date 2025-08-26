@@ -40,10 +40,10 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label class="flex items-center">
-                  <input 
-                    type="radio" 
-                    v-model="inputMethod" 
-                    value="manual" 
+                  <input
+                    type="radio"
+                    v-model="inputMethod"
+                    value="manual"
                     class="mr-3 text-sage-600 focus:ring-sage-500"
                   >
                   <span class="text-sm font-medium text-sage-700">Input Manual</span>
@@ -52,10 +52,10 @@
               </div>
               <div>
                 <label class="flex items-center">
-                  <input 
-                    type="radio" 
-                    v-model="inputMethod" 
-                    value="customer" 
+                  <input
+                    type="radio"
+                    v-model="inputMethod"
+                    value="customer"
                     class="mr-3 text-sage-600 focus:ring-sage-500"
                   >
                   <span class="text-sm font-medium text-sage-700">Berdasarkan Data Pelanggan</span>
@@ -63,7 +63,7 @@
                 <p class="text-xs text-sage-500 mt-1 ml-6">Auto-fill dari data pelanggan</p>
               </div>
             </div>
-            
+
             <div v-if="inputMethod === 'customer'" class="mt-4">
               <label class="block text-sm font-medium text-sage-700 mb-2">Pilih Pelanggan</label>
               <select
@@ -73,7 +73,7 @@
               >
                 <option value="">-- Pilih Pelanggan --</option>
                 <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                  {{ customer.customer_code }} - {{ customer.consignee_shipper }}
+                  {{ customer.company_name }} - {{ customer.pic_name }}
                 </option>
               </select>
             </div>
@@ -82,16 +82,16 @@
 
         <!-- Basic Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('basic')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.basic}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -132,16 +132,16 @@
 
         <!-- Shipping Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('shipping')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Pengiriman</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.shipping}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -284,22 +284,22 @@
 
         <!-- Pricing Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('pricing')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Pricing</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.pricing}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
-          <div v-show="sections.pricing" class="p-6 space-y-4">
+          <div v-show="sections.pricing" class="p-6 space-y-6">
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">JENIS BIAYA</label>
               <select
@@ -320,36 +320,126 @@
               </select>
               <div v-if="form.errors.jenis_biaya" class="mt-2 text-sm text-red-600">{{ form.errors.jenis_biaya }}</div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">BUYING</label>
-              <input
-                v-model="form.buying"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.buying" class="mt-2 text-sm text-red-600">{{ form.errors.buying }}</div>
+
+            <!-- Buying Breakdown -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-sage-800">Rincian Buying (Pengeluaran)</h4>
+                <button
+                  type="button"
+                  @click="addBuyingItem"
+                  class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+                >
+                  + Tambah Item
+                </button>
+              </div>
+              <div v-for="(item, index) in form.buying_breakdown" :key="index" class="grid grid-cols-12 gap-3 mb-3">
+                <div class="col-span-5">
+                  <input
+                    v-model="item.vendor"
+                    type="text"
+                    placeholder="Nama Vendor / Deskripsi"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-6">
+                  <input
+                    v-model="item.amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    @input="calculateTotals"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-1">
+                  <button
+                    type="button"
+                    @click="removeBuyingItem(index)"
+                    class="w-full h-10 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-300">
+                <div class="flex justify-between items-center font-semibold">
+                  <span>Total Buying:</span>
+                  <span class="text-lg">{{ formatCurrency(totalBuying) }}</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">SELLING</label>
-              <input
-                v-model="form.selling"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.selling" class="mt-2 text-sm text-red-600">{{ form.errors.selling }}</div>
+
+            <!-- Selling Breakdown -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-sage-800">Rincian Selling (Pemasukan)</h4>
+                <button
+                  type="button"
+                  @click="addSellingItem"
+                  class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+                >
+                  + Tambah Item
+                </button>
+              </div>
+              <div v-for="(item, index) in form.selling_breakdown" :key="index" class="grid grid-cols-12 gap-3 mb-3">
+                <div class="col-span-5">
+                  <input
+                    v-model="item.description"
+                    type="text"
+                    placeholder="Deskripsi Layanan"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-6">
+                  <input
+                    v-model="item.amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    @input="calculateTotals"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-1">
+                  <button
+                    type="button"
+                    @click="removeSellingItem(index)"
+                    class="w-full h-10 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-300">
+                <div class="flex justify-between items-center font-semibold">
+                  <span>Total Selling:</span>
+                  <span class="text-lg">{{ formatCurrency(totalSelling) }}</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">REVENUE</label>
-              <input
-                v-model="form.revenue"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.revenue" class="mt-2 text-sm text-red-600">{{ form.errors.revenue }}</div>
+
+            <!-- Revenue Summary -->
+            <div class="bg-blue-50 rounded-lg p-4">
+              <h4 class="text-md font-semibold text-blue-800 mb-3">Ringkasan Revenue</h4>
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span>Total Pemasukan (Selling):</span>
+                  <span class="font-medium">{{ formatCurrency(totalSelling) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Total Pengeluaran (Buying):</span>
+                  <span class="font-medium">{{ formatCurrency(totalBuying) }}</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
+                  <span>Profit (Revenue):</span>
+                  <span :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
+                    {{ formatCurrency(totalRevenue) }}
+                  </span>
+                </div>
+              </div>
             </div>
+
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">REMARKS</label>
               <textarea
@@ -364,31 +454,22 @@
 
         <!-- Goods Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('goods')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Barang</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.goods}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
           <div v-show="sections.goods" class="p-6 space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">GOODS</label>
-              <textarea
-                v-model="form.goods"
-                rows="3"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
-              ></textarea>
-              <div v-if="form.errors.goods" class="mt-2 text-sm text-red-600">{{ form.errors.goods }}</div>
-            </div>
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/URAIAN BARANG</label>
               <textarea
@@ -438,16 +519,16 @@
 
         <!-- Invoice Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('invoice')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Invoice</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.invoice}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -485,110 +566,140 @@
           </div>
         </div>
 
-        <!-- Vendor Information -->
+        <!-- Multiple Vendors Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('vendor')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Buying to Vendor</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.vendor}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
           <div v-show="sections.vendor" class="p-6 space-y-4">
-            <!-- DESKRIPSI -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                Deskripsi <span class="text-red-500">*</span>
-              </label>
-              <textarea
-                v-model="form.vendor.deskripsi"
-                rows="2"
-                required
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
-                placeholder="Masukkan deskripsi layanan vendor"
-              ></textarea>
-              <div v-if="form.errors.vendor?.deskripsi" class="mt-2 text-sm text-red-600">
-                {{ form.errors.vendor.deskripsi }}
-              </div>
-            </div>
 
-            <!-- NOMINAL -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                Nominal <span class="text-red-500">*</span>
-              </label>
-              <input
-                v-model="form.vendor.nominalFormatted"
-                type="text"
-                required
-                @input="formatNominal($event)"
-                @blur="updateNominalValue()"
-                placeholder="0"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-              />
-              <div v-if="form.errors.vendor?.nominal" class="mt-2 text-sm text-red-600">
-                {{ form.errors.vendor.nominal }}
-              </div>
-            </div>
-
-            <!-- PILIH VENDOR -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                Pilih Vendor <span class="text-red-500">*</span>
-              </label>
-              <select
-                v-model="form.vendor.vendor_id"
-                required
-                @change="onVendorChange()"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-sm text-gray-600">Tambahkan detail vendor untuk setiap item buying</p>
+              <button
+                type="button"
+                @click="addVendorDetail"
+                class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
               >
-                <option value="">Pilih vendor...</option>
-                <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
-                  {{ vendorOption.nama_vendor }}
-                </option>
-              </select>
-              <div v-if="form.errors.vendor?.vendor_id" class="mt-2 text-sm text-red-600">
-                {{ form.errors.vendor.vendor_id }}
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Vendor
+              </button>
+            </div>
+
+            <div v-if="vendorDetails.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              No vendor details added yet. Click "Add Vendor" to start.
+            </div>
+
+            <div v-for="(vendorDetail, index) in vendorDetails" :key="'vendor-detail-' + index" class="border border-sage-200 rounded-lg p-4 space-y-4">
+              <div class="flex justify-between items-center">
+                <h5 class="font-medium text-sage-700">Vendor #{{ index + 1 }}</h5>
+                <button
+                  type="button"
+                  @click="removeVendorDetail(index)"
+                  class="text-red-600 hover:text-red-800 p-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Pilih Vendor -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Pilih Vendor <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    v-model="vendorDetail.vendor_id"
+                    @change="onVendorSelect(index)"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  >
+                    <option value="">Pilih vendor...</option>
+                    <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
+                      {{ vendorOption.nama_vendor }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Deskripsi -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Deskripsi Service
+                  </label>
+                  <input
+                    v-model="vendorDetail.deskripsi"
+                    type="text"
+                    placeholder="Deskripsi layanan vendor"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+              </div>
+
+              <!-- Info Vendor (Auto-filled) -->
+              <div v-if="vendorDetail.vendor_id" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-sage-50 rounded-lg">
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Vendor</label>
+                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_vendor || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nomor Rekening</label>
+                  <p class="text-sm text-gray-900 font-mono">{{ vendorDetail.no_rekening || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Rekening</label>
+                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_rekening || '-' }}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nominal -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Nominal <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="vendorDetail.nominal"
+                    type="number"
+                    step="0.01"
+                    placeholder="0"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+
+                <!-- RCVD INV -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    RCVD INV
+                  </label>
+                  <input
+                    v-model="vendorDetail.rcvd_inv"
+                    type="text"
+                    placeholder="Nomor invoice yang diterima"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
               </div>
             </div>
 
-            <!-- INFO VENDOR (Auto-filled from selected vendor) -->
-            <div v-if="form.vendor.vendor_id" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-sage-100 rounded-lg">
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Nomor Rekening
-                </label>
-                <p class="text-sm text-gray-900 font-mono">{{ form.vendor.no_rekening || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Nama Rekening
-                </label>
-                <p class="text-sm text-gray-900">{{ form.vendor.nama_rekening || '-' }}</p>
-              </div>
-            </div>
-
-            <!-- RCVD INV -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">
-                RCVD INV
-              </label>
-              <input
-                v-model="form.vendor.rcvd_inv"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
-                placeholder="Masukkan nomor invoice yang diterima"
-              />
-              <div v-if="form.errors.vendor?.rcvd_inv" class="mt-2 text-sm text-red-600">
-                {{ form.errors.vendor.rcvd_inv }}
+            <!-- Total Vendor Costs -->
+            <div v-if="vendorDetails.length > 0" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="font-medium text-blue-700">Total Vendor Costs:</span>
+                <span class="text-xl font-bold text-blue-800">{{ formatCurrency(totalVendorCosts) }}</span>
               </div>
             </div>
           </div>
@@ -596,23 +707,23 @@
 
         <!-- Voucher Section -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div 
+          <div
             @click="toggleSection('voucher')"
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Voucher Management</h3>
-            <svg 
+            <svg
               :class="{'rotate-180': !sections.voucher}"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
           <div v-show="sections.voucher" class="p-6 space-y-6">
-            
+
             <!-- Payment Vouchers -->
             <div class="space-y-4">
               <div class="flex items-center justify-between">
@@ -628,11 +739,11 @@
                   Add Payment
                 </button>
               </div>
-              
+
               <div v-if="paymentVouchers.length === 0" class="text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
                 No payment vouchers added yet
               </div>
-              
+
               <div v-for="(voucher, index) in paymentVouchers" :key="'payment-' + index" class="border border-gray-200 rounded-lg p-4 space-y-3">
                 <div class="flex justify-between items-center">
                   <h5 class="font-medium text-gray-700">Payment Voucher #{{ index + 1 }}</h5>
@@ -646,7 +757,7 @@
                     </svg>
                   </button>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Voucher No</label>
@@ -666,7 +777,7 @@
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <textarea
@@ -676,7 +787,7 @@
                     placeholder="e.g., Biaya Driver"
                   ></textarea>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
@@ -701,7 +812,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Receipt Vouchers -->
             <div class="space-y-4">
               <div class="flex items-center justify-between">
@@ -717,11 +828,11 @@
                   Add Receipt
                 </button>
               </div>
-              
+
               <div v-if="receiptVouchers.length === 0" class="text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
                 No receipt vouchers added yet
               </div>
-              
+
               <div v-for="(voucher, index) in receiptVouchers" :key="'receipt-' + index" class="border border-gray-200 rounded-lg p-4 space-y-3">
                 <div class="flex justify-between items-center">
                   <h5 class="font-medium text-gray-700">Receipt Voucher #{{ index + 1 }}</h5>
@@ -735,7 +846,7 @@
                     </svg>
                   </button>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Voucher No</label>
@@ -755,7 +866,7 @@
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <textarea
@@ -765,7 +876,7 @@
                     placeholder="e.g., Payment received from client"
                   ></textarea>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
@@ -790,7 +901,7 @@
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
 
@@ -839,7 +950,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
@@ -867,6 +978,9 @@ const selectedCustomerId = ref('');
 // Voucher data
 const paymentVouchers = ref([]);
 const receiptVouchers = ref([]);
+
+// Vendor details data - supports multiple vendors
+const vendorDetails = ref([]);
 
 // Collapseable sections state
 const sections = ref({
@@ -898,28 +1012,16 @@ const form = useForm({
   prepared_by: "",
   exchange_rate: "",
   jenis_biaya: "",
-  buying: "",
-  selling: "",
-  revenue: "",
+  buying_breakdown: [{ vendor: '', amount: 0 }],
+  selling_breakdown: [{ description: '', amount: 0 }],
   remarks: "",
-  goods: "",
   commodity: "",
   qty: "",
   net_weight: "",
   container_no: "",
   invoice_number: "",
   invoice_date: "",
-  top: "",
-  vendor: {
-    vendor_id: "",
-    deskripsi: "",
-    nominal: "",
-    nominalFormatted: "",
-    no_rekening: "",
-    company_name: "",
-    nama_rekening: "",
-    rcvd_inv: ""
-  }
+  top: ""
 });
 
 const toggleSection = (section) => {
@@ -931,11 +1033,12 @@ const onCustomerSelect = () => {
     const customer = props.customers.find(c => c.id == selectedCustomerId.value);
     if (customer) {
       // Auto-fill fields that are available from customer data
-      form.customer = customer.consignee_shipper || "";
-      form.bl_awb = customer.awb_bl_number || "";
-      form.pol = customer.pol_pod ? customer.pol_pod.split('/')[0]?.trim() || "" : "";
-      form.pod = customer.pol_pod ? customer.pol_pod.split('/')[1]?.trim() || "" : "";
-      form.eta = customer.eta || "";
+      form.customer = customer.company_name || "";
+      // Clear shipping fields since they're no longer available
+      form.bl_awb = "";
+      form.pol = "";
+      form.pod = "";
+      form.eta = "";
     }
   } else {
     // Clear auto-filled data
@@ -949,39 +1052,40 @@ const onCustomerSelect = () => {
   }
 };
 
-const onVendorChange = () => {
-  const selectedVendorId = form.vendor.vendor_id;
-  if (selectedVendorId) {
-    const selectedVendor = props.vendors.find(v => v.id == selectedVendorId);
+// Vendor detail management functions
+const addVendorDetail = () => {
+  vendorDetails.value.push({
+    vendor_id: "",
+    nama_vendor: "",
+    no_rekening: "",
+    nama_rekening: "",
+    deskripsi: "",
+    nominal: 0,
+    rcvd_inv: ""
+  });
+};
+
+const removeVendorDetail = (index) => {
+  if (vendorDetails.value.length > 0) {
+    vendorDetails.value.splice(index, 1);
+  }
+};
+
+const onVendorSelect = (index) => {
+  const vendorDetail = vendorDetails.value[index];
+  if (vendorDetail.vendor_id) {
+    const selectedVendor = props.vendors.find(v => v.id == vendorDetail.vendor_id);
     if (selectedVendor) {
-      form.vendor.no_rekening = selectedVendor.nomor_rekening;
-      form.vendor.company_name = selectedVendor.nama_vendor;
-      form.vendor.nama_rekening = selectedVendor.nama_rekening;
+      vendorDetail.nama_vendor = selectedVendor.nama_vendor;
+      vendorDetail.no_rekening = selectedVendor.nomor_rekening;
+      vendorDetail.nama_rekening = selectedVendor.nama_rekening;
     }
   } else {
     // Clear vendor data if no vendor selected
-    form.vendor.no_rekening = "";
-    form.vendor.company_name = "";
-    form.vendor.nama_rekening = "";
+    vendorDetail.nama_vendor = "";
+    vendorDetail.no_rekening = "";
+    vendorDetail.nama_rekening = "";
   }
-};
-
-const formatNominal = (event) => {
-  let value = event.target.value;
-  // Remove all non-digit characters
-  value = value.replace(/\D/g, '');
-  
-  // Add thousand separators (dots)
-  if (value) {
-    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
-  
-  form.vendor.nominalFormatted = value;
-};
-
-const updateNominalValue = () => {
-  // Convert formatted value back to number for form submission
-  form.vendor.nominal = form.vendor.nominalFormatted ? parseInt(form.vendor.nominalFormatted.replace(/\./g, '')) : '';
 };
 
 // Voucher management methods
@@ -1013,6 +1117,64 @@ const removeReceiptVoucher = (index) => {
   receiptVouchers.value.splice(index, 1);
 };
 
+// Breakdown management methods
+const addBuyingItem = () => {
+  form.buying_breakdown.push({ vendor: '', amount: 0 });
+};
+
+const removeBuyingItem = (index) => {
+  if (form.buying_breakdown.length > 1) {
+    form.buying_breakdown.splice(index, 1);
+  }
+};
+
+const addSellingItem = () => {
+  form.selling_breakdown.push({ description: '', amount: 0 });
+};
+
+const removeSellingItem = (index) => {
+  if (form.selling_breakdown.length > 1) {
+    form.selling_breakdown.splice(index, 1);
+  }
+};
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount || 0);
+};
+
+// Computed properties for totals
+const totalBuying = computed(() => {
+  return form.buying_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalSelling = computed(() => {
+  return form.selling_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalRevenue = computed(() => {
+  return totalSelling.value - totalBuying.value;
+});
+
+const calculateTotals = () => {
+  // This function is called to trigger reactivity if needed
+  // The actual calculation is done by computed properties
+  return {
+    totalBuying: totalBuying.value,
+    totalSelling: totalSelling.value,
+    totalRevenue: totalRevenue.value
+  };
+};
+
+// Computed property for total vendor costs
+const totalVendorCosts = computed(() => {
+  return vendorDetails.value.reduce((sum, vendor) => sum + (parseFloat(vendor.nominal) || 0), 0);
+});
+
 const showAlert = (type, title, message, confirmText = "", cancelText = "") => {
   alertDialog.value = {
     show: true,
@@ -1040,11 +1202,12 @@ const closeAlert = () => {
 };
 
 const submit = () => {
-  // Add voucher data to form
+  // Add voucher data and vendor details to form
   const formData = {
     ...form.data(),
     payment_vouchers: paymentVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-    receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount)
+    receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
+    vendor_details: vendorDetails.value.filter(v => v.vendor_id && v.nominal > 0)
   };
 
   form.transform(() => formData).post(route("admin-cs.sales-orders.store"), {

@@ -43,6 +43,7 @@
               Print PDF (Belum Dirilis)
             </button>
             <Link
+              v-if="salesOrder.status === 'draft'"
               :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
@@ -51,6 +52,17 @@
               </svg>
               Edit
             </Link>
+            <button
+              v-else
+              disabled
+              class="inline-flex items-center px-4 py-2 bg-gray-400 text-gray-700 rounded-lg cursor-not-allowed"
+              title="Sales order tidak dapat diedit (sudah dirilis)"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit (Tidak Tersedia)
+            </button>
             <Link
               :href="route('admin-cs.sales-orders.index')"
               class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
@@ -156,24 +168,55 @@
                         <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.jenis_biaya || '-' }}</td>
                       </tr>
                       <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">BUYING</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.buying ? formatCurrency(salesOrder.buying) : '-' }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">BUYING BREAKDOWN</td>
+                        <td class="px-4 py-3">
+                          <div v-if="salesOrder.buying_breakdown && salesOrder.buying_breakdown.length" class="space-y-2">
+                            <div v-for="(item, index) in salesOrder.buying_breakdown" :key="index" class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <span class="text-sm text-gray-700">{{ item.vendor || 'Unknown Vendor' }}</span>
+                              <span class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount || 0) }}</span>
+                            </div>
+                            <div class="border-t pt-2 mt-2">
+                              <div class="flex justify-between items-center font-semibold">
+                                <span class="text-sm text-gray-700">Total Buying:</span>
+                                <span class="text-sm text-blue-600">{{ formatCurrency(totalBuying) }}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div v-else class="text-sm text-gray-500">-</div>
+                        </td>
                       </tr>
                       <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">SELLING</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.selling ? formatCurrency(salesOrder.selling) : '-' }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">SELLING BREAKDOWN</td>
+                        <td class="px-4 py-3">
+                          <div v-if="salesOrder.selling_breakdown && salesOrder.selling_breakdown.length" class="space-y-2">
+                            <div v-for="(item, index) in salesOrder.selling_breakdown" :key="index" class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <span class="text-sm text-gray-700">{{ item.description || 'Unknown Service' }}</span>
+                              <span class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount || 0) }}</span>
+                            </div>
+                            <div class="border-t pt-2 mt-2">
+                              <div class="flex justify-between items-center font-semibold">
+                                <span class="text-sm text-gray-700">Total Selling:</span>
+                                <span class="text-sm text-green-600">{{ formatCurrency(totalSelling) }}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div v-else class="text-sm text-gray-500">-</div>
+                        </td>
                       </tr>
                       <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">REVENUE</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.revenue ? formatCurrency(salesOrder.revenue) : '-' }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">REVENUE (PROFIT)</td>
+                        <td class="px-4 py-3">
+                          <div class="flex items-center space-x-2">
+                            <span class="text-lg font-bold" :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
+                              {{ formatCurrency(totalRevenue) }}
+                            </span>
+                            <span class="text-xs text-gray-500">(Auto Calculated)</span>
+                          </div>
+                        </td>
                       </tr>
                       <tr>
                         <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">REMARKS</td>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.remarks || '-' }}</td>
-                      </tr>
-                      <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">GOODS</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ salesOrder.goods || '-' }}</td>
                       </tr>
                       <tr>
                         <td class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">COMMODITY/URAIAN BARANG</td>
@@ -335,32 +378,63 @@
             </div>
           </div>
 
-          <!-- Vendor Information -->
+          <!-- Multiple Vendors Information -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">Buying to Vendor</h3>
+              <h3 class="text-lg font-semibold text-sage-800">Vendor Information (Buying)</h3>
             </div>
             <div class="p-6">
-              <div v-if="getVendorInfo(salesOrder.vendors)" class="space-y-6">
-                <div class="border border-sage-200 rounded-lg p-4 bg-sage-50">
+              <div v-if="vendorsList && vendorsList.length > 0" class="space-y-4">
+                
+                <div v-for="(vendor, index) in vendorsList" :key="index" class="border border-sage-200 rounded-lg p-4 bg-sage-50">
                   <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-medium text-sage-800">Informasi Vendor</h4>
+                    <h4 class="font-medium text-sage-800">Vendor #{{ index + 1 }}</h4>
                     <span
-                      v-if="getVendorInfo(salesOrder.vendors).nominal"
-                      class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full"
+                      v-if="vendor.nominal"
+                      class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium"
                     >
-                      {{ formatCurrency(getVendorInfo(salesOrder.vendors).nominal) }}
+                      {{ formatCurrency(vendor.nominal) }}
                     </span>
                   </div>
 
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Deskripsi -->
-                    <div class="md:col-span-2 lg:col-span-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Vendor Name -->
+                    <div>
                       <label class="block text-sm font-medium text-sage-700 mb-1">
-                        Deskripsi
+                        Vendor Name
                       </label>
-                      <p class="text-gray-900 bg-white p-3 rounded border border-sage-200">
-                        {{ getVendorInfo(salesOrder.vendors).deskripsi || '-' }}
+                      <p class="text-gray-900 bg-white p-2 rounded border border-sage-200">
+                        {{ vendor.company_name || vendor.nama_vendor || '-' }}
+                      </p>
+                    </div>
+
+                    <!-- Deskripsi -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        Deskripsi Service
+                      </label>
+                      <p class="text-gray-900 bg-white p-2 rounded border border-sage-200">
+                        {{ vendor.deskripsi || '-' }}
+                      </p>
+                    </div>
+
+                    <!-- No Rekening -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        No Rekening
+                      </label>
+                      <p class="text-gray-900 font-mono bg-white p-2 rounded border border-sage-200">
+                        {{ vendor.no_rekening || '-' }}
+                      </p>
+                    </div>
+
+                    <!-- Nama Rekening -->
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-1">
+                        Nama Rekening
+                      </label>
+                      <p class="text-gray-900 bg-white p-2 rounded border border-sage-200">
+                        {{ vendor.nama_rekening || '-' }}
                       </p>
                     </div>
 
@@ -369,31 +443,9 @@
                       <label class="block text-sm font-medium text-sage-700 mb-1">
                         Nominal
                       </label>
-                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).nominal ? formatCurrency(getVendorInfo(salesOrder.vendors).nominal) : '-' }}</p>
-                    </div>
-
-                    <!-- No Rekening -->
-                    <div>
-                      <label class="block text-sm font-medium text-sage-700 mb-1">
-                        No Rekening
-                      </label>
-                      <p class="text-gray-900 font-mono">{{ getVendorInfo(salesOrder.vendors).no_rekening || '-' }}</p>
-                    </div>
-
-                    <!-- Company Name -->
-                    <div>
-                      <label class="block text-sm font-medium text-sage-700 mb-1">
-                        Company Name
-                      </label>
-                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).company_name || '-' }}</p>
-                    </div>
-
-                    <!-- Nama Rekening -->
-                    <div>
-                      <label class="block text-sm font-medium text-sage-700 mb-1">
-                        Nama Rekening
-                      </label>
-                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).nama_rekening || '-' }}</p>
+                      <p class="text-gray-900 font-semibold bg-white p-2 rounded border border-sage-200">
+                        {{ vendor.nominal ? formatCurrency(vendor.nominal) : '-' }}
+                      </p>
                     </div>
 
                     <!-- RCVD INV -->
@@ -401,10 +453,21 @@
                       <label class="block text-sm font-medium text-sage-700 mb-1">
                         RCVD INV
                       </label>
-                      <p class="text-gray-900">{{ getVendorInfo(salesOrder.vendors).rcvd_inv || '-' }}</p>
+                      <p class="text-gray-900 bg-white p-2 rounded border border-sage-200">
+                        {{ vendor.rcvd_inv || '-' }}
+                      </p>
                     </div>
                   </div>
                 </div>
+
+                <!-- Total Vendor Costs -->
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium text-blue-700">Total Vendor Costs:</span>
+                    <span class="text-xl font-bold text-blue-800">{{ formatCurrency(totalVendorCostsList) }}</span>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Empty State -->
@@ -503,6 +566,7 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 
@@ -529,6 +593,21 @@ const formatCurrency = (amount, currency = 'IDR') => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
+
+// Computed properties for breakdown totals
+const totalBuying = computed(() => {
+  if (!props.salesOrder.buying_breakdown) return 0;
+  return props.salesOrder.buying_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalSelling = computed(() => {
+  if (!props.salesOrder.selling_breakdown) return 0;
+  return props.salesOrder.selling_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalRevenue = computed(() => {
+  return totalSelling.value - totalBuying.value;
+});
 
 const formatWeight = (weight) => {
   return new Intl.NumberFormat('id-ID', {
@@ -582,21 +661,27 @@ const getVoucherStatusColor = (status) => {
   return colors[status] || 'bg-gray-100 text-gray-800';
 };
 
-const getVendorInfo = (vendors) => {
-  if (!vendors) return null;
+// Computed property for vendors list
+const vendorsList = computed(() => {
+  if (!props.salesOrder.vendors) return [];
 
   // Handle if vendors is an array
-  if (Array.isArray(vendors) && vendors.length > 0) {
-    return vendors[0];
+  if (Array.isArray(props.salesOrder.vendors)) {
+    return props.salesOrder.vendors;
   }
 
-  // Handle if vendors is an object
-  if (typeof vendors === 'object' && !Array.isArray(vendors)) {
-    return vendors;
+  // Handle if vendors is an object (legacy single vendor)
+  if (typeof props.salesOrder.vendors === 'object' && !Array.isArray(props.salesOrder.vendors)) {
+    return [props.salesOrder.vendors];
   }
 
-  return null;
-};
+  return [];
+});
+
+// Computed property for total vendor costs
+const totalVendorCostsList = computed(() => {
+  return vendorsList.value.reduce((sum, vendor) => sum + (parseFloat(vendor.nominal) || 0), 0);
+});
 </script>
 
 <style scoped>

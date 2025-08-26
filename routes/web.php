@@ -282,6 +282,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{salesOrder}/vouchers/{voucher}/approve', 'approveVoucher')->name('vouchers.approve');
         Route::post('/{salesOrder}/vouchers/{voucher}/reject', 'rejectVoucher')->name('vouchers.reject');
         Route::get('/{salesOrder}/print', 'print')->name('print');
+        Route::post('/{salesOrder}/force-refresh', 'forceRefresh')->name('force-refresh');
     });
 
     // Invoice Management Routes for Admin Keuangan
@@ -296,6 +297,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{invoice}', 'update')->name('update');
         Route::delete('/{invoice}', 'destroy')->name('destroy');
         Route::get('/{invoice}/pdf', 'generatePdf')->name('pdf');
+        Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
         Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
     });

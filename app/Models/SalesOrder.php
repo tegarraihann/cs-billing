@@ -27,11 +27,12 @@ class SalesOrder extends Model
         'prepared_by',
         'exchange_rate',
         'jenis_biaya',
-        'buying',
-        'selling',
-        'revenue',
+        'buying_breakdown',
+        'selling_breakdown',
+        'total_buying',
+        'total_selling',
+        'total_revenue',
         'remarks',
-        'goods',
         'commodity',
         'qty',
         'net_weight',
@@ -101,9 +102,11 @@ class SalesOrder extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'exchange_rate' => 'decimal:4',
-        'buying' => 'decimal:2',
-        'selling' => 'decimal:2',
-        'revenue' => 'decimal:2',
+        'buying_breakdown' => 'array',
+        'selling_breakdown' => 'array',
+        'total_buying' => 'decimal:2',
+        'total_selling' => 'decimal:2',
+        'total_revenue' => 'decimal:2',
         'vendors' => 'array',
     ];
 
@@ -168,5 +171,44 @@ class SalesOrder extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    // Helper methods for breakdown calculations
+    public function calculateTotalBuying(): float
+    {
+        if (!$this->buying_breakdown) {
+            return 0;
+        }
+        
+        return collect($this->buying_breakdown)->sum('amount');
+    }
+
+    public function calculateTotalSelling(): float
+    {
+        if (!$this->selling_breakdown) {
+            return 0;
+        }
+        
+        return collect($this->selling_breakdown)->sum('amount');
+    }
+
+    public function calculateTotalRevenue(): float
+    {
+        return $this->calculateTotalSelling() - $this->calculateTotalBuying();
+    }
+
+    // Auto-update totals when breakdown changes
+    public function updateTotals(): void
+    {
+        $this->total_buying = $this->calculateTotalBuying();
+        $this->total_selling = $this->calculateTotalSelling();
+        $this->total_revenue = $this->calculateTotalRevenue();
+    }
+
+    // Override save to auto-calculate totals
+    public function save(array $options = [])
+    {
+        $this->updateTotals();
+        return parent::save($options);
     }
 }
