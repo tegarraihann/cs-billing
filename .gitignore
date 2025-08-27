@@ -1,3 +1,4 @@
 public/hot
 /database/schema/
 .env
+.env.example
