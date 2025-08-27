@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\CustomerDocument;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -71,7 +72,8 @@ class CustomerController extends Controller
             'marketing_phone' => 'nullable|string|max:255',
             'marketing_email' => 'nullable|email|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'legal_document' => 'nullable|file|mimes:pdf|max:10240',
+            'legal_documents' => 'nullable|array',
+            'legal_documents.*' => 'file|mimes:pdf|max:10240',
         ], [
             'company_name.required' => 'Nama perusahaan wajib diisi.',
             'company_type.required' => 'Jenis usaha wajib dipilih.',
@@ -84,9 +86,10 @@ class CustomerController extends Controller
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
-            'legal_document.file' => 'Dokumen legal harus berupa file.',
-            'legal_document.mimes' => 'Dokumen legal harus berformat PDF.',
-            'legal_document.max' => 'Ukuran dokumen legal maksimal 10MB.',
+            'legal_documents.array' => 'Dokumen legal harus berupa array.',
+            'legal_documents.*.file' => 'Dokumen legal harus berupa file.',
+            'legal_documents.*.mimes' => 'Dokumen legal harus berformat PDF.',
+            'legal_documents.*.max' => 'Ukuran dokumen legal maksimal 10MB.',
         ]);
 
         // Handle file uploads
@@ -95,16 +98,27 @@ class CustomerController extends Controller
             $validated['photo_path'] = $photoPath;
         }
 
-        if ($request->hasFile('legal_document')) {
-            $legalDocPath = $request->file('legal_document')->store('customers/documents', 'public');
-            $validated['legal_document_path'] = $legalDocPath;
-        }
-
-
+        // Store the customer first to get the ID
         $validated['handled_by'] = Auth::id();
         $validated['last_contact_at'] = now();
-
-        Customer::create($validated);
+        
+        $customer = Customer::create($validated);
+        
+        // Handle multiple legal documents
+        if ($request->hasFile('legal_documents')) {
+            foreach ($request->file('legal_documents') as $file) {
+                $documentPath = $file->store('customers/documents', 'public');
+                
+                CustomerDocument::create([
+                    'customer_id' => $customer->id,
+                    'document_name' => $file->getClientOriginalName(),
+                    'document_path' => $documentPath,
+                    'document_type' => 'legal_document',
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ]);
+            }
+        }
 
         return redirect()
             ->route('admin-cs.customers.index')
@@ -116,7 +130,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $customer->load('handler');
+        $customer->load(['handler', 'legalDocuments']);
 
         return Inertia::render('Admin/AdminCS/Customers/Show', [
             'customer' => $customer
@@ -128,7 +142,7 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        $customer->load('handler');
+        $customer->load(['handler', 'legalDocuments']);
 
         return Inertia::render('Admin/AdminCS/Customers/Edit', [
             'customer' => $customer
@@ -159,7 +173,8 @@ class CustomerController extends Controller
             'marketing_phone' => 'nullable|string|max:255',
             'marketing_email' => 'nullable|email|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'legal_document' => 'nullable|file|mimes:pdf|max:10240',
+            'legal_documents' => 'nullable|array',
+            'legal_documents.*' => 'file|mimes:pdf|max:10240',
         ], [
             'company_name.required' => 'Nama perusahaan wajib diisi.',
             'company_type.required' => 'Jenis usaha wajib dipilih.',
@@ -172,9 +187,10 @@ class CustomerController extends Controller
             'photo.image' => 'File foto harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat jpeg, png, jpg, atau gif.',
             'photo.max' => 'Ukuran foto maksimal 2MB.',
-            'legal_document.file' => 'Dokumen legal harus berupa file.',
-            'legal_document.mimes' => 'Dokumen legal harus berformat PDF.',
-            'legal_document.max' => 'Ukuran dokumen legal maksimal 10MB.',
+            'legal_documents.array' => 'Dokumen legal harus berupa array.',
+            'legal_documents.*.file' => 'Dokumen legal harus berupa file.',
+            'legal_documents.*.mimes' => 'Dokumen legal harus berformat PDF.',
+            'legal_documents.*.max' => 'Ukuran dokumen legal maksimal 10MB.',
         ]);
 
         // Handle file uploads
@@ -187,13 +203,20 @@ class CustomerController extends Controller
             $validated['photo_path'] = $photoPath;
         }
 
-        if ($request->hasFile('legal_document')) {
-            // Delete old document if exists
-            if ($customer->legal_document_path) {
-                Storage::disk('public')->delete($customer->legal_document_path);
+        // Handle multiple legal documents
+        if ($request->hasFile('legal_documents')) {
+            foreach ($request->file('legal_documents') as $file) {
+                $documentPath = $file->store('customers/documents', 'public');
+                
+                CustomerDocument::create([
+                    'customer_id' => $customer->id,
+                    'document_name' => $file->getClientOriginalName(),
+                    'document_path' => $documentPath,
+                    'document_type' => 'legal_document',
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ]);
             }
-            $legalDocPath = $request->file('legal_document')->store('customers/documents', 'public');
-            $validated['legal_document_path'] = $legalDocPath;
         }
 
         $customer->update($validated);
@@ -217,6 +240,11 @@ class CustomerController extends Controller
             Storage::disk('public')->delete($customer->legal_document_path);
         }
 
+        // Delete multiple documents
+        foreach ($customer->documents as $document) {
+            Storage::disk('public')->delete($document->document_path);
+        }
+
         $customer->delete();
 
         return redirect()
@@ -225,12 +253,26 @@ class CustomerController extends Controller
     }
 
     /**
+     * Delete a specific document
+     */
+    public function deleteDocument(CustomerDocument $document)
+    {
+        // Delete the file from storage
+        Storage::disk('public')->delete($document->document_path);
+        
+        // Delete the record
+        $document->delete();
+
+        return response()->json(['message' => 'Dokumen berhasil dihapus.']);
+    }
+
+    /**
      * Generate PDF for the specified customer
      */
     public function print(Customer $customer)
     {
         // Load the handler relationship
-        $customer->load(['handler']);
+        $customer->load(['handler', 'legalDocuments']);
 
         try {
             // Generate PDF using dompdf facade

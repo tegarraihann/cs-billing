@@ -483,26 +483,52 @@
                   </div>
                 </div>
 
-                <!-- DOKUMEN LEGAL -->
+                <!-- DOKUMEN LEGAL MULTIPLE -->
                 <div>
                   <label
-                    for="legal_document"
+                    for="legal_documents"
                     class="block text-sm font-medium text-sage-700 mb-2"
                   >
-                    Dokumen Legal
+                    Dokumen Legal (Dapat memilih multiple file)
                   </label>
                   <input
                     type="file"
-                    id="legal_document"
-                    @change="handleLegalDocumentChange"
+                    id="legal_documents"
+                    @change="handleLegalDocumentsChange"
                     accept=".pdf"
+                    multiple
                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sage-100 file:text-sage-700 hover:file:bg-sage-200"
                   />
                   <p class="mt-1 text-xs text-gray-500">
-                    Format yang didukung: PDF. Maksimal 10MB.
+                    Format yang didukung: PDF. Maksimal 10MB per file. Dapat memilih multiple file sekaligus.
                   </p>
-                  <div v-if="form.errors.legal_document" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.legal_document }}
+                  
+                  <!-- Display selected files -->
+                  <div v-if="selectedLegalDocuments.length > 0" class="mt-3">
+                    <p class="text-sm font-medium text-sage-700 mb-2">File yang dipilih:</p>
+                    <div class="space-y-2">
+                      <div v-for="(file, index) in selectedLegalDocuments" :key="index" 
+                           class="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                        <div class="flex items-center space-x-2">
+                          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                          </svg>
+                          <span class="text-sm text-gray-900">{{ file.name }}</span>
+                          <span class="text-xs text-gray-500">({{ formatFileSize(file.size) }})</span>
+                        </div>
+                        <button type="button" @click="removeLegalDocument(index)" 
+                                class="text-red-600 hover:text-red-800 text-sm">
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div v-if="form.errors.legal_documents" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.legal_documents }}
+                  </div>
+                  <div v-if="form.errors['legal_documents.0']" class="mt-2 text-sm text-red-600">
+                    {{ form.errors['legal_documents.0'] }}
                   </div>
                 </div>
               </div>
@@ -636,7 +662,7 @@ const form = useForm({
   marketing_email: "",
   // Dokumen
   photo: null,
-  legal_document: null
+  legal_documents: []
 });
 
 
@@ -645,9 +671,26 @@ const handlePhotoChange = (event) => {
   form.photo = file || null;
 };
 
-const handleLegalDocumentChange = (event) => {
-  const file = event.target.files[0];
-  form.legal_document = file || null;
+const selectedLegalDocuments = ref([]);
+
+const handleLegalDocumentsChange = (event) => {
+  const files = Array.from(event.target.files);
+  selectedLegalDocuments.value = files;
+  form.legal_documents = files;
+};
+
+const removeLegalDocument = (index) => {
+  selectedLegalDocuments.value.splice(index, 1);
+  form.legal_documents = selectedLegalDocuments.value;
+};
+
+const formatFileSize = (bytes) => {
+  if (bytes >= 1048576) {
+    return (bytes / 1048576).toFixed(2) + ' MB';
+  } else if (bytes >= 1024) {
+    return (bytes / 1024).toFixed(2) + ' KB';
+  }
+  return bytes + ' bytes';
 };
 
 const showAlert = (type, title, message, confirmText = "", cancelText = "") => {

@@ -342,7 +342,7 @@
       </div>
 
       <!-- Document and Photo Information -->
-      <div class="mt-6" v-if="customer.photo_path || customer.legal_document_path">
+      <div class="mt-6" v-if="customer.photo_path || customer.legal_document_path || (customer.legal_documents && customer.legal_documents.length > 0)">
         <div
           class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
         >
@@ -354,44 +354,47 @@
               File yang telah diunggah untuk pelanggan ini
             </p>
           </div>
-          <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Photo Section -->
-              <div v-if="customer.photo_path">
-                <h4 class="text-md font-medium text-sage-700 mb-3">Foto Pelanggan</h4>
-                <div class="border border-gray-200 rounded-lg p-4">
-                  <img
-                    :src="`/storage/${customer.photo_path}`"
-                    :alt="`Foto ${customer.company_name}`"
-                    class="w-full max-w-sm h-auto rounded-lg shadow-sm"
-                  />
-                  <div class="mt-2">
-                    <p class="text-sm text-gray-600">{{ customer.photo_path.split('/').pop() }}</p>
-                    <a
-                      :href="`/storage/${customer.photo_path}`"
-                      target="_blank"
-                      class="text-xs text-sage-600 hover:text-sage-800 mt-1 inline-block"
-                    >
-                      Buka gambar penuh
-                    </a>
-                  </div>
+          <div class="p-6 space-y-6">
+            
+            <!-- Photo Section -->
+            <div v-if="customer.photo_path">
+              <h4 class="text-md font-medium text-sage-700 mb-3">Foto Pelanggan</h4>
+              <div class="border border-gray-200 rounded-lg p-4">
+                <img
+                  :src="`/storage/${customer.photo_path}`"
+                  :alt="`Foto ${customer.company_name}`"
+                  class="w-full max-w-sm h-auto rounded-lg shadow-sm"
+                />
+                <div class="mt-2">
+                  <p class="text-sm text-gray-600">{{ customer.photo_path.split('/').pop() }}</p>
+                  <a
+                    :href="`/storage/${customer.photo_path}`"
+                    target="_blank"
+                    class="text-xs text-sage-600 hover:text-sage-800 mt-1 inline-block"
+                  >
+                    Buka gambar penuh
+                  </a>
                 </div>
               </div>
+            </div>
 
-              <!-- Legal Document Section -->
-              <div v-if="customer.legal_document_path">
-                <h4 class="text-md font-medium text-sage-700 mb-3">Dokumen Legal</h4>
-                <div class="border border-gray-200 rounded-lg p-4">
+            <!-- Multiple Legal Documents Section -->
+            <div v-if="customer.legal_documents && customer.legal_documents.length > 0">
+              <h4 class="text-md font-medium text-sage-700 mb-3">Dokumen Legal ({{ customer.legal_documents.length }} file)</h4>
+              <div class="space-y-3">
+                <div v-for="document in customer.legal_documents" :key="document.id" 
+                     class="border border-gray-200 rounded-lg p-4">
                   <div class="flex items-center space-x-3">
-                    <svg class="w-12 h-12 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-10 h-10 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                     </svg>
                     <div class="flex-1">
-                      <p class="font-medium text-gray-900">{{ customer.legal_document_path.split('/').pop() }}</p>
-                      <p class="text-sm text-gray-500">Dokumen PDF</p>
-                      <div class="mt-2 space-x-4">
+                      <p class="font-medium text-gray-900">{{ document.document_name }}</p>
+                      <p class="text-sm text-gray-500">{{ document.file_size_human }} • PDF</p>
+                      <p class="text-xs text-gray-400">Diunggah: {{ formatDateTime(document.created_at) }}</p>
+                      <div class="mt-2 flex space-x-4">
                         <a
-                          :href="`/storage/${customer.legal_document_path}`"
+                          :href="`/storage/${document.document_path}`"
                           target="_blank"
                           class="inline-flex items-center text-sm text-sage-600 hover:text-sage-800"
                         >
@@ -402,7 +405,7 @@
                           Lihat
                         </a>
                         <a
-                          :href="`/storage/${customer.legal_document_path}`"
+                          :href="`/storage/${document.document_path}`"
                           download
                           class="inline-flex items-center text-sm text-sage-600 hover:text-sage-800"
                         >
@@ -417,6 +420,46 @@
                 </div>
               </div>
             </div>
+
+            <!-- Legacy Single Legal Document (fallback) -->
+            <div v-if="customer.legal_document_path && (!customer.legal_documents || customer.legal_documents.length === 0)">
+              <h4 class="text-md font-medium text-sage-700 mb-3">Dokumen Legal (Legacy)</h4>
+              <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-12 h-12 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-900">{{ customer.legal_document_path.split('/').pop() }}</p>
+                    <p class="text-sm text-gray-500">Dokumen PDF</p>
+                    <div class="mt-2 space-x-4">
+                      <a
+                        :href="`/storage/${customer.legal_document_path}`"
+                        target="_blank"
+                        class="inline-flex items-center text-sm text-sage-600 hover:text-sage-800"
+                      >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        Lihat
+                      </a>
+                      <a
+                        :href="`/storage/${customer.legal_document_path}`"
+                        download
+                        class="inline-flex items-center text-sm text-sage-600 hover:text-sage-800"
+                      >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Unduh
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

@@ -498,10 +498,54 @@
                   </div>
                 </div>
 
-                <!-- CURRENT LEGAL DOCUMENT -->
-                <div v-if="customer.legal_document_path">
+                <!-- EXISTING LEGAL DOCUMENTS -->
+                <div v-if="customer.legal_documents && customer.legal_documents.length > 0">
                   <label class="block text-sm font-medium text-sage-700 mb-2">
                     Dokumen Legal Saat Ini
+                  </label>
+                  <div class="space-y-3">
+                    <div v-for="document in customer.legal_documents" :key="document.id" 
+                         class="flex items-center justify-between p-3 bg-gray-50 rounded border">
+                      <div class="flex items-center space-x-3">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        <div>
+                          <p class="text-sm font-medium text-gray-900">{{ document.document_name }}</p>
+                          <p class="text-xs text-gray-500">{{ document.file_size_human }}</p>
+                          <div class="mt-1 space-x-3">
+                            <a
+                              :href="`/storage/${document.document_path}`"
+                              target="_blank"
+                              class="text-xs text-sage-600 hover:text-sage-800"
+                            >
+                              Lihat
+                            </a>
+                            <a
+                              :href="`/storage/${document.document_path}`"
+                              download
+                              class="text-xs text-sage-600 hover:text-sage-800"
+                            >
+                              Unduh
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        @click="deleteExistingDocument(document.id)"
+                        class="text-red-600 hover:text-red-800 text-sm px-3 py-1 border border-red-300 rounded hover:bg-red-50"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- OLD LEGAL DOCUMENT (fallback) -->
+                <div v-if="customer.legal_document_path">
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
+                    Dokumen Legal Lama
                   </label>
                   <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2">
@@ -522,26 +566,52 @@
                   </div>
                 </div>
 
-                <!-- DOKUMEN LEGAL -->
+                <!-- TAMBAH DOKUMEN LEGAL BARU -->
                 <div>
                   <label
-                    for="legal_document"
+                    for="legal_documents"
                     class="block text-sm font-medium text-sage-700 mb-2"
                   >
-                    {{ customer.legal_document_path ? 'Ganti Dokumen Legal' : 'Dokumen Legal' }}
+                    Tambah Dokumen Legal Baru (Multiple file)
                   </label>
                   <input
                     type="file"
-                    id="legal_document"
-                    @change="handleLegalDocumentChange"
+                    id="legal_documents"
+                    @change="handleLegalDocumentsChange"
                     accept=".pdf"
+                    multiple
                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sage-100 file:text-sage-700 hover:file:bg-sage-200"
                   />
                   <p class="mt-1 text-xs text-gray-500">
-                    Format yang didukung: PDF. Maksimal 10MB.
+                    Format yang didukung: PDF. Maksimal 10MB per file. Dapat memilih multiple file sekaligus.
                   </p>
-                  <div v-if="form.errors.legal_document" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.legal_document }}
+                  
+                  <!-- Display selected files -->
+                  <div v-if="selectedLegalDocuments.length > 0" class="mt-3">
+                    <p class="text-sm font-medium text-sage-700 mb-2">File yang akan ditambahkan:</p>
+                    <div class="space-y-2">
+                      <div v-for="(file, index) in selectedLegalDocuments" :key="index" 
+                           class="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200">
+                        <div class="flex items-center space-x-2">
+                          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                          </svg>
+                          <span class="text-sm text-blue-900">{{ file.name }}</span>
+                          <span class="text-xs text-blue-600">({{ formatFileSize(file.size) }})</span>
+                        </div>
+                        <button type="button" @click="removeLegalDocument(index)" 
+                                class="text-red-600 hover:text-red-800 text-sm">
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div v-if="form.errors.legal_documents" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.legal_documents }}
+                  </div>
+                  <div v-if="form.errors['legal_documents.0']" class="mt-2 text-sm text-red-600">
+                    {{ form.errors['legal_documents.0'] }}
                   </div>
                 </div>
               </div>
@@ -612,6 +682,7 @@ import { ref } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import axios from "axios";
 
 const props = defineProps({
   customer: Object,
@@ -682,7 +753,7 @@ const form = useForm({
   marketing_phone: props.customer.marketing_phone || "",
   marketing_email: props.customer.marketing_email || "",
   photo: null,
-  legal_document: null
+  legal_documents: []
 });
 
 
@@ -718,14 +789,48 @@ const handlePhotoChange = (event) => {
   form.photo = file || null;
 };
 
-const handleLegalDocumentChange = (event) => {
-  const file = event.target.files[0];
-  form.legal_document = file || null;
+const selectedLegalDocuments = ref([]);
+
+const handleLegalDocumentsChange = (event) => {
+  const files = Array.from(event.target.files);
+  selectedLegalDocuments.value = files;
+  form.legal_documents = files;
+};
+
+const removeLegalDocument = (index) => {
+  selectedLegalDocuments.value.splice(index, 1);
+  form.legal_documents = selectedLegalDocuments.value;
+};
+
+const formatFileSize = (bytes) => {
+  if (bytes >= 1048576) {
+    return (bytes / 1048576).toFixed(2) + ' MB';
+  } else if (bytes >= 1024) {
+    return (bytes / 1024).toFixed(2) + ' KB';
+  }
+  return bytes + ' bytes';
+};
+
+const deleteExistingDocument = async (documentId) => {
+  if (confirm('Apakah Anda yakin ingin menghapus dokumen ini?')) {
+    try {
+      await axios.delete(`/admin-cs/customers/documents/${documentId}`);
+      
+      // Remove from the customer.legal_documents array
+      const index = props.customer.legal_documents.findIndex(doc => doc.id === documentId);
+      if (index !== -1) {
+        props.customer.legal_documents.splice(index, 1);
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Terjadi kesalahan saat menghapus dokumen.');
+    }
+  }
 };
 
 const submit = () => {
   // Check if there are any files to upload
-  const hasFiles = form.photo || form.legal_document;
+  const hasFiles = form.photo || (form.legal_documents && form.legal_documents.length > 0);
   
   if (hasFiles) {
     // Use POST with _method: PUT for file uploads

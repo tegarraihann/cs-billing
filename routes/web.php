@@ -188,6 +188,9 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
         Route::get('/{customer}/print', 'print')->name('print');
     });
 
+    // Customer Documents Routes
+    Route::delete('/customers/documents/{document}', [\App\Http\Controllers\CustomerController::class, 'deleteDocument'])->name('customers.documents.delete');
+
     // Vendor Management Routes
     Route::controller(\App\Http\Controllers\VendorController::class)->prefix('vendors')->name('vendors.')->group(function () {
         Route::get('/', 'index')->name('index');
