@@ -16,7 +16,27 @@
               Kelola data pelanggan dan informasi kontak
             </p>
           </div>
-          <div class="mt-4 sm:mt-0">
+          <div class="mt-4 sm:mt-0 flex space-x-2">
+            <a
+              :href="exportPdfUrl"
+              target="_blank"
+              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                />
+              </svg>
+              Export PDF
+            </a>
             <Link
               :href="route('admin-cs.customers.create')"
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
@@ -257,7 +277,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, ref } from "vue";
+import { reactive, watch, ref, computed } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
@@ -268,9 +288,34 @@ const props = defineProps({
   filters: Object,
 });
 
+// Route helper definitions
+const routes = {
+  'admin-cs.customers.export.pdf': '/admin-cs/customers/export/pdf',
+};
+
+// Override global route function for this component
+const route = (name, params) => {
+  if (routes[name]) {
+    return typeof routes[name] === 'function' ? routes[name](params) : routes[name];
+  }
+  return window.route ? window.route(name, params) : `#${name}`;
+};
+
 // Form data
 const form = reactive({
   search: props.filters?.search || "",
+});
+
+// Computed property for export PDF URL
+const exportPdfUrl = computed(() => {
+  const baseUrl = route('admin-cs.customers.export.pdf');
+  const params = new URLSearchParams();
+  
+  if (form.search) {
+    params.append('search', form.search);
+  }
+  
+  return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
 });
 
 // Delete dialog state

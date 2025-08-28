@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerController extends Controller
 {
@@ -205,5 +206,61 @@ class CustomerController extends Controller
         return redirect()
             ->route('admin-keuangan.customers.index')
             ->with('success', 'Data pelanggan berhasil dihapus.');
+    }
+
+    /**
+     * Generate PDF for individual customer
+     */
+    public function generatePdf(Customer $customer)
+    {
+        try {
+            $pdf = Pdf::loadView('admin.admin-keuangan.customers.pdf', [
+                'customer' => $customer,
+                'type' => 'individual'
+            ]);
+            
+            $pdf->setPaper('A4', 'portrait');
+            
+            $fileName = 'customer-' . str_replace([' ', '/'], '-', $customer->company_name) . '-' . date('Y-m-d') . '.pdf';
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Export all customers to PDF
+     */
+    public function exportAllPdf(Request $request)
+    {
+        try {
+            $query = Customer::query();
+
+            // Apply search if provided
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('company_name', 'like', "%{$search}%")
+                        ->orWhere('contact_person', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%");
+                });
+            }
+
+            $customers = $query->orderBy('company_name', 'asc')->get();
+            
+            $pdf = Pdf::loadView('admin.admin-keuangan.customers.pdf', [
+                'customers' => $customers,
+                'type' => 'all',
+                'search' => $request->search
+            ]);
+            
+            $pdf->setPaper('A4', 'portrait');
+            
+            return $pdf->download('daftar-customer-' . date('Y-m-d') . '.pdf');
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

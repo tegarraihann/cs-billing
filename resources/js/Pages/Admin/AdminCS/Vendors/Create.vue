@@ -95,6 +95,90 @@
               </div>
             </div>
 
+            <!-- PIC -->
+            <div>
+              <label
+                for="pic"
+                class="block text-sm font-medium text-sage-700 mb-2"
+              >
+                PIC (Person In Charge)
+              </label>
+              <input
+                id="pic"
+                v-model="form.pic"
+                type="text"
+                placeholder="Masukkan nama PIC"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :class="{ 'border-red-500': errors.pic }"
+              />
+              <div v-if="errors.pic" class="mt-1 text-sm text-red-600">
+                {{ errors.pic }}
+              </div>
+            </div>
+
+            <!-- No HP -->
+            <div>
+              <label
+                for="no_hp"
+                class="block text-sm font-medium text-sage-700 mb-2"
+              >
+                No HP
+              </label>
+              <input
+                id="no_hp"
+                v-model="form.no_hp"
+                type="text"
+                placeholder="Masukkan nomor HP"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :class="{ 'border-red-500': errors.no_hp }"
+              />
+              <div v-if="errors.no_hp" class="mt-1 text-sm text-red-600">
+                {{ errors.no_hp }}
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label
+                for="email"
+                class="block text-sm font-medium text-sage-700 mb-2"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="Masukkan alamat email"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :class="{ 'border-red-500': errors.email }"
+              />
+              <div v-if="errors.email" class="mt-1 text-sm text-red-600">
+                {{ errors.email }}
+              </div>
+            </div>
+
+            <!-- No Kantor -->
+            <div>
+              <label
+                for="no_kantor"
+                class="block text-sm font-medium text-sage-700 mb-2"
+              >
+                No Kantor
+              </label>
+              <input
+                id="no_kantor"
+                v-model="form.no_kantor"
+                type="text"
+                placeholder="Masukkan nomor kantor"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :class="{ 'border-red-500': errors.no_kantor }"
+              />
+              <div v-if="errors.no_kantor" class="mt-1 text-sm text-red-600">
+                {{ errors.no_kantor }}
+              </div>
+            </div>
+
             <!-- Nomor Rekening -->
             <div>
               <label
@@ -269,6 +353,10 @@ const props = defineProps({
 // Form data using Inertia's useForm helper
 const form = useForm({
   nama_vendor: "",
+  pic: "",
+  no_hp: "",
+  email: "",
+  no_kantor: "",
   nomor_rekening: "",
   nama_rekening: "",
   nib: "",

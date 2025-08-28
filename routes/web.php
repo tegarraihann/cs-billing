@@ -180,12 +180,13 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
     Route::controller(\App\Http\Controllers\CustomerController::class)->prefix('customers')->name('customers.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/export/pdf', 'exportAllPdf')->name('export.pdf');
         Route::post('/', 'store')->name('store');
         Route::get('/{customer}', 'show')->name('show');
         Route::get('/{customer}/edit', 'edit')->name('edit');
         Route::put('/{customer}', 'update')->name('update');
         Route::delete('/{customer}', 'destroy')->name('destroy');
-        Route::get('/{customer}/print', 'print')->name('print');
+        Route::get('/{customer}/pdf', 'generatePdf')->name('pdf');
     });
 
     // Customer Documents Routes
@@ -195,11 +196,13 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
     Route::controller(\App\Http\Controllers\VendorController::class)->prefix('vendors')->name('vendors.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/export/pdf', 'exportAllPdf')->name('export.pdf');
         Route::post('/', 'store')->name('store');
         Route::get('/{vendor}', 'show')->name('show');
         Route::get('/{vendor}/edit', 'edit')->name('edit');
         Route::put('/{vendor}', 'update')->name('update');
         Route::delete('/{vendor}', 'destroy')->name('destroy');
+        Route::get('/{vendor}/pdf', 'generatePdf')->name('pdf');
     });
 
     // Sales Order Management Routes
@@ -253,22 +256,26 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
     Route::controller(\App\Http\Controllers\AdminKeuangan\CustomerController::class)->prefix('customers')->name('customers.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/export/pdf', 'exportAllPdf')->name('export.pdf');
         Route::post('/', 'store')->name('store');
         Route::get('/{customer}', 'show')->name('show');
         Route::get('/{customer}/edit', 'edit')->name('edit');
         Route::put('/{customer}', 'update')->name('update');
         Route::delete('/{customer}', 'destroy')->name('destroy');
+        Route::get('/{customer}/pdf', 'generatePdf')->name('pdf');
     });
 
     // Vendor Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\VendorController::class)->prefix('vendors')->name('vendors.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/export/pdf', 'exportAllPdf')->name('export.pdf');
         Route::post('/', 'store')->name('store');
         Route::get('/{vendor}', 'show')->name('show');
         Route::get('/{vendor}/edit', 'edit')->name('edit');
         Route::put('/{vendor}', 'update')->name('update');
         Route::delete('/{vendor}', 'destroy')->name('destroy');
+        Route::get('/{vendor}/pdf', 'generatePdf')->name('pdf');
     });
 
     // Sales Order Management Routes for Admin Keuangan

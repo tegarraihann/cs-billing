@@ -36,6 +36,26 @@
             </div>
           </div>
           <div class="flex space-x-2 mt-4 sm:mt-0">
+            <a
+              :href="route('admin-keuangan.customers.pdf', customer.id)"
+              target="_blank"
+              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <svg
+                class="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                />
+              </svg>
+              Export PDF
+            </a>
             <Link
               :href="route('admin-keuangan.customers.edit', customer.id)"
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
@@ -243,6 +263,19 @@ import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 const props = defineProps({
   customer: Object,
 });
+
+// Route helper definitions
+const routes = {
+  'admin-keuangan.customers.pdf': (id) => `/admin-keuangan/customers/${id}/pdf`,
+};
+
+// Override global route function for this component
+const route = (name, params) => {
+  if (routes[name]) {
+    return typeof routes[name] === 'function' ? routes[name](params) : routes[name];
+  }
+  return window.route ? window.route(name, params) : `#${name}`;
+};
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("id-ID", {

@@ -3,401 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Pelanggan - {{ $customer->customer_code }}</title>
+    <title>{{ $type == 'individual' ? 'Data Customer - ' . $customer->company_name : 'Daftar Customer' }}</title>
     <style>
-        @page {
-            margin: 2cm 1.5cm;
-            font-family: 'Times New Roman', serif;
-        }
-        
         body {
-            font-family: 'Times New Roman', serif;
-            font-size: 11px;
-            line-height: 1.5;
-            color: #000;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-        }
-        
-        .header {
-            margin-bottom: 40px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 15px;
-        }
-        
-        .company-info {
-            float: left;
-            width: 60%;
-        }
-        
-        .company-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #000;
-            margin-bottom: 5px;
-        }
-        
-        .company-address {
-            font-size: 10px;
-            color: #333;
-            line-height: 1.3;
-        }
-        
-        .document-info {
-            float: right;
-            width: 35%;
-            text-align: right;
-        }
-        
-        .document-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .document-details {
-            font-size: 10px;
+            padding: 20px;
+            font-size: 12px;
             line-height: 1.4;
         }
         
-        .clear {
-            clear: both;
-        }
-        
-        .content {
-            margin-top: 30px;
-        }
-        
-        .section {
+        .header {
+            text-align: center;
             margin-bottom: 30px;
-            page-break-inside: avoid;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
         }
         
-        .section-title {
-            font-size: 12px;
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
             font-weight: bold;
-            color: #000;
-            border-bottom: 1px solid #000;
-            padding-bottom: 3px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        
-        .info-table td {
-            padding: 4px 8px;
-            vertical-align: top;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .info-label {
-            font-weight: bold;
-            width: 25%;
             color: #333;
         }
         
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .info-section h2 {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 15px 0;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .info-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .info-row {
+            display: table-row;
+        }
+        
+        .info-label {
+            display: table-cell;
+            font-weight: bold;
+            width: 30%;
+            padding: 8px 15px 8px 0;
+            vertical-align: top;
+        }
+        
         .info-value {
-            width: 25%;
-            word-wrap: break-word;
+            display: table-cell;
+            padding: 8px 0;
+            vertical-align: top;
         }
         
-        .vendor-section {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-top: 20px;
-            background-color: #fafafa;
-        }
-        
-        .vendor-table {
+        .table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
         
-        .vendor-table td {
+        .table th, .table td {
+            border: 1px solid #ddd;
             padding: 8px;
-            border-bottom: 1px dotted #ccc;
+            text-align: left;
+            vertical-align: top;
         }
         
-        .vendor-label {
+        .table th {
+            background-color: #f5f5f5;
             font-weight: bold;
-            text-align: left;
-        }
-        
-        .vendor-value {
-            text-align: left;
-            font-family: monospace;
             font-size: 11px;
         }
         
-        .footer {
-            position: fixed;
-            bottom: 1cm;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 9px;
-            color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 8px;
-            background: white;
-        }
-        
-        .print-info {
-            text-align: right;
-            font-size: 9px;
-            color: #666;
-            margin-bottom: 20px;
-            font-style: italic;
-        }
-        
-        .signature-section {
-            margin-top: 50px;
-            page-break-inside: avoid;
-        }
-        
-        .signature-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .signature-cell {
-            width: 33.33%;
-            text-align: center;
-            vertical-align: top;
-            padding: 20px 10px;
-        }
-        
-        .signature-line {
-            border-bottom: 1px solid #000;
-            margin-bottom: 5px;
-            height: 50px;
-        }
-        
-        .signature-label {
+        .table td {
             font-size: 10px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
             font-weight: bold;
+        }
+        
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        
+        .no-data {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
-        <div class="company-info">
-            <div class="company-name">PT. OFFICE MANAGEMENT SYSTEM</div>
-            <div class="company-address">
-                Jl. Contoh Alamat No. 123<br>
-                Jakarta Selatan 12345<br>
-                Telp: (021) 123-4567 | Email: info@officems.com
-            </div>
-        </div>
-        <div class="document-info">
-            <div class="document-title">Data Pelanggan</div>
-            <div class="document-details">
-                <strong>No: {{ $customer->no }}</strong><br>
-                <strong>Customer Code: {{ $customer->customer_code }}</strong><br>
-                Tanggal: {{ $customer->created_at ? $customer->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y') }}
-            </div>
-        </div>
-        <div class="clear"></div>
+        <h1>PT. ESHAKA WIJAYA LOGISTICS</h1>
+        <p>{{ $type == 'individual' ? 'Data Detail Customer' : 'Daftar Master Data Customer' }}</p>
+        <p>Dicetak pada: {{ date('d F Y H:i:s') }}</p>
     </div>
 
-    <!-- Print Info -->
-    <div class="print-info">
-        Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMMM YYYY HH:mm') }}
-    </div>
-
-    <!-- Content -->
-    <div class="content">
-        
-        <!-- Basic Customer Information -->
-        <div class="section">
-            <div class="section-title">Informasi Dasar Pelanggan</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">SO Number</td>
-                    <td class="info-value">{{ $customer->so_number ?: '-' }}</td>
-                    <td class="info-label">Customer Code</td>
-                    <td class="info-value">{{ $customer->customer_code ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Consignee/Shipper</td>
-                    <td class="info-value">{{ $customer->consignee_shipper ?: '-' }}</td>
-                    <td class="info-label">AWB/BL Number</td>
-                    <td class="info-value">{{ $customer->awb_bl_number ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Customer Doc Name</td>
-                    <td class="info-value">{{ $customer->cust_doc_name ?: '-' }}</td>
-                    <td class="info-label">Type Qty</td>
-                    <td class="info-value">{{ $customer->type_qty ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">No Kont/Pallet</td>
-                    <td class="info-value">{{ $customer->no_kont_pallet ?: '-' }}</td>
-                    <td class="info-label">POL/POD</td>
-                    <td class="info-value">{{ $customer->pol_pod ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">ETA</td>
-                    <td class="info-value">{{ $customer->eta ? \Carbon\Carbon::parse($customer->eta)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
-                    <td class="info-label">Handled By</td>
-                    <td class="info-value">{{ $customer->handler->name ?? '-' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Document Information -->
-        @if($customer->photo_path || $customer->legal_document_path)
-        <div class="section">
-            <div class="section-title">Dokumen & File</div>
-            <table class="info-table">
-                @if($customer->photo_path)
-                <tr>
-                    <td class="info-label">Foto Pelanggan</td>
-                    <td class="info-value" colspan="3">
-                        File: {{ basename($customer->photo_path) }}<br>
-                        <small style="color: #666;">Path: storage/{{ $customer->photo_path }}</small>
-                    </td>
-                </tr>
-                @endif
-                @if($customer->legal_document_path)
-                <tr>
-                    <td class="info-label">Dokumen Legal</td>
-                    <td class="info-value" colspan="3">
-                        File: {{ basename($customer->legal_document_path) }}<br>
-                        <small style="color: #666;">Path: storage/{{ $customer->legal_document_path }}</small>
-                    </td>
-                </tr>
-                @endif
-            </table>
-            <div style="margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-left: 3px solid #007bff; font-size: 10px; color: #666;">
-                <strong>Catatan:</strong> File yang tercantum di atas tersimpan dalam sistem dan dapat diakses melalui aplikasi web.
+    @if($type == 'individual')
+        <!-- Individual Customer Detail -->
+        <div class="info-section">
+            <h2>Informasi Customer</h2>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-label">ID Customer:</div>
+                    <div class="info-value">#{{ $customer->id }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nama Perusahaan:</div>
+                    <div class="info-value">{{ $customer->company_name }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Kode Customer:</div>
+                    <div class="info-value">{{ $customer->customer_code ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Contact Person:</div>
+                    <div class="info-value">{{ $customer->contact_person ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">No HP:</div>
+                    <div class="info-value">{{ $customer->phone ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">{{ $customer->email ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Alamat:</div>
+                    <div class="info-value">{{ $customer->address ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Tanggal Dibuat:</div>
+                    <div class="info-value">{{ $customer->created_at ? $customer->created_at->format('d F Y H:i:s') : '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Terakhir Diupdate:</div>
+                    <div class="info-value">{{ $customer->updated_at ? $customer->updated_at->format('d F Y H:i:s') : '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Status:</div>
+                    <div class="info-value">
+                        <span class="status-badge status-active">Aktif</span>
+                    </div>
+                </div>
             </div>
         </div>
-        @endif
-
-        <!-- Vendor Information -->
-        <div class="section">
-            <div class="section-title">Informasi Vendor</div>
-            @if($customer->vendor && is_array($customer->vendor))
-                <div class="vendor-section">
-                    <table class="vendor-table">
+    @else
+        <!-- Multiple Customers List -->
+        <div class="info-section">
+            <h2>Daftar Customer</h2>
+            @if(isset($search) && $search)
+                <p><strong>Filter pencarian:</strong> {{ $search }}</p>
+            @endif
+            
+            @if($customers && count($customers) > 0)
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td class="vendor-label">Deskripsi</td>
-                            <td class="vendor-value">{{ $customer->vendor['deskripsi'] ?? '-' }}</td>
+                            <th style="width: 5%;">No</th>
+                            <th style="width: 20%;">Nama Perusahaan</th>
+                            <th style="width: 15%;">Kode Customer</th>
+                            <th style="width: 15%;">Contact Person</th>
+                            <th style="width: 12%;">No HP</th>
+                            <th style="width: 18%;">Email</th>
+                            <th style="width: 15%;">Tanggal Dibuat</th>
                         </tr>
-                        <tr>
-                            <td class="vendor-label">Nominal</td>
-                            <td class="vendor-value">{{ isset($customer->vendor['nominal']) ? 'Rp ' . number_format($customer->vendor['nominal'], 0, ',', '.') : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nama Vendor</td>
-                            <td class="vendor-value">{{ $customer->vendor['company_name'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nomor Rekening</td>
-                            <td class="vendor-value">{{ $customer->vendor['no_rekening'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nama Rekening</td>
-                            <td class="vendor-value">{{ $customer->vendor['nama_rekening'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">RCVD INV</td>
-                            <td class="vendor-value">{{ $customer->vendor['rcvd_inv'] ?? '-' }}</td>
-                        </tr>
-                    </table>
+                    </thead>
+                    <tbody>
+                        @foreach($customers as $index => $customer)
+                            <tr>
+                                <td class="text-center">{{ $index + 1 }}</td>
+                                <td>{{ $customer->company_name }}</td>
+                                <td>{{ $customer->customer_code ?? '-' }}</td>
+                                <td>{{ $customer->contact_person ?? '-' }}</td>
+                                <td>{{ $customer->phone ?? '-' }}</td>
+                                <td>{{ $customer->email ?? '-' }}</td>
+                                <td>{{ $customer->created_at ? $customer->created_at->format('d/m/Y') : '-' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 15px;">
+                    <strong>Total: {{ count($customers) }} customer</strong>
                 </div>
-            @elseif($customer->vendors && is_array($customer->vendors) && count($customer->vendors) > 0)
-                <!-- Legacy vendor format support -->
-                @foreach($customer->vendors as $index => $vendor)
-                <div class="vendor-section">
-                    <h4 style="margin-bottom: 10px; font-size: 11px;">Vendor {{ $index + 1 }}</h4>
-                    <table class="vendor-table">
-                        <tr>
-                            <td class="vendor-label">Deskripsi</td>
-                            <td class="vendor-value">{{ $vendor['deskripsi'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nominal</td>
-                            <td class="vendor-value">{{ isset($vendor['nominal']) ? 'Rp ' . number_format($vendor['nominal'], 0, ',', '.') : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nama Vendor</td>
-                            <td class="vendor-value">{{ $vendor['company_name'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nomor Rekening</td>
-                            <td class="vendor-value">{{ $vendor['no_rekening'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">Nama Rekening</td>
-                            <td class="vendor-value">{{ $vendor['nama_rekening'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="vendor-label">RCVD INV</td>
-                            <td class="vendor-value">{{ $vendor['rcvd_inv'] ?? '-' }}</td>
-                        </tr>
-                    </table>
-                </div>
-                @endforeach
             @else
-                <div class="vendor-section">
-                    <p style="text-align: center; color: #666; font-style: italic;">Tidak ada data vendor</p>
+                <div class="no-data">
+                    <p>Tidak ada data customer yang ditemukan.</p>
                 </div>
             @endif
         </div>
+    @endif
 
-        <!-- Additional Information -->
-        <div class="section">
-            <div class="section-title">Informasi Tambahan</div>
-            <table class="info-table">
-                <tr>
-                    <td class="info-label">Tanggal Input</td>
-                    <td class="info-value">{{ $customer->created_at ? $customer->created_at->locale('id')->isoFormat('DD MMMM YYYY HH:mm') : '-' }}</td>
-                    <td class="info-label">Terakhir Diperbarui</td>
-                    <td class="info-value">{{ $customer->updated_at ? $customer->updated_at->locale('id')->isoFormat('DD MMMM YYYY HH:mm') : '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Last Contact</td>
-                    <td class="info-value" colspan="3">{{ $customer->last_contact_at ? \Carbon\Carbon::parse($customer->last_contact_at)->locale('id')->isoFormat('DD MMMM YYYY HH:mm') : '-' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Signature Section -->
-        <div class="signature-section">
-            <table class="signature-table">
-                <tr>
-                    <td class="signature-cell">
-                        <div class="signature-line"></div>
-                        <div class="signature-label">Prepared By</div>
-                    </td>
-                    <td class="signature-cell">
-                        <div class="signature-line"></div>
-                        <div class="signature-label">Checked By</div>
-                    </td>
-                    <td class="signature-cell">
-                        <div class="signature-line"></div>
-                        <div class="signature-label">Approved By</div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-    </div>
-
-    <!-- Footer -->
     <div class="footer">
-        Customer Data No: {{ $customer->customer_code }} | PT. Office Management System | Halaman 1 dari 1
+        <p>Dokumen ini digenerate secara otomatis oleh sistem PT. Eshaka Wijaya Logistics</p>
+        <p>Admin CS - {{ date('d/m/Y H:i:s') }}</p>
     </div>
 </body>
 </html>

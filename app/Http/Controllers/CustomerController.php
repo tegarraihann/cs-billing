@@ -267,63 +267,58 @@ class CustomerController extends Controller
     }
 
     /**
-     * Generate PDF for the specified customer
+     * Generate PDF for individual customer
      */
-    public function print(Customer $customer)
+    public function generatePdf(Customer $customer)
     {
-        // Load the handler relationship
-        $customer->load(['handler', 'legalDocuments']);
-
         try {
-            // Generate PDF using dompdf facade
-            $pdf = Pdf::loadView('admin.admin-cs.customers.pdf', compact('customer'))
-                ->setPaper('a4', 'portrait')
-                ->setOptions([
-                    'defaultFont' => 'Arial',
-                    'isRemoteEnabled' => true,
-                    'isHtml5ParserEnabled' => true,
-                    'isPhpEnabled' => true,
-                    'debugPng' => false,
-                    'debugKeepTemp' => false,
-                    'debugCss' => false,
-                    'debugLayout' => false,
-                    'debugLayoutLines' => false,
-                    'debugLayoutBlocks' => false,
-                    'debugLayoutInline' => false,
-                    'debugLayoutPaddingBox' => false,
-                ]);
+            $pdf = Pdf::loadView('admin.admin-cs.customers.pdf', [
+                'customer' => $customer,
+                'type' => 'individual'
+            ]);
+            
+            $pdf->setPaper('A4', 'portrait');
+            
+            $fileName = 'customer-' . str_replace([' ', '/'], '-', $customer->company_name) . '-' . date('Y-m-d') . '.pdf';
+            return $pdf->download($fileName);
         } catch (\Exception $e) {
-            // Fallback: Use dependency injection if facade fails
-            try {
-
-                
-                $dompdf = app('dompdf.wrapper');
-                $pdf = $dompdf->loadView('admin.admin-cs.customers.pdf', compact('customer'))
-                    ->setPaper('a4', 'portrait')
-                    ->setOptions([
-                        'defaultFont' => 'Arial',
-                        'isRemoteEnabled' => true,
-                        'isHtml5ParserEnabled' => true,
-                        'isPhpEnabled' => true,
-                    ]);
-            } catch (\Exception $e2) {
-                // Final fallback: Use service container resolution
-                $pdfService = app(\Barryvdh\DomPDF\PDF::class);
-                $pdf = $pdfService->loadView('admin.admin-cs.customers.pdf', compact('customer'))
-                    ->setPaper('a4', 'portrait')
-                    ->setOptions([
-                        'defaultFont' => 'Arial',
-                        'isRemoteEnabled' => true,
-                        'isHtml5ParserEnabled' => true,
-                        'isPhpEnabled' => true,
-                    ]);
-            }
+            return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
 
-        // Set filename
-        $filename = 'Customer_Data_' . str_replace(' ', '_', $customer->company_name) . '_' . date('Y-m-d') . '.pdf';
+    /**
+     * Export all customers to PDF
+     */
+    public function exportAllPdf(Request $request)
+    {
+        try {
+            $query = Customer::query();
 
-        // Return the PDF as download
-        return $pdf->download($filename);
+            // Apply search if provided
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('company_name', 'like', "%{$search}%")
+                        ->orWhere('contact_person', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%");
+                });
+            }
+
+            $customers = $query->orderBy('company_name', 'asc')->get();
+            
+            $pdf = Pdf::loadView('admin.admin-cs.customers.pdf', [
+                'customers' => $customers,
+                'type' => 'all',
+                'search' => $request->search
+            ]);
+            
+            $pdf->setPaper('A4', 'portrait');
+            
+            return $pdf->download('daftar-customer-' . date('Y-m-d') . '.pdf');
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

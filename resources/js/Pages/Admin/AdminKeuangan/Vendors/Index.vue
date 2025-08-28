@@ -16,7 +16,27 @@
               Kelola data vendor untuk transaksi
             </p>
           </div>
-          <div class="mt-4 sm:mt-0">
+          <div class="mt-4 sm:mt-0 flex space-x-2">
+            <a
+              :href="exportPdfUrl"
+              target="_blank"
+              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                />
+              </svg>
+              Export PDF
+            </a>
             <Link
               :href="route('admin-keuangan.vendors.create')"
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
@@ -53,7 +73,7 @@
             <input
               v-model="form.search"
               type="text"
-              placeholder="Cari nama vendor, nomor rekening, nama rekening, NIB..."
+              placeholder="Cari nama vendor, PIC, HP, email, kantor, nomor rekening, nama rekening, NIB..."
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
             />
           </div>
@@ -98,6 +118,26 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
+                  PIC
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  No HP
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  Email
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  No Kantor
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
                   Nomor Rekening
                 </th>
                 <th
@@ -109,6 +149,16 @@
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
                   NIB
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  Status Dokumen
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  Tanggal Dibuat
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -125,12 +175,32 @@
               >
                 <!-- ID -->
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  #{{ vendor.id }}
+                  {{ vendor.id }}
                 </td>
 
                 <!-- Nama Vendor -->
                 <td class="px-6 py-4 text-sm text-gray-900">
                   {{ vendor.nama_vendor }}
+                </td>
+
+                <!-- PIC -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.pic || '-' }}
+                </td>
+
+                <!-- No HP -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.no_hp || '-' }}
+                </td>
+
+                <!-- Email -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.email || '-' }}
+                </td>
+
+                <!-- No Kantor -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.no_kantor || '-' }}
                 </td>
 
                 <!-- Nomor Rekening -->
@@ -144,8 +214,28 @@
                 </td>
 
                 <!-- NIB -->
-                <td class="px-6 py-4 text-sm text-gray-900">
+                <td class="px-6 py-4 text-sm text-gray-900 font-mono">
                   {{ vendor.nib || '-' }}
+                </td>
+
+                <!-- Status Dokumen -->
+                <td class="px-6 py-4 text-sm">
+                  <div class="flex space-x-1">
+                    <span v-if="vendor.photo_path" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Foto
+                    </span>
+                    <span v-if="vendor.legal_document_path" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Legal
+                    </span>
+                    <span v-if="!vendor.photo_path && !vendor.legal_document_path" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      Kosong
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Tanggal Dibuat -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ formatDate(vendor.created_at) }}
                 </td>
 
                 <!-- Actions -->
@@ -153,7 +243,7 @@
                   <div class="flex items-center space-x-2">
                     <Link
                       :href="route('admin-keuangan.vendors.show', vendor.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
+                      class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
                       title="Lihat Detail"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,17 +253,17 @@
                     </Link>
                     <Link
                       :href="route('admin-keuangan.vendors.edit', vendor.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-full transition-colors"
-                      title="Edit"
+                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
+                      title="Edit Vendor"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </Link>
                     <button
-                      @click="deleteVendor(vendor)"
+                      @click="deleteVendor(vendor.id)"
                       class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                      title="Hapus"
+                      title="Hapus Vendor"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -185,7 +275,7 @@
 
               <!-- Empty State -->
               <tr v-if="!vendors.data || vendors.data.length === 0">
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="12" class="px-6 py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-12 h-12 text-gray-300 mb-4"
@@ -197,7 +287,7 @@
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                       />
                     </svg>
                     <p class="text-lg font-medium mb-2">Tidak ada data</p>
@@ -224,7 +314,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { reactive, watch, computed } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
@@ -234,9 +324,34 @@ const props = defineProps({
   filters: Object,
 });
 
+// Route helper definitions
+const routes = {
+  'admin-keuangan.vendors.export.pdf': '/admin-keuangan/vendors/export/pdf',
+};
+
+// Override global route function for this component
+const route = (name, params) => {
+  if (routes[name]) {
+    return typeof routes[name] === 'function' ? routes[name](params) : routes[name];
+  }
+  return window.route ? window.route(name, params) : `#${name}`;
+};
+
 // Form data
 const form = reactive({
   search: props.filters?.search || "",
+});
+
+// Computed property for export PDF URL
+const exportPdfUrl = computed(() => {
+  const baseUrl = route('admin-keuangan.vendors.export.pdf');
+  const params = new URLSearchParams();
+  
+  if (form.search) {
+    params.append('search', form.search);
+  }
+  
+  return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
 });
 
 const search = () => {
@@ -249,13 +364,16 @@ const search = () => {
   });
 };
 
-const deleteVendor = (vendor) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus vendor ${vendor.nama_vendor}?`)) {
-    router.delete(route("admin-keuangan.vendors.destroy", vendor.id), {
-      preserveScroll: true,
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString("id-ID");
+};
+
+const deleteVendor = (vendorId) => {
+  if (confirm("Apakah Anda yakin ingin menghapus vendor ini?")) {
+    router.delete(route("admin-keuangan.vendors.destroy", vendorId), {
       onSuccess: () => {
-        // Handle success
-      }
+        alert("Vendor berhasil dihapus!");
+      },
     });
   }
 };

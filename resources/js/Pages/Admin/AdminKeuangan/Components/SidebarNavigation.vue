@@ -46,7 +46,7 @@
     <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
       <!-- Dashboard -->
       <a
-        href="/admin-keuangan/dashboard"
+        :href="route('admin-keuangan.dashboard')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.dashboard')
@@ -72,7 +72,7 @@
 
       <!-- Customers -->
       <a
-        href="/admin-keuangan/customers"
+        :href="route('admin-keuangan.customers.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.customers')
@@ -98,7 +98,7 @@
 
       <!-- Vendors -->
       <a
-        href="/admin-keuangan/vendors"
+        :href="route('admin-keuangan.vendors.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.vendors')
@@ -124,7 +124,7 @@
 
       <!-- Sales Orders -->
       <a
-        href="/admin-keuangan/sales-orders"
+        :href="route('admin-keuangan.sales-orders.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.sales-orders')
@@ -150,7 +150,7 @@
 
       <!-- Invoices -->
       <a
-        href="/admin-keuangan/invoices"
+        :href="route('admin-keuangan.invoices.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.invoices')
@@ -176,7 +176,7 @@
 
       <!-- Payment Monitoring -->
       <a
-        href="/admin-keuangan/invoices/payment-history"
+        :href="route('admin-keuangan.invoices.payment-history')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.payment-history')
@@ -202,7 +202,7 @@
 
       <!-- Petty Cash -->
       <a
-        href="/admin-keuangan/petty-cash"
+        :href="route('admin-keuangan.petty-cash.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.petty-cash')
@@ -228,7 +228,7 @@
 
       <!-- Profit Loss Reports -->
       <a
-        href="/admin-keuangan/profit-loss"
+        :href="route('admin-keuangan.profit-loss.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.profit-loss')
@@ -254,7 +254,7 @@
 
       <!-- Employee Salary -->
       <a
-        href="/admin-keuangan/employee-salary"
+        :href="route('admin-keuangan.employee-salary.index')"
         class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
         :class="
           isActive('admin-keuangan.employee-salary')
@@ -328,7 +328,7 @@
           Quick Actions
         </div>
         <a
-          href="/admin-keuangan/sales-orders"
+          :href="route('admin-keuangan.sales-orders.index')"
           class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200"
         >
           <svg
@@ -400,6 +400,11 @@ const route = window.route || function(name, params) {
     'admin-keuangan.customers.index': '/admin-keuangan/customers',
     'admin-keuangan.vendors.index': '/admin-keuangan/vendors',
     'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
+    'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
+    'admin-keuangan.invoices.payment-history': '/admin-keuangan/invoices/payment-history',
+    'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
+    'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
+    'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
   };
   return routes[name] || '#';
 };

@@ -16,7 +16,27 @@
               Kelola data vendor untuk transaksi
             </p>
           </div>
-          <div class="mt-4 sm:mt-0">
+          <div class="mt-4 sm:mt-0 flex space-x-2">
+            <a
+              :href="exportPdfUrl"
+              target="_blank"
+              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                />
+              </svg>
+              Export PDF
+            </a>
             <Link
               :href="route('admin-cs.vendors.create')"
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
@@ -53,7 +73,7 @@
             <input
               v-model="form.search"
               type="text"
-              placeholder="Cari nama vendor, nomor rekening, nama rekening, NIB..."
+              placeholder="Cari nama vendor, PIC, HP, email, kantor, nomor rekening, nama rekening, NIB..."
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
             />
           </div>
@@ -94,6 +114,26 @@
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
                   Nama Vendor
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  PIC
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  No HP
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  Email
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
+                  No Kantor
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -141,6 +181,26 @@
                 <!-- Nama Vendor -->
                 <td class="px-6 py-4 text-sm text-gray-900">
                   {{ vendor.nama_vendor }}
+                </td>
+
+                <!-- PIC -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.pic || '-' }}
+                </td>
+
+                <!-- No HP -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.no_hp || '-' }}
+                </td>
+
+                <!-- Email -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.email || '-' }}
+                </td>
+
+                <!-- No Kantor -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ vendor.no_kantor || '-' }}
                 </td>
 
                 <!-- Nomor Rekening -->
@@ -215,7 +275,7 @@
 
               <!-- Empty State -->
               <tr v-if="!vendors.data || vendors.data.length === 0">
-                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="12" class="px-6 py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-12 h-12 text-gray-300 mb-4"
@@ -254,7 +314,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { reactive, watch, computed } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
@@ -264,9 +324,34 @@ const props = defineProps({
   filters: Object,
 });
 
+// Route helper definitions
+const routes = {
+  'admin-cs.vendors.export.pdf': '/admin-cs/vendors/export/pdf',
+};
+
+// Override global route function for this component
+const route = (name, params) => {
+  if (routes[name]) {
+    return typeof routes[name] === 'function' ? routes[name](params) : routes[name];
+  }
+  return window.route ? window.route(name, params) : `#${name}`;
+};
+
 // Form data
 const form = reactive({
   search: props.filters?.search || "",
+});
+
+// Computed property for export PDF URL
+const exportPdfUrl = computed(() => {
+  const baseUrl = route('admin-cs.vendors.export.pdf');
+  const params = new URLSearchParams();
+  
+  if (form.search) {
+    params.append('search', form.search);
+  }
+  
+  return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
 });
 
 const search = () => {
