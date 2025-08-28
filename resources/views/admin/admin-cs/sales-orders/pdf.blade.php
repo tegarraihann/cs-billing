@@ -9,7 +9,7 @@
             margin: 1cm 1cm;
             font-family: 'Times New Roman', serif;
         }
-        
+
         body {
             font-family: 'Times New Roman', serif;
             font-size: 9px;
@@ -18,37 +18,37 @@
             margin: 0;
             padding: 0;
         }
-        
+
         .header {
             margin-bottom: 15px;
             border-bottom: 2px solid #000;
             padding-bottom: 8px;
         }
-        
+
         .company-info {
             float: left;
             width: 60%;
         }
-        
+
         .company-name {
             font-size: 14px;
             font-weight: bold;
             color: #000;
             margin-bottom: 3px;
         }
-        
+
         .company-address {
             font-size: 8px;
             color: #333;
             line-height: 1.2;
         }
-        
+
         .document-info {
             float: right;
             width: 35%;
             text-align: right;
         }
-        
+
         .document-title {
             font-size: 16px;
             font-weight: bold;
@@ -56,25 +56,25 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .document-details {
             font-size: 8px;
             line-height: 1.2;
         }
-        
+
         .clear {
             clear: both;
         }
-        
+
         .content {
             margin-top: 10px;
         }
-        
+
         .section {
             margin-bottom: 12px;
             page-break-inside: avoid;
         }
-        
+
         .section-title {
             font-size: 10px;
             font-weight: bold;
@@ -85,66 +85,66 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        
+
         .info-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 8px;
         }
-        
+
         .info-table td {
             padding: 2px 4px;
             vertical-align: top;
             border-bottom: 1px solid #eee;
             font-size: 8px;
         }
-        
+
         .info-label {
             font-weight: bold;
             width: 25%;
             color: #333;
         }
-        
+
         .info-value {
             width: 25%;
             word-wrap: break-word;
         }
-        
+
         .pricing-section {
             border: 1px solid #ddd;
             padding: 8px;
             margin-top: 10px;
             background-color: #fafafa;
         }
-        
+
         .pricing-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .pricing-table td {
             padding: 3px;
             border-bottom: 1px dotted #ccc;
             font-size: 8px;
         }
-        
+
         .pricing-label {
             font-weight: bold;
             text-align: left;
         }
-        
+
         .pricing-value {
             text-align: right;
             font-family: monospace;
             font-size: 8px;
         }
-        
+
         .total-row {
             border-top: 2px solid #000;
             font-weight: bold;
             font-size: 9px;
         }
-        
+
         .footer {
             position: fixed;
             bottom: 0.5cm;
@@ -157,12 +157,12 @@
             padding-top: 4px;
             background: white;
         }
-        
+
         .status-info {
             margin-top: 8px;
             text-align: right;
         }
-        
+
         .status-badge {
             display: inline-block;
             padding: 2px 6px;
@@ -172,7 +172,7 @@
             text-transform: uppercase;
             background-color: white;
         }
-        
+
         .print-info {
             text-align: right;
             font-size: 7px;
@@ -180,47 +180,47 @@
             margin-bottom: 8px;
             font-style: italic;
         }
-        
+
         .signature-section {
             margin-top: 20px;
             page-break-inside: avoid;
         }
-        
+
         .signature-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .signature-cell {
             width: 33.33%;
             text-align: center;
             vertical-align: top;
             padding: 8px 5px;
         }
-        
+
         .signature-line {
             border-bottom: 1px solid #000;
             margin-bottom: 3px;
             height: 25px;
         }
-        
+
         .signature-label {
             font-size: 8px;
             font-weight: bold;
         }
-        
+
         .remarks-section {
             margin-top: 10px;
             border: 1px solid #ddd;
             padding: 6px;
         }
-        
+
         .remarks-title {
             font-weight: bold;
             margin-bottom: 3px;
             font-size: 8px;
         }
-        
+
         .remarks-content {
             font-size: 8px;
             line-height: 1.2;
@@ -258,11 +258,11 @@
 
     <!-- Content -->
     <div class="content">
-        
+
         <!-- Primary Information -->
         <div class="section">
             <div class="section-title">Informasi Sales Order</div>
-            
+
             <!-- Two Column Layout -->
             <div style="width: 100%; display: table; margin-bottom: 15px;">
                 <!-- Left Column -->
@@ -417,8 +417,8 @@
         <!-- Vendor Information -->
         @if($salesOrder->vendors)
         @php
-            $vendorInfo = is_array($salesOrder->vendors) ? 
-                (count($salesOrder->vendors) > 0 ? $salesOrder->vendors[0] : null) : 
+            $vendorInfo = is_array($salesOrder->vendors) ?
+                (count($salesOrder->vendors) > 0 ? $salesOrder->vendors[0] : null) :
                 (is_object($salesOrder->vendors) ? $salesOrder->vendors : null);
         @endphp
         @if($vendorInfo)

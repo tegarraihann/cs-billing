@@ -17,7 +17,8 @@ class SalesOrderController extends Controller
     {
         // Force fresh query untuk memastikan data terbaru
         $query = SalesOrder::with(['creator', 'releasedBy', 'vouchers'])
-            ->where('status', 'released')
+            ->whereIn('status', ['released', 'approved', 'rejected'])
+            ->whereNotNull('released_at')
             ->orderBy('released_at', 'desc');
 
         if ($request->filled('search')) {
@@ -72,7 +73,7 @@ class SalesOrderController extends Controller
         
         // More permissive check for status - handle potential whitespace/encoding issues
         $cleanStatus = trim(strtolower($salesOrder->status));
-        if ($cleanStatus !== 'released' && $salesOrder->released_at === null) {
+        if (!in_array($cleanStatus, ['released', 'approved', 'rejected']) && $salesOrder->released_at === null) {
             // Log access attempt for debugging
             \Log::warning('AdminKeuangan Sales Order Access Denied', [
                 'sales_order_id' => $salesOrder->id,
@@ -111,16 +112,17 @@ class SalesOrderController extends Controller
 
         // More permissive check for status - handle potential whitespace/encoding issues
         $cleanStatus = trim(strtolower($salesOrder->status));
-        if ($cleanStatus !== 'released' && $salesOrder->released_at === null) {
+        if ($cleanStatus === 'approved') {
+            return redirect()->back()->withErrors(['error' => 'Sales order sudah disetujui sebelumnya.']);
+        }
+        
+        if ($cleanStatus !== 'released' || $salesOrder->released_at === null) {
             $errorMessage = "Sales order tidak dapat disetujui. Status saat ini: '{$salesOrder->status}' (cleaned: '{$cleanStatus}')";
 
             // Provide more specific guidance based on current status
             switch ($cleanStatus) {
                 case 'draft':
                     $errorMessage .= ". Sales order masih dalam status draft. CS perlu merilis sales order ini terlebih dahulu.";
-                    break;
-                case 'approved':
-                    $errorMessage .= ". Sales order sudah disetujui sebelumnya.";
                     break;
                 case 'rejected':
                     $errorMessage .= ". Sales order sudah ditolak sebelumnya.";
@@ -189,7 +191,7 @@ class SalesOrderController extends Controller
             'rejection_reason' => 'required|string|max:500'
         ]);
 
-        if ($salesOrder->status !== 'released') {
+        if (!in_array($salesOrder->status, ['released', 'approved']) || $salesOrder->released_at === null) {
             return redirect()->back()->withErrors(['error' => 'Sales order belum dirilis atau sudah diproses.']);
         }
 
@@ -205,7 +207,7 @@ class SalesOrderController extends Controller
 
     public function approveVoucher(Request $request, SalesOrder $salesOrder, Voucher $voucher)
     {
-        if ($salesOrder->status !== 'released') {
+        if (!in_array($salesOrder->status, ['released', 'approved']) || $salesOrder->released_at === null) {
             return redirect()->back()->withErrors(['error' => 'Sales order belum dirilis.']);
         }
 
@@ -232,7 +234,7 @@ class SalesOrderController extends Controller
             'rejection_reason' => 'required|string|max:500'
         ]);
 
-        if ($salesOrder->status !== 'released') {
+        if (!in_array($salesOrder->status, ['released', 'approved']) || $salesOrder->released_at === null) {
             return redirect()->back()->withErrors(['error' => 'Sales order belum dirilis.']);
         }
 
@@ -555,6 +557,72 @@ class SalesOrderController extends Controller
         } catch (\Exception $e) {
             \Log::error('PDF Generation Error: ' . $e->getMessage());
             return redirect()->back()->withErrors(['error' => 'Gagal membuat PDF: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Generate PDF for the specified voucher
+     */
+    public function printVoucher(SalesOrder $salesOrder, Voucher $voucher)
+    {
+        // Check if voucher belongs to the sales order
+        if ($voucher->sales_order_id !== $salesOrder->id) {
+            return redirect()->back()->withErrors(['error' => 'Voucher tidak terkait dengan sales order ini.']);
+        }
+
+        // Check if voucher has been released
+        if ($voucher->status === 'draft') {
+            return redirect()->back()->withErrors(['error' => 'Voucher harus dirilis terlebih dahulu sebelum dapat dicetak.']);
+        }
+
+        // Load the sales order relationship
+        $voucher->load(['salesOrder']);
+
+        try {
+            // Generate PDF using the voucher template
+            $pdf = Pdf::loadView('admin.admin-cs.vouchers.pdf', compact('voucher', 'salesOrder'))
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'defaultFont' => 'Arial',
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
+                    'isPhpEnabled' => true,
+                ]);
+
+            return $pdf->download('voucher-' . $voucher->voucher_no . '.pdf');
+
+        } catch (\Exception $e) {
+            \Log::error('PDF Voucher Generation Error: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Gagal membuat PDF voucher: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Preview voucher in browser (for editing/reviewing before print)
+     */
+    public function previewVoucher(SalesOrder $salesOrder, Voucher $voucher)
+    {
+        // Check if voucher belongs to the sales order
+        if ($voucher->sales_order_id !== $salesOrder->id) {
+            return redirect()->back()->withErrors(['error' => 'Voucher tidak terkait dengan sales order ini.']);
+        }
+
+        // Check if voucher has been released (allow draft for preview purposes)
+        if ($voucher->status === 'draft') {
+            // Show warning but allow preview
+            session()->flash('warning', 'Voucher masih dalam status draft. Preview ini hanya untuk review sebelum release.');
+        }
+
+        // Load the sales order relationship
+        $voucher->load(['salesOrder']);
+
+        try {
+            // Return the HTML view directly for browser preview (no PDF generation)
+            return view('admin.admin-cs.vouchers.preview', compact('voucher', 'salesOrder'));
+
+        } catch (\Exception $e) {
+            \Log::error('Voucher Preview Error: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Gagal menampilkan preview voucher: ' . $e->getMessage()]);
         }
     }
 

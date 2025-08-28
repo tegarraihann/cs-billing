@@ -352,6 +352,15 @@ class SalesOrderController extends Controller
             'released_by' => Auth::id(),
         ]);
         
+        // Release all vouchers associated with this sales order
+        $unreleasedVouchers = $salesOrder->vouchers()->where('status', \App\Models\Voucher::STATUS_DRAFT)->get();
+        foreach ($unreleasedVouchers as $voucher) {
+            $voucher->update([
+                'status' => \App\Models\Voucher::STATUS_RELEASED,
+                'released_at' => now(),
+            ]);
+        }
+        
         // Log successful release for debugging
         \Log::info('CS Sales Order Released Successfully', [
             'sales_order_id' => $salesOrder->id,

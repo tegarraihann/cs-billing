@@ -285,6 +285,8 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{salesOrder}/vouchers/{voucher}/approve', 'approveVoucher')->name('vouchers.approve');
         Route::post('/{salesOrder}/vouchers/{voucher}/reject', 'rejectVoucher')->name('vouchers.reject');
         Route::get('/{salesOrder}/print', 'print')->name('print');
+        Route::get('/{salesOrder}/vouchers/{voucher}/print', 'printVoucher')->name('vouchers.print');
+        Route::get('/{salesOrder}/vouchers/{voucher}/preview', 'previewVoucher')->name('vouchers.preview');
         Route::post('/{salesOrder}/force-refresh', 'forceRefresh')->name('force-refresh');
     });
 

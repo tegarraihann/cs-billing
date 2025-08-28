@@ -32,7 +32,7 @@
               Refresh
             </button>
             <button
-              v-if="salesOrder.status === 'released' || salesOrder.status === 'draft'"
+              v-if="salesOrder.status === 'released'"
               @click="showApprovalDialog"
               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
@@ -42,7 +42,7 @@
               Setujui
             </button>
             <button
-              v-if="salesOrder.status === 'released' || salesOrder.status === 'draft'"
+              v-if="salesOrder.status === 'released'"
               @click="showRejectModal = true"
               class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
@@ -158,7 +158,7 @@
                 </div>
                 <p v-else class="text-gray-500">-</p>
               </div>
-              
+
               <!-- Selling Breakdown -->
               <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">SELLING BREAKDOWN</label>
@@ -176,7 +176,7 @@
                 </div>
                 <p v-else class="text-gray-500">-</p>
               </div>
-              
+
               <!-- Revenue -->
               <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">REVENUE (PROFIT)</label>
@@ -215,7 +215,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">T.O.P</label>
                 <p class="text-gray-900">{{ salesOrder.top || '-' }}</p>
               </div>
-              
+
               <!-- New fields -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">COMMODITY</label>
@@ -233,13 +233,13 @@
           </div>
 
           <!-- Voucher Management Section -->
-          <div v-if="salesOrder.vouchers && salesOrder.vouchers.length > 0" 
+          <div v-if="salesOrder.vouchers && salesOrder.vouchers.length > 0"
                class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
               <h3 class="text-lg font-semibold text-blue-800">Voucher Management</h3>
             </div>
             <div class="p-6">
-              <div v-for="voucher in salesOrder.vouchers" :key="voucher.id" 
+              <div v-for="voucher in salesOrder.vouchers" :key="voucher.id"
                    class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
                 <div class="flex justify-between items-start mb-3">
                   <div>
@@ -260,7 +260,7 @@
                     </span>
                   </div>
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span class="text-gray-500">Date:</span>
@@ -292,6 +292,30 @@
                     </svg>
                     Reject
                   </button>
+                </div>
+                <!-- Print and Preview buttons for vouchers -->
+                <div v-if="voucher.status === 'released' || voucher.status === 'approved'" class="mt-3 flex space-x-2">
+                  <!-- <a
+                    :href="route('admin-keuangan.sales-orders.vouchers.preview', [salesOrder.id, voucher.id])"
+                    target="_blank"
+                    class="inline-flex items-center px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition-colors"
+                  >
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Preview & Edit
+                  </a> -->
+                  <a
+                    :href="route('admin-keuangan.sales-orders.vouchers.print', [salesOrder.id, voucher.id])"
+                    target="_blank"
+                    class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                  >
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Download PDF
+                  </a>
                 </div>
               </div>
             </div>
@@ -363,10 +387,10 @@
           </div>
           <h3 class="text-lg font-semibold text-gray-900">Konfirmasi Persetujuan</h3>
         </div>
-        
+
         <div class="mb-6 space-y-3">
           <p class="text-gray-600">Apakah Anda yakin ingin menyetujui sales order ini?</p>
-          
+
           <div class="bg-gray-50 p-3 rounded-lg space-y-2">
             <div class="flex justify-between text-sm">
               <span class="font-medium">Order Number:</span>
@@ -384,7 +408,7 @@
               </span>
             </div>
           </div>
-          
+
           <!-- Debug Info (hanya tampil jika ada masalah) -->
           <div v-if="debugInfo" class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
             <div class="text-sm font-medium text-yellow-800 mb-1">Debug Info:</div>
@@ -395,7 +419,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="flex justify-end space-x-3">
           <button
             @click="closeApprovalDialog"
@@ -555,7 +579,7 @@ const showApprovalDialog = () => {
         showApprovalModal.value = true;
         return;
       }
-      
+
       debugInfo.value = false;
       showApprovalModal.value = true;
     },
@@ -585,24 +609,24 @@ const approveSalesOrder = () => {
     },
     onError: (errors) => {
       let errorMessage = 'Terjadi kesalahan saat menyetujui sales order:\n\n';
-      
+
       // Parse error messages
       if (errors.error) {
         errorMessage += `Error: ${errors.error}\n`;
       }
-      
+
       // Tambahkan informasi status untuk debugging
       errorMessage += `\nInformasi Debug:`;
       errorMessage += `\n- Status saat ini: ${props.salesOrder.status}`;
       errorMessage += `\n- Tanggal rilis: ${props.salesOrder.released_at || 'Tidak ada'}`;
       errorMessage += `\n- Dirilis oleh: ${props.salesOrder.released_by?.name || 'Tidak ada'}`;
-      
+
       if (props.salesOrder.status !== 'released') {
         errorMessage += `\n\nSaran: Pastikan CS sudah merilis sales order ini terlebih dahulu.`;
       }
-      
+
       alert(errorMessage);
-      
+
       // Tampilkan debug info di modal
       debugInfo.value = true;
     }
