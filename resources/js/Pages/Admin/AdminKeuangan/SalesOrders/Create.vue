@@ -37,7 +37,7 @@
             <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
           </div>
           <div class="p-6 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label for="order_number" class="block text-sm font-medium text-sage-700 mb-2">
                   Order Number <span class="text-red-500">*</span>
@@ -54,6 +54,40 @@
                   {{ form.errors.order_number }}
                 </div>
               </div>
+              
+              <div>
+                <label for="ref_no" class="block text-sm font-medium text-sage-700 mb-2">
+                  Ref No
+                </label>
+                <input
+                  v-model="form.ref_no"
+                  type="text"
+                  id="ref_no"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  placeholder="Masukkan ref number"
+                />
+                <div v-if="form.errors.ref_no" class="mt-2 text-sm text-red-600">
+                  {{ form.errors.ref_no }}
+                </div>
+              </div>
+
+              <div>
+                <label for="so_date" class="block text-sm font-medium text-sage-700 mb-2">
+                  Date
+                </label>
+                <input
+                  v-model="form.so_date"
+                  type="date"
+                  id="so_date"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.so_date" class="mt-2 text-sm text-red-600">
+                  {{ form.errors.so_date }}
+                </div>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               <div>
                 <label for="customer" class="block text-sm font-medium text-sage-700 mb-2">
@@ -144,6 +178,29 @@
                   id="vessel"
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                   placeholder="Masukkan vessel"
+                />
+              </div>
+
+              <div>
+                <label for="etd" class="block text-sm font-medium text-sage-700 mb-2">ETD</label>
+                <input
+                  v-model="form.etd"
+                  type="date"
+                  id="etd"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+              </div>
+
+              <div>
+                <label for="measurement" class="block text-sm font-medium text-sage-700 mb-2">Meas (M³)</label>
+                <input
+                  v-model="form.measurement"
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  id="measurement"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  placeholder="Volume dalam m³"
                 />
               </div>
             </div>
@@ -373,17 +430,22 @@ import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 const props = defineProps({
   customers: Array,
   vendors: Array,
+  orderNumber: String,
 });
 
 const form = useForm({
-  order_number: "",
+  order_number: props.orderNumber || "",
+  ref_no: "",
+  so_date: "",
   customer: "",
   shipper: "",
   bl_awb: "",
   pol: "",
   pod: "",
   eta: "",
+  etd: "",
   vessel: "",
+  measurement: "",
   buying: 0,
   selling: 0,
   revenue: 0,

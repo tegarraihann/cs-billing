@@ -182,7 +182,7 @@
                 <td class="px-6 py-4 text-sm font-medium">
                   <div class="flex items-center space-x-2">
                     <a
-                      :href="`/admin-cs/customers/${customer.id}/print`"
+                      :href="`/admin-cs/customers/${customer.id}/pdf`"
                       class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
                       title="Cetak PDF"
                       target="_blank"

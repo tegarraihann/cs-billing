@@ -11,12 +11,15 @@ class SalesOrder extends Model
     protected $fillable = [
         // New required fields based on requirements
         'order_number',
+        'ref_no',
+        'so_date',
         'customer',
         'shipper',
         'bl_awb',
         'liner',
         'vessel',
         'eta',
+        'etd',
         'aju',
         'sppb_date',
         'shipment_type',
@@ -36,6 +39,7 @@ class SalesOrder extends Model
         'commodity',
         'qty',
         'net_weight',
+        'measurement',
         'container_no',
         'invoice_number',
         'invoice_date',
@@ -96,6 +100,7 @@ class SalesOrder extends Model
     protected $casts = [
         'so_date' => 'date',
         'eta' => 'date',
+        'etd' => 'date',
         'sppb_date' => 'date',
         'invoice_date' => 'date',
         'released_at' => 'datetime',
@@ -210,5 +215,43 @@ class SalesOrder extends Model
     {
         $this->updateTotals();
         return parent::save($options);
+    }
+
+    /**
+     * Generate unique order number with format EWILOG2501001001
+     * Format: EWILOG + YY + MM + XXX + YYY
+     * - EWILOG: Prefix
+     * - YY: Year (25 for 2025)
+     * - MM: Month (01-12)
+     * - XXX: Yearly sequential number (001-999)
+     * - YYY: Monthly sequential number (001-999)
+     */
+    public static function generateOrderNumber(): string
+    {
+        $now = now();
+        $year = $now->format('y'); // 2 digit year (25 for 2025)
+        $month = $now->format('m'); // Month with leading zero (01-12)
+        
+        // Get yearly count (from January to current month)
+        $yearStart = $now->startOfYear();
+        $yearlyCount = self::where('created_at', '>=', $yearStart)
+                          ->whereNotNull('order_number')
+                          ->where('order_number', 'LIKE', "EWILOG{$year}%")
+                          ->count();
+        
+        // Get monthly count
+        $monthStart = $now->startOfMonth();
+        $monthEnd = $now->endOfMonth();
+        $monthlyCount = self::whereBetween('created_at', [$monthStart, $monthEnd])
+                           ->whereNotNull('order_number')
+                           ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%")
+                           ->count();
+        
+        // Increment counts (next number)
+        $yearlySeq = str_pad($yearlyCount + 1, 3, '0', STR_PAD_LEFT);
+        $monthlySeq = str_pad($monthlyCount + 1, 3, '0', STR_PAD_LEFT);
+        
+        // Generate final order number
+        return "EWILOG{$year}{$month}{$yearlySeq}{$monthlySeq}";
     }
 }

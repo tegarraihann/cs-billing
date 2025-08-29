@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\Voucher;
+use App\Models\ShipmentType;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -51,9 +52,19 @@ class SalesOrderController extends Controller
             ->orderBy('nama_vendor')
             ->get();
 
+        $shipmentTypes = ShipmentType::active()
+            ->select('id', 'name', 'code', 'description')
+            ->orderBy('name')
+            ->get();
+
+        // Generate order number automatically
+        $orderNumber = SalesOrder::generateOrderNumber();
+
         return Inertia::render('Admin/AdminCS/SalesOrders/Create', [
             'customers' => $customers,
-            'vendors' => $vendors
+            'vendors' => $vendors,
+            'shipmentTypes' => $shipmentTypes,
+            'orderNumber' => $orderNumber
         ]);
     }
 
@@ -66,12 +77,15 @@ class SalesOrderController extends Controller
             $validated = $request->validate([
             // Required fields based on requirements only
             'order_number' => 'required|string|max:255',
+            'ref_no' => 'nullable|string|max:255',
+            'so_date' => 'nullable|date',
             'customer' => 'required|string|max:255',
             'shipper' => 'nullable|string|max:255',
             'bl_awb' => 'nullable|string|max:255',
             'liner' => 'nullable|string|max:255',
             'vessel' => 'nullable|string|max:255',
             'eta' => 'nullable|date',
+            'etd' => 'nullable|date',
             'aju' => 'nullable|string|max:255',
             'sppb_date' => 'nullable|date',
             'shipment_type' => 'nullable|string|max:255',
@@ -92,6 +106,7 @@ class SalesOrderController extends Controller
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
+            'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
@@ -154,6 +169,11 @@ class SalesOrderController extends Controller
         $vendorDetails = $validated['vendor_details'];
         unset($validated['vendor_details']); // Remove vendor_details from main validated data
         $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
+
+        // Auto-generate order number if empty or not provided
+        if (empty($validated['order_number'])) {
+            $validated['order_number'] = SalesOrder::generateOrderNumber();
+        }
 
         // Remove voucher data from sales order data
         $paymentVouchers = $validated['payment_vouchers'] ?? [];
@@ -222,9 +242,15 @@ class SalesOrderController extends Controller
             ->orderBy('nama_vendor')
             ->get();
 
+        $shipmentTypes = ShipmentType::active()
+            ->select('id', 'name', 'code', 'description')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
-            'vendors' => $vendors
+            'vendors' => $vendors,
+            'shipmentTypes' => $shipmentTypes
         ]);
     }
 
@@ -236,12 +262,15 @@ class SalesOrderController extends Controller
         $validated = $request->validate([
             // Required fields based on requirements only
             'order_number' => 'required|string|max:255',
+            'ref_no' => 'nullable|string|max:255',
+            'so_date' => 'nullable|date',
             'customer' => 'required|string|max:255',
             'shipper' => 'nullable|string|max:255',
             'bl_awb' => 'nullable|string|max:255',
             'liner' => 'nullable|string|max:255',
             'vessel' => 'nullable|string|max:255',
             'eta' => 'nullable|date',
+            'etd' => 'nullable|date',
             'aju' => 'nullable|string|max:255',
             'sppb_date' => 'nullable|date',
             'shipment_type' => 'nullable|string|max:255',
@@ -262,6 +291,7 @@ class SalesOrderController extends Controller
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
+            'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',

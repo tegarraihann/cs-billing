@@ -9,14 +9,14 @@
 
   <!-- Sidebar -->
   <aside
-    class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
+    class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
     :class="{
       'translate-x-0': isMobileSidebarOpen,
       '-translate-x-full': !isMobileSidebarOpen,
     }"
   >
     <!-- Sidebar Header -->
-    <div class="px-6 py-6 border-b border-sage-200">
+    <div class="px-6 py-6 border-b border-sage-200 flex-shrink-0">
       <div class="flex items-center space-x-3">
         <div
           class="w-10 h-10 bg-sage-600 rounded-lg flex items-center justify-center"
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
+    <nav class="p-4 space-y-2 flex-1 overflow-y-auto min-h-0">
       <!-- Dashboard -->
       <a
         :href="route('admin-cs.dashboard')"
@@ -147,6 +147,41 @@
         </svg>
         <span class="font-medium">Sales Orders</span>
       </a>
+
+      <!-- Master Data Section -->
+      <div class="pt-4 mt-6 border-t border-sage-200">
+        <div
+          class="text-xs font-semibold text-sage-500 uppercase tracking-wider px-3 py-2"
+        >
+          Master Data
+        </div>
+        
+        <!-- Shipment Type -->
+        <a
+          :href="route('admin-cs.shipment-types.index')"
+          class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+          :class="
+            isActive('admin-cs.shipment-types.*')
+              ? 'bg-sage-100 text-sage-800 shadow-sm'
+              : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+          "
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-5H8z"
+            />
+          </svg>
+          <span class="font-medium">Shipment Type</span>
+        </a>
+      </div>
 
       <!-- Quick Actions -->
       <div class="pt-4 mt-6 border-t border-sage-200">

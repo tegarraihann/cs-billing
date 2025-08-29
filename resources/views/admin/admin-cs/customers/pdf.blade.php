@@ -154,24 +154,48 @@
                     <div class="info-value">{{ $customer->company_name }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Kode Customer:</div>
-                    <div class="info-value">{{ $customer->customer_code ?? '-' }}</div>
+                    <div class="info-label">Jenis Perusahaan:</div>
+                    <div class="info-value">{{ $customer->company_type ?? '-' }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Contact Person:</div>
-                    <div class="info-value">{{ $customer->contact_person ?? '-' }}</div>
+                    <div class="info-label">Alamat Perusahaan:</div>
+                    <div class="info-value">{{ $customer->company_address ?? '-' }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">No HP:</div>
-                    <div class="info-value">{{ $customer->phone ?? '-' }}</div>
+                    <div class="info-label">Alamat Invoice:</div>
+                    <div class="info-value">{{ $customer->invoice_address ?? '-' }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Email:</div>
-                    <div class="info-value">{{ $customer->email ?? '-' }}</div>
+                    <div class="info-label">PIC Name:</div>
+                    <div class="info-value">{{ $customer->pic_name ?? '-' }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Alamat:</div>
-                    <div class="info-value">{{ $customer->address ?? '-' }}</div>
+                    <div class="info-label">PIC Phone:</div>
+                    <div class="info-value">{{ $customer->pic_phone ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">PIC Email:</div>
+                    <div class="info-value">{{ $customer->pic_email ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Marketing Name:</div>
+                    <div class="info-value">{{ $customer->marketing_name ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Marketing Phone:</div>
+                    <div class="info-value">{{ $customer->marketing_phone ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Marketing Email:</div>
+                    <div class="info-value">{{ $customer->marketing_email ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">NPWP:</div>
+                    <div class="info-value">{{ $customer->npwp ?? '-' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">NIB:</div>
+                    <div class="info-value">{{ $customer->nib ?? '-' }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Tanggal Dibuat:</div>
@@ -202,12 +226,14 @@
                     <thead>
                         <tr>
                             <th style="width: 5%;">No</th>
-                            <th style="width: 20%;">Nama Perusahaan</th>
-                            <th style="width: 15%;">Kode Customer</th>
-                            <th style="width: 15%;">Contact Person</th>
-                            <th style="width: 12%;">No HP</th>
-                            <th style="width: 18%;">Email</th>
-                            <th style="width: 15%;">Tanggal Dibuat</th>
+                            <th style="width: 15%;">Nama Perusahaan</th>
+                            <th style="width: 10%;">Jenis Perusahaan</th>
+                            <th style="width: 10%;">PIC Name</th>
+                            <th style="width: 10%;">PIC Phone</th>
+                            <th style="width: 12%;">PIC Email</th>
+                            <th style="width: 10%;">NPWP</th>
+                            <th style="width: 10%;">NIB</th>
+                            <th style="width: 10%;">Tanggal Dibuat</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -215,10 +241,12 @@
                             <tr>
                                 <td class="text-center">{{ $index + 1 }}</td>
                                 <td>{{ $customer->company_name }}</td>
-                                <td>{{ $customer->customer_code ?? '-' }}</td>
-                                <td>{{ $customer->contact_person ?? '-' }}</td>
-                                <td>{{ $customer->phone ?? '-' }}</td>
-                                <td>{{ $customer->email ?? '-' }}</td>
+                                <td>{{ $customer->company_type ?? '-' }}</td>
+                                <td>{{ $customer->pic_name ?? '-' }}</td>
+                                <td>{{ $customer->pic_phone ?? '-' }}</td>
+                                <td>{{ $customer->pic_email ?? '-' }}</td>
+                                <td>{{ $customer->npwp ?? '-' }}</td>
+                                <td>{{ $customer->nib ?? '-' }}</td>
                                 <td>{{ $customer->created_at ? $customer->created_at->format('d/m/Y') : '-' }}</td>
                             </tr>
                         @endforeach

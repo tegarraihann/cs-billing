@@ -30,7 +30,7 @@
 
           <!-- Page Title -->
           <div class="flex-1 lg:flex-none">
-            <h1 class="text-lg sm:text-xl font-semibold text-blue-800 truncate">
+            <h1 class="text-lg sm:text-xl font-semibold text-sage-800 truncate">
               Admin CS Dashboard
             </h1>
           </div>
@@ -40,23 +40,23 @@
             <Dropdown align="right" width="48">
               <template #trigger>
                 <button
-                  class="flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-blue-100 transition-colors"
+                  class="flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-sage-100 transition-colors"
                 >
                   <div
-                    class="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-full flex items-center justify-center"
+                    class="w-7 h-7 sm:w-8 sm:h-8 bg-sage-600 rounded-full flex items-center justify-center"
                   >
                     <span class="text-white font-semibold text-xs sm:text-sm">
                       {{ getInitials($page.props.auth.user?.name) }}
                     </span>
                   </div>
                   <div class="hidden sm:block text-left">
-                    <p class="text-sm font-medium text-blue-700">
+                    <p class="text-sm font-medium text-sage-700">
                       {{ $page.props.auth.user?.name }}
                     </p>
-                    <p class="text-xs text-blue-500">Admin Customer Service</p>
+                    <p class="text-xs text-sage-500">Admin Customer Service</p>
                   </div>
                   <svg
-                    class="w-4 h-4 text-blue-600 hidden sm:block"
+                    class="w-4 h-4 text-sage-600 hidden sm:block"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -188,40 +188,41 @@ onUnmounted(() => {
 .text-blue-100 {
   color: #dbeafe;
 }
-.text-blue-500 {
-  color: #3b82f6;
+/* Custom Sage Colors */
+.text-sage-500 {
+  color: #9fb894;
 }
-.text-blue-600 {
-  color: #2563eb;
+.text-sage-600 {
+  color: #8db580;
 }
-.text-blue-700 {
-  color: #1d4ed8;
+.text-sage-700 {
+  color: #7ba169;
 }
-.text-blue-800 {
-  color: #1e40af;
+.text-sage-800 {
+  color: #6b8f5e;
 }
-.bg-blue-50 {
-  background-color: #eff6ff;
+.bg-sage-50 {
+  background-color: #f4f6f3;
 }
-.bg-blue-100 {
-  background-color: #dbeafe;
+.bg-sage-100 {
+  background-color: #e8f0e3;
 }
-.bg-blue-200 {
-  background-color: #bfdbfe;
+.bg-sage-200 {
+  background-color: #d4ddd0;
 }
-.bg-blue-600 {
-  background-color: #2563eb;
+.bg-sage-600 {
+  background-color: #8db580;
 }
-.bg-blue-700 {
-  background-color: #1d4ed8;
+.bg-sage-700 {
+  background-color: #7ba169;
 }
-.border-blue-200 {
-  border-color: #bfdbfe;
+.border-sage-200 {
+  border-color: #d4ddd0;
 }
-.hover\:bg-blue-50:hover {
-  background-color: #eff6ff;
+.hover\:bg-sage-50:hover {
+  background-color: #f4f6f3;
 }
-.hover\:bg-blue-100:hover {
-  background-color: #dbeafe;
+.hover\:bg-sage-100:hover {
+  background-color: #e8f0e3;
 }
 </style>

@@ -178,18 +178,9 @@
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
               >
                 <option value="">Pilih Shipment Type</option>
-                <option value="FCL">FCL</option>
-                <option value="LCL">LCL</option>
-                <option value="AIR">AIR</option>
-                <option value="SEA">SEA</option>
-                <option value="LAND">LAND</option>
-                <option value="Trucking">Trucking</option>
-                <option value="Import">Import</option>
-                <option value="Domestik">Domestik</option>
-                <option value="Door to Door Domestik">Door to Door Domestik</option>
-                <option value="Warehouse">Warehouse</option>
-                <option value="Door to Door Import">Door to Door Import</option>
-                <option value="Export">Export</option>
+                <option v-for="shipmentType in shipmentTypes" :key="shipmentType.id" :value="shipmentType.code">
+                  {{ shipmentType.name }}
+                </option>
               </select>
               <div v-if="errors.shipment_type" class="text-red-600 text-sm mt-1">{{ errors.shipment_type }}</div>
             </div>
@@ -703,7 +694,8 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 const props = defineProps({
   salesOrder: Object,
   errors: Object,
-  vendors: Array
+  vendors: Array,
+  shipmentTypes: Array
 })
 
 // Vendor details data - supports multiple vendors

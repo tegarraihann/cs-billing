@@ -98,15 +98,35 @@
             </svg>
           </div>
           <div v-show="sections.basic" class="p-6 space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">ORDER NUMB <span class="text-red-500">*</span></label>
-              <input
-                v-model="form.order_number"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">ORDER NUMB <span class="text-red-500">*</span></label>
+                <input
+                  v-model="form.order_number"
+                  type="text"
+                  required
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">REF NO</label>
+                <input
+                  v-model="form.ref_no"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.ref_no" class="mt-2 text-sm text-red-600">{{ form.errors.ref_no }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">DATE</label>
+                <input
+                  v-model="form.so_date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.so_date" class="mt-2 text-sm text-red-600">{{ form.errors.so_date }}</div>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">CUSTOMER <span class="text-red-500">*</span></label>
@@ -175,14 +195,25 @@
               />
               <div v-if="form.errors.vessel" class="mt-2 text-sm text-red-600">{{ form.errors.vessel }}</div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">ETA</label>
-              <input
-                v-model="form.eta"
-                type="date"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.eta" class="mt-2 text-sm text-red-600">{{ form.errors.eta }}</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">ETA</label>
+                <input
+                  v-model="form.eta"
+                  type="date"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.eta" class="mt-2 text-sm text-red-600">{{ form.errors.eta }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">ETD</label>
+                <input
+                  v-model="form.etd"
+                  type="date"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.etd" class="mt-2 text-sm text-red-600">{{ form.errors.etd }}</div>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">AJU</label>
@@ -209,18 +240,9 @@
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
               >
                 <option value="">Pilih Shipment Type</option>
-                <option value="FCL">FCL</option>
-                <option value="LCL">LCL</option>
-                <option value="AIR">AIR</option>
-                <option value="SEA">SEA</option>
-                <option value="LAND">LAND</option>
-                <option value="Trucking">Trucking</option>
-                <option value="Import">Import</option>
-                <option value="Domestik">Domestik</option>
-                <option value="Door to Door Domestik">Door to Door Domestik</option>
-                <option value="Warehouse">Warehouse</option>
-                <option value="Door to Door Import">Door to Door Import</option>
-                <option value="Export">Export</option>
+                <option v-for="shipmentType in shipmentTypes" :key="shipmentType.id" :value="shipmentType.code">
+                  {{ shipmentType.name }}
+                </option>
               </select>
               <div v-if="form.errors.shipment_type" class="mt-2 text-sm text-red-600">{{ form.errors.shipment_type }}</div>
             </div>
@@ -480,7 +502,7 @@
               ></textarea>
               <div v-if="form.errors.commodity" class="mt-2 text-sm text-red-600">{{ form.errors.commodity }}</div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
                 <input
@@ -503,6 +525,18 @@
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 />
                 <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{ form.errors.net_weight }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">MEAS (M³)</label>
+                <input
+                  v-model="form.measurement"
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  placeholder="Masukkan volume dalam m³"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.measurement" class="mt-2 text-sm text-red-600">{{ form.errors.measurement }}</div>
               </div>
             </div>
             <div>
@@ -958,6 +992,8 @@ import AlertDialog from "@/Components/AlertDialog.vue";
 const props = defineProps({
   customers: Array,
   vendors: Array,
+  shipmentTypes: Array,
+  orderNumber: String,
 });
 
 // Alert Dialog State
@@ -995,13 +1031,16 @@ const sections = ref({
 
 const form = useForm({
   // Required fields based on requirements only
-  order_number: "",
+  order_number: props.orderNumber || "",
+  ref_no: "",
+  so_date: "",
   customer: "",
   shipper: "",
   bl_awb: "",
   liner: "",
   vessel: "",
   eta: "",
+  etd: "",
   aju: "",
   sppb_date: "",
   shipment_type: "",
@@ -1018,6 +1057,7 @@ const form = useForm({
   commodity: "",
   qty: "",
   net_weight: "",
+  measurement: "",
   container_no: "",
   invoice_number: "",
   invoice_date: "",

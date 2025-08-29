@@ -174,11 +174,12 @@
         }
 
         .print-info {
-            text-align: right;
+            text-align: left;
             font-size: 7px;
             color: #666;
             margin-bottom: 8px;
             font-style: italic;
+            margin-left: 85%;
         }
 
         .signature-section {
@@ -252,8 +253,9 @@
     </div>
 
     <!-- Print Info -->
-    <div class="print-info">
-        Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMMM YYYY HH:mm') }}
+    <div class="print-info" style="line-height: 1.5;">
+        Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMMM YYYY HH:mm') }}<br>
+        Account: {{ auth()->user()->name ?? 'System' }}
     </div>
 
     <!-- Content -->
@@ -264,7 +266,7 @@
             <div class="section-title">Informasi Sales Order</div>
 
             <!-- Two Column Layout -->
-            <div style="width: 100%; display: table; margin-bottom: 15px;">
+            <div style="width: 100%; display: table; margin-bottom: 25px;">
                 <!-- Left Column -->
                 <div style="width: 48%; display: table-cell; vertical-align: top; padding-right: 2%;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -349,108 +351,89 @@
             </div>
         </div>
 
-        <!-- Detail Information -->
-        <div class="section">
-            <div class="section-title">Detail Informasi</div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
-                <tbody style="background: white;">
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; width: 25%; border-bottom: 1px solid #ddd;">EXCHANGE RATE</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 2, ',', '.') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">JENIS BIAYA</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">BUYING</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->buying ? 'Rp ' . number_format($salesOrder->buying, 0, ',', '.') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">SELLING</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->selling ? 'Rp ' . number_format($salesOrder->selling, 0, ',', '.') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">REVENUE</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->revenue ? 'Rp ' . number_format($salesOrder->revenue, 0, ',', '.') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">REMARKS</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->remarks ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">GOODS</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->goods ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">COMMODITY/URAIAN BARANG</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->commodity ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">QTY</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->qty ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">NET WEIGHT (KG)</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->net_weight ? number_format($salesOrder->net_weight, 2, ',', '.') . ' kg' : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">CONTAINER NO</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->container_no ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">INVOICE NUMB</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->invoice_number ?: '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">INVOICE DATE</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; background-color: #f5f5f5; border-bottom: 1px solid #ddd;">T.O.P</td>
-                        <td style="padding: 3px 6px; font-size: 8px; border-bottom: 1px solid #ddd;">{{ $salesOrder->top ?: '-' }}</td>
-                    </tr>
-                </tbody>
+        <!-- Exchange Rate -->
+        <div style="margin-bottom: 2px;">
+            <table style="width: 49%; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 35%; font-size: 8px; font-style: italic; padding: 1px 0; vertical-align: top;">EXCHANGE RATE</td>
+                    <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                    <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 2, ',', '.') : '-' }}</td>
+                </tr>
             </table>
         </div>
 
-        <!-- Vendor Information -->
-        @if($salesOrder->vendors)
-        @php
-            $vendorInfo = is_array($salesOrder->vendors) ?
-                (count($salesOrder->vendors) > 0 ? $salesOrder->vendors[0] : null) :
-                (is_object($salesOrder->vendors) ? $salesOrder->vendors : null);
-        @endphp
-        @if($vendorInfo)
+        <!-- Detail Information -->
         <div class="section">
-            <div class="section-title">Buying to Vendor</div>
-            <div style="border: 1px solid #ddd; padding: 6px; background-color: #fafafa;">
+            <div class="section-title">Detail Informasi</div>
+
+            <!-- Financial Data in Vertical Format -->
+            <div style="font-family: 'Times New Roman', serif; font-size: 10px; margin-bottom: 35px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold; width: 25%;">Deskripsi:</td>
-                        <td style="padding: 3px 6px; font-size: 8px;" colspan="3">{{ $vendorInfo['deskripsi'] ?? '-' }}</td>
+                        <td style="width: 20%; font-weight: bold; padding: 2px 0; vertical-align: top;">JENIS BIAYA</td>
+                        <td style="width: 20%; font-weight: bold; padding: 2px 16px; vertical-align: top;">BUYING</td>
+                        <td style="width: 20%; font-weight: bold; padding: 2px 16px; vertical-align: top;">SELLING</td>
+                        <td style="width: 20%; font-weight: bold; padding: 2px 16px; vertical-align: top;">REVENUE</td>
+                        <td style="width: 20%; font-weight: bold; padding: 2px 16px; vertical-align: top;">REMARKS</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">Nominal:</td>
-                        <td style="padding: 3px 6px; font-size: 8px;">{{ isset($vendorInfo['nominal']) ? 'Rp ' . number_format($vendorInfo['nominal'], 0, ',', '.') : '-' }}</td>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">Company:</td>
-                        <td style="padding: 3px 6px; font-size: 8px;">{{ $vendorInfo['company_name'] ?? '-' }}</td>
+                        <td style="padding: 2px 0; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->buying ? 'Rp ' . number_format($salesOrder->buying, 0, ',', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->selling ? 'Rp ' . number_format($salesOrder->selling, 0, ',', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->revenue ? 'Rp ' . number_format($salesOrder->revenue, 0, ',', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->remarks ?: '-' }}</td>
+                    </tr>
+                </table>
+
+                <!-- Total -->
+                @if($salesOrder->selling && $salesOrder->buying)
+                <div style="margin-top: 10px; text-align: right; font-weight: bold;">
+                    Total Profit: Rp {{ number_format($salesOrder->selling - $salesOrder->buying, 0, ',', '.') }}
+                </div>
+                @endif
+            </div>
+
+        </div>
+
+        <!-- Detail Invoice -->
+        <div class="section">
+            <div class="section-title">Detail Invoice</div>
+            <div style="margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE NUMB</td>
+                        <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_number ?: '-' }}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">No Rekening:</td>
-                        <td style="padding: 3px 6px; font-size: 8px;">{{ $vendorInfo['no_rekening'] ?? '-' }}</td>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">Nama Rekening:</td>
-                        <td style="padding: 3px 6px; font-size: 8px;">{{ $vendorInfo['nama_rekening'] ?? '-' }}</td>
+                        <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE DATE</td>
+                        <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 6px; font-size: 8px; font-weight: bold;">RCVD INV:</td>
-                        <td style="padding: 3px 6px; font-size: 8px;" colspan="3">{{ $vendorInfo['rcvd_inv'] ?? '-' }}</td>
+                        <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">TERM</td>
+                        <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->top ?: '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Garis pemisah -->
+            <div style="border-bottom: 1px solid #000; margin: 10px 0;"></div>
+
+            <!-- Note -->
+            <div style="margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
+                        <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 87%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 30px; padding: 5px;">
+                            {{ $salesOrder->remarks ?: 'Tidak ada catatan tambahan' }}
+                        </td>
                     </tr>
                 </table>
             </div>
         </div>
-        @endif
-        @endif
 
         <!-- Signature Section -->
         <div class="signature-section">
