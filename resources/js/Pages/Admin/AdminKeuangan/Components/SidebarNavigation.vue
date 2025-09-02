@@ -9,14 +9,14 @@
 
   <!-- Sidebar -->
   <aside
-    class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
+    class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
     :class="{
       'translate-x-0': isMobileSidebarOpen,
       '-translate-x-full': !isMobileSidebarOpen,
     }"
   >
     <!-- Sidebar Header -->
-    <div class="px-6 py-6 border-b border-sage-200">
+    <div class="px-6 py-6 border-b border-sage-200 flex-shrink-0">
       <div class="flex items-center space-x-3">
         <div
           class="w-10 h-10 bg-sage-600 rounded-lg flex items-center justify-center"
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
+    <nav class="p-4 space-y-2 flex-1 overflow-y-auto min-h-0">
       <!-- Dashboard -->
       <a
         :href="route('admin-keuangan.dashboard')"
@@ -93,7 +93,7 @@
             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
           />
         </svg>
-        <span class="font-medium">Customers</span>
+        <span class="font-medium">Customer Management</span>
       </a>
 
       <!-- Vendors -->
@@ -119,7 +119,7 @@
             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
           />
         </svg>
-        <span class="font-medium">Vendors</span>
+        <span class="font-medium">Vendor Management</span>
       </a>
 
       <!-- Sales Orders -->
@@ -328,6 +328,44 @@
           Quick Actions
         </div>
         <a
+          :href="route('admin-keuangan.customers.create')"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <span class="font-medium">Add Customer</span>
+        </a>
+        <a
+          :href="route('admin-keuangan.vendors.create')"
+          class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <span class="font-medium">Add Vendor</span>
+        </a>
+        <a
           :href="route('admin-keuangan.sales-orders.index')"
           class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200"
         >
@@ -398,7 +436,9 @@ const route = window.route || function(name, params) {
   const routes = {
     'admin-keuangan.dashboard': '/admin-keuangan/dashboard',
     'admin-keuangan.customers.index': '/admin-keuangan/customers',
+    'admin-keuangan.customers.create': '/admin-keuangan/customers/create',
     'admin-keuangan.vendors.index': '/admin-keuangan/vendors',
+    'admin-keuangan.vendors.create': '/admin-keuangan/vendors/create',
     'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
     'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
     'admin-keuangan.invoices.payment-history': '/admin-keuangan/invoices/payment-history',

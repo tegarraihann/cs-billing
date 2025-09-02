@@ -6,7 +6,8 @@
       "Bash(npm run build:*)",
       "Bash(php artisan:*)",
       "Bash(python:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(composer:*)"
     ],
     "deny": [],
     "additionalDirectories": [
