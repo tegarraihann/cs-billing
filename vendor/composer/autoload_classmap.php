@@ -7,13 +7,13 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Exceptions\\UnauthorizedRoleException' => $baseDir . '/app/Exceptions/UnauthorizedRoleException.php',
-    'App\\Http\\Controllers\\AdminCS\\ShipmentTypeController' => $baseDir . '/app/Http/Controllers/AdminCS/ShipmentTypeController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\CustomerController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/CustomerController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\EmployeeSalaryController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/EmployeeSalaryController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\InvoiceController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/InvoiceController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\PettyCashController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/PettyCashController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\ProfitLossController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/ProfitLossController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\SalesOrderController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/SalesOrderController.php',
+    'App\\Http\\Controllers\\AdminKeuangan\\ShipmentTypeController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/ShipmentTypeController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\VendorController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/VendorController.php',
     'App\\Http\\Controllers\\Admin\\MasterAdmin\\UserController' => $baseDir . '/app/Http/Controllers/Admin/MasterAdmin/UserController.php',
     'App\\Http\\Controllers\\Admin\\MasterAdmin\\WebsiteSettingsController' => $baseDir . '/app/Http/Controllers/Admin/MasterAdmin/WebsiteSettingsController.php',

@@ -574,13 +574,13 @@ class ComposerStaticInited1a7471efa1be1aa1a70b81b29f83e8
 
     public static $classMap = array (
         'App\\Exceptions\\UnauthorizedRoleException' => __DIR__ . '/../..' . '/app/Exceptions/UnauthorizedRoleException.php',
-        'App\\Http\\Controllers\\AdminCS\\ShipmentTypeController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminCS/ShipmentTypeController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\CustomerController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/CustomerController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\EmployeeSalaryController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/EmployeeSalaryController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\InvoiceController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/InvoiceController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\PettyCashController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/PettyCashController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\ProfitLossController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/ProfitLossController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\SalesOrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/SalesOrderController.php',
+        'App\\Http\\Controllers\\AdminKeuangan\\ShipmentTypeController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/ShipmentTypeController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\VendorController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/VendorController.php',
         'App\\Http\\Controllers\\Admin\\MasterAdmin\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/MasterAdmin/UserController.php',
         'App\\Http\\Controllers\\Admin\\MasterAdmin\\WebsiteSettingsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/MasterAdmin/WebsiteSettingsController.php',

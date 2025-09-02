@@ -320,6 +320,41 @@
         <span class="font-medium">Budget Management</span>
       </a>
 
+      <!-- Master Data Section -->
+      <div class="pt-4 mt-6 border-t border-sage-200">
+        <div
+          class="text-xs font-semibold text-sage-500 uppercase tracking-wider px-3 py-2"
+        >
+          Master Data
+        </div>
+        
+        <!-- Shipment Type -->
+        <a
+          :href="route('admin-keuangan.shipment-types.index')"
+          class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+          :class="
+            isActive('admin-keuangan.shipment-types.*')
+              ? 'bg-sage-100 text-sage-800 shadow-sm'
+              : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+          "
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-5H8z"
+            />
+          </svg>
+          <span class="font-medium">Shipment Type</span>
+        </a>
+      </div>
+
       <!-- Quick Actions -->
       <div class="pt-4 mt-6 border-t border-sage-200">
         <div
@@ -445,6 +480,8 @@ const route = window.route || function(name, params) {
     'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
     'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
     'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
+    'admin-keuangan.shipment-types.index': '/admin-keuangan/shipment-types',
+    'admin-keuangan.shipment-types.create': '/admin-keuangan/shipment-types/create',
   };
   return routes[name] || '#';
 };
