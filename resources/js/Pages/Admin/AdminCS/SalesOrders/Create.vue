@@ -1215,7 +1215,7 @@ const totalVendorCosts = computed(() => {
   return vendorDetails.value.reduce((sum, vendor) => sum + (parseFloat(vendor.nominal) || 0), 0);
 });
 
-const showAlert = (type, title, message, confirmText = "", cancelText = "") => {
+const showAlert = (type, title, message, confirmText = "", cancelText = "", onConfirmCallback = null) => {
   alertDialog.value = {
     show: true,
     type,
@@ -1223,7 +1223,7 @@ const showAlert = (type, title, message, confirmText = "", cancelText = "") => {
     message,
     confirmText,
     cancelText,
-    onConfirm: null,
+    onConfirm: onConfirmCallback,
   };
 };
 
@@ -1231,6 +1231,7 @@ const handleAlertConfirm = () => {
   if (alertDialog.value.onConfirm) {
     alertDialog.value.onConfirm();
   }
+  closeAlert();
 };
 
 const handleAlertCancel = () => {
@@ -1251,15 +1252,53 @@ const submit = () => {
   };
 
   form.transform(() => formData).post(route("admin-cs.sales-orders.store"), {
-    onSuccess: () => {
-      showAlert("success", "Berhasil", "Sales Order berhasil dibuat.");
+    onSuccess: (page) => {
+      console.log('Success response received:', page);
+      console.log('Page component:', page.component);
+      console.log('Page props:', page.props);
+      console.log('Flash messages:', page.props?.flash);
+      
+      // Check if this is actually the index page (successful redirect)
+      if (page.component === 'Admin/AdminCS/SalesOrders/Index') {
+        console.log('Successfully redirected to index page');
+        // We're already on the index page, no need for additional redirect
+        showAlert("success", "Berhasil", "Sales Order berhasil dibuat.");
+      } else {
+        console.log('Not redirected to index, component:', page.component);
+        showAlert("success", "Berhasil", "Sales Order berhasil dibuat.", "OK", "", () => {
+          // Redirect to index page after user acknowledges success
+          window.location.href = route('admin-cs.sales-orders.index');
+        });
+      }
     },
     onError: (errors) => {
-      const errorMessage =
-        Object.keys(errors).length > 0
-          ? "Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan."
-          : "Terjadi kesalahan saat menyimpan sales order.";
-      showAlert("error", "Gagal Menyimpan", errorMessage);
+      console.error('Sales Order Creation Error:', errors);
+      
+      // Handle specific validation errors
+      if (errors && Object.keys(errors).length > 0) {
+        let errorMessages = [];
+        
+        // Collect all error messages
+        Object.keys(errors).forEach(field => {
+          if (Array.isArray(errors[field])) {
+            errorMessages.push(...errors[field]);
+          } else {
+            errorMessages.push(errors[field]);
+          }
+        });
+        
+        const errorMessage = errorMessages.length > 0 
+          ? errorMessages.join('. ') 
+          : "Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan.";
+          
+        showAlert("error", "Gagal Menyimpan", errorMessage);
+      } else {
+        showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat menyimpan sales order. Silakan coba lagi.");
+      }
+    },
+    onFinish: () => {
+      // Reset processing state
+      console.log('Request finished');
     },
   });
 };

@@ -161,18 +161,46 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
 Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
+        
+        // Get current date for calculations
+        $now = now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $startOfDay = $now->copy()->startOfDay();
 
-        // Statistik khusus untuk Admin CS
-        $pendingTickets = 0; // Ganti dengan query sesuai kebutuhan
-        $resolvedTickets = 0;
+        // Sales Order Statistics
+        $totalSalesOrdersThisMonth = \App\Models\SalesOrder::where('created_at', '>=', $startOfMonth)->count();
+        $salesOrdersToday = \App\Models\SalesOrder::where('created_at', '>=', $startOfDay)->count();
+        $pendingSalesOrders = \App\Models\SalesOrder::whereNull('approved_at')->whereNull('rejected_at')->count();
+        
+        // Revenue calculation - using total_selling from this month
+        $revenueThisMonth = \App\Models\SalesOrder::where('created_at', '>=', $startOfMonth)
+            ->whereNotNull('total_selling')
+            ->sum('total_selling');
+
+        // Recent Sales Orders (latest 5)
+        $recentSalesOrders = \App\Models\SalesOrder::with(['creator'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Status breakdown for pie chart
+        $statusStats = [
+            'pending' => \App\Models\SalesOrder::whereNull('approved_at')->whereNull('rejected_at')->count(),
+            'approved' => \App\Models\SalesOrder::whereNotNull('approved_at')->count(),
+            'rejected' => \App\Models\SalesOrder::whereNotNull('rejected_at')->count(),
+        ];
 
         return Inertia::render('Admin/AdminCS/Dashboard', [
             'user' => $user,
             'userRole' => $user->role,
             'stats' => [
-                'pendingTickets' => $pendingTickets,
-                'resolvedTickets' => $resolvedTickets,
-            ]
+                'totalSalesOrdersThisMonth' => $totalSalesOrdersThisMonth,
+                'salesOrdersToday' => $salesOrdersToday,
+                'pendingSalesOrders' => $pendingSalesOrders,
+                'revenueThisMonth' => $revenueThisMonth,
+            ],
+            'recentSalesOrders' => $recentSalesOrders,
+            'statusStats' => $statusStats,
         ]);
     })->name('dashboard');
 

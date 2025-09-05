@@ -154,12 +154,12 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <!-- Open Tickets -->
+          <!-- Total Sales Orders This Month -->
           <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
             <div class="flex items-center">
-              <div class="p-3 rounded-lg bg-red-100">
+              <div class="p-3 rounded-lg bg-blue-100">
                 <svg
-                  class="w-6 h-6 text-red-600"
+                  class="w-6 h-6 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -168,18 +168,18 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Open Tickets</p>
-                <p class="text-2xl font-semibold text-gray-900">18</p>
+                <p class="text-sm font-medium text-gray-600">Sales Orders This Month</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ stats.totalSalesOrdersThisMonth }}</p>
               </div>
             </div>
           </div>
 
-          <!-- Resolved Today -->
+          <!-- Sales Orders Today -->
           <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
             <div class="flex items-center">
               <div class="p-3 rounded-lg bg-green-100">
@@ -193,43 +193,18 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Resolved Today</p>
-                <p class="text-2xl font-semibold text-gray-900">7</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Average Response -->
-          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-            <div class="flex items-center">
-              <div class="p-3 rounded-lg bg-sage-100">
-                <svg
-                  class="w-6 h-6 text-sage-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Avg Response</p>
-                <p class="text-2xl font-semibold text-gray-900">2.5h</p>
+                <p class="text-sm font-medium text-gray-600">Orders Today</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ stats.salesOrdersToday }}</p>
               </div>
             </div>
           </div>
 
-          <!-- Customer Satisfaction -->
+          <!-- Pending Approvals -->
           <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
             <div class="flex items-center">
               <div class="p-3 rounded-lg bg-yellow-100">
@@ -243,96 +218,112 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
                   />
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Satisfaction</p>
-                <p class="text-2xl font-semibold text-gray-900">4.8/5</p>
+                <p class="text-sm font-medium text-gray-600">Pending Approvals</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ stats.pendingSalesOrders }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue This Month -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center">
+              <div class="p-3 rounded-lg bg-sage-100">
+                <svg
+                  class="w-6 h-6 text-sage-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Revenue This Month</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ formatCurrency(stats.revenueThisMonth) }}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Recent Tickets -->
+        <!-- Recent Sales Orders -->
         <div
           class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-sage-200"
         >
-          <h3 class="text-xl font-bold text-sage-800 mb-4">
-            Recent Support Tickets
-          </h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-sage-800">
+              Recent Sales Orders
+            </h3>
+            <a
+              :href="route('admin-cs.sales-orders.index')"
+              class="text-sm font-medium text-sage-600 hover:text-sage-800 transition-colors"
+            >
+              View All →
+            </a>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full">
               <thead>
                 <tr class="border-b border-sage-200">
                   <th class="text-left py-3 px-4 font-semibold text-sage-800">
-                    Ticket ID
+                    Order Number
                   </th>
                   <th class="text-left py-3 px-4 font-semibold text-sage-800">
                     Customer
                   </th>
                   <th class="text-left py-3 px-4 font-semibold text-sage-800">
-                    Subject
-                  </th>
-                  <th class="text-left py-3 px-4 font-semibold text-sage-800">
-                    Priority
+                    Total Selling
                   </th>
                   <th class="text-left py-3 px-4 font-semibold text-sage-800">
                     Status
                   </th>
+                  <th class="text-left py-3 px-4 font-semibold text-sage-800">
+                    Created
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-b border-gray-100">
-                  <td class="py-3 px-4 text-sage-600 font-medium">#CS-001</td>
-                  <td class="py-3 px-4">John Customer</td>
-                  <td class="py-3 px-4">Billing inquiry</td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
-                      >Medium</span
+                <tr 
+                  v-for="order in recentSalesOrders" 
+                  :key="order.id" 
+                  class="border-b border-gray-100 hover:bg-sage-50 transition-colors"
+                >
+                  <td class="py-3 px-4 text-sage-600 font-medium">
+                    <a 
+                      :href="route('admin-cs.sales-orders.show', order.id)"
+                      class="hover:text-sage-800 transition-colors"
                     >
+                      {{ order.order_number || `SO-${order.id}` }}
+                    </a>
+                  </td>
+                  <td class="py-3 px-4">{{ order.customer }}</td>
+                  <td class="py-3 px-4 font-medium">
+                    {{ order.total_selling ? formatCurrency(order.total_selling) : '-' }}
                   </td>
                   <td class="py-3 px-4">
                     <span
-                      class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
-                      >Open</span
+                      :class="getStatusClass(order)"
+                      class="px-2 py-1 text-xs font-medium rounded-full"
                     >
+                      {{ getStatusLabel(order) }}
+                    </span>
                   </td>
-                </tr>
-                <tr class="border-b border-gray-100">
-                  <td class="py-3 px-4 text-sage-600 font-medium">#CS-002</td>
-                  <td class="py-3 px-4">Jane Doe</td>
-                  <td class="py-3 px-4">Technical support</td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
-                      >High</span
-                    >
-                  </td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-sage-100 text-sage-800 rounded-full"
-                      >In Progress</span
-                    >
+                  <td class="py-3 px-4 text-sm text-gray-600">
+                    {{ formatDate(order.created_at) }}
                   </td>
                 </tr>
-                <tr>
-                  <td class="py-3 px-4 text-sage-600 font-medium">#CS-003</td>
-                  <td class="py-3 px-4">Mike Johnson</td>
-                  <td class="py-3 px-4">Account access</td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
-                      >Low</span
-                    >
-                  </td>
-                  <td class="py-3 px-4">
-                    <span
-                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
-                      >Resolved</span
-                    >
+                <tr v-if="recentSalesOrders.length === 0">
+                  <td colspan="5" class="py-8 px-4 text-center text-gray-500">
+                    No sales orders found
                   </td>
                 </tr>
               </tbody>
@@ -341,7 +332,111 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Create Sales Order -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center mb-4">
+              <div class="p-3 rounded-lg bg-blue-100">
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
+              <h4 class="text-lg font-semibold text-sage-800 ml-3">
+                Create New Sales Order
+              </h4>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+              Create a new sales order for customers
+            </p>
+            <a
+              :href="route('admin-cs.sales-orders.create')"
+              class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Create Order
+            </a>
+          </div>
+
+          <!-- View All Orders -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center mb-4">
+              <div class="p-3 rounded-lg bg-sage-100">
+                <svg
+                  class="w-6 h-6 text-sage-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+              </div>
+              <h4 class="text-lg font-semibold text-sage-800 ml-3">
+                Manage Sales Orders
+              </h4>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+              View and manage all sales orders
+            </p>
+            <a
+              :href="route('admin-cs.sales-orders.index')"
+              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-lg hover:bg-sage-700 transition-colors focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
+            >
+              View Orders
+            </a>
+          </div>
+
+          <!-- Status Overview -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center mb-4">
+              <div class="p-3 rounded-lg bg-green-100">
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </div>
+              <h4 class="text-lg font-semibold text-sage-800 ml-3">
+                Status Overview
+              </h4>
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Pending:</span>
+                <span class="text-sm font-medium text-yellow-600">{{ statusStats.pending }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Approved:</span>
+                <span class="text-sm font-medium text-green-600">{{ statusStats.approved }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Rejected:</span>
+                <span class="text-sm font-medium text-red-600">{{ statusStats.rejected }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -357,6 +452,18 @@ import SidebarNavigation from "@/Pages/Admin/AdminCS/Components/SidebarNavigatio
 const props = defineProps({
   user: Object,
   userRole: String,
+  stats: {
+    type: Object,
+    required: true,
+  },
+  recentSalesOrders: {
+    type: Array,
+    required: true,
+  },
+  statusStats: {
+    type: Object,
+    required: true,
+  },
 });
 
 // Reactive state
@@ -379,6 +486,51 @@ const getInitials = (name) => {
     .join("")
     .toUpperCase()
     .substring(0, 2);
+};
+
+const formatCurrency = (amount) => {
+  if (!amount) return 'Rp 0';
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const getStatusLabel = (order) => {
+  if (order.rejected_at) return 'Rejected';
+  if (order.approved_at) return 'Approved';
+  return 'Pending';
+};
+
+const getStatusClass = (order) => {
+  if (order.rejected_at) return 'bg-red-100 text-red-800';
+  if (order.approved_at) return 'bg-green-100 text-green-800';
+  return 'bg-yellow-100 text-yellow-800';
+};
+
+// Route helper function
+const route = window.route || function(name, params) {
+  const routes = {
+    'admin-cs.sales-orders.index': '/admin-cs/sales-orders',
+    'admin-cs.sales-orders.create': '/admin-cs/sales-orders/create',
+    'admin-cs.sales-orders.show': '/admin-cs/sales-orders',
+  };
+  let url = routes[name] || '#';
+  if (params) {
+    url += `/${params}`;
+  }
+  return url;
 };
 
 // Auto-close mobile sidebar on screen resize

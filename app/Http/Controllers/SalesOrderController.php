@@ -73,6 +73,7 @@ class SalesOrderController extends Controller
      */
     public function store(Request $request)
     {
+
         try {
             $validated = $request->validate([
             // Required fields based on requirements only
@@ -112,14 +113,14 @@ class SalesOrderController extends Controller
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
             
-            // Vendor details (multiple vendors support)
-            'vendor_details' => 'required|array|min:1',
-            'vendor_details.*.vendor_id' => 'required|exists:vendors,id',
-            'vendor_details.*.deskripsi' => 'required|string|max:500',
-            'vendor_details.*.nominal' => 'required|numeric|min:0',
-            'vendor_details.*.no_rekening' => 'required|string|max:255',
-            'vendor_details.*.nama_vendor' => 'required|string|max:255',
-            'vendor_details.*.nama_rekening' => 'required|string|max:255',
+            // Vendor details (multiple vendors support) - now optional
+            'vendor_details' => 'nullable|array',
+            'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
+            'vendor_details.*.deskripsi' => 'required_with:vendor_details|string|max:500',
+            'vendor_details.*.nominal' => 'required_with:vendor_details|numeric|min:0',
+            'vendor_details.*.no_rekening' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
             
             // Voucher data
@@ -154,19 +155,29 @@ class SalesOrderController extends Controller
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
         $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
-        // Calculate total_amount from selling_breakdown
+        // Calculate totals from breakdown
         $totalSelling = 0;
         if (isset($validated['selling_breakdown']) && is_array($validated['selling_breakdown'])) {
             foreach ($validated['selling_breakdown'] as $item) {
                 $totalSelling += floatval($item['amount'] ?? 0);
             }
         }
+        
+        $totalBuying = 0;
+        if (isset($validated['buying_breakdown']) && is_array($validated['buying_breakdown'])) {
+            foreach ($validated['buying_breakdown'] as $item) {
+                $totalBuying += floatval($item['amount'] ?? 0);
+            }
+        }
+        
         $validated['total_selling'] = $totalSelling;
+        $validated['total_buying'] = $totalBuying;
+        $validated['total_revenue'] = $totalSelling - $totalBuying;
         $validated['total_amount'] = $totalSelling;
         $validated['status'] = 'draft';
 
         // Prepare multiple vendors data for storage
-        $vendorDetails = $validated['vendor_details'];
+        $vendorDetails = $validated['vendor_details'] ?? [];
         unset($validated['vendor_details']); // Remove vendor_details from main validated data
         $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
 
@@ -180,38 +191,26 @@ class SalesOrderController extends Controller
         $receiptVouchers = $validated['receipt_vouchers'] ?? [];
         unset($validated['payment_vouchers'], $validated['receipt_vouchers']);
 
+
         $salesOrder = SalesOrder::create($validated);
+
 
         // Create vouchers
         $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
         $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
+
 
         return redirect()
             ->route('admin-cs.sales-orders.index')
             ->with('success', 'Sales Order berhasil dibuat.');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Log validation errors for debugging
-            \Log::error('Sales Order Validation Error', [
-                'errors' => $e->errors(),
-                'input' => $request->except(['password', 'password_confirmation']),
-                'user_id' => auth()->id(),
-            ]);
-            
-            // Return with detailed error messages
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput()
                 ->with('error', 'Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan.');
                 
         } catch (\Exception $e) {
-            // Log general errors
-            \Log::error('Sales Order Creation Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => auth()->id(),
-                'input' => $request->except(['password', 'password_confirmation']),
-            ]);
             
             return redirect()->back()
                 ->withInput()
@@ -297,19 +296,19 @@ class SalesOrderController extends Controller
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
             
-            // Vendor details (multiple vendors support)
-            'vendor_details' => 'required|array|min:1',
-            'vendor_details.*.vendor_id' => 'required|exists:vendors,id',
-            'vendor_details.*.deskripsi' => 'required|string|max:500',
-            'vendor_details.*.nominal' => 'required|numeric|min:0',
-            'vendor_details.*.no_rekening' => 'required|string|max:255',
-            'vendor_details.*.nama_vendor' => 'required|string|max:255',
-            'vendor_details.*.nama_rekening' => 'required|string|max:255',
+            // Vendor details (multiple vendors support) - now optional
+            'vendor_details' => 'nullable|array',
+            'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
+            'vendor_details.*.deskripsi' => 'required_with:vendor_details|string|max:500',
+            'vendor_details.*.nominal' => 'required_with:vendor_details|numeric|min:0',
+            'vendor_details.*.no_rekening' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
         ]);
 
         // Prepare multiple vendors data for storage
-        $vendorDetails = $validated['vendor_details'];
+        $vendorDetails = $validated['vendor_details'] ?? [];
         unset($validated['vendor_details']); // Remove vendor_details from main validated data
         $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
 
@@ -321,14 +320,24 @@ class SalesOrderController extends Controller
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
         $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
-        // Calculate total_amount from selling_breakdown
+        // Calculate totals from breakdown
         $totalSelling = 0;
         if (isset($validated['selling_breakdown']) && is_array($validated['selling_breakdown'])) {
             foreach ($validated['selling_breakdown'] as $item) {
                 $totalSelling += floatval($item['amount'] ?? 0);
             }
         }
+        
+        $totalBuying = 0;
+        if (isset($validated['buying_breakdown']) && is_array($validated['buying_breakdown'])) {
+            foreach ($validated['buying_breakdown'] as $item) {
+                $totalBuying += floatval($item['amount'] ?? 0);
+            }
+        }
+        
         $validated['total_selling'] = $totalSelling;
+        $validated['total_buying'] = $totalBuying;
+        $validated['total_revenue'] = $totalSelling - $totalBuying;
         $validated['total_amount'] = $totalSelling;
         $validated['status'] = 'draft';
 
