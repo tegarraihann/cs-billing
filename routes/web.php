@@ -75,6 +75,19 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
         Route::post('/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
     });
 
+    // Employee Management Routes
+    Route::prefix('employees')->name('employees.')->controller(\App\Http\Controllers\Admin\MasterAdmin\EmployeeController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/search', 'search')->name('search');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{employee}', 'show')->name('show');
+        Route::get('/{employee}/edit', 'edit')->name('edit');
+        Route::put('/{employee}', 'update')->name('update');
+        Route::delete('/{employee}', 'destroy')->name('destroy');
+        Route::post('/{employee}/toggle-status', 'toggleStatus')->name('toggle-status');
+    });
+
     // Website Settings Routes - UPDATED STRUCTURE
     Route::prefix('website-settings')->name('website-settings.')->group(function () {
 
