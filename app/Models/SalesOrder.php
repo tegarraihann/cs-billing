@@ -30,12 +30,14 @@ class SalesOrder extends Model
         'prepared_by',
         'exchange_rate',
         'jenis_biaya',
+        'vendor_breakdown',
         'buying_breakdown',
         'selling_breakdown',
         'total_buying',
         'total_selling',
         'total_revenue',
         'remarks',
+        'note',
         'commodity',
         'qty',
         'net_weight',
@@ -107,6 +109,7 @@ class SalesOrder extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'exchange_rate' => 'decimal:4',
+        'vendor_breakdown' => 'array',
         'buying_breakdown' => 'array',
         'selling_breakdown' => 'array',
         'total_buying' => 'decimal:2',
@@ -181,20 +184,32 @@ class SalesOrder extends Model
     // Helper methods for breakdown calculations
     public function calculateTotalBuying(): float
     {
-        if (!$this->buying_breakdown) {
-            return 0;
+        // Use vendor_breakdown as primary source
+        if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
+            return collect($this->vendor_breakdown)->sum('buying_amount');
         }
         
-        return collect($this->buying_breakdown)->sum('amount');
+        // Fallback to buying_breakdown for backward compatibility
+        if ($this->buying_breakdown && is_array($this->buying_breakdown)) {
+            return collect($this->buying_breakdown)->sum('amount');
+        }
+        
+        return 0;
     }
 
     public function calculateTotalSelling(): float
     {
-        if (!$this->selling_breakdown) {
-            return 0;
+        // Use vendor_breakdown as primary source
+        if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
+            return collect($this->vendor_breakdown)->sum('selling_amount');
         }
         
-        return collect($this->selling_breakdown)->sum('amount');
+        // Fallback to selling_breakdown for backward compatibility
+        if ($this->selling_breakdown && is_array($this->selling_breakdown)) {
+            return collect($this->selling_breakdown)->sum('amount');
+        }
+        
+        return 0;
     }
 
     public function calculateTotalRevenue(): float

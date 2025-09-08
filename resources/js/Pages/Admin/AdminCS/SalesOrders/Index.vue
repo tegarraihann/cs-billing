@@ -244,13 +244,32 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </span>
+                  <button
+                    v-if="salesOrder.status === 'draft'"
+                    @click="deleteSalesOrder(salesOrder.id)"
+                    class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
+                    title="Hapus"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                  <span
+                    v-else
+                    class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
+                    title="Tidak dapat dihapus (Sales Order sudah dirilis)"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </span>
                   </div>
                 </td>
               </tr>
 
               <!-- Empty State -->
               <tr v-if="!salesOrders.data || salesOrders.data.length === 0">
-                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-12 h-12 text-gray-300 mb-4"
@@ -298,6 +317,19 @@
       @cancel="cancelRelease"
       @close="cancelRelease"
     />
+
+    <!-- Delete Confirmation Dialog -->
+    <AlertDialog
+      :show="showDeleteDialog"
+      type="danger"
+      title="Konfirmasi Hapus Sales Order"
+      message="Apakah Anda yakin ingin menghapus sales order ini? Tindakan ini tidak dapat dibatalkan."
+      confirm-text="Ya, Hapus"
+      cancel-text="Batal"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+      @close="cancelDelete"
+    />
   </AdminLayout>
 </template>
 
@@ -332,6 +364,7 @@ const search = () => {
 
 // Alert Dialog State
 const showReleaseDialog = ref(false);
+const showDeleteDialog = ref(false);
 const currentSalesOrderId = ref(null);
 
 const releaseSalesOrder = (salesOrderId) => {
@@ -366,6 +399,38 @@ const cancelRelease = () => {
   currentSalesOrderId.value = null;
 };
 
+const deleteSalesOrder = (salesOrderId) => {
+  currentSalesOrderId.value = salesOrderId;
+  showDeleteDialog.value = true;
+};
+
+const confirmDelete = () => {
+  if (currentSalesOrderId.value) {
+    router.delete(route('admin-cs.sales-orders.destroy', currentSalesOrderId.value), {
+      onSuccess: () => {
+        // Refresh the page to show updated list
+        router.get(route("admin-cs.sales-orders.index"), {
+          search: form.search,
+          status: form.status
+        }, {
+          preserveState: true,
+          replace: true,
+        });
+      },
+      onError: (errors) => {
+        alert('Terjadi kesalahan saat menghapus sales order: ' + Object.values(errors).join(', '));
+      }
+    });
+  }
+  showDeleteDialog.value = false;
+  currentSalesOrderId.value = null;
+};
+
+const cancelDelete = () => {
+  showDeleteDialog.value = false;
+  currentSalesOrderId.value = null;
+};
+
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("id-ID");
 };
@@ -377,6 +442,7 @@ const formatCurrency = (amount, currency = 'IDR') => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
+
 
 const getStatusLabel = (status) => {
   const labels = {
@@ -458,9 +524,6 @@ watch(
   border-color: #d4ddd0;
 }
 
-.border-sage-300 {
-  border-color: #c0cdb8;
-}
 
 .hover\:bg-sage-50:hover {
   background-color: #f4f6f3;

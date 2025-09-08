@@ -357,7 +357,7 @@
                 <tr>
                     <td style="width: 35%; font-size: 8px; font-style: italic; padding: 1px 0; vertical-align: top;">EXCHANGE RATE</td>
                     <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                    <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 2, ',', '.') : '-' }}</td>
+                    <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 4, '.', '.') : '-' }}</td>
                 </tr>
             </table>
         </div>
@@ -366,7 +366,51 @@
         <div class="section">
             <div class="section-title">Detail Informasi</div>
 
-            <!-- Financial Data in Vertical Format -->
+            <!-- Vendor Breakdown -->
+            @if($salesOrder->vendor_breakdown && is_array($salesOrder->vendor_breakdown))
+            <div style="font-family: 'Times New Roman', serif; font-size: 9px; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #000;">
+                    <tr style="background-color: #f0f0f0;">
+                        <td style="width: 20%; font-weight: bold; padding: 4px; vertical-align: top; border: 1px solid #000; text-align: center;">VENDOR</td>
+                        <td style="width: 20%; font-weight: bold; padding: 4px; vertical-align: top; border: 1px solid #000; text-align: center;">JENIS BIAYA</td>
+                        <td style="width: 15%; font-weight: bold; padding: 4px; vertical-align: top; border: 1px solid #000; text-align: center;">BUYING</td>
+                        <td style="width: 15%; font-weight: bold; padding: 4px; vertical-align: top; border: 1px solid #000; text-align: center;">SELLING</td>
+                        <td style="width: 15%; font-weight: bold; padding: 4px; vertical-align: top; border: 1px solid #000; text-align: center;">PROFIT</td>
+                        <td style="width: 15%; font-weight: bold; padding: 4px; vertical-align: top; border: 1px solid #000; text-align: center;">REMARKS</td>
+                    </tr>
+                    @php
+                        $totalBuying = 0;
+                        $totalSelling = 0;
+                    @endphp
+                    @foreach($salesOrder->vendor_breakdown as $item)
+                    @php
+                        $buying = floatval($item['buying_amount'] ?? 0);
+                        $selling = floatval($item['selling_amount'] ?? 0);
+                        $profit = $selling - $buying;
+                        $totalBuying += $buying;
+                        $totalSelling += $selling;
+                    @endphp
+                    <tr>
+                        <td style="padding: 3px; vertical-align: top; border: 1px solid #000; font-size: 8px;">{{ $item['nama_vendor'] ?? '-' }}</td>
+                        <td style="padding: 3px; vertical-align: top; border: 1px solid #000; font-size: 8px;">{{ $item['description'] ?? '-' }}</td>
+                        <td style="padding: 3px; vertical-align: top; border: 1px solid #000; text-align: right; font-size: 8px;">{{ $buying > 0 ? 'Rp ' . number_format($buying, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 3px; vertical-align: top; border: 1px solid #000; text-align: right; font-size: 8px;">{{ $selling > 0 ? 'Rp ' . number_format($selling, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 3px; vertical-align: top; border: 1px solid #000; text-align: right; font-size: 8px; {{ $profit >= 0 ? 'color: green;' : 'color: red;' }}">{{ 'Rp ' . number_format($profit, 0, '.', '.') }}</td>
+                        <td style="padding: 3px; vertical-align: top; border: 1px solid #000; font-size: 8px;">{{ $item['remarks'] ?? '-' }}</td>
+                    </tr>
+                    @endforeach
+                    <!-- Total Row -->
+                    <tr style="background-color: #e0e0e0; font-weight: bold;">
+                        <td style="padding: 4px; border: 1px solid #000; text-align: center;" colspan="2">TOTAL</td>
+                        <td style="padding: 4px; border: 1px solid #000; text-align: right;">Rp {{ number_format($totalBuying, 0, '.', '.') }}</td>
+                        <td style="padding: 4px; border: 1px solid #000; text-align: right;">Rp {{ number_format($totalSelling, 0, '.', '.') }}</td>
+                        <td style="padding: 4px; border: 1px solid #000; text-align: right; {{ ($totalSelling - $totalBuying) >= 0 ? 'color: green;' : 'color: red;' }}">Rp {{ number_format($totalSelling - $totalBuying, 0, '.', '.') }}</td>
+                        <td style="padding: 4px; border: 1px solid #000;"></td>
+                    </tr>
+                </table>
+            </div>
+            @else
+            <!-- Fallback for legacy data -->
             <div style="font-family: 'Times New Roman', serif; font-size: 10px; margin-bottom: 35px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -378,20 +422,14 @@
                     </tr>
                     <tr>
                         <td style="padding: 2px 0; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
-                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->buying ? 'Rp ' . number_format($salesOrder->buying, 0, ',', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->selling ? 'Rp ' . number_format($salesOrder->selling, 0, ',', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->revenue ? 'Rp ' . number_format($salesOrder->revenue, 0, ',', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->total_buying ? 'Rp ' . number_format($salesOrder->total_buying, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->total_selling ? 'Rp ' . number_format($salesOrder->total_selling, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->total_revenue ? 'Rp ' . number_format($salesOrder->total_revenue, 0, '.', '.') : '-' }}</td>
                         <td style="padding: 2px 16px; vertical-align: top; border-bottom: 1px solid #ddd;">{{ $salesOrder->remarks ?: '-' }}</td>
                     </tr>
                 </table>
-
-                <!-- Total -->
-                @if($salesOrder->selling && $salesOrder->buying)
-                <div style="margin-top: 10px; text-align: right; font-weight: bold;">
-                    Total Profit: Rp {{ number_format($salesOrder->selling - $salesOrder->buying, 0, ',', '.') }}
-                </div>
-                @endif
             </div>
+            @endif
 
         </div>
 
@@ -428,11 +466,26 @@
                         <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
                         <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
                         <td style="width: 87%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 30px; padding: 5px;">
-                            {{ $salesOrder->remarks ?: 'Tidak ada catatan tambahan' }}
+                            {{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}
                         </td>
                     </tr>
                 </table>
             </div>
+
+            <!-- Remarks -->
+            @if($salesOrder->remarks)
+            <div style="margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">REMARKS</td>
+                        <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 87%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 20px; padding: 5px;">
+                            {{ $salesOrder->remarks }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            @endif
         </div>
 
         <!-- Signature Section -->

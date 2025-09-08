@@ -96,14 +96,18 @@ class SalesOrderController extends Controller
             'party_lcl' => 'nullable|string|max:255',
             'prepared_by' => 'nullable|string|max:255',
             'exchange_rate' => 'nullable|numeric|min:0',
-            'jenis_biaya' => 'nullable|string|in:OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
-            'buying_breakdown' => 'nullable|array',
-            'buying_breakdown.*.vendor' => 'required_with:buying_breakdown|string|max:255',
-            'buying_breakdown.*.amount' => 'required_with:buying_breakdown|numeric|min:0',
-            'selling_breakdown' => 'nullable|array',
-            'selling_breakdown.*.description' => 'required_with:selling_breakdown|string|max:255',
-            'selling_breakdown.*.amount' => 'required_with:selling_breakdown|numeric|min:0',
+            'vendor_breakdown' => 'nullable|array',
+            'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
+            'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
+            'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+            'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
+            'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
             'remarks' => 'nullable|string',
+            'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
@@ -149,24 +153,20 @@ class SalesOrderController extends Controller
         
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
-        $validated['so_date'] = now()->toDateString();
+        $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
         $validated['customer_name'] = $validated['customer'];
         $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
         $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
-        // Calculate totals from breakdown
+        // Calculate totals from vendor breakdown
         $totalSelling = 0;
-        if (isset($validated['selling_breakdown']) && is_array($validated['selling_breakdown'])) {
-            foreach ($validated['selling_breakdown'] as $item) {
-                $totalSelling += floatval($item['amount'] ?? 0);
-            }
-        }
-        
         $totalBuying = 0;
-        if (isset($validated['buying_breakdown']) && is_array($validated['buying_breakdown'])) {
-            foreach ($validated['buying_breakdown'] as $item) {
-                $totalBuying += floatval($item['amount'] ?? 0);
+        
+        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+            foreach ($validated['vendor_breakdown'] as $item) {
+                $totalBuying += floatval($item['buying_amount'] ?? 0);
+                $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
         
@@ -279,14 +279,18 @@ class SalesOrderController extends Controller
             'party_lcl' => 'nullable|string|max:255',
             'prepared_by' => 'nullable|string|max:255',
             'exchange_rate' => 'nullable|numeric|min:0',
-            'jenis_biaya' => 'nullable|string|in:OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
-            'buying_breakdown' => 'nullable|array',
-            'buying_breakdown.*.vendor' => 'required_with:buying_breakdown|string|max:255',
-            'buying_breakdown.*.amount' => 'required_with:buying_breakdown|numeric|min:0',
-            'selling_breakdown' => 'nullable|array',
-            'selling_breakdown.*.description' => 'required_with:selling_breakdown|string|max:255',
-            'selling_breakdown.*.amount' => 'required_with:selling_breakdown|numeric|min:0',
+            'vendor_breakdown' => 'nullable|array',
+            'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
+            'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
+            'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+            'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
+            'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
             'remarks' => 'nullable|string',
+            'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
@@ -314,24 +318,20 @@ class SalesOrderController extends Controller
 
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
-        $validated['so_date'] = now()->toDateString();
+        $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
         $validated['customer_name'] = $validated['customer'];
         $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
         $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
-        // Calculate totals from breakdown
+        // Calculate totals from vendor breakdown
         $totalSelling = 0;
-        if (isset($validated['selling_breakdown']) && is_array($validated['selling_breakdown'])) {
-            foreach ($validated['selling_breakdown'] as $item) {
-                $totalSelling += floatval($item['amount'] ?? 0);
-            }
-        }
-        
         $totalBuying = 0;
-        if (isset($validated['buying_breakdown']) && is_array($validated['buying_breakdown'])) {
-            foreach ($validated['buying_breakdown'] as $item) {
-                $totalBuying += floatval($item['amount'] ?? 0);
+        
+        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+            foreach ($validated['vendor_breakdown'] as $item) {
+                $totalBuying += floatval($item['buying_amount'] ?? 0);
+                $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
         

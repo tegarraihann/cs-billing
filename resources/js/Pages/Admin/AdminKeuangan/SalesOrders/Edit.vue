@@ -12,7 +12,7 @@
             </div>
             <div>
               <h2 class="text-2xl font-bold text-sage-800">Edit Sales Order: {{ salesOrder.order_number }}</h2>
-              <p class="text-sage-600">Perbarui informasi sales order</p>
+              <p class="text-sage-600">Edit dokumen sales order dari admin CS</p>
             </div>
           </div>
           <div class="mt-4 sm:mt-0">
@@ -31,373 +31,543 @@
 
       <!-- Form Section -->
       <form @submit.prevent="submit" class="space-y-6">
+
         <!-- Basic Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+          <div
+            @click="toggleSection('basic')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
+            <svg
+              :class="{'rotate-180': !sections.basic}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <div class="p-6 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-show="sections.basic" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label for="order_number" class="block text-sm font-medium text-sage-700 mb-2">
-                  Order Number <span class="text-red-500">*</span>
-                </label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">ORDER NUMB <span class="text-red-500">*</span></label>
                 <input
                   v-model="form.order_number"
                   type="text"
-                  id="order_number"
                   required
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Masukkan order number"
                 />
-                <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">
-                  {{ form.errors.order_number }}
-                </div>
+                <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
               </div>
-
               <div>
-                <label for="customer" class="block text-sm font-medium text-sage-700 mb-2">
-                  Customer <span class="text-red-500">*</span>
-                </label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">REF NO</label>
                 <input
-                  v-model="form.customer"
+                  v-model="form.ref_no"
                   type="text"
-                  id="customer"
-                  required
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Masukkan nama customer"
                 />
-                <div v-if="form.errors.customer" class="mt-2 text-sm text-red-600">
-                  {{ form.errors.customer }}
-                </div>
+                <div v-if="form.errors.ref_no" class="mt-2 text-sm text-red-600">{{ form.errors.ref_no }}</div>
               </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">DATE</label>
+                <input
+                  v-model="form.so_date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.so_date" class="mt-2 text-sm text-red-600">{{ form.errors.so_date }}</div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">CUSTOMER <span class="text-red-500">*</span></label>
+              <input
+                v-model="form.customer"
+                type="text"
+                required
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.customer" class="mt-2 text-sm text-red-600">{{ form.errors.customer }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">SHIPPER</label>
+              <input
+                v-model="form.shipper"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.shipper" class="mt-2 text-sm text-red-600">{{ form.errors.shipper }}</div>
             </div>
           </div>
         </div>
 
         <!-- Shipping Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+          <div
+            @click="toggleSection('shipping')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Pengiriman</h3>
+            <svg
+              :class="{'rotate-180': !sections.shipping}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <div class="p-6 space-y-4">
+          <div v-show="sections.shipping" class="p-6 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">BL/AWB</label>
+              <input
+                v-model="form.bl_awb"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.bl_awb" class="mt-2 text-sm text-red-600">{{ form.errors.bl_awb }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">LINER</label>
+              <input
+                v-model="form.liner"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.liner" class="mt-2 text-sm text-red-600">{{ form.errors.liner }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">VESSEL</label>
+              <input
+                v-model="form.vessel"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.vessel" class="mt-2 text-sm text-red-600">{{ form.errors.vessel }}</div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label for="shipper" class="block text-sm font-medium text-sage-700 mb-2">Shipper</label>
-                <input
-                  v-model="form.shipper"
-                  type="text"
-                  id="shipper"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Masukkan shipper"
-                />
-              </div>
-
-              <div>
-                <label for="bl_awb" class="block text-sm font-medium text-sage-700 mb-2">BL/AWB</label>
-                <input
-                  v-model="form.bl_awb"
-                  type="text"
-                  id="bl_awb"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Masukkan BL/AWB"
-                />
-              </div>
-
-              <div>
-                <label for="pol" class="block text-sm font-medium text-sage-700 mb-2">POL</label>
-                <input
-                  v-model="form.pol"
-                  type="text"
-                  id="pol"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Port of Loading"
-                />
-              </div>
-
-              <div>
-                <label for="pod" class="block text-sm font-medium text-sage-700 mb-2">POD</label>
-                <input
-                  v-model="form.pod"
-                  type="text"
-                  id="pod"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Port of Discharge"
-                />
-              </div>
-
-              <div>
-                <label for="eta" class="block text-sm font-medium text-sage-700 mb-2">ETA</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">ETA</label>
                 <input
                   v-model="form.eta"
                   type="date"
-                  id="eta"
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 />
+                <div v-if="form.errors.eta" class="mt-2 text-sm text-red-600">{{ form.errors.eta }}</div>
               </div>
-
               <div>
-                <label for="vessel" class="block text-sm font-medium text-sage-700 mb-2">Vessel</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">ETD</label>
                 <input
-                  v-model="form.vessel"
-                  type="text"
-                  id="vessel"
+                  v-model="form.etd"
+                  type="date"
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  placeholder="Masukkan vessel"
                 />
+                <div v-if="form.errors.etd" class="mt-2 text-sm text-red-600">{{ form.errors.etd }}</div>
               </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">AJU</label>
+              <input
+                v-model="form.aju"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.aju" class="mt-2 text-sm text-red-600">{{ form.errors.aju }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">SPPB DATE</label>
+              <input
+                v-model="form.sppb_date"
+                type="date"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.sppb_date" class="mt-2 text-sm text-red-600">{{ form.errors.sppb_date }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">SHIPMENT TYPE</label>
+              <select
+                v-model="form.shipment_type"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              >
+                <option value="">Pilih Shipment Type</option>
+                <option v-for="shipmentType in shipmentTypes" :key="shipmentType.id" :value="shipmentType.code">
+                  {{ shipmentType.name }}
+                </option>
+              </select>
+              <div v-if="form.errors.shipment_type" class="mt-2 text-sm text-red-600">{{ form.errors.shipment_type }}</div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">POL</label>
+                <input
+                  v-model="form.pol"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.pol" class="mt-2 text-sm text-red-600">{{ form.errors.pol }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">POD</label>
+                <input
+                  v-model="form.pod"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.pod" class="mt-2 text-sm text-red-600">{{ form.errors.pod }}</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">GUDANG/UTC</label>
+                <input
+                  v-model="form.gudang_utc"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.gudang_utc" class="mt-2 text-sm text-red-600">{{ form.errors.gudang_utc }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">PARTY/LCL</label>
+                <input
+                  v-model="form.party_lcl"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.party_lcl" class="mt-2 text-sm text-red-600">{{ form.errors.party_lcl }}</div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">PREPARED BY</label>
+              <input
+                v-model="form.prepared_by"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="form.errors.prepared_by" class="mt-2 text-sm text-red-600">{{ form.errors.prepared_by }}</div>
             </div>
           </div>
         </div>
 
-        <!-- Financial Information -->
+        <!-- Pricing Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-            <h3 class="text-lg font-semibold text-sage-800">Informasi Keuangan</h3>
+          <div
+            @click="toggleSection('pricing')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Informasi Vendor & Pricing</h3>
+            <svg
+              :class="{'rotate-180': !sections.pricing}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <div class="p-6 space-y-4">
-            <!-- Buying Breakdown -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <label class="block text-sm font-medium text-sage-700">BUYING BREAKDOWN</label>
-                <button
-                  type="button"
-                  @click="addBuyingItem"
-                  class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
-                >
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Add Item
-                </button>
-              </div>
-              <div class="space-y-3">
-                <div v-for="(item, index) in form.buying_breakdown" :key="'buying-' + index" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 border border-gray-200 rounded-lg">
-                  <div class="md:col-span-6">
-                    <input
-                      v-model="item.vendor"
-                      type="text"
-                      placeholder="Vendor name"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                    />
-                  </div>
-                  <div class="md:col-span-5">
-                    <input
-                      v-model="item.amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="Amount"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                    />
-                  </div>
-                  <div class="md:col-span-1">
-                    <button
-                      type="button"
-                      @click="removeBuyingItem(index)"
-                      class="w-full h-10 text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:border-red-400 transition-colors"
-                    >
-                      <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="p-2 bg-gray-50 rounded-md">
-                <strong>Total Buying: {{ formatCurrency(totalBuying) }}</strong>
-              </div>
+          <div v-show="sections.pricing" class="p-6 space-y-6">
+            
+            <!-- Exchange Rate -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">EXCHANGE RATE</label>
+              <input
+                v-model="form.exchange_rate"
+                @input="formatExchangeRate"
+                type="text"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 font-mono"
+                placeholder="14.000"
+              />
+              <div v-if="form.errors.exchange_rate" class="mt-2 text-sm text-red-600">{{ form.errors.exchange_rate }}</div>
             </div>
-
-            <!-- Selling Breakdown -->
+            
+            <!-- Vendor Breakdown Section -->
             <div class="space-y-4">
               <div class="flex items-center justify-between">
-                <label class="block text-sm font-medium text-sage-700">SELLING BREAKDOWN</label>
+                <h4 class="text-lg font-semibold text-sage-800">Vendor Breakdown</h4>
                 <button
                   type="button"
-                  @click="addSellingItem"
-                  class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
+                  @click="addVendorItem"
+                  class="inline-flex items-center px-3 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
                 >
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  Add Item
+                  Add Vendor Item
                 </button>
               </div>
-              <div class="space-y-3">
-                <div v-for="(item, index) in form.selling_breakdown" :key="'selling-' + index" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 border border-gray-200 rounded-lg">
-                  <div class="md:col-span-6">
+              
+              <!-- Vendor Items -->
+              <div v-if="form.vendor_breakdown.length === 0" class="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                <div class="text-gray-400 mb-2">
+                  <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <p class="text-gray-500">No vendor items added yet. Click "Add Vendor Item" to start.</p>
+              </div>
+              
+              <div v-for="(item, index) in form.vendor_breakdown" :key="`vendor-${index}`" class="border border-gray-200 rounded-lg p-4 space-y-4">
+                <div class="flex justify-between items-center">
+                  <h5 class="font-medium text-sage-700">Vendor Item #{{ index + 1 }}</h5>
+                  <button
+                    type="button"
+                    @click="removeVendorItem(index)"
+                    class="text-red-600 hover:text-red-800 p-1"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Vendor Selection -->
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">
+                      Vendor <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                      v-model="item.vendor_id"
+                      @change="onVendorSelect(index)"
+                      class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    >
+                      <option value="">Pilih vendor...</option>
+                      <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                        {{ vendor.nama_vendor }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Service Description -->
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">
+                      Service Description
+                    </label>
                     <input
                       v-model="item.description"
                       type="text"
-                      placeholder="Service description"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      placeholder="Deskripsi layanan vendor"
+                      class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                     />
-                  </div>
-                  <div class="md:col-span-5">
-                    <input
-                      v-model="item.amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="Amount"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                    />
-                  </div>
-                  <div class="md:col-span-1">
-                    <button
-                      type="button"
-                      @click="removeSellingItem(index)"
-                      class="w-full h-10 text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:border-red-400 transition-colors"
-                    >
-                      <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
                   </div>
                 </div>
-              </div>
-              <div class="p-2 bg-gray-50 rounded-md">
-                <strong>Total Selling: {{ formatCurrency(totalSelling) }}</strong>
-              </div>
-            </div>
 
-            <!-- Revenue Summary -->
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">REVENUE (AUTO CALCULATED)</label>
-              <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-                <div class="text-lg font-bold" :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
-                  {{ formatCurrency(totalRevenue) }}
+                <!-- Vendor Info Display -->
+                <div v-if="item.vendor_id" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-sage-50 rounded-lg">
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">Nama Vendor</label>
+                    <p class="text-sm text-gray-900">{{ item.nama_vendor || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">Nomor Rekening</label>
+                    <p class="text-sm text-gray-900 font-mono">{{ item.no_rekening || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">Nama Rekening</label>
+                    <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
+                  </div>
                 </div>
-                <div class="text-sm text-gray-600 mt-1">
-                  Selling: {{ formatCurrency(totalSelling) }} - Buying: {{ formatCurrency(totalBuying) }}
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <!-- Buying Amount -->
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">
+                      Buying Amount <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      v-model="item.buying_amount"
+                      @input="formatNumber(item, 'buying_amount')"
+                      type="text"
+                      placeholder="0"
+                      class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 font-mono"
+                    />
+                  </div>
+
+                  <!-- Selling Amount -->
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">
+                      Selling Amount <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      v-model="item.selling_amount"
+                      @input="formatNumber(item, 'selling_amount')"
+                      type="text"
+                      placeholder="0"
+                      class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 font-mono"
+                    />
+                  </div>
+
+                  <!-- Profit (Auto calculated) -->
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">Profit (Auto)</label>
+                    <input
+                      :value="formatCurrency(getItemProfit(item))"
+                      readonly
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono"
+                      :class="getItemProfit(item) >= 0 ? 'text-sage-700' : 'text-red-600'"
+                    />
+                  </div>
+                </div>
+
+                <!-- Remarks -->
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Remarks</label>
+                  <textarea
+                    v-model="item.remarks"
+                    rows="2"
+                    placeholder="Catatan untuk vendor ini..."
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Summary -->
+              <div v-if="form.vendor_breakdown.length > 0" class="mt-6 p-4 bg-gradient-to-r from-sage-50 to-blue-50 border border-sage-200 rounded-lg">
+                <h4 class="font-semibold text-sage-800 mb-3">Summary</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div class="text-sm text-gray-600">Total Items</div>
+                    <div class="text-xl font-bold text-sage-700">{{ form.vendor_breakdown.length }}</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-gray-600">Total Buying</div>
+                    <div class="text-xl font-bold text-blue-700">{{ formatCurrency(totalBuying) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-gray-600">Total Selling</div>
+                    <div class="text-xl font-bold text-green-700">{{ formatCurrency(totalSelling) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-gray-600">Total Profit</div>
+                    <div class="text-xl font-bold" :class="totalProfit >= 0 ? 'text-sage-700' : 'text-red-600'">
+                      {{ formatCurrency(totalProfit) }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Multiple Vendors Information -->
+        <!-- Additional Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-            <h3 class="text-lg font-semibold text-sage-800">Vendor Information (Buying)</h3>
+          <div
+            @click="toggleSection('additional')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Informasi Tambahan</h3>
+            <svg
+              :class="{'rotate-180': !sections.additional}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <div class="p-6 space-y-4">
-            
-            <div class="flex items-center justify-between mb-4">
-              <p class="text-sm text-gray-600">Tambahkan detail vendor untuk setiap item buying</p>
-              <button
-                type="button"
-                @click="addVendorDetail"
-                class="inline-flex items-center px-3 py-1 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
-              >
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add Vendor
-              </button>
-            </div>
-
-            <div v-if="vendorDetails.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-              No vendor details added yet. Click "Add Vendor" to start.
-            </div>
-
-            <div v-for="(vendorDetail, index) in vendorDetails" :key="'vendor-detail-' + index" class="border border-sage-200 rounded-lg p-4 space-y-4">
-              <div class="flex justify-between items-center">
-                <h5 class="font-medium text-sage-700">Vendor #{{ index + 1 }}</h5>
-                <button
-                  type="button"
-                  @click="removeVendorDetail(index)"
-                  class="text-red-600 hover:text-red-800 p-1"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+          <div v-show="sections.additional" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/URAIAN BARANG</label>
+                <input
+                  v-model="form.commodity"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.commodity" class="mt-2 text-sm text-red-600">{{ form.errors.commodity }}</div>
               </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Pilih Vendor -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-2">
-                    Pilih Vendor <span class="text-red-500">*</span>
-                  </label>
-                  <select
-                    v-model="vendorDetail.vendor_id"
-                    @change="onVendorSelect(index)"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  >
-                    <option value="">Pilih vendor...</option>
-                    <option v-for="vendorOption in vendors" :key="vendorOption.id" :value="vendorOption.id">
-                      {{ vendorOption.nama_vendor }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Deskripsi -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-2">
-                    Deskripsi Service
-                  </label>
-                  <input
-                    v-model="vendorDetail.deskripsi"
-                    type="text"
-                    placeholder="Deskripsi layanan vendor"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
+                <input
+                  v-model="form.qty"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{ form.errors.qty }}</div>
               </div>
-
-              <!-- Info Vendor (Auto-filled) -->
-              <div v-if="vendorDetail.vendor_id" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-sage-50 rounded-lg">
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Vendor</label>
-                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_vendor || '-' }}</p>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">Nomor Rekening</label>
-                  <p class="text-sm text-gray-900 font-mono">{{ vendorDetail.no_rekening || '-' }}</p>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">Nama Rekening</label>
-                  <p class="text-sm text-gray-900">{{ vendorDetail.nama_rekening || '-' }}</p>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Nominal -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-2">
-                    Nominal <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    v-model="vendorDetail.nominal"
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-
-                <!-- RCVD INV -->
-                <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-2">
-                    RCVD INV
-                  </label>
-                  <input
-                    v-model="vendorDetail.rcvd_inv"
-                    type="text"
-                    placeholder="Nomor invoice yang diterima"
-                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">NET WEIGHT (KG)</label>
+                <input
+                  v-model="form.net_weight"
+                  type="number"
+                  step="0.01"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{ form.errors.net_weight }}</div>
               </div>
             </div>
-
-            <!-- Total Vendor Costs -->
-            <div v-if="vendorDetails.length > 0" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div class="flex justify-between items-center">
-                <span class="font-medium text-blue-700">Total Vendor Costs:</span>
-                <span class="text-xl font-bold text-blue-800">{{ formatCurrency(totalVendorCosts) }}</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">MEAS (M³)</label>
+                <input
+                  v-model="form.measurement"
+                  type="number"
+                  step="0.001"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.measurement" class="mt-2 text-sm text-red-600">{{ form.errors.measurement }}</div>
               </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">CONTAINER NO</label>
+                <input
+                  v-model="form.container_no"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.container_no" class="mt-2 text-sm text-red-600">{{ form.errors.container_no }}</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">INVOICE NUMB</label>
+                <input
+                  v-model="form.invoice_number"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.invoice_number" class="mt-2 text-sm text-red-600">{{ form.errors.invoice_number }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">INVOICE DATE</label>
+                <input
+                  v-model="form.invoice_date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.invoice_date" class="mt-2 text-sm text-red-600">{{ form.errors.invoice_date }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">T.O.P</label>
+                <input
+                  v-model="form.top"
+                  type="text"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.top" class="mt-2 text-sm text-red-600">{{ form.errors.top }}</div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">REMARKS</label>
+              <textarea
+                v-model="form.remarks"
+                rows="3"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
+                placeholder="Catatan umum untuk sales order ini..."
+              ></textarea>
+              <div v-if="form.errors.remarks" class="mt-2 text-sm text-red-600">{{ form.errors.remarks }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">NOTE</label>
+              <textarea
+                v-model="form.note"
+                rows="3"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
+                placeholder="Catatan tambahan..."
+              ></textarea>
+              <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{ form.errors.note }}</div>
             </div>
           </div>
         </div>
@@ -412,7 +582,7 @@
           </Link>
           <button
             type="submit"
-            :disabled="form.processing"
+            :disabled="form.processing || form.vendor_breakdown.length === 0"
             class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg
@@ -445,222 +615,244 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 
 const props = defineProps({
   salesOrder: Object,
   vendors: Array,
+  shipmentTypes: Array,
 });
 
+// Section management
+const sections = ref({
+  basic: true,
+  shipping: true,
+  pricing: true,
+  additional: true,
+});
+
+const toggleSection = (section) => {
+  sections.value[section] = !sections.value[section];
+};
+
+// Form setup
 const form = useForm({
   order_number: props.salesOrder.order_number || "",
+  ref_no: props.salesOrder.ref_no || "",
+  so_date: props.salesOrder.so_date ? props.salesOrder.so_date.split('T')[0] : "",
   customer: props.salesOrder.customer || "",
   shipper: props.salesOrder.shipper || "",
   bl_awb: props.salesOrder.bl_awb || "",
+  liner: props.salesOrder.liner || "",
+  vessel: props.salesOrder.vessel || "",
+  eta: props.salesOrder.eta ? props.salesOrder.eta.split('T')[0] : "",
+  etd: props.salesOrder.etd ? props.salesOrder.etd.split('T')[0] : "",
+  aju: props.salesOrder.aju || "",
+  sppb_date: props.salesOrder.sppb_date ? props.salesOrder.sppb_date.split('T')[0] : "",
+  shipment_type: props.salesOrder.shipment_type || "",
   pol: props.salesOrder.pol || "",
   pod: props.salesOrder.pod || "",
-  eta: props.salesOrder.eta ? new Date(props.salesOrder.eta).toISOString().split('T')[0] : "",
-  vessel: props.salesOrder.vessel || "",
-  buying_breakdown: props.salesOrder.buying_breakdown || [{ vendor: '', amount: 0 }],
-  selling_breakdown: props.salesOrder.selling_breakdown || [{ description: '', amount: 0 }],
+  gudang_utc: props.salesOrder.gudang_utc || "",
+  party_lcl: props.salesOrder.party_lcl || "",
+  prepared_by: props.salesOrder.prepared_by || "",
+  exchange_rate: props.salesOrder.exchange_rate || "",
+  commodity: props.salesOrder.commodity || "",
+  qty: props.salesOrder.qty || "",
+  net_weight: props.salesOrder.net_weight || "",
+  measurement: props.salesOrder.measurement || "",
+  container_no: props.salesOrder.container_no || "",
+  invoice_number: props.salesOrder.invoice_number || "",
+  invoice_date: props.salesOrder.invoice_date ? props.salesOrder.invoice_date.split('T')[0] : "",
+  top: props.salesOrder.top || "",
+  remarks: props.salesOrder.remarks || "",
+  note: props.salesOrder.note || "",
+  vendor_breakdown: [],
 });
 
-// Vendor details data - supports multiple vendors
-const vendorDetails = ref([]);
-
-// Initialize vendor details from existing data
-(() => {
-  if (props.salesOrder.vendors) {
-    if (Array.isArray(props.salesOrder.vendors) && props.salesOrder.vendors.length > 0) {
-      props.salesOrder.vendors.forEach(vendorData => {
-        vendorDetails.value.push({
-          vendor_id: vendorData.vendor_id || "",
-          nama_vendor: vendorData.company_name || vendorData.nama_vendor || "",
-          no_rekening: vendorData.no_rekening || "",
-          nama_rekening: vendorData.nama_rekening || "",
-          deskripsi: vendorData.deskripsi || "",
-          nominal: parseFloat(vendorData.nominal) || 0,
-          rcvd_inv: vendorData.rcvd_inv || ""
-        });
-      });
-    } else if (typeof props.salesOrder.vendors === 'object' && !Array.isArray(props.salesOrder.vendors)) {
-      // Handle single vendor data (convert to array for backward compatibility)
-      vendorDetails.value.push({
-        vendor_id: props.salesOrder.vendors.vendor_id || "",
-        nama_vendor: props.salesOrder.vendors.company_name || props.salesOrder.vendors.nama_vendor || "",
-        no_rekening: props.salesOrder.vendors.no_rekening || "",
-        nama_rekening: props.salesOrder.vendors.nama_rekening || "",
-        deskripsi: props.salesOrder.vendors.deskripsi || "",
-        nominal: parseFloat(props.salesOrder.vendors.nominal) || 0,
-        rcvd_inv: props.salesOrder.vendors.rcvd_inv || ""
-      });
-    }
+// Initialize vendor breakdown from existing data
+onMounted(() => {
+  if (props.salesOrder.vendor_breakdown && props.salesOrder.vendor_breakdown.length > 0) {
+    form.vendor_breakdown = props.salesOrder.vendor_breakdown.map(item => ({
+      vendor_id: item.vendor_id || "",
+      nama_vendor: item.nama_vendor || "",
+      no_rekening: item.no_rekening || "",
+      nama_rekening: item.nama_rekening || "",
+      description: item.description || "",
+      buying_amount: item.buying_amount || "",
+      selling_amount: item.selling_amount || "",
+      remarks: item.remarks || "",
+    }));
+  } else {
+    // Add one empty item if none exists
+    addVendorItem();
   }
   
-  // If no vendors exist, add one empty vendor
-  if (vendorDetails.value.length === 0) {
-    vendorDetails.value.push({
-      vendor_id: "",
-      nama_vendor: "",
-      no_rekening: "",
-      nama_rekening: "",
-      deskripsi: "",
-      nominal: 0,
-      rcvd_inv: ""
-    });
+  // Format exchange rate if exists
+  if (form.exchange_rate) {
+    formatExchangeRate();
   }
-})();
+});
 
-// Add a new vendor detail entry
-const addVendorDetail = () => {
-  vendorDetails.value.push({
+// Vendor management functions
+const addVendorItem = () => {
+  form.vendor_breakdown.push({
     vendor_id: "",
     nama_vendor: "",
     no_rekening: "",
     nama_rekening: "",
-    deskripsi: "",
-    nominal: 0,
-    rcvd_inv: ""
+    description: "",
+    buying_amount: "",
+    selling_amount: "",
+    remarks: "",
   });
 };
 
-// Remove a vendor detail entry
-const removeVendorDetail = (index) => {
-  vendorDetails.value.splice(index, 1);
+const removeVendorItem = (index) => {
+  if (form.vendor_breakdown.length > 1) {
+    form.vendor_breakdown.splice(index, 1);
+  }
 };
 
-// Handle vendor selection and auto-fill data
 const onVendorSelect = (index) => {
-  const selectedVendor = props.vendors.find(v => v.id == vendorDetails.value[index].vendor_id);
+  const selectedVendor = props.vendors.find(v => v.id == form.vendor_breakdown[index].vendor_id);
   if (selectedVendor) {
-    vendorDetails.value[index].nama_vendor = selectedVendor.nama_vendor;
-    vendorDetails.value[index].no_rekening = selectedVendor.nomor_rekening;
-    vendorDetails.value[index].nama_rekening = selectedVendor.nama_rekening;
+    form.vendor_breakdown[index].nama_vendor = selectedVendor.nama_vendor;
+    form.vendor_breakdown[index].no_rekening = selectedVendor.nomor_rekening;
+    form.vendor_breakdown[index].nama_rekening = selectedVendor.nama_rekening;
   }
 };
 
-// Calculate total vendor costs
-const totalVendorCosts = computed(() => {
-  return vendorDetails.value.reduce((total, vendor) => {
-    return total + (parseFloat(vendor.nominal) || 0);
-  }, 0);
-});
-
-// Breakdown management functions
-const addBuyingItem = () => {
-  form.buying_breakdown.push({ vendor: '', amount: 0 });
+// Number formatting functions
+const formatNumber = (item, field) => {
+  const value = item[field];
+  if (!value) return;
+  
+  // Remove non-numeric characters
+  const numericValue = value.toString().replace(/[^\d]/g, '');
+  
+  // Add dot separators
+  const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  
+  item[field] = formatted;
 };
 
-const removeBuyingItem = (index) => {
-  if (form.buying_breakdown.length > 1) {
-    form.buying_breakdown.splice(index, 1);
+const formatExchangeRate = () => {
+  const value = form.exchange_rate;
+  if (!value) return;
+  
+  // Remove non-numeric characters and dots
+  const numericValue = value.toString().replace(/[^\d.]/g, '');
+  
+  // Split by decimal point
+  const parts = numericValue.split('.');
+  
+  // Format integer part with dot separators
+  if (parts[0]) {
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   }
-};
-
-const addSellingItem = () => {
-  form.selling_breakdown.push({ description: '', amount: 0 });
-};
-
-const removeSellingItem = (index) => {
-  if (form.selling_breakdown.length > 1) {
-    form.selling_breakdown.splice(index, 1);
-  }
+  
+  // Rejoin with decimal point
+  form.exchange_rate = parts.join('.');
 };
 
 const formatCurrency = (amount) => {
+  if (!amount && amount !== 0) return 'Rp 0';
+  
+  const numericValue = typeof amount === 'string' ? parseFloat(amount.replace(/[^\d]/g, '')) || 0 : amount;
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount || 0);
+    maximumFractionDigits: 0,
+  }).format(numericValue);
 };
 
-// Computed properties for totals
+// Calculate totals and profit
 const totalBuying = computed(() => {
-  return form.buying_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  return form.vendor_breakdown.reduce((sum, item) => {
+    const amount = parseFloat((item.buying_amount || '0').toString().replace(/[^\d]/g, '')) || 0;
+    return sum + amount;
+  }, 0);
 });
 
 const totalSelling = computed(() => {
-  return form.selling_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  return form.vendor_breakdown.reduce((sum, item) => {
+    const amount = parseFloat((item.selling_amount || '0').toString().replace(/[^\d]/g, '')) || 0;
+    return sum + amount;
+  }, 0);
 });
 
-const totalRevenue = computed(() => {
+const totalProfit = computed(() => {
   return totalSelling.value - totalBuying.value;
 });
 
-const calculateTotals = () => {
-  // This function is called to trigger reactivity if needed
-  // The actual calculation is done by computed properties
-  return {
-    totalBuying: totalBuying.value,
-    totalSelling: totalSelling.value,
-    totalRevenue: totalRevenue.value
-  };
+const getItemProfit = (item) => {
+  const buying = parseFloat((item.buying_amount || '0').toString().replace(/[^\d]/g, '')) || 0;
+  const selling = parseFloat((item.selling_amount || '0').toString().replace(/[^\d]/g, '')) || 0;
+  return selling - buying;
 };
 
+// Submit form
 const submit = () => {
-  // Add vendor details to form data
-  const formData = {
+  // Clean up data before submission
+  const cleanedData = {
     ...form.data(),
-    vendor_details: vendorDetails.value
+    vendor_breakdown: form.vendor_breakdown.map(item => ({
+      ...item,
+      buying_amount: (item.buying_amount || '0').toString().replace(/[^\d]/g, ''),
+      selling_amount: (item.selling_amount || '0').toString().replace(/[^\d]/g, ''),
+    })),
+    exchange_rate: form.exchange_rate.toString().replace(/\./g, '')
   };
-  
-  form.transform(data => formData).put(route("admin-keuangan.sales-orders.update", props.salesOrder.id), {
-    onSuccess: () => {
-      // Handle success
-    },
+
+  form.transform(() => cleanedData).put(route("admin-keuangan.sales-orders.update", props.salesOrder.id), {
     onError: (errors) => {
-      // Handle errors
+      console.error("Validation errors:", errors);
     },
   });
 };
 </script>
 
 <style scoped>
-/* Custom Sage Colors (same as Create) */
+/* Custom Sage Colors */
 .text-sage-600 {
   color: #8db580;
 }
-
 .text-sage-700 {
   color: #7ba169;
 }
-
 .text-sage-800 {
   color: #6b8f5e;
 }
-
 .bg-sage-50 {
   background-color: #f4f6f3;
 }
-
+.bg-sage-100 {
+  background-color: #eef3eb;
+}
 .bg-sage-600 {
   background-color: #8db580;
 }
-
 .bg-sage-700 {
   background-color: #7ba169;
 }
-
 .border-sage-200 {
   border-color: #d4ddd0;
 }
-
 .border-sage-300 {
   border-color: #c0cdb8;
 }
-
+.hover\:bg-sage-100:hover {
+  background-color: #eef3eb;
+}
 .hover\:bg-sage-700:hover {
   background-color: #7ba169;
 }
-
 .focus\:ring-sage-500:focus {
   --tw-ring-color: #8db580;
 }
-
 .focus\:border-sage-500:focus {
   border-color: #8db580;
 }

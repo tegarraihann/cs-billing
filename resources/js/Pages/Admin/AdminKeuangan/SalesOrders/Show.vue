@@ -2,19 +2,19 @@
   <AdminKeuanganLayout>
     <div class="p-4 sm:p-6 lg:p-8">
       <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-blue-200">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-center">
-            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mr-4">
+            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div>
-              <h2 class="text-2xl font-bold text-blue-800">
+              <h2 class="text-2xl font-bold text-sage-800">
                 Sales Order: {{ salesOrder.order_number }}
               </h2>
-              <p class="text-blue-600">
+              <p class="text-sage-600">
                 Review dan kelola sales order dari CS
               </p>
             </div>
@@ -68,175 +68,236 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
           <!-- SO Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
-              <h3 class="text-lg font-semibold text-blue-800">Informasi Sales Order</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">Informasi Sales Order</h3>
             </div>
-            <div class="p-6 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ORDER NUMB</label>
-                <p class="text-gray-900 font-semibold">{{ salesOrder.order_number }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">CUSTOMER</label>
-                <p class="text-gray-900">{{ salesOrder.customer }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SHIPPER</label>
-                <p class="text-gray-900">{{ salesOrder.shipper || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">BL/AWB</label>
-                <p class="text-gray-900">{{ salesOrder.bl_awb || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">LINER</label>
-                <p class="text-gray-900">{{ salesOrder.liner || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">VESSEL</label>
-                <p class="text-gray-900">{{ salesOrder.vessel || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ETA</label>
-                <p class="text-gray-900">{{ salesOrder.eta ? formatDate(salesOrder.eta) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">AJU</label>
-                <p class="text-gray-900">{{ salesOrder.aju || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SPPB DATE</label>
-                <p class="text-gray-900">{{ salesOrder.sppb_date ? formatDate(salesOrder.sppb_date) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SHIPMENT TYPE</label>
-                <p class="text-gray-900">{{ salesOrder.shipment_type || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">POL</label>
-                <p class="text-gray-900">{{ salesOrder.pol || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">POD</label>
-                <p class="text-gray-900">{{ salesOrder.pod || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">GUDANG/UTC</label>
-                <p class="text-gray-900">{{ salesOrder.gudang_utc || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">PARTY/LCL</label>
-                <p class="text-gray-900">{{ salesOrder.party_lcl || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">PREPARED BY</label>
-                <p class="text-gray-900">{{ salesOrder.prepared_by || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">EXCHANGE RATE</label>
-                <p class="text-gray-900">{{ salesOrder.exchange_rate || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">JENIS BIAYA</label>
-                <p class="text-gray-900">{{ salesOrder.jenis_biaya || '-' }}</p>
-              </div>
-              <!-- Buying Breakdown -->
-              <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">BUYING BREAKDOWN</label>
-                <div v-if="salesOrder.buying_breakdown && salesOrder.buying_breakdown.length" class="space-y-2 p-3 bg-gray-50 rounded-lg">
-                  <div v-for="(item, index) in salesOrder.buying_breakdown" :key="index" class="flex justify-between items-center p-2 bg-white rounded border">
-                    <span class="text-sm text-gray-700 font-medium">{{ item.vendor || 'Unknown Vendor' }}</span>
-                    <span class="text-sm font-semibold text-gray-900">{{ formatCurrency(item.amount || 0) }}</span>
-                  </div>
-                  <div class="border-t pt-2 mt-2">
-                    <div class="flex justify-between items-center font-bold">
-                      <span class="text-sm text-blue-700">Total Buying:</span>
-                      <span class="text-lg text-blue-600">{{ formatCurrency(totalBuying) }}</span>
-                    </div>
-                  </div>
+            <div class="p-6">
+              <!-- Primary Information - Two Columns -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Left Column -->
+                <div class="space-y-3">
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">ORDER NUMB:</span> 
+                    <span class="font-semibold">{{ salesOrder.order_number }}</span>
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">REF NO:</span> 
+                    {{ salesOrder.ref_no || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">DATE:</span> 
+                    {{ salesOrder.so_date ? formatDate(salesOrder.so_date) : '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">CUSTOMER:</span> 
+                    {{ salesOrder.customer }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">SHIPPER:</span> 
+                    {{ salesOrder.shipper || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">BL/AWB:</span> 
+                    {{ salesOrder.bl_awb || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">LINER:</span> 
+                    {{ salesOrder.liner || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">VESSEL:</span> 
+                    {{ salesOrder.vessel || '-' }}
+                  </p>
                 </div>
-                <p v-else class="text-gray-500">-</p>
+
+                <!-- Right Column -->
+                <div class="space-y-3">
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">ETA:</span> 
+                    {{ salesOrder.eta ? formatDate(salesOrder.eta) : '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">ETD:</span> 
+                    {{ salesOrder.etd ? formatDate(salesOrder.etd) : '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">AJU:</span> 
+                    {{ salesOrder.aju || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">SPPB DATE:</span> 
+                    {{ salesOrder.sppb_date ? formatDate(salesOrder.sppb_date) : '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">SHIPMENT TYPE:</span> 
+                    {{ salesOrder.shipment_type || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">POL/POD:</span> 
+                    {{ [salesOrder.pol, salesOrder.pod].filter(Boolean).join(' / ') || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">GUDANG/UTC:</span> 
+                    {{ salesOrder.gudang_utc || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">PARTY/LCL:</span> 
+                    {{ salesOrder.party_lcl || '-' }}
+                  </p>
+                  <p class="text-gray-900">
+                    <span class="font-semibold text-gray-700">PREPARED BY:</span> 
+                    {{ salesOrder.prepared_by || '-' }}
+                  </p>
+                </div>
               </div>
 
-              <!-- Selling Breakdown -->
-              <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">SELLING BREAKDOWN</label>
-                <div v-if="salesOrder.selling_breakdown && salesOrder.selling_breakdown.length" class="space-y-2 p-3 bg-gray-50 rounded-lg">
-                  <div v-for="(item, index) in salesOrder.selling_breakdown" :key="index" class="flex justify-between items-center p-2 bg-white rounded border">
-                    <span class="text-sm text-gray-700 font-medium">{{ item.description || 'Unknown Service' }}</span>
-                    <span class="text-sm font-semibold text-gray-900">{{ formatCurrency(item.amount || 0) }}</span>
-                  </div>
-                  <div class="border-t pt-2 mt-2">
-                    <div class="flex justify-between items-center font-bold">
-                      <span class="text-sm text-green-700">Total Selling:</span>
-                      <span class="text-lg text-green-600">{{ formatCurrency(totalSelling) }}</span>
-                    </div>
+              <!-- Exchange Rate -->
+              <div class="border-t border-gray-200 pt-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">EXCHANGE RATE</label>
+                    <p class="text-gray-900 font-mono">{{ salesOrder.exchange_rate ? formatNumber(salesOrder.exchange_rate) : '-' }}</p>
                   </div>
                 </div>
-                <p v-else class="text-gray-500">-</p>
               </div>
 
-              <!-- Revenue -->
-              <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">REVENUE (PROFIT)</label>
-                <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-                  <div class="flex items-center justify-between">
+              <!-- Detail Informasi (Following PDF Format) -->
+              <div class="border-t border-gray-200 pt-6">
+                <h4 class="text-md font-semibold text-gray-800 mb-4">Detail Informasi</h4>
+                
+                <!-- Financial Summary Table (Print Draft Format) -->
+                <div class="overflow-x-auto mb-6">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr class="bg-sage-50">
+                        <th class="px-6 py-4 text-left text-sm font-bold text-sage-800 uppercase tracking-wide">JENIS BIAYA</th>
+                        <th class="px-6 py-4 text-center text-sm font-bold text-sage-800 uppercase tracking-wide">BUYING</th>
+                        <th class="px-6 py-4 text-center text-sm font-bold text-sage-800 uppercase tracking-wide">SELLING</th>
+                        <th class="px-6 py-4 text-center text-sm font-bold text-sage-800 uppercase tracking-wide">REVENUE</th>
+                        <th class="px-6 py-4 text-left text-sm font-bold text-sage-800 uppercase tracking-wide">REMARKS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0" 
+                          v-for="(item, index) in salesOrder.vendor_breakdown" 
+                          :key="index"
+                          class="hover:bg-sage-50 transition-colors">
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                          {{ item.description || 'Service Type' }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm font-mono text-gray-900">
+                          {{ formatCurrency(item.buying_amount || 0) }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm font-mono text-gray-900">
+                          {{ formatCurrency(item.selling_amount || 0) }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm font-mono" :class="getVendorProfit(item) >= 0 ? 'text-sage-700' : 'text-red-600'">
+                          {{ formatCurrency(getVendorProfit(item)) }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                          {{ item.remarks || '-' }}
+                        </td>
+                      </tr>
+                      <tr v-else>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                          <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                              <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data breakdown</h3>
+                            <p class="text-sm text-gray-500 max-w-sm">Belum ada informasi vendor breakdown. Data akan muncul setelah informasi pricing diisi.</p>
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Total Row -->
+                      <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0" class="bg-sage-50 border-t border-gray-200">
+                        <td class="px-6 py-4 text-sm font-semibold text-sage-800 uppercase">
+                          TOTAL
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm font-mono font-semibold text-gray-900">
+                          {{ formatCurrency(totalBuying) }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm font-mono font-semibold text-gray-900">
+                          {{ formatCurrency(totalSelling) }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm font-mono font-semibold" :class="totalRevenue >= 0 ? 'text-sage-700' : 'text-red-600'">
+                          {{ formatCurrency(totalRevenue) }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-gray-400">
+                          -
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <!-- Remarks Section -->
+                <div v-if="salesOrder.remarks" class="mb-6">
+                  <h5 class="text-sm font-semibold text-gray-800 mb-3">Catatan (Remarks)</h5>
+                  <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p class="text-gray-900">{{ salesOrder.remarks }}</p>
+                  </div>
+                </div>
+
+                <!-- Note Section -->
+                <div v-if="salesOrder.note" class="mb-6">
+                  <h5 class="text-sm font-semibold text-gray-800 mb-3">Catatan Tambahan (Note)</h5>
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-gray-900">{{ salesOrder.note }}</p>
+                  </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200">
+                  <div class="space-y-3">
                     <div>
-                      <div class="text-2xl font-bold" :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
-                        {{ formatCurrency(totalRevenue) }}
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">Auto Calculated</div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">COMMODITY/URAIAN BARANG</label>
+                      <p class="text-gray-900">{{ salesOrder.commodity || '-' }}</p>
                     </div>
-                    <div class="text-right text-sm text-gray-600">
-                      <div>Selling: {{ formatCurrency(totalSelling) }}</div>
-                      <div>Buying: {{ formatCurrency(totalBuying) }}</div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">QTY</label>
+                      <p class="text-gray-900">{{ salesOrder.qty || '-' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">NET WEIGHT (KG)</label>
+                      <p class="text-gray-900">{{ salesOrder.net_weight ? formatWeight(salesOrder.net_weight) : '-' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">MEAS (M³)</label>
+                      <p class="text-gray-900">{{ salesOrder.measurement ? formatMeasurement(salesOrder.measurement) : '-' }}</p>
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER NO</label>
+                      <p class="text-gray-900">{{ salesOrder.container_no || '-' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE NUMB</label>
+                      <p class="text-gray-900">{{ salesOrder.invoice_number || '-' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE DATE</label>
+                      <p class="text-gray-900">{{ salesOrder.invoice_date ? formatDate(salesOrder.invoice_date) : '-' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">T.O.P</label>
+                      <p class="text-gray-900">{{ salesOrder.top || '-' }}</p>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">REMARKS</label>
-                <p class="text-gray-900">{{ salesOrder.remarks || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER NO</label>
-                <p class="text-gray-900">{{ salesOrder.container_no || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE NUMB</label>
-                <p class="text-gray-900">{{ salesOrder.invoice_number || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE DATE</label>
-                <p class="text-gray-900">{{ salesOrder.invoice_date ? formatDate(salesOrder.invoice_date) : '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">T.O.P</label>
-                <p class="text-gray-900">{{ salesOrder.top || '-' }}</p>
-              </div>
-
-              <!-- New fields -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">COMMODITY</label>
-                <p class="text-gray-900">{{ salesOrder.commodity || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">QTY</label>
-                <p class="text-gray-900">{{ salesOrder.qty || '-' }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">NET WEIGHT</label>
-                <p class="text-gray-900">{{ salesOrder.net_weight || '-' }} KG</p>
               </div>
             </div>
           </div>
 
           <!-- Voucher Management Section -->
           <div v-if="salesOrder.vouchers && salesOrder.vouchers.length > 0"
-               class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
-              <h3 class="text-lg font-semibold text-blue-800">Voucher Management</h3>
+               class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">Voucher Management</h3>
             </div>
             <div class="p-6">
               <div v-for="voucher in salesOrder.vouchers" :key="voucher.id"
@@ -295,17 +356,6 @@
                 </div>
                 <!-- Print and Preview buttons for vouchers -->
                 <div v-if="voucher.status === 'released' || voucher.status === 'approved'" class="mt-3 flex space-x-2">
-                  <!-- <a
-                    :href="route('admin-keuangan.sales-orders.vouchers.preview', [salesOrder.id, voucher.id])"
-                    target="_blank"
-                    class="inline-flex items-center px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition-colors"
-                  >
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    Preview & Edit
-                  </a> -->
                   <a
                     :href="route('admin-keuangan.sales-orders.vouchers.print', [salesOrder.id, voucher.id])"
                     target="_blank"
@@ -320,14 +370,15 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <!-- Sidebar -->
         <div class="space-y-6">
           <!-- Status -->
-          <div class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
-              <h3 class="text-lg font-semibold text-blue-800">Status</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">Status</h3>
             </div>
             <div class="p-6">
               <span
@@ -340,9 +391,9 @@
           </div>
 
           <!-- Release Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
-              <h3 class="text-lg font-semibold text-blue-800">Informasi Rilis</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">Informasi Rilis</h3>
             </div>
             <div class="p-6 space-y-4">
               <div>
@@ -357,9 +408,9 @@
           </div>
 
           <!-- System Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
-              <h3 class="text-lg font-semibold text-blue-800">System Information</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <h3 class="text-lg font-semibold text-sage-800">System Information</h3>
             </div>
             <div class="p-6 space-y-4">
               <div>
@@ -517,12 +568,12 @@ const debugInfo = ref(false);
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString('id-ID');
+  return new Date(dateString).toLocaleDateString("id-ID");
 };
 
 const formatDateTime = (dateString) => {
   if (!dateString) return '-';
-  return new Date(dateString).toLocaleString('id-ID');
+  return new Date(dateString).toLocaleString("id-ID");
 };
 
 const formatCurrency = (amount, currency = 'IDR') => {
@@ -530,23 +581,51 @@ const formatCurrency = (amount, currency = 'IDR') => {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(amount);
+};
+
+// Format number with thousand separators (dots)
+const formatNumber = (amount) => {
+  const numAmount = parseFloat(amount) || 0;
+  return numAmount.toLocaleString('id-ID');
 };
 
 // Computed properties for breakdown totals
 const totalBuying = computed(() => {
-  if (!props.salesOrder.buying_breakdown) return 0;
-  return props.salesOrder.buying_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  if (!props.salesOrder.vendor_breakdown) return 0;
+  return props.salesOrder.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.buying_amount) || 0), 0);
 });
 
 const totalSelling = computed(() => {
-  if (!props.salesOrder.selling_breakdown) return 0;
-  return props.salesOrder.selling_breakdown.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  if (!props.salesOrder.vendor_breakdown) return 0;
+  return props.salesOrder.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.selling_amount) || 0), 0);
 });
 
 const totalRevenue = computed(() => {
   return totalSelling.value - totalBuying.value;
 });
+
+// Get profit for individual vendor
+const getVendorProfit = (vendorItem) => {
+  const buying = parseFloat(vendorItem.buying_amount) || 0;
+  const selling = parseFloat(vendorItem.selling_amount) || 0;
+  return selling - buying;
+};
+
+const formatWeight = (weight) => {
+  return new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(weight) + ' kg';
+};
+
+const formatMeasurement = (measurement) => {
+  return new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }).format(measurement) + ' m³';
+};
 
 const getStatusLabel = (status) => {
   const labels = {
@@ -567,14 +646,11 @@ const getStatusColor = (status) => {
 };
 
 const showApprovalDialog = () => {
-  // Refresh data sebelum menampilkan dialog untuk memastikan status terbaru
   router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
     preserveState: true,
     preserveScroll: true,
     onSuccess: () => {
-      // Setelah refresh, check status lagi
       if (props.salesOrder.status !== 'released') {
-        // Tampilkan debug info jika status bukan 'released'
         debugInfo.value = true;
         showApprovalModal.value = true;
         return;
@@ -595,9 +671,6 @@ const closeApprovalDialog = () => {
 };
 
 const approveSalesOrder = () => {
-  // Hapus validasi frontend karena backend sudah menangani dengan fresh data
-  // Frontend validation bisa menyebabkan false negative karena stale data
-
   router.post(route('admin-keuangan.sales-orders.approve', props.salesOrder.id), {}, {
     onSuccess: (response) => {
       showApprovalModal.value = false;
@@ -610,12 +683,10 @@ const approveSalesOrder = () => {
     onError: (errors) => {
       let errorMessage = 'Terjadi kesalahan saat menyetujui sales order:\n\n';
 
-      // Parse error messages
       if (errors.error) {
         errorMessage += `Error: ${errors.error}\n`;
       }
 
-      // Tambahkan informasi status untuk debugging
       errorMessage += `\nInformasi Debug:`;
       errorMessage += `\n- Status saat ini: ${props.salesOrder.status}`;
       errorMessage += `\n- Tanggal rilis: ${props.salesOrder.released_at || 'Tidak ada'}`;
@@ -626,8 +697,6 @@ const approveSalesOrder = () => {
       }
 
       alert(errorMessage);
-
-      // Tampilkan debug info di modal
       debugInfo.value = true;
     }
   });
@@ -712,11 +781,9 @@ const closeVoucherRejectModal = () => {
   voucherRejectionReason.value = '';
 };
 
-// Force refresh untuk debugging cache issues
 const forceRefresh = () => {
   router.post(route('admin-keuangan.sales-orders.force-refresh', props.salesOrder.id), {}, {
     onSuccess: () => {
-      // Redirect to show page to get fresh data
       router.get(route('admin-keuangan.sales-orders.show', props.salesOrder.id), {}, {
         preserveState: false,
         replace: true,
@@ -753,28 +820,50 @@ const rejectVoucher = () => {
 </script>
 
 <style scoped>
-.text-blue-600 {
-  color: #2563eb;
+/* Custom Sage Colors */
+.text-sage-600 {
+  color: #8db580;
 }
-.text-blue-700 {
-  color: #1d4ed8;
+.text-sage-700 {
+  color: #7ba169;
 }
-.text-blue-800 {
-  color: #1e40af;
+.text-sage-800 {
+  color: #6b8f5e;
 }
-.bg-blue-50 {
-  background-color: #eff6ff;
+.bg-sage-50 {
+  background-color: #f4f6f3;
 }
-.bg-blue-600 {
-  background-color: #2563eb;
+.bg-sage-600 {
+  background-color: #8db580;
 }
-.bg-blue-700 {
-  background-color: #1d4ed8;
+.bg-sage-700 {
+  background-color: #7ba169;
 }
-.border-blue-200 {
-  border-color: #bfdbfe;
+.border-sage-200 {
+  border-color: #d4ddd0;
 }
-.hover\:bg-blue-700:hover {
-  background-color: #1d4ed8;
+.border-sage-300 {
+  border-color: #c0cdb8;
+}
+.border-sage-400 {
+  border-color: #a8b89c;
+}
+.bg-sage-25 {
+  background-color: #f8faf7;
+}
+.bg-sage-100 {
+  background-color: #eef3eb;
+}
+.text-sage-800 {
+  color: #6b8f5e;
+}
+.divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #d4ddd0;
+}
+.hover\:bg-sage-25:hover {
+  background-color: #f8faf7;
+}
+.hover\:bg-sage-700:hover {
+  background-color: #7ba169;
 }
 </style>
