@@ -91,35 +91,35 @@
                 <!-- Left Column -->
                 <div class="space-y-3">
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">ORDER NUMB:</span> 
+                    <span class="font-semibold text-gray-700">ORDER NUMB:</span>
                     <span class="font-semibold">{{ salesOrder.order_number }}</span>
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">REF NO:</span> 
+                    <span class="font-semibold text-gray-700">REF NO:</span>
                     {{ salesOrder.ref_no || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">DATE:</span> 
+                    <span class="font-semibold text-gray-700">DATE:</span>
                     {{ salesOrder.so_date ? formatDate(salesOrder.so_date) : '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">CUSTOMER:</span> 
+                    <span class="font-semibold text-gray-700">CUSTOMER:</span>
                     {{ salesOrder.customer }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">SHIPPER:</span> 
+                    <span class="font-semibold text-gray-700">SHIPPER:</span>
                     {{ salesOrder.shipper || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">BL/AWB:</span> 
+                    <span class="font-semibold text-gray-700">BL/AWB:</span>
                     {{ salesOrder.bl_awb || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">LINER:</span> 
+                    <span class="font-semibold text-gray-700">LINER:</span>
                     {{ salesOrder.liner || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">VESSEL:</span> 
+                    <span class="font-semibold text-gray-700">VESSEL:</span>
                     {{ salesOrder.vessel || '-' }}
                   </p>
                 </div>
@@ -127,39 +127,39 @@
                 <!-- Right Column -->
                 <div class="space-y-3">
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">ETA:</span> 
+                    <span class="font-semibold text-gray-700">ETA:</span>
                     {{ salesOrder.eta ? formatDate(salesOrder.eta) : '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">ETD:</span> 
+                    <span class="font-semibold text-gray-700">ETD:</span>
                     {{ salesOrder.etd ? formatDate(salesOrder.etd) : '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">AJU:</span> 
+                    <span class="font-semibold text-gray-700">AJU:</span>
                     {{ salesOrder.aju || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">SPPB DATE:</span> 
+                    <span class="font-semibold text-gray-700">SPPB DATE:</span>
                     {{ salesOrder.sppb_date ? formatDate(salesOrder.sppb_date) : '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">SHIPMENT TYPE:</span> 
+                    <span class="font-semibold text-gray-700">SHIPMENT TYPE:</span>
                     {{ salesOrder.shipment_type || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">POL/POD:</span> 
+                    <span class="font-semibold text-gray-700">POL/POD:</span>
                     {{ [salesOrder.pol, salesOrder.pod].filter(Boolean).join(' / ') || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">GUDANG/UTC:</span> 
+                    <span class="font-semibold text-gray-700">GUDANG/UTC:</span>
                     {{ salesOrder.gudang_utc || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">PARTY/LCL:</span> 
+                    <span class="font-semibold text-gray-700">PARTY/LCL:</span>
                     {{ salesOrder.party_lcl || '-' }}
                   </p>
                   <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">PREPARED BY:</span> 
+                    <span class="font-semibold text-gray-700">PREPARED BY:</span>
                     {{ salesOrder.prepared_by || '-' }}
                   </p>
                 </div>
@@ -178,7 +178,7 @@
               <!-- Detail Informasi (Following PDF Format) -->
               <div class="border-t border-gray-200 pt-6">
                 <h4 class="text-md font-semibold text-gray-800 mb-4">Detail Informasi</h4>
-                
+
                 <!-- Financial Summary Table (Print Draft Format) -->
                 <div class="overflow-x-auto mb-6">
                   <table class="min-w-full">
@@ -192,8 +192,8 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0" 
-                          v-for="(item, index) in salesOrder.vendor_breakdown" 
+                      <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0"
+                          v-for="(item, index) in salesOrder.vendor_breakdown"
                           :key="index"
                           class="hover:bg-sage-50 transition-colors">
                         <td class="px-6 py-4 text-sm text-gray-900">
@@ -246,14 +246,14 @@
                     </tbody>
                   </table>
                 </div>
-                
+
                 <!-- Remarks Section -->
-                <div v-if="salesOrder.remarks" class="mb-6">
+                <!-- <div v-if="salesOrder.remarks" class="mb-6">
                   <h5 class="text-sm font-semibold text-gray-800 mb-3">Catatan (Remarks)</h5>
                   <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p class="text-gray-900">{{ salesOrder.remarks }}</p>
                   </div>
-                </div>
+                </div> -->
 
                 <!-- Note Section -->
                 <div v-if="salesOrder.note" class="mb-6">
@@ -313,7 +313,7 @@
               <h3 class="text-lg font-semibold text-sage-800">Voucher Information</h3>
             </div>
             <div class="p-6 space-y-6">
-              
+
               <!-- Payment Vouchers -->
               <div v-if="paymentVouchers && paymentVouchers.length > 0" class="space-y-4">
                 <h4 class="text-md font-semibold text-sage-700 border-b border-gray-200 pb-2">Payment Vouchers</h4>
@@ -326,7 +326,7 @@
                     <div class="flex justify-between items-start">
                       <div>
                         <h5 class="font-medium text-gray-900">{{ voucher.voucher_no }}</h5>
-                        <span 
+                        <span
                           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1"
                           :class="getVoucherStatusColor(voucher.status)"
                         >
@@ -338,12 +338,12 @@
                         <p class="text-sm text-gray-500">{{ formatDate(voucher.date) }}</p>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                       <p class="text-gray-900">{{ voucher.description }}</p>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div v-if="voucher.prepared_by">
                         <label class="block font-medium text-gray-700">Prepared By</label>
@@ -365,7 +365,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <!-- Receipt Vouchers -->
               <div v-if="receiptVouchers && receiptVouchers.length > 0" class="space-y-4">
                 <h4 class="text-md font-semibold text-sage-700 border-b border-gray-200 pb-2">Receipt Vouchers</h4>
@@ -378,7 +378,7 @@
                     <div class="flex justify-between items-start">
                       <div>
                         <h5 class="font-medium text-gray-900">{{ voucher.voucher_no }}</h5>
-                        <span 
+                        <span
                           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1"
                           :class="getVoucherStatusColor(voucher.status)"
                         >
@@ -390,12 +390,12 @@
                         <p class="text-sm text-gray-500">{{ formatDate(voucher.date) }}</p>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                       <p class="text-gray-900">{{ voucher.description }}</p>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div v-if="voucher.prepared_by">
                         <label class="block font-medium text-gray-700">Prepared By</label>
@@ -417,9 +417,9 @@
                   </div>
                 </div>
               </div>
-              
+
               <!-- No Vouchers Message -->
-              <div v-if="(!paymentVouchers || paymentVouchers.length === 0) && (!receiptVouchers || receiptVouchers.length === 0)" 
+              <div v-if="(!paymentVouchers || paymentVouchers.length === 0) && (!receiptVouchers || receiptVouchers.length === 0)"
                    class="text-center py-8">
                 <div class="text-gray-400 mb-2">
                   <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,7 +428,7 @@
                 </div>
                 <p class="text-gray-500">No vouchers created for this sales order</p>
               </div>
-              
+
             </div>
           </div>
 
