@@ -269,12 +269,18 @@ class SalesOrderController extends Controller
             ->orderBy('nama_vendor')
             ->get();
 
+        $shipmentTypes = \App\Models\ShipmentType::active()
+            ->select('id', 'name', 'code', 'description')
+            ->orderBy('name')
+            ->get();
+
         // Generate order number automatically
         $orderNumber = SalesOrder::generateOrderNumber();
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Create', [
             'customers' => $customers,
             'vendors' => $vendors,
+            'shipmentTypes' => $shipmentTypes,
             'orderNumber' => $orderNumber
         ]);
     }
@@ -306,14 +312,18 @@ class SalesOrderController extends Controller
             'party_lcl' => 'nullable|string|max:255',
             'prepared_by' => 'nullable|string|max:255',
             'exchange_rate' => 'nullable|numeric|min:0',
-            'jenis_biaya' => 'nullable|string|in:OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
-            'buying_breakdown' => 'nullable|array',
-            'buying_breakdown.*.vendor' => 'required_with:buying_breakdown|string|max:255',
-            'buying_breakdown.*.amount' => 'required_with:buying_breakdown|numeric|min:0',
-            'selling_breakdown' => 'nullable|array',
-            'selling_breakdown.*.description' => 'required_with:selling_breakdown|string|max:255',
-            'selling_breakdown.*.amount' => 'required_with:selling_breakdown|numeric|min:0',
+            'vendor_breakdown' => 'nullable|array',
+            'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
+            'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
+            'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+            'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
+            'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
             'remarks' => 'nullable|string',
+            'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
@@ -322,17 +332,17 @@ class SalesOrderController extends Controller
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
-
-            // Vendor details (multiple vendors support)
-            'vendor_details' => 'required|array|min:1',
-            'vendor_details.*.vendor_id' => 'required|exists:vendors,id',
-            'vendor_details.*.deskripsi' => 'required|string|max:500',
-            'vendor_details.*.nominal' => 'required|numeric|min:0',
-            'vendor_details.*.no_rekening' => 'required|string|max:255',
-            'vendor_details.*.nama_vendor' => 'required|string|max:255',
-            'vendor_details.*.nama_rekening' => 'required|string|max:255',
+            
+            // Vendor details (multiple vendors support) - now optional
+            'vendor_details' => 'nullable|array',
+            'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
+            'vendor_details.*.deskripsi' => 'required_with:vendor_details|string|max:500',
+            'vendor_details.*.nominal' => 'required_with:vendor_details|numeric|min:0',
+            'vendor_details.*.no_rekening' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
-
+            
             // Voucher data
             'payment_vouchers' => 'nullable|array',
             'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
@@ -343,7 +353,7 @@ class SalesOrderController extends Controller
             'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
             'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
             'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
-
+            
             'receipt_vouchers' => 'nullable|array',
             'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
             'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
@@ -356,30 +366,36 @@ class SalesOrderController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
-
-        // Prepare multiple vendors data for storage
-        $vendorDetails = $validated['vendor_details'];
-        unset($validated['vendor_details']); // Remove vendor_details from main validated data
-        $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
-
+        
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
-        $validated['so_date'] = now()->toDateString();
+        $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
         $validated['customer_name'] = $validated['customer'];
         $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
         $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
-        // Calculate total_amount from selling_breakdown
+        // Calculate totals from vendor breakdown
         $totalSelling = 0;
-        if (isset($validated['selling_breakdown']) && is_array($validated['selling_breakdown'])) {
-            foreach ($validated['selling_breakdown'] as $item) {
-                $totalSelling += floatval($item['amount'] ?? 0);
+        $totalBuying = 0;
+        
+        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+            foreach ($validated['vendor_breakdown'] as $item) {
+                $totalBuying += floatval($item['buying_amount'] ?? 0);
+                $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
+        
         $validated['total_selling'] = $totalSelling;
+        $validated['total_buying'] = $totalBuying;
+        $validated['total_revenue'] = $totalSelling - $totalBuying;
         $validated['total_amount'] = $totalSelling;
         $validated['status'] = 'draft';
+
+        // Prepare multiple vendors data for storage
+        $vendorDetails = $validated['vendor_details'] ?? [];
+        unset($validated['vendor_details']); // Remove vendor_details from main validated data
+        $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
 
         // Auto-generate order number if empty or not provided
         if (empty($validated['order_number'])) {
@@ -439,9 +455,15 @@ class SalesOrderController extends Controller
             ->orderBy('nama_vendor')
             ->get();
 
+        $shipmentTypes = \App\Models\ShipmentType::active()
+            ->select('id', 'name', 'code', 'description')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
-            'vendors' => $vendors
+            'vendors' => $vendors,
+            'shipmentTypes' => $shipmentTypes
         ]);
     }
 
@@ -471,14 +493,18 @@ class SalesOrderController extends Controller
             'party_lcl' => 'nullable|string|max:255',
             'prepared_by' => 'nullable|string|max:255',
             'exchange_rate' => 'nullable|numeric|min:0',
-            'jenis_biaya' => 'nullable|string|in:OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
-            'buying_breakdown' => 'nullable|array',
-            'buying_breakdown.*.vendor' => 'required_with:buying_breakdown|string|max:255',
-            'buying_breakdown.*.amount' => 'required_with:buying_breakdown|numeric|min:0',
-            'selling_breakdown' => 'nullable|array',
-            'selling_breakdown.*.description' => 'required_with:selling_breakdown|string|max:255',
-            'selling_breakdown.*.amount' => 'required_with:selling_breakdown|numeric|min:0',
+            'vendor_breakdown' => 'nullable|array',
+            'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
+            'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
+            'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
+            'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+            'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
+            'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
             'remarks' => 'nullable|string',
+            'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
@@ -487,39 +513,45 @@ class SalesOrderController extends Controller
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
-
-            // Vendor details (multiple vendors support)
-            'vendor_details' => 'required|array|min:1',
-            'vendor_details.*.vendor_id' => 'required|exists:vendors,id',
-            'vendor_details.*.deskripsi' => 'required|string|max:500',
-            'vendor_details.*.nominal' => 'required|numeric|min:0',
-            'vendor_details.*.no_rekening' => 'required|string|max:255',
-            'vendor_details.*.nama_vendor' => 'required|string|max:255',
-            'vendor_details.*.nama_rekening' => 'required|string|max:255',
+            
+            // Vendor details (multiple vendors support) - now optional
+            'vendor_details' => 'nullable|array',
+            'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
+            'vendor_details.*.deskripsi' => 'required_with:vendor_details|string|max:500',
+            'vendor_details.*.nominal' => 'required_with:vendor_details|numeric|min:0',
+            'vendor_details.*.no_rekening' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
+            'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
         ]);
 
         // Prepare multiple vendors data for storage
-        $vendorDetails = $validated['vendor_details'];
+        $vendorDetails = $validated['vendor_details'] ?? [];
         unset($validated['vendor_details']); // Remove vendor_details from main validated data
         $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
 
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
-        $validated['so_date'] = now()->toDateString();
+        $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
         $validated['customer_name'] = $validated['customer'];
         $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
         $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
-        // Calculate total_amount from selling_breakdown
+        // Calculate totals from vendor breakdown
         $totalSelling = 0;
-        if (isset($validated['selling_breakdown']) && is_array($validated['selling_breakdown'])) {
-            foreach ($validated['selling_breakdown'] as $item) {
-                $totalSelling += floatval($item['amount'] ?? 0);
+        $totalBuying = 0;
+        
+        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+            foreach ($validated['vendor_breakdown'] as $item) {
+                $totalBuying += floatval($item['buying_amount'] ?? 0);
+                $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
+        
         $validated['total_selling'] = $totalSelling;
+        $validated['total_buying'] = $totalBuying;
+        $validated['total_revenue'] = $totalSelling - $totalBuying;
         $validated['total_amount'] = $totalSelling;
         $validated['status'] = 'draft';
 
@@ -560,7 +592,7 @@ class SalesOrderController extends Controller
 
         try {
             // Try using the Facade first
-            $pdf = Pdf::loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+            $pdf = Pdf::loadView('admin.admin-keuangan.sales-orders.pdf', compact('salesOrder'))
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'Arial',

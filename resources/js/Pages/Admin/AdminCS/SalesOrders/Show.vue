@@ -29,7 +29,7 @@
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Print PDF
+              Export PDF
             </a>
             <button
               v-else
@@ -287,7 +287,20 @@
                   <div class="space-y-3">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER NO</label>
-                      <p class="text-gray-900">{{ salesOrder.container_no || '-' }}</p>
+                      <div v-if="salesOrder.container_no && Array.isArray(salesOrder.container_no)" class="space-y-2">
+                        <div class="flex flex-wrap gap-2">
+                          <span v-for="(container, index) in salesOrder.container_no" :key="index" class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                            {{ container }}
+                          </span>
+                        </div>
+                        <p class="text-xs text-gray-500">Total: {{ salesOrder.container_no.length }} container</p>
+                      </div>
+                      <div v-else-if="salesOrder.container_no" class="text-gray-900">
+                        <span class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                          {{ salesOrder.container_no }}
+                        </span>
+                      </div>
+                      <p v-else class="text-gray-900">-</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE NUMB</label>

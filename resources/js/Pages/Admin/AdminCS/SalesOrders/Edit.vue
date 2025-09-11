@@ -57,7 +57,9 @@
                   v-model="form.order_number"
                   type="text"
                   required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  readonly
+                  placeholder="EWILOG2509001001"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
                 />
                 <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
               </div>
@@ -532,13 +534,34 @@
                 <div v-if="form.errors.measurement" class="mt-2 text-sm text-red-600">{{ form.errors.measurement }}</div>
               </div>
             </div>
+            <!-- Multiple Container Numbers -->
             <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">CONTAINER NO</label>
-              <input
-                v-model="form.container_no"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-sm font-medium text-sage-700">CONTAINER NO</label>
+                <button
+                  type="button"
+                  @click="addContainerNo"
+                  class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+                >
+                  + Tambah Container
+                </button>
+              </div>
+              <div v-for="(container, index) in form.container_no" :key="'container-' + index" class="flex gap-2 mb-2">
+                <input
+                  v-model="form.container_no[index]"
+                  type="text"
+                  placeholder="Masukkan nomor container (misal: TCLU1234567)"
+                  class="flex-1 px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <button
+                  type="button"
+                  @click="removeContainerNo(index)"
+                  v-if="form.container_no.length > 1"
+                  class="px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-lg transition-colors"
+                >
+                  ×
+                </button>
+              </div>
               <div v-if="form.errors.container_no" class="mt-2 text-sm text-red-600">{{ form.errors.container_no }}</div>
             </div>
           </div>
@@ -725,7 +748,7 @@ const form = useForm({
   qty: props.salesOrder.qty || "",
   net_weight: props.salesOrder.net_weight || "",
   measurement: props.salesOrder.measurement || "",
-  container_no: props.salesOrder.container_no || "",
+  container_no: Array.isArray(props.salesOrder.container_no) ? props.salesOrder.container_no : (props.salesOrder.container_no ? [props.salesOrder.container_no] : [""]),
   invoice_number: props.salesOrder.invoice_number || "",
   invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : "",
   top: props.salesOrder.top || ""
@@ -771,6 +794,17 @@ const addVendorItem = () => {
 const removeVendorItem = (index) => {
   if (form.vendor_breakdown.length > 1) {
     form.vendor_breakdown.splice(index, 1);
+  }
+};
+
+// Container management methods
+const addContainerNo = () => {
+  form.container_no.push("");
+};
+
+const removeContainerNo = (index) => {
+  if (form.container_no.length > 1) {
+    form.container_no.splice(index, 1);
   }
 };
 

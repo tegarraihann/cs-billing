@@ -364,7 +364,7 @@
                         <td style="width: 25%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">JENIS BIAYA</td>
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">BUYING</td>
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">SELLING</td>
-                        <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">PROFIT</td>
+                        <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REVENUE</td>
                         <td style="width: 15%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REMARKS</td>
                     </tr>
                     @php
@@ -481,10 +481,10 @@
         <div class="signature-section">
             <table class="signature-table">
                 <tr>
-                    <td class="signature-cell">
+                    {{-- <td class="signature-cell">
                         <div class="signature-line"></div>
                         <div class="signature-label">Prepared By</div>
-                    </td>
+                    </td> --}}
                     <td class="signature-cell">
                         <div class="signature-line"></div>
                         <div class="signature-label">Checked By</div>

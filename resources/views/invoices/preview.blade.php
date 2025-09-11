@@ -340,13 +340,61 @@
         .btn-success:hover {
             background: #1e7e34;
         }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 <body>
     <div class="preview-actions">
-        <a href="{{ route('admin-keuangan.invoices.pdf', $invoice) }}" class="btn btn-success" target="_blank">Download PDF</a>
+        <a href="{{ route('admin-keuangan.invoices.pdf', $invoice) }}" class="btn btn-success" target="_blank">Download Invoice</a>
+        <button onclick="printInvoice()" class="btn btn-primary">Print Invoice</button>
         <a href="{{ route('admin-keuangan.invoices.show', $invoice) }}" class="btn">Back to Invoice</a>
     </div>
+
+    <script>
+        function printInvoice() {
+            // Create hidden iframe to load and print the content
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'absolute';
+            iframe.style.top = '-1000px';
+            iframe.style.left = '-1000px';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            
+            document.body.appendChild(iframe);
+            
+            // Load the invoice print content (HTML version)
+            iframe.src = '{{ route("admin-keuangan.invoices.print", $invoice) }}';
+            
+            iframe.onload = function() {
+                setTimeout(function() {
+                    try {
+                        // Focus on iframe and trigger print
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        
+                        // Clean up iframe after printing
+                        setTimeout(function() {
+                            document.body.removeChild(iframe);
+                        }, 1000);
+                    } catch (e) {
+                        // Fallback: open in new window if iframe print fails
+                        window.open('{{ route("admin-keuangan.invoices.pdf", $invoice) }}', '_blank');
+                        document.body.removeChild(iframe);
+                    }
+                }, 500);
+            };
+        }
+    </script>
 
     <div class="preview-header">
         <h3>Invoice Preview - {{ $invoice->invoice_number }}</h3>

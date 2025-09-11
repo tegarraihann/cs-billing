@@ -135,6 +135,11 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
+                  Container No
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
                   Status
                 </th>
                 <th
@@ -187,6 +192,22 @@
                 <!-- QTY -->
                 <td class="px-6 py-4 text-sm text-gray-900">
                   {{ salesOrder.qty || '-' }}
+                </td>
+
+                <!-- Container No -->
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  <div v-if="salesOrder.container_no && Array.isArray(salesOrder.container_no)" class="space-y-1">
+                    <span v-for="(container, index) in salesOrder.container_no.slice(0, 2)" :key="index" class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1">
+                      {{ container }}
+                    </span>
+                    <div v-if="salesOrder.container_no.length > 2" class="text-xs text-gray-500">
+                      +{{ salesOrder.container_no.length - 2 }} lainnya
+                    </div>
+                  </div>
+                  <span v-else-if="salesOrder.container_no" class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    {{ salesOrder.container_no }}
+                  </span>
+                  <span v-else class="text-gray-500">-</span>
                 </td>
 
                 <!-- Status -->

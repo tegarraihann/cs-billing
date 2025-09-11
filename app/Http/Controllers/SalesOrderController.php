@@ -77,7 +77,7 @@ class SalesOrderController extends Controller
         try {
             $validated = $request->validate([
             // Required fields based on requirements only
-            'order_number' => 'required|string|max:255',
+            'order_number' => 'required|string|regex:/^EWILOG\d{10}$/|unique:sales_orders,order_number',
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
             'customer' => 'required|string|max:255',
@@ -112,7 +112,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable|string|max:255',
+            'container_no' => 'nullable|array',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
@@ -260,7 +260,7 @@ class SalesOrderController extends Controller
     {
         $validated = $request->validate([
             // Required fields based on requirements only
-            'order_number' => 'required|string|max:255',
+            'order_number' => 'required|string|regex:/^EWILOG\d{10}$/|unique:sales_orders,order_number,' . $salesOrder->id,
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
             'customer' => 'required|string|max:255',
@@ -295,7 +295,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable|string|max:255',
+            'container_no' => 'nullable|array',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',

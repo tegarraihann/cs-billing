@@ -327,10 +327,12 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{invoice}', 'update')->name('update');
         Route::delete('/{invoice}', 'destroy')->name('destroy');
         Route::get('/{invoice}/pdf', 'generatePdf')->name('pdf');
+        Route::get('/{invoice}/print', 'printView')->name('print');
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
         Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
     });
+
 
     // Petty Cash Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\PettyCashController::class)->prefix('petty-cash')->name('petty-cash.')->group(function () {

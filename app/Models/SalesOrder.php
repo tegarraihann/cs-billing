@@ -116,6 +116,7 @@ class SalesOrder extends Model
         'total_selling' => 'decimal:2',
         'total_revenue' => 'decimal:2',
         'vendors' => 'array',
+        'container_no' => 'array',
     ];
 
     // Relationships
@@ -233,13 +234,15 @@ class SalesOrder extends Model
     }
 
     /**
-     * Generate unique order number with format EWILOG2501001001
-     * Format: EWILOG + YY + MM + XXX + YYY
-     * - EWILOG: Prefix
+     * Generate unique order number with format EWILOG2509001003
+     * Format: EWILOG + YYMM + XXX + YYY
+     * - EWILOG: Company prefix
      * - YY: Year (25 for 2025)
-     * - MM: Month (01-12)
-     * - XXX: Yearly sequential number (001-999)
-     * - YYY: Monthly sequential number (001-999)
+     * - MM: Month (09 for September)
+     * - XXX: Opening number for the month (increments each month)
+     * - YYY: Sequential SO number within the month (resets every month)
+     * 
+     * Example: EWILOG2509001003 -> EWILOG2510002001 (Oct starts with opening 002, SO #1)
      */
     public static function generateOrderNumber(): string
     {
@@ -247,26 +250,39 @@ class SalesOrder extends Model
         $year = $now->format('y'); // 2 digit year (25 for 2025)
         $month = $now->format('m'); // Month with leading zero (01-12)
         
-        // Get yearly count (from January to current month)
-        $yearStart = $now->startOfYear();
-        $yearlyCount = self::where('created_at', '>=', $yearStart)
-                          ->whereNotNull('order_number')
-                          ->where('order_number', 'LIKE', "EWILOG{$year}%")
-                          ->count();
+        // Get the highest opening number from ALL previous months (never reset)
+        $maxOpening = self::whereNotNull('order_number')
+                        ->where('order_number', 'LIKE', "EWILOG{$year}%") // Match EWILOG format
+                        ->selectRaw('MAX(CAST(SUBSTRING(order_number, 11, 3) AS UNSIGNED)) as max_opening') // Position 11-13 for opening
+                        ->value('max_opening') ?? 0;
         
-        // Get monthly count
-        $monthStart = $now->startOfMonth();
-        $monthEnd = $now->endOfMonth();
-        $monthlyCount = self::whereBetween('created_at', [$monthStart, $monthEnd])
-                           ->whereNotNull('order_number')
+        // Check if we already have SOs for current month
+        $currentMonthExists = self::whereNotNull('order_number')
+                                ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%")
+                                ->exists();
+        
+        // If this is the first SO of the month, increment opening number
+        // Otherwise, use the same opening number as other SOs in this month
+        if (!$currentMonthExists) {
+            $openingNumber = str_pad($maxOpening + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            // Find the opening number used in current month
+            $currentOpening = self::whereNotNull('order_number')
+                                ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%")
+                                ->selectRaw('SUBSTRING(order_number, 11, 3) as opening') // Position 11-13
+                                ->value('opening');
+            $openingNumber = $currentOpening;
+        }
+        
+        // Get sequential count for current month (resets every month)
+        $monthlyCount = self::whereNotNull('order_number')
                            ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%")
                            ->count();
         
-        // Increment counts (next number)
-        $yearlySeq = str_pad($yearlyCount + 1, 3, '0', STR_PAD_LEFT);
-        $monthlySeq = str_pad($monthlyCount + 1, 3, '0', STR_PAD_LEFT);
+        // Increment monthly sequential (reset every month)
+        $nextSequential = str_pad($monthlyCount + 1, 3, '0', STR_PAD_LEFT);
         
-        // Generate final order number
-        return "EWILOG{$year}{$month}{$yearlySeq}{$monthlySeq}";
+        // Generate final order number: EWILOG + YYMM + Opening + Sequential
+        return "EWILOG{$year}{$month}{$openingNumber}{$nextSequential}";
     }
 }
