@@ -74,22 +74,44 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class);
     }
 
-    public static function generateInvoiceNumber()
+    /**
+     * Generate unique invoice number with format EWL2509001001
+     * Format: EWL + YYMM + NNN + HHH
+     * - EWL: Company prefix for invoices
+     * - YY: Year (25 for 2025)
+     * - MM: Month (09 for September)
+     * - NNN: Opening number (increments every new invoice, resets every new year)
+     * - HHH: Sequential invoice number (increments every new invoice, resets every new year)
+     * 
+     * Example: EWL2509001001, EWL2509002002, EWL2509003003
+     * Next year: EWL2601001001, EWL2601002002 (resets because new year)
+     * 
+     * Note: Same pattern as Sales Order but with EWL prefix instead of EWILOG
+     */
+    public static function generateInvoiceNumber(): string
     {
-        $date = Carbon::now();
-        $prefix = 'EWL' . $date->format('ymdHis');
+        $now = Carbon::now();
+        $year = $now->format('y'); // 2 digit year (25 for 2025)
+        $month = $now->format('m'); // Month with leading zero (01-12)
         
-        // Check if exists, add sequence
-        $lastInvoice = self::where('invoice_number', 'like', $prefix . '%')
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-            
-        if ($lastInvoice) {
-            $sequence = intval(substr($lastInvoice->invoice_number, -2)) + 1;
-            return $prefix . str_pad($sequence, 2, '0', STR_PAD_LEFT);
-        }
+        // Get the highest opening number and sequential number from current year
+        $maxNumbers = self::whereNotNull('invoice_number')
+                        ->where('invoice_number', 'LIKE', "EWL{$year}%") // Match current year only
+                        ->selectRaw('
+                            MAX(CAST(SUBSTRING(invoice_number, 8, 3) AS UNSIGNED)) as max_opening,
+                            MAX(CAST(SUBSTRING(invoice_number, 11, 3) AS UNSIGNED)) as max_sequential
+                        ')
+                        ->first();
         
-        return $prefix . '01';
+        $maxOpening = $maxNumbers->max_opening ?? 0;
+        $maxSequential = $maxNumbers->max_sequential ?? 0;
+        
+        // Both opening number and sequential number increment for each new invoice
+        $nextOpening = str_pad($maxOpening + 1, 3, '0', STR_PAD_LEFT);
+        $nextSequential = str_pad($maxSequential + 1, 3, '0', STR_PAD_LEFT);
+        
+        // Generate final invoice number: EWL + YYMM + Opening + Sequential
+        return "EWL{$year}{$month}{$nextOpening}{$nextSequential}";
     }
 
     public function confirmedBy()

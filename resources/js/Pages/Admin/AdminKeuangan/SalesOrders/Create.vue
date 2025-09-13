@@ -105,7 +105,9 @@
                   v-model="form.order_number"
                   type="text"
                   required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  readonly
+                  placeholder="EWILOG2509001001"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
                 />
                 <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
               </div>
@@ -431,7 +433,7 @@
                     />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-purple-700 mb-1">Profit</label>
+                    <label class="block text-xs font-medium text-purple-700 mb-1">Revenue</label>
                     <p class="px-3 py-2 bg-white border border-purple-300 rounded text-sm font-semibold" :class="getProfit(item) >= 0 ? 'text-green-600' : 'text-red-600'">
                       {{ formatCurrency(getProfit(item)) }}
                     </p>
@@ -465,7 +467,7 @@
                   <p class="text-lg font-bold text-green-800">{{ formatCurrency(totalSelling) }}</p>
                 </div>
                 <div class="p-3 rounded-lg" :class="totalRevenue >= 0 ? 'bg-purple-100' : 'bg-red-100'">
-                  <p class="text-xs font-medium" :class="totalRevenue >= 0 ? 'text-purple-700' : 'text-red-700'">Total Profit</p>
+                  <p class="text-xs font-medium" :class="totalRevenue >= 0 ? 'text-purple-700' : 'text-red-700'">Total Revenue</p>
                   <p class="text-lg font-bold" :class="totalRevenue >= 0 ? 'text-purple-800' : 'text-red-800'">{{ formatCurrency(totalRevenue) }}</p>
                 </div>
               </div>
@@ -484,7 +486,7 @@
                   <span class="font-medium">{{ formatCurrency(totalBuying) }}</span>
                 </div>
                 <div class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
-                  <span>Profit (Revenue):</span>
+                  <span>Revenue:</span>
                   <span :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
                     {{ formatCurrency(totalRevenue) }}
                   </span>
@@ -580,13 +582,34 @@
                 <div v-if="form.errors.measurement" class="mt-2 text-sm text-red-600">{{ form.errors.measurement }}</div>
               </div>
             </div>
+            <!-- Multiple Container Numbers -->
             <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">CONTAINER NO</label>
-              <input
-                v-model="form.container_no"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-sm font-medium text-sage-700">CONTAINER NO</label>
+                <button
+                  type="button"
+                  @click="addContainerNo"
+                  class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+                >
+                  + Tambah Container
+                </button>
+              </div>
+              <div v-for="(container, index) in form.container_no" :key="'container-' + index" class="flex gap-2 mb-2">
+                <input
+                  v-model="form.container_no[index]"
+                  type="text"
+                  placeholder="Masukkan nomor container (misal: TCLU1234567)"
+                  class="flex-1 px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <button
+                  type="button"
+                  @click="removeContainerNo(index)"
+                  v-if="form.container_no.length > 1"
+                  class="px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-lg transition-colors"
+                >
+                  ×
+                </button>
+              </div>
               <div v-if="form.errors.container_no" class="mt-2 text-sm text-red-600">{{ form.errors.container_no }}</div>
             </div>
           </div>
@@ -864,11 +887,24 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <span v-if="form.processing">Menyimpan...</span>
-            <span v-else>Simpan Sales Order</span>
+            <span v-else">Simpan Sales Order</span>
           </button>
         </div>
       </form>
     </div>
+
+    <!-- Alert Dialog -->
+    <AlertDialog
+      :show="alertDialog.show"
+      :type="alertDialog.type"
+      :title="alertDialog.title"
+      :message="alertDialog.message"
+      :confirm-text="alertDialog.confirmText"
+      :cancel-text="alertDialog.cancelText"
+      @confirm="handleAlertConfirm"
+      @cancel="handleAlertCancel"
+      @close="closeAlert"
+    />
   </AdminKeuanganLayout>
 </template>
 
@@ -876,12 +912,24 @@
 import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
+import AlertDialog from "@/Components/AlertDialog.vue";
 
 const props = defineProps({
   customers: Array,
   vendors: Array,
   shipmentTypes: Array,
   orderNumber: String,
+});
+
+// Alert Dialog State
+const alertDialog = ref({
+  show: false,
+  type: "info",
+  title: "",
+  message: "",
+  confirmText: "",
+  cancelText: "",
+  onConfirm: null,
 });
 
 // Input method and customer selection
@@ -930,7 +978,7 @@ const form = useForm({
   qty: "",
   net_weight: "",
   measurement: "",
-  container_no: "",
+  container_no: [""],
   invoice_number: "",
   invoice_date: "",
   top: ""
@@ -1011,15 +1059,26 @@ const removeReceiptVoucher = (index) => {
   receiptVouchers.value.splice(index, 1);
 };
 
+// Container management methods
+const addContainerNo = () => {
+  form.container_no.push("");
+};
+
+const removeContainerNo = (index) => {
+  if (form.container_no.length > 1) {
+    form.container_no.splice(index, 1);
+  }
+};
+
 // Vendor breakdown management methods
 const addVendorItem = () => {
-  form.vendor_breakdown.push({ 
-    vendor_id: '', 
-    nama_vendor: '', 
-    no_rekening: '', 
-    nama_rekening: '', 
-    description: '', 
-    buying_amount: 0, 
+  form.vendor_breakdown.push({
+    vendor_id: '',
+    nama_vendor: '',
+    no_rekening: '',
+    nama_rekening: '',
+    description: '',
+    buying_amount: 0,
     selling_amount: 0,
     rcvd_inv: '',
     remarks: ''
@@ -1039,6 +1098,11 @@ const formatCurrency = (amount) => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount || 0);
+};
+
+// Format number with thousand separators
+const formatNumber = (amount) => {
+  return new Intl.NumberFormat('id-ID').format(amount || 0);
 };
 
 // Computed properties for totals
@@ -1071,6 +1135,33 @@ const calculateTotals = () => {
   };
 };
 
+const showAlert = (type, title, message, confirmText = "", cancelText = "", onConfirmCallback = null) => {
+  alertDialog.value = {
+    show: true,
+    type,
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm: onConfirmCallback,
+  };
+};
+
+const handleAlertConfirm = () => {
+  if (alertDialog.value.onConfirm) {
+    alertDialog.value.onConfirm();
+  }
+  closeAlert();
+};
+
+const handleAlertCancel = () => {
+  // Cancel logic if needed
+};
+
+const closeAlert = () => {
+  alertDialog.value.show = false;
+};
+
 const submit = () => {
   // Add voucher data to form
   const formData = {
@@ -1079,7 +1170,56 @@ const submit = () => {
     receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount)
   };
 
-  form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"));
+  form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"), {
+    onSuccess: (page) => {
+      console.log('Success response received:', page);
+      console.log('Page component:', page.component);
+      console.log('Page props:', page.props);
+      console.log('Flash messages:', page.props?.flash);
+
+      // Check if this is actually the index page (successful redirect)
+      if (page.component === 'Admin/AdminKeuangan/SalesOrders/Index') {
+        console.log('Successfully redirected to index page');
+        // We're already on the index page, no need for additional redirect
+        showAlert("success", "Berhasil", "Sales Order berhasil dibuat.");
+      } else {
+        console.log('Not redirected to index, component:', page.component);
+        showAlert("success", "Berhasil", "Sales Order berhasil dibuat.", "OK", "", () => {
+          // Redirect to index page after user acknowledges success
+          window.location.href = route('admin-keuangan.sales-orders.index');
+        });
+      }
+    },
+    onError: (errors) => {
+      console.error('Sales Order Creation Error:', errors);
+
+      // Handle specific validation errors
+      if (errors && Object.keys(errors).length > 0) {
+        let errorMessages = [];
+
+        // Collect all error messages
+        Object.keys(errors).forEach(field => {
+          if (Array.isArray(errors[field])) {
+            errorMessages.push(...errors[field]);
+          } else {
+            errorMessages.push(errors[field]);
+          }
+        });
+
+        const errorMessage = errorMessages.length > 0
+          ? errorMessages.join('. ')
+          : "Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan.";
+
+        showAlert("error", "Gagal Menyimpan", errorMessage);
+      } else {
+        showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat menyimpan sales order. Silakan coba lagi.");
+      }
+    },
+    onFinish: () => {
+      // Reset processing state
+      console.log('Request finished');
+    },
+  });
 };
 </script>
 

@@ -158,10 +158,6 @@
                     <span class="font-semibold text-gray-700">PARTY/LCL:</span>
                     {{ salesOrder.party_lcl || '-' }}
                   </p>
-                  <p class="text-gray-900">
-                    <span class="font-semibold text-gray-700">PREPARED BY:</span>
-                    {{ salesOrder.prepared_by || '-' }}
-                  </p>
                 </div>
               </div>
 

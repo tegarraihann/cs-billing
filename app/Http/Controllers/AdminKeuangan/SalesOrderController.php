@@ -148,6 +148,9 @@ class SalesOrderController extends Controller
             'approved_by' => auth()->id(),
         ]);
         
+        // Auto-generate Account Payables from vendor breakdown
+        \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
+        
         // Log successful approval
         \Log::info('AdminKeuangan Sales Order Approved Successfully', [
             'sales_order_id' => $salesOrder->id,

@@ -285,15 +285,6 @@
               <div v-if="form.errors.party_lcl" class="mt-2 text-sm text-red-600">{{ form.errors.party_lcl }}</div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">PREPARED BY</label>
-              <input
-                v-model="form.prepared_by"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.prepared_by" class="mt-2 text-sm text-red-600">{{ form.errors.prepared_by }}</div>
-            </div>
-            <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">EXCHANGE RATE</label>
               <input
                 v-model="form.exchange_rate"
@@ -974,7 +965,6 @@ const form = useForm({
   pod: "",
   gudang_utc: "",
   party_lcl: "",
-  prepared_by: "",
   exchange_rate: "",
   vendor_breakdown: [{ vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
   remarks: "",

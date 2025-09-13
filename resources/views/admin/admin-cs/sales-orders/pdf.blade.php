@@ -331,11 +331,6 @@
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
                             <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->party_lcl ?: '-' }}</td>
                         </tr>
-                        <tr>
-                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">PREPARED BY</td>
-                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->prepared_by ?: '-' }}</td>
-                        </tr>
                     </table>
                 </div>
             </div>

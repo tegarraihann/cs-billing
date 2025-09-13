@@ -256,9 +256,9 @@
                       </svg>
                     </Link>
                     <a
-                      :href="route('admin-keuangan.invoices.pdf', invoice.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                      title="Download PDF"
+                      :href="route('admin-keuangan.invoices.export-pdf', invoice.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full transition-colors"
+                      title="Export to PDF"
                       target="_blank"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

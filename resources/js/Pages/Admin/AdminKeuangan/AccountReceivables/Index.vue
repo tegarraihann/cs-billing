@@ -1,0 +1,438 @@
+<template>
+    <AdminKeuanganLayout title="Manajemen Piutang">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-2xl font-bold text-gray-900">Manajemen Piutang</h1>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="text-sm font-medium text-blue-600">Total Outstanding</div>
+                        <div class="text-2xl font-bold text-blue-900">
+                            Rp {{ formatNumber(summary.total_outstanding) }}
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div class="text-sm font-medium text-red-600">Total Overdue</div>
+                        <div class="text-2xl font-bold text-red-900">
+                            Rp {{ formatNumber(summary.total_overdue) }}
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div class="text-sm font-medium text-yellow-600">Jumlah Overdue</div>
+                        <div class="text-2xl font-bold text-yellow-900">
+                            {{ summary.count_overdue }} invoice
+                        </div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div class="text-sm font-medium text-green-600">Outstanding Active</div>
+                        <div class="text-2xl font-bold text-green-900">
+                            {{ summary.count_outstanding }} invoice
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <input
+                            v-model="searchForm.search"
+                            type="text"
+                            placeholder="Cari invoice atau customer..."
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            @input="debounceSearch"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                            v-model="searchForm.status"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            @change="applyFilters"
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="outstanding">Outstanding</option>
+                            <option value="partial">Partial</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                        <select
+                            v-model="searchForm.customer_id"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            @change="applyFilters"
+                        >
+                            <option value="">Semua Customer</option>
+                            <option
+                                v-for="customer in customers"
+                                :key="customer.id"
+                                :value="customer.id"
+                            >
+                                {{ customer.company_name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                        <input
+                            v-model="searchForm.date_from"
+                            type="date"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            @change="applyFilters"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                        <input
+                            v-model="searchForm.date_to"
+                            type="date"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            @change="applyFilters"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Invoice
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Customer
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    SO Number
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Amount
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Paid
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Outstanding
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr
+                                v-for="receivable in receivables.data"
+                                :key="receivable.id"
+                                class="hover:bg-gray-50"
+                            >
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ receivable.invoice_number }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ formatDate(receivable.invoice_date) }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ receivable.customer?.company_name || receivable.customer_name }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ receivable.sales_order?.order_number || '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(receivable.invoice_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(receivable.paid_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(receivable.outstanding_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span
+                                        :class="getStatusClass(receivable.status)"
+                                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                    >
+                                        {{ getStatusText(receivable.status) }}
+                                        <span v-if="receivable.days_overdue > 0" class="ml-1">
+                                            ({{ receivable.days_overdue }} hari)
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <button
+                                            @click="showReceivable(receivable)"
+                                            class="text-blue-600 hover:text-blue-900"
+                                            title="Lihat Detail"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            v-if="receivable.status !== 'paid'"
+                                            @click="openPaymentModal(receivable)"
+                                            class="text-green-600 hover:text-green-900"
+                                            title="Record Payment"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            v-if="receivable.customer"
+                                            @click="generateSOA(receivable.customer)"
+                                            class="text-purple-600 hover:text-purple-900"
+                                            title="Generate SOA"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Showing {{ receivables.from || 0 }} to {{ receivables.to || 0 }} of {{ receivables.total || 0 }} results
+                        </div>
+                        <div class="flex space-x-1">
+                            <template v-for="link in receivables.links" :key="link.label">
+                                <button
+                                    v-if="link.url"
+                                    @click="visitPage(link.url)"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-md',
+                                        link.active
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                    ]"
+                                    v-html="link.label"
+                                ></button>
+                                <span
+                                    v-else
+                                    class="px-3 py-2 text-sm text-gray-400"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div v-if="showPaymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Record Payment</h3>
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600">Invoice: {{ selectedReceivable?.invoice_number }}</p>
+                        <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(selectedReceivable?.outstanding_amount) }}</p>
+                    </div>
+                    <form @submit.prevent="recordPayment">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input
+                                v-model="paymentForm.amount"
+                                type="number"
+                                step="0.01"
+                                :max="selectedReceivable?.outstanding_amount"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                            <input
+                                v-model="paymentForm.payment_date"
+                                type="date"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <textarea
+                                v-model="paymentForm.notes"
+                                rows="3"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            ></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button
+                                type="button"
+                                @click="closePaymentModal"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                :disabled="processing"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {{ processing ? 'Recording...' : 'Record Payment' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </AdminKeuanganLayout>
+</template>
+
+<script setup>
+import { ref, reactive, computed } from 'vue'
+import { router } from '@inertiajs/vue3'
+import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+
+const props = defineProps({
+    receivables: Object,
+    summary: Object,
+    customers: Array,
+    filters: Object
+})
+
+const searchForm = reactive({
+    search: props.filters.search || '',
+    status: props.filters.status || '',
+    customer_id: props.filters.customer_id || '',
+    date_from: props.filters.date_from || '',
+    date_to: props.filters.date_to || ''
+})
+
+const showPaymentModal = ref(false)
+const selectedReceivable = ref(null)
+const processing = ref(false)
+
+const paymentForm = reactive({
+    amount: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    notes: ''
+})
+
+let debounceTimer = null
+
+const debounceSearch = () => {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+        applyFilters()
+    }, 500)
+}
+
+const applyFilters = () => {
+    router.get(route('admin-keuangan.account-receivables.index'), searchForm, {
+        preserveState: true,
+        replace: true
+    })
+}
+
+const formatNumber = (number) => {
+    return new Intl.NumberFormat('id-ID').format(number || 0)
+}
+
+const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    })
+}
+
+const getStatusClass = (status) => {
+    const classes = {
+        outstanding: 'bg-yellow-100 text-yellow-800',
+        partial: 'bg-blue-100 text-blue-800',
+        overdue: 'bg-red-100 text-red-800',
+        paid: 'bg-green-100 text-green-800'
+    }
+    return classes[status] || 'bg-gray-100 text-gray-800'
+}
+
+const getStatusText = (status) => {
+    const texts = {
+        outstanding: 'Outstanding',
+        partial: 'Partial',
+        overdue: 'Overdue',
+        paid: 'Paid'
+    }
+    return texts[status] || status
+}
+
+const showReceivable = (receivable) => {
+    router.visit(route('admin-keuangan.account-receivables.show', receivable.id))
+}
+
+const openPaymentModal = (receivable) => {
+    selectedReceivable.value = receivable
+    paymentForm.amount = ''
+    paymentForm.notes = ''
+    showPaymentModal.value = true
+}
+
+const closePaymentModal = () => {
+    showPaymentModal.value = false
+    selectedReceivable.value = null
+}
+
+const recordPayment = () => {
+    processing.value = true
+    
+    router.post(
+        route('admin-keuangan.account-receivables.record-payment', selectedReceivable.value.id),
+        paymentForm,
+        {
+            onSuccess: () => {
+                closePaymentModal()
+                processing.value = false
+            },
+            onError: () => {
+                processing.value = false
+            }
+        }
+    )
+}
+
+const generateSOA = (customer) => {
+    const params = new URLSearchParams({
+        date_from: searchForm.date_from || '',
+        date_to: searchForm.date_to || '',
+        include_paid: 'false'
+    }).toString()
+    
+    window.open(
+        route('admin-keuangan.account-receivables.generate-soa', customer.id) + '?' + params,
+        '_blank'
+    )
+}
+
+const visitPage = (url) => {
+    router.visit(url, {
+        preserveState: true,
+        replace: true
+    })
+}
+</script>

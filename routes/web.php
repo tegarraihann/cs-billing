@@ -23,6 +23,7 @@ Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact
 // AUTHENTICATION ROUTES
 require __DIR__ . '/auth.php';
 
+
 // REDIRECT AFTER LOGIN
 Route::middleware('auth')->get('/dashboard', function () {
     $user = auth()->user();
@@ -327,12 +328,44 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{invoice}', 'update')->name('update');
         Route::delete('/{invoice}', 'destroy')->name('destroy');
         Route::get('/{invoice}/pdf', 'generatePdf')->name('pdf');
+        Route::get('/{invoice}/export-pdf', 'generatePdf')->name('export-pdf');
         Route::get('/{invoice}/print', 'printView')->name('print');
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
         Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
     });
 
+    // Account Receivables Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\AccountReceivableController::class)->prefix('account-receivables')->name('account-receivables.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{accountReceivable}', 'show')->name('show');
+        Route::post('/{accountReceivable}/record-payment', 'recordPayment')->name('record-payment');
+        Route::get('/customers/{customer}/generate-soa', 'generateSOA')->name('generate-soa');
+        Route::get('/customers/{customer}/receivables', 'getByCustomer')->name('get-by-customer');
+        Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');
+        Route::get('/export', 'export')->name('export');
+    });
+
+    // Account Payables Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\AccountPayableController::class)->prefix('account-payables')->name('account-payables.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{accountPayable}', 'show')->name('show');
+        Route::post('/{accountPayable}/mark-as-paid', 'markAsPaid')->name('mark-as-paid');
+        Route::post('/{accountPayable}/update-due-date', 'updateDueDate')->name('update-due-date');
+        Route::post('/{accountPayable}/update-vendor-invoice', 'updateVendorInvoice')->name('update-vendor-invoice');
+        Route::get('/vendors/{vendor}/payables', 'getByVendor')->name('get-by-vendor');
+        Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');
+        Route::get('/export', 'export')->name('export');
+        Route::get('/summary', 'summary')->name('summary');
+    });
+
+    // Profit Reports Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\ProfitReportController::class)->prefix('profit-reports')->name('profit-reports.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/export-pdf', 'exportPdf')->name('export-pdf');
+        Route::get('/sales-order/{salesOrder}/detail', 'salesOrderDetail')->name('sales-order-detail');
+        Route::get('/dashboard', 'dashboard')->name('dashboard');
+    });
 
     // Petty Cash Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\PettyCashController::class)->prefix('petty-cash')->name('petty-cash.')->group(function () {

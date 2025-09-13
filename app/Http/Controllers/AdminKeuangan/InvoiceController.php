@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
-use PhpOffice\PhpWord\TemplateProcessor;
 
 class InvoiceController extends Controller
 {
@@ -184,6 +183,9 @@ class InvoiceController extends Controller
 
         $invoice->calculateTotals();
 
+        // Auto-generate Account Receivable
+        \App\Models\AccountReceivable::createFromInvoice($invoice);
+
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil dibuat.');
     }
@@ -305,223 +307,19 @@ class InvoiceController extends Controller
 
     public function generatePdf(Invoice $invoice)
     {
-        try {
-            // Load relationships
-            $invoice->load(['salesOrder', 'customer', 'items']);
-            
-            // Check if template exists
-            $templatePath = storage_path('templates/invoice_template.docx');
-            
-            if (!file_exists($templatePath)) {
-                // Fallback to old DomPDF system if template not found
-                $pdf = PDF::loadView('invoices.pdf', compact('invoice'));
-                return $pdf->download($invoice->invoice_number . '.pdf');
-            }
-
-            // Load template
-            $templateProcessor = new TemplateProcessor($templatePath);
-
-            // Replace placeholders
-            $this->replaceWordPlaceholders($templateProcessor, $invoice);
-
-            // Handle table items
-            $this->processTableItems($templateProcessor, $invoice);
-
-            // Generate unique filename
-            $filename = 'invoice_' . $invoice->invoice_number . '_' . time() . '.docx';
-            $tempPath = storage_path('temp/generated-invoices/' . $filename);
-
-            // Ensure temp directory exists
-            if (!is_dir(dirname($tempPath))) {
-                mkdir(dirname($tempPath), 0755, true);
-            }
-
-            // Save processed document
-            $templateProcessor->saveAs($tempPath);
-
-            // Return Word document directly
-            return response()->download($tempPath, $invoice->invoice_number . '.docx')
-                ->deleteFileAfterSend(true);
-
-        } catch (\Exception $e) {
-            // Fallback to old DomPDF system on error
-            \Log::error('Word to PDF generation failed: ' . $e->getMessage());
-            
-            $pdf = PDF::loadView('invoices.pdf', compact('invoice'));
-            return $pdf->download($invoice->invoice_number . '.pdf');
-        }
-    }
-
-    private function replaceWordPlaceholders(TemplateProcessor $templateProcessor, Invoice $invoice)
-    {
-        // Replace static data with dynamic values based on template content
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
         
-        // Customer codes and names - match existing template content
-        $templateProcessor->setValue('CPP-MRS79', $invoice->customer->customer_code ?? 'CPP-MRS79');
-        $templateProcessor->setValue('PT CITRA PERDANA PUTRA', strtoupper($invoice->customer->company_name ?? $invoice->salesOrder->customer ?? 'PT CITRA PERDANA PUTRA'));
+        // Generate PDF using Blade template
+        $pdf = PDF::loadView('invoices.pdf', compact('invoice'));
+        $pdf->setPaper('A4', 'portrait');
         
-        // Try both placeholder formats
-        $templateProcessor->setValue('CUSTOMER_CODE', $invoice->customer->customer_code ?? 'N/A');
-        $templateProcessor->setValue('CUSTOMER_NAME', strtoupper($invoice->customer->company_name ?? $invoice->salesOrder->customer ?? 'N/A'));
-        $templateProcessor->setValue('CUSTOMER_ADDRESS', strtoupper($invoice->customer->company_address ?? $invoice->customer->invoice_address ?? 'N/A'));
-        $templateProcessor->setValue('CUSTOMER_CITY', strtoupper($invoice->customer->city ?? 'N/A'));
-        $templateProcessor->setValue('POSTAL_CODE', $invoice->customer->postal_code ?? 'N/A');
-
-        // Invoice details - match template static values
-        $templateProcessor->setValue('EWL2503069011-R', $invoice->invoice_number);
-        $templateProcessor->setValue('14-3-25', $invoice->invoice_date->format('d-n-y'));
-        $templateProcessor->setValue('30 DAYS', $invoice->term_days . ' DAYS');
-        $templateProcessor->setValue('0173', $invoice->salesOrder->aju ?? '0173');
+        $status = $invoice->status === 'draft' ? 'DRAFT' : strtoupper($invoice->status);
+        $filename = $invoice->invoice_number . '_' . $status . '.pdf';
         
-        // Also try placeholder format
-        $templateProcessor->setValue('INVOICE_NUMBER', $invoice->invoice_number);
-        $templateProcessor->setValue('INVOICE_DATE', $invoice->invoice_date->format('d-n-y'));
-        $templateProcessor->setValue('TERM_DAYS', $invoice->term_days . ' DAYS');
-        $templateProcessor->setValue('AJU_NO', $invoice->salesOrder->aju ?? 'N/A');
-
-        // Shipment details - match template static values
-        $templateProcessor->setValue('INNER MONGOLIA EPPEN BIOTECH', strtoupper($invoice->shipper ?? $invoice->salesOrder->shipper ?? 'INNER MONGOLIA EPPEN BIOTECH'));
-        $templateProcessor->setValue('285517558', $invoice->awb_bl_no ?? $invoice->salesOrder->bl_awb ?? '285517558');
-        $templateProcessor->setValue('69276,0000KGS', $invoice->gross_weight ? number_format($invoice->gross_weight, 4, ',', ',') . 'KGS' : '69276,0000KGS');
-        $templateProcessor->setValue('2760 BAG', $invoice->no_of_packages ? $invoice->no_of_packages . ' BAG' : '2760 BAG');
-        $templateProcessor->setValue('3X20', $invoice->container_size ?? '3X20');
-        $templateProcessor->setValue('HOLSATIA', strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? 'HOLSATIA'));
-        $templateProcessor->setValue('507S', $invoice->flight_voy ?? '507S');
-        $templateProcessor->setValue('XINGANG / SEMARANG', strtoupper($invoice->pol_pod ?? ($invoice->salesOrder->pol ?? 'XINGANG') . ' / ' . ($invoice->salesOrder->pod ?? 'SEMARANG')));
-        $templateProcessor->setValue('XINGANG , CHINA', strtoupper($invoice->origin ?? ($invoice->salesOrder->pol ?? 'XINGANG') . ' , CHINA'));
-        $templateProcessor->setValue('SEMARANG', strtoupper($invoice->destination ?? $invoice->salesOrder->pod ?? 'SEMARANG'));
-        
-        // Also try placeholder format
-        $templateProcessor->setValue('SHIPPER', strtoupper($invoice->shipper ?? $invoice->salesOrder->shipper ?? 'N/A'));
-        $templateProcessor->setValue('CONSIGNEE', strtoupper($invoice->consignee ?? $invoice->customer->company_name ?? $invoice->salesOrder->customer ?? 'N/A'));
-        $templateProcessor->setValue('AWB_BL_NO', $invoice->awb_bl_no ?? $invoice->salesOrder->bl_awb ?? 'N/A');
-        $templateProcessor->setValue('VESSEL', strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? 'N/A'));
-
-        // Dates - match template static values
-        $etd = isset($invoice->etd) ? $invoice->etd->format('d-m-y') : '14-02-25';
-        $eta = isset($invoice->eta) ? $invoice->eta->format('d-m-y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-y') : '06-05-25');
-        $templateProcessor->setValue('14-02-25 / 06-05-25', $etd . ' / ' . $eta);
-        $templateProcessor->setValue('ETD_ETA', $etd . ' / ' . $eta);
-
-        // Container numbers - match template static values
-        $containerNo = $invoice->salesOrder->container_no ?? $invoice->container_no ?? 'MSKU2934199';
-        if ($containerNo && $containerNo != 'N/A') {
-            $containers = explode("\n", $containerNo);
-            $templateProcessor->setValue('MSKU2934199', trim($containers[0] ?? 'MSKU2934199'));
-            $templateProcessor->setValue('MSKU5012720', trim($containers[1] ?? 'MSKU5012720'));
-            $templateProcessor->setValue('MSKU3839977', trim($containers[2] ?? 'MSKU3839977'));
-        }
-
-        // Totals - match template static values  
-        $subtotal = number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2);
-        $total = number_format($invoice->total ?? 2289828, 2);
-        $templateProcessor->setValue('2.289.828,00', $subtotal);
-        $templateProcessor->setValue('SUBTOTAL', $subtotal);
-        $templateProcessor->setValue('TOTAL', $total);
+        return $pdf->download($filename);
     }
 
-    private function processTableItems(TemplateProcessor $templateProcessor, Invoice $invoice)
-    {
-        $items = $invoice->items;
-
-        if ($items && $items->count() > 0) {
-            // Try to clone the table row for each item (handle if placeholder doesn't exist)
-            try {
-                $templateProcessor->cloneRow('ITEM_DESC', $items->count());
-                
-                foreach ($items as $index => $item) {
-                    $rowNum = $index + 1;
-                    $templateProcessor->setValue("ITEM_DESC#$rowNum", strtoupper($item->description));
-                    $templateProcessor->setValue("ITEM_QTY#$rowNum", number_format($item->quantity, 0));
-                    $templateProcessor->setValue("ITEM_UNIT#$rowNum", strtoupper($item->unit));
-                    $templateProcessor->setValue("ITEM_RATE#$rowNum", number_format($item->rate, 2));
-                    $templateProcessor->setValue("ITEM_CURRENCY#$rowNum", $item->currency);
-                    $templateProcessor->setValue("ITEM_AMOUNT#$rowNum", $item->amount == 0 ? '-' : number_format($item->amount, 2));
-                }
-            } catch (\Exception $e) {
-                // If cloneRow fails, replace static data in template with real data
-                $firstItem = $items->first();
-                if ($firstItem) {
-                    // Replace static table data with dynamic data
-                    $templateProcessor->setValue('DO CHARGES', strtoupper($firstItem->description));
-                    $templateProcessor->setValue('LOLO', strtoupper($items->skip(1)->first()->description ?? 'LOLO'));
-                    
-                    // Also try placeholder format
-                    $templateProcessor->setValue('ITEM_DESC', strtoupper($firstItem->description));
-                    $templateProcessor->setValue('ITEM_QTY', number_format($firstItem->quantity, 0));
-                    $templateProcessor->setValue('ITEM_UNIT', strtoupper($firstItem->unit ?? 'SET'));
-                    $templateProcessor->setValue('ITEM_RATE', number_format($firstItem->rate, 2));
-                    $templateProcessor->setValue('ITEM_CURRENCY', $firstItem->currency ?? 'IDR');
-                    $templateProcessor->setValue('ITEM_AMOUNT', $firstItem->amount == 0 ? '-' : number_format($firstItem->amount, 2));
-                }
-            }
-        }
-    }
-
-    private function convertToPdf($docxPath)
-    {
-        try {
-            // Check if LibreOffice is available
-            $libreOfficePath = $this->getLibreOfficePath();
-            
-            if (!$libreOfficePath) {
-                return null; // LibreOffice not found
-            }
-
-            $outputDir = dirname($docxPath);
-            $pdfPath = str_replace('.docx', '.pdf', $docxPath);
-
-            // Convert using LibreOffice headless
-            $command = sprintf(
-                '"%s" --headless --convert-to pdf --outdir "%s" "%s"',
-                $libreOfficePath,
-                $outputDir,
-                $docxPath
-            );
-
-            exec($command, $output, $returnVar);
-
-            if ($returnVar === 0 && file_exists($pdfPath)) {
-                return $pdfPath;
-            }
-
-            return null;
-        } catch (\Exception $e) {
-            \Log::error('PDF Conversion Error: ' . $e->getMessage());
-            return null;
-        }
-    }
-
-    private function getLibreOfficePath()
-    {
-        // Common LibreOffice paths
-        $possiblePaths = [
-            'C:\Program Files\LibreOffice\program\soffice.exe',  // Windows
-            'C:\Program Files (x86)\LibreOffice\program\soffice.exe',  // Windows x86
-            '/usr/bin/libreoffice',  // Linux
-            '/Applications/LibreOffice.app/Contents/MacOS/soffice',  // macOS
-            'soffice',  // If in PATH
-        ];
-
-        foreach ($possiblePaths as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-
-        // Try to find in PATH
-        exec('where soffice', $output, $returnVar);
-        if ($returnVar === 0 && !empty($output)) {
-            return trim($output[0]);
-        }
-
-        exec('which libreoffice', $output, $returnVar);
-        if ($returnVar === 0 && !empty($output)) {
-            return trim($output[0]);
-        }
-
-        return null;
-    }
 
     public function confirmPayment(Request $request, Invoice $invoice)
     {
@@ -624,4 +422,5 @@ class InvoiceController extends Controller
             'invoice' => $invoice
         ]);
     }
+
 }

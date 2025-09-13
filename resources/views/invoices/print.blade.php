@@ -382,7 +382,11 @@
                 </div>
                 @if($invoice->salesOrder->container_no ?? null)
                 <div class="container-numbers">
-                    @foreach(explode("\n", $invoice->salesOrder->container_no) as $container)
+                    @php
+                        $containerNo = $invoice->salesOrder->container_no;
+                        $containers = is_array($containerNo) ? $containerNo : explode("\n", str_replace(',', "\n", $containerNo));
+                    @endphp
+                    @foreach($containers as $container)
                         @if(trim($container))
                             :{{ trim($container) }}<br>
                         @endif

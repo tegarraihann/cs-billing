@@ -60,14 +60,14 @@
               Preview PDF
             </a>
             <a
-              :href="route('admin-keuangan.invoices.pdf', invoice.id)"
-              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              :href="route('admin-keuangan.invoices.export-pdf', invoice.id)"
+              class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               target="_blank"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               </svg>
-              Download PDF
+              Export to PDF
             </a>
           </div>
         </div>

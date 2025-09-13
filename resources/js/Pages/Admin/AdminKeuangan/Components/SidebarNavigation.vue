@@ -174,6 +174,84 @@
         <span class="font-medium">Invoices</span>
       </a>
 
+      <!-- Account Receivables (Piutang) -->
+      <a
+        :href="route('admin-keuangan.account-receivables.index')"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.account-receivables')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+          />
+        </svg>
+        <span class="font-medium">Piutang Management</span>
+      </a>
+
+      <!-- Account Payables (Hutang) -->
+      <a
+        :href="route('admin-keuangan.account-payables.index')"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.account-payables')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+        <span class="font-medium">Hutang Management</span>
+      </a>
+
+      <!-- Profit Reports -->
+      <a
+        :href="route('admin-keuangan.profit-reports.index')"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.profit-reports')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+        <span class="font-medium">Profit Reports</span>
+      </a>
+
       <!-- Payment Monitoring -->
       <a
         :href="route('admin-keuangan.invoices.payment-history')"
@@ -477,6 +555,9 @@ const route = window.route || function(name, params) {
     'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
     'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
     'admin-keuangan.invoices.payment-history': '/admin-keuangan/invoices/payment-history',
+    'admin-keuangan.account-receivables.index': '/admin-keuangan/account-receivables',
+    'admin-keuangan.account-payables.index': '/admin-keuangan/account-payables',
+    'admin-keuangan.profit-reports.index': '/admin-keuangan/profit-reports',
     'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
     'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
     'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
@@ -516,6 +597,9 @@ const isActive = (routePattern) => {
     'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
     'admin-keuangan.invoices': '/admin-keuangan/invoices',
     'admin-keuangan.payment-history': '/admin-keuangan/invoices/payment-history',
+    'admin-keuangan.account-receivables': '/admin-keuangan/account-receivables',
+    'admin-keuangan.account-payables': '/admin-keuangan/account-payables',
+    'admin-keuangan.profit-reports': '/admin-keuangan/profit-reports',
     'admin-keuangan.petty-cash': '/admin-keuangan/petty-cash',
     'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
     'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',
