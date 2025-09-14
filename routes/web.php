@@ -13,20 +13,19 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
-// SUBDOMAIN ADMIN ROUTES (adminesahaka.akmalicode.site)
-Route::domain('adminesahaka.akmalicode.site')->group(function () {
-    // Redirect root ke login
+// ADMIN SUBDOMAIN - HANYA LOGIN & DASHBOARD
+Route::domain('admineshaka.akmalicode.site')->group(function () {
+    // Root redirect ke login
     Route::get('/', function () {
         return redirect()->route('login');
     });
 
-    // Authentication routes untuk subdomain admin
+    // Authentication routes (login, logout, dll)
     require __DIR__ . '/auth.php';
 
-    // Dashboard redirect setelah login (sama seperti sebelumnya)
+    // Dashboard redirect setelah login
     Route::middleware('auth')->get('/dashboard', function () {
         $user = auth()->user();
-
         switch ($user->role) {
             case 'masteradmin':
                 return redirect()->route('masteradmin.dashboard');
@@ -35,17 +34,29 @@ Route::domain('adminesahaka.akmalicode.site')->group(function () {
             case 'admin_keuangan':
                 return redirect()->route('admin-keuangan.dashboard');
             default:
-                return redirect()->route('home');
+                return redirect('https://demo.akmalicode.site');
         }
     })->name('dashboard');
+
+    // Block semua route lain - redirect ke login
+    Route::fallback(function () {
+        return redirect()->route('login');
+    });
 });
 
-// PUBLIC ROUTES (Main domain - akmalicode.site)
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
-Route::get('/services', [HomeController::class, 'services'])->name('services');
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+// LANDING PAGE SUBDOMAIN - CUSTOMER FACING
+Route::domain('demo.akmalicode.site')->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/about', [HomeController::class, 'about'])->name('about');
+    Route::get('/services', [HomeController::class, 'services'])->name('services');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+
+    // Block akses login dari landing page
+    Route::get('/login', function () {
+        return redirect('https://admineshaka.akmalicode.site/login');
+    });
+});
 
 
 // REDIRECT AFTER LOGIN
@@ -64,8 +75,8 @@ Route::middleware('auth')->get('/dashboard', function () {
     }
 })->name('dashboard');
 
-// MASTER ADMIN ROUTES
-Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('masteradmin.')->group(function () {
+// MASTER ADMIN ROUTES - HANYA BISA DIAKSES DARI ADMIN DOMAIN
+Route::middleware(['auth', 'role:masteradmin', 'admin.domain'])->prefix('master-admin')->name('masteradmin.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -195,8 +206,8 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
     });
 });
 
-// ADMIN CS ROUTES
-Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
+// ADMIN CS ROUTES - HANYA BISA DIAKSES DARI ADMIN DOMAIN
+Route::middleware(['auth', 'role:admin_cs', 'admin.domain'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
         
@@ -260,8 +271,8 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
 
 });
 
-// ADMIN KEUANGAN ROUTES
-Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
+// ADMIN KEUANGAN ROUTES - HANYA BISA DIAKSES DARI ADMIN DOMAIN
+Route::middleware(['auth', 'role:admin_keuangan', 'admin.domain'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
