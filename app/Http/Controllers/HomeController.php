@@ -6,7 +6,9 @@ use App\Models\WebsiteSettings;
 use App\Models\Service;
 use App\Models\SupportService;
 use App\Models\TeamMember;
+use App\Mail\ContactFormMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -98,23 +100,50 @@ class HomeController extends Controller
      */
     public function submitContact(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:2000',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|min:2',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:20|min:10',
+                'service' => 'nullable|string|max:100',
+                'message' => 'required|string|max:2000|min:10',
+            ]);
 
-        // Here you can implement email sending logic
-        // For example, using Laravel Mail or storing in database
+            // Send email to company
+            Mail::to('tegarraihanakmali@gmail.com')->send(new ContactFormMail($validated));
 
-        // Example: Send email to admin
-        // Mail::to(config('mail.admin_email'))->send(new ContactFormMail($validated));
+            // Return JSON response for API
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesan Anda berhasil dikirim! Tim kami akan segera menghubungi Anda dalam 24 jam.'
+                ]);
+            }
 
-        // Example: Store in database
-        // ContactSubmission::create($validated);
+            // For regular form submission (fallback)
+            return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim. Tim kami akan segera menghubungi Anda.');
 
-        return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim. Tim kami akan segera menghubungi Anda.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan validasi.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            // Log the error
+            \Log::error('Contact form submission failed: ' . $e->getMessage());
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.');
+        }
     }
 }

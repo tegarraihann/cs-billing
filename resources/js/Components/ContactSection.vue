@@ -529,36 +529,19 @@ const submitForm = async () => {
   submitStatus.value = "";
 
   try {
-    // Prepare email content
-    const subject = encodeURIComponent(
-      `Contact Form: ${form.service ? form.service : "General Inquiry"} - ${
-        form.name
-      }`
-    );
-    const emailBody = encodeURIComponent(
-      `
-Nama: ${form.name}
-Email: ${form.email}
-Telepon: ${form.phone}
-Layanan: ${form.service || "Tidak dipilih"}
+    // Send form data to backend API
+    const response = await fetch('/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(form)
+    });
 
-Pesan:
-${form.message}
-
----
-Pesan ini dikirim melalui form kontak website Eshaka Wijaya Logistics.
-    `.trim()
-    );
-
-    // Company email address
-    const companyEmail = "eshakawijayalogistics@ewilog.com";
-    const mailtoUrl = `mailto:${companyEmail}?subject=${subject}&body=${emailBody}`;
-
-    // Open email client
-    window.location.href = mailtoUrl;
-
-    // Reset form after opening email client
-    setTimeout(() => {
+    if (response.ok) {
+      // Reset form on success
       Object.keys(form).forEach((key) => (form[key] = ""));
       submitStatus.value = "success";
 
@@ -566,7 +549,11 @@ Pesan ini dikirim melalui form kontak website Eshaka Wijaya Logistics.
       setTimeout(() => {
         submitStatus.value = "";
       }, 5000);
-    }, 500);
+    } else {
+      const errorData = await response.json();
+      console.error('Server error:', errorData);
+      submitStatus.value = "error";
+    }
   } catch (error) {
     submitStatus.value = "error";
     console.error("Form submission error:", error);

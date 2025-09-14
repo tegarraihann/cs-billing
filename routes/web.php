@@ -13,15 +13,39 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
-// PUBLIC ROUTES (Frontend dinamis)
+// SUBDOMAIN ADMIN ROUTES (adminesahaka.akmalicode.site)
+Route::domain('adminesahaka.akmalicode.site')->group(function () {
+    // Redirect root ke login
+    Route::get('/', function () {
+        return redirect()->route('login');
+    });
+
+    // Authentication routes untuk subdomain admin
+    require __DIR__ . '/auth.php';
+
+    // Dashboard redirect setelah login (sama seperti sebelumnya)
+    Route::middleware('auth')->get('/dashboard', function () {
+        $user = auth()->user();
+
+        switch ($user->role) {
+            case 'masteradmin':
+                return redirect()->route('masteradmin.dashboard');
+            case 'admin_cs':
+                return redirect()->route('admin-cs.dashboard');
+            case 'admin_keuangan':
+                return redirect()->route('admin-keuangan.dashboard');
+            default:
+                return redirect()->route('home');
+        }
+    })->name('dashboard');
+});
+
+// PUBLIC ROUTES (Main domain - akmalicode.site)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/services', [HomeController::class, 'services'])->name('services');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
-
-// AUTHENTICATION ROUTES
-require __DIR__ . '/auth.php';
 
 
 // REDIRECT AFTER LOGIN
