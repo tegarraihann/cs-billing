@@ -13,6 +13,9 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
+// ========== SUBDOMAIN CONFIGURATION (COMMENTED OUT) ==========
+// Uncomment this section if you want to use subdomain separation for admin login
+/*
 // ADMIN SUBDOMAIN - HANYA LOGIN & DASHBOARD
 Route::domain('admineshaka.akmalicode.site')->group(function () {
     // Root redirect ke login
@@ -52,12 +55,23 @@ Route::domain('demo.akmalicode.site')->group(function () {
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 
-    // Block akses login dari landing page
+    // Show halaman login tidak tersedia
     Route::get('/login', function () {
-        return redirect('https://admineshaka.akmalicode.site/login');
+        return view('errors.login-not-available');
     });
 });
+*/
 
+// ========== STANDARD ROUTING (ACTIVE) ==========
+// PUBLIC ROUTES (Frontend dinamis)
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::get('/services', [HomeController::class, 'services'])->name('services');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+
+// AUTHENTICATION ROUTES
+require __DIR__ . '/auth.php';
 
 // REDIRECT AFTER LOGIN
 Route::middleware('auth')->get('/dashboard', function () {
@@ -75,8 +89,8 @@ Route::middleware('auth')->get('/dashboard', function () {
     }
 })->name('dashboard');
 
-// MASTER ADMIN ROUTES - HANYA BISA DIAKSES DARI ADMIN DOMAIN
-Route::middleware(['auth', 'role:masteradmin', 'admin.domain'])->prefix('master-admin')->name('masteradmin.')->group(function () {
+// MASTER ADMIN ROUTES
+Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('masteradmin.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -206,8 +220,8 @@ Route::middleware(['auth', 'role:masteradmin', 'admin.domain'])->prefix('master-
     });
 });
 
-// ADMIN CS ROUTES - HANYA BISA DIAKSES DARI ADMIN DOMAIN
-Route::middleware(['auth', 'role:admin_cs', 'admin.domain'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
+// ADMIN CS ROUTES
+Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
         
@@ -271,8 +285,8 @@ Route::middleware(['auth', 'role:admin_cs', 'admin.domain'])->prefix('admin-cs')
 
 });
 
-// ADMIN KEUANGAN ROUTES - HANYA BISA DIAKSES DARI ADMIN DOMAIN
-Route::middleware(['auth', 'role:admin_keuangan', 'admin.domain'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
+// ADMIN KEUANGAN ROUTES
+Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
