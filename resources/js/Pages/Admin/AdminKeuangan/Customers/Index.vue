@@ -108,6 +108,11 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
+                  Customer Code
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
+                >
                   Nama Perusahaan
                 </th>
                 <th
@@ -148,6 +153,11 @@
                 :key="customer.id"
                 class="hover:bg-sage-50 transition-colors"
               >
+                <!-- Customer Code -->
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                  {{ customer.customer_code || '-' }}
+                </td>
+
                 <!-- Company Name -->
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
                   {{ customer.company_name }}

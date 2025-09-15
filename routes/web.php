@@ -179,7 +179,7 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
             Route::delete('/{service}', [WebsiteSettingsController::class, 'deleteService'])->name('destroy');
         });
 
-        // Support Services Routes  
+        // Support Services Routes
         Route::prefix('support-services')->name('support-services.')->group(function () {
             Route::get('/', [WebsiteSettingsController::class, 'supportServiceIndex'])->name('index');
             Route::get('/create', [WebsiteSettingsController::class, 'supportServiceCreate'])->name('create');
@@ -224,7 +224,7 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
 Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
-        
+
         // Get current date for calculations
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
@@ -234,7 +234,7 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
         $totalSalesOrdersThisMonth = \App\Models\SalesOrder::where('created_at', '>=', $startOfMonth)->count();
         $salesOrdersToday = \App\Models\SalesOrder::where('created_at', '>=', $startOfDay)->count();
         $pendingSalesOrders = \App\Models\SalesOrder::whereNull('approved_at')->whereNull('rejected_at')->count();
-        
+
         // Revenue calculation - using total_selling from this month
         $revenueThisMonth = \App\Models\SalesOrder::where('created_at', '>=', $startOfMonth)
             ->whereNotNull('total_selling')

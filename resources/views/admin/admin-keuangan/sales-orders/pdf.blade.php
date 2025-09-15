@@ -118,6 +118,7 @@
         .info-value {
             width: 65%;
             display: inline-block;
+            white-space: pre-wrap;
         }
 
         .table {

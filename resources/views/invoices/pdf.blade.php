@@ -169,11 +169,42 @@
             vertical-align: top;
         }
 
+        /* Container Details Table - Positioned at same level as No. OF PKGS row */
+        .container-details-table {
+            font-family: 'Courier New', monospace;
+            position: absolute;
+            top: calc(0.83in + 3 * 1.0 * 12px + 1.7 * 12px + 1.0 * 12px + 4 * 30px + 10px - 37px + 6 * 22px + 5px);  /* Position at same level as No. OF PKGS row */
+            left: 3.76in; /* Position on the right side */
+            width: 50%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        .container-details-table td {
+            border: none;
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        .container-label-cell {
+            width: 1.02in !important;
+            font-size: 9pt;
+            text-align: left;
+            max-width: 1.02in;
+        }
+
+        .container-value-cell {
+            width: auto !important;
+            font-size: 9pt;
+            text-align: left;
+            line-height: 1.3;
+        }
+
         /* Items Table */
         .items-details-table {
             font-family: 'Courier New', monospace;
             position: absolute;
-            top: calc(0.83in + 3 * 1.0 * 12px + 1.7 * 12px + 1.0 * 12px + 4 * 30px + 10px - 37px + 9 * 30px + 20px - 70px);  /* Geser ke atas 30px */
+            top: calc(0.83in + 3 * 1.0 * 12px + 1.7 * 12px + 1.0 * 12px + 4 * 30px + 10px - 37px + 9 * 30px + 20px - 70px);  /* Position after shipment table */
             left: 0;
             width: 100%;
             border-collapse: collapse;
@@ -189,7 +220,6 @@
 
         .items-details-table th {
             font-weight: bold;
-            background-color: #f0f0f0;
         }
 
         .desc-col { width: 35%; text-align: left; }
@@ -539,8 +569,8 @@
             <tr>
                 <td class="shipment-label-cell">No. OF PKGS</td>
                 <td class="shipment-value-cell">: {{ $invoice->no_of_packages ? $invoice->no_of_packages . ' BAG' : 'N/A' }}</td>
-                <td class="invoice-label-cell">CONTAINER No.</td>
-                <td class="invoice-value-cell">: {{ $invoice->container_no ?? 'N/A' }}</td>
+                <td class="invoice-label-cell"></td>
+                <td class="invoice-value-cell"></td>
             </tr>
             <tr>
                 <td class="shipment-label-cell">20'/40'/45'</td>
@@ -550,6 +580,28 @@
             <tr>
                 <td class="shipment-label-cell">REMARKS</td>
                 <td class="shipment-value-cell" colspan="3">: {{ $invoice->remarks ?? $invoice->salesOrder->remarks ?? 'N/A' }}</td>
+            </tr>
+        </table>
+
+        <!-- Container Numbers Table - Positioned at same level as No. OF PKGS -->
+        <table class="container-details-table">
+            <tr>
+                <td class="container-label-cell">CONTAINER No.</td>
+                <td class="container-value-cell">:
+                    @if($invoice->container_no)
+                        @php
+                            $containerNo = $invoice->container_no;
+                            $containers = is_array($containerNo) ? $containerNo : explode("\n", str_replace(',', "\n", $containerNo));
+                        @endphp
+                        @foreach($containers as $index => $container)
+                            @if(trim($container))
+                                {!! $index > 0 ? '<br>' : '' !!}-[{{ trim($container) }}]
+                            @endif
+                        @endforeach
+                    @else
+                        N/A
+                    @endif
+                </td>
             </tr>
         </table>
 

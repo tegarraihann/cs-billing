@@ -179,6 +179,22 @@
             width: 85px;
         }
 
+        /* Container Numbers Section - Positioned at same level as No. OF PKGS */
+        .container-section {
+            position: absolute;
+            top: 430px; /* Same level as No. OF PKGS row */
+            left: 0;
+            width: 100%;
+            height: 50px;
+        }
+
+        .container-right {
+            position: absolute;
+            right: 40px;
+            top: 0;
+            width: 280px;
+        }
+
         /* Items Table Section */
         .items-section {
             position: absolute;
@@ -467,23 +483,23 @@
                     <div class="shipment-row">
                         <span class="field-label">20'/40'/45'</span> :{{ $invoice->container_size ?? '3X20' }}
                     </div>
-                    @if($invoice->salesOrder->container_no ?? null)
+                    @if($invoice->container_no ?? $invoice->salesOrder->container_no ?? null)
                     <div class="container-numbers">
                         @php
-                            $containerNo = $invoice->salesOrder->container_no;
+                            $containerNo = $invoice->container_no ?? $invoice->salesOrder->container_no;
                             $containers = is_array($containerNo) ? $containerNo : explode("\n", str_replace(',', "\n", $containerNo));
                         @endphp
                         @foreach($containers as $container)
                             @if(trim($container))
-                                :{{ trim($container) }}<br>
+                                -[{{ trim($container) }}]<br>
                             @endif
                         @endforeach
                     </div>
                     @else
                     <div class="container-numbers">
-                        :MSKU2934199<br>
-                        :MSKU5012720<br>
-                        :MSKU3839977
+                        -[MSKU2934199]<br>
+                        -[MSKU5012720]<br>
+                        -[MSKU3839977]
                     </div>
                     @endif
                     <div style="height: 8px;"></div>
@@ -511,8 +527,27 @@
                     <div class="shipment-row">
                         <span class="field-label-right">ETD / ETA</span> :{{ isset($invoice->etd) ? $invoice->etd->format('d-m-y') : '14-02-25' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-y') : '06-05-25') }}
                     </div>
+                </div>
+            </div>
+
+            <!-- Container Numbers Section - Positioned at same level as No. OF PKGS -->
+            <div class="container-section">
+                <div class="container-right">
                     <div class="shipment-row">
-                        <span class="field-label-right">CONTAINER No.</span> :{{ $invoice->container_no ?? 'MSKU2934199' }}
+                        <span class="field-label-right">CONTAINER No.</span> :
+                        @if($invoice->container_no)
+                            @php
+                                $containerNo = $invoice->container_no;
+                                $containers = is_array($containerNo) ? $containerNo : explode("\n", str_replace(',', "\n", $containerNo));
+                            @endphp
+                            @foreach($containers as $index => $container)
+                                @if(trim($container))
+                                    {{ $index > 0 ? '<br>' : '' }}-[{{ trim($container) }}]
+                                @endif
+                            @endforeach
+                        @else
+                            -[MSKU2934199]
+                        @endif
                     </div>
                 </div>
             </div>

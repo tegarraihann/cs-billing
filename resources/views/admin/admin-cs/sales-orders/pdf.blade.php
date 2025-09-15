@@ -447,11 +447,12 @@
             <div style="margin-bottom: 15px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
-                        <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                        <td style="width: 51%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 30px; padding: 5px;">
+                        <td style="width: 120px; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
+                        <td style="width: 15px; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;">{{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}</td>
+                        {{-- <td style="width: 51%; font-size: 8px; vertical-align: top; padding: 0px 0; white-space: pre-wrap; text-align: justify;">
                             {{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}
-                        </td>
+                        </td> --}}
                     </tr>
                 </table>
             </div>

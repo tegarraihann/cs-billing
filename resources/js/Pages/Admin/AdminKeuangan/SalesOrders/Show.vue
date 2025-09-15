@@ -246,7 +246,7 @@
                 <div v-if="salesOrder.note" class="mb-6">
                   <h5 class="text-sm font-semibold text-gray-800 mb-3">Catatan Tambahan (Note)</h5>
                   <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p class="text-gray-900">{{ salesOrder.note }}</p>
+                    <p class="text-gray-900 whitespace-pre-wrap">{{ salesOrder.note }}</p>
                   </div>
                 </div>
 

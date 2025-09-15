@@ -52,7 +52,9 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-                        // Informasi Perusahaan/Perorangan
+            // Customer Code (auto-generated if not provided)
+            'customer_code' => 'nullable|string|max:255|unique:customers,customer_code',
+            // Informasi Perusahaan/Perorangan
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
             'company_address' => 'required|string|max:1000',
@@ -81,6 +83,13 @@ class CustomerController extends Controller
             'legal_document.max' => 'Ukuran dokumen legal maksimal 10MB.',
         ]);
 
+        // Generate customer_code if not provided
+        if (empty($validated['customer_code'])) {
+            $lastCustomer = Customer::orderBy('id', 'desc')->first();
+            $nextNumber = $lastCustomer ? ($lastCustomer->id + 1) : 1;
+            $validated['customer_code'] = 'CUST' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        }
+
         // Generate auto number for customer
         $lastCustomer = Customer::orderBy('id', 'desc')->first();
         $nextNumber = $lastCustomer ? ($lastCustomer->id + 1) : 1;
@@ -94,6 +103,11 @@ class CustomerController extends Controller
         if ($request->hasFile('legal_document')) {
             $validated['legal_document_path'] = $request->file('legal_document')->store('customers/documents', 'public');
         }
+
+        // Map PIC data to legacy fields for compatibility
+        $validated['name'] = $validated['pic_name'];
+        $validated['email'] = $validated['pic_email'];
+        $validated['phone'] = $validated['pic_phone'];
 
         $validated['handled_by'] = Auth::id();
         $validated['last_contact_at'] = now();
@@ -135,7 +149,9 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-                        // Informasi Perusahaan/Perorangan
+            // Customer Code (auto-generated if not provided)
+            'customer_code' => 'nullable|string|max:255|unique:customers,customer_code,' . $customer->id,
+            // Informasi Perusahaan/Perorangan
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|in:PT,CV,Perorangan,Yayasan,Koperasi,Lainnya',
             'company_address' => 'required|string|max:1000',
@@ -180,6 +196,11 @@ class CustomerController extends Controller
             }
             $validated['legal_document_path'] = $request->file('legal_document')->store('customers/documents', 'public');
         }
+
+        // Map PIC data to legacy fields for compatibility
+        $validated['name'] = $validated['pic_name'];
+        $validated['email'] = $validated['pic_email'];
+        $validated['phone'] = $validated['pic_phone'];
 
         $customer->update($validated);
 

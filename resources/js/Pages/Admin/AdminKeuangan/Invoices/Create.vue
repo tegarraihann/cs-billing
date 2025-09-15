@@ -87,7 +87,11 @@
               <input
                 type="text"
                 v-model="form.shipper"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
               />
             </div>
             <div>
@@ -95,7 +99,11 @@
               <input
                 type="text"
                 v-model="form.consignee"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
               />
             </div>
             <div>
@@ -103,7 +111,11 @@
               <input
                 type="text"
                 v-model="form.awb_bl_no"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
               />
             </div>
             <div>
@@ -119,7 +131,11 @@
               <input
                 type="text"
                 v-model="form.vessel"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
               />
             </div>
             <div>
@@ -129,6 +145,139 @@
                 v-model="form.flight_voy"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
               />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">POL/POD</label>
+              <input
+                type="text"
+                v-model="form.pol_pod"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Origin</label>
+              <input
+                type="text"
+                v-model="form.origin"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Destination</label>
+              <input
+                type="text"
+                v-model="form.destination"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ETD</label>
+              <input
+                type="date"
+                v-model="form.etd"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ETA</label>
+              <input
+                type="date"
+                v-model="form.eta"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Gross Weight (KG)</label>
+              <input
+                type="number"
+                v-model="form.gross_weight"
+                step="0.0001"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Volume</label>
+              <input
+                type="text"
+                v-model="form.volume"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+                placeholder="e.g., 10.5 M³"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">No of Packages</label>
+              <input
+                type="number"
+                v-model="form.no_of_packages"
+                min="0"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">20'/40'/45'</label>
+              <input
+                type="text"
+                v-model="form.container_size"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+                placeholder="e.g., 20GP, 40GP, 45GP"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Container No.</label>
+              <input
+                type="text"
+                v-model="form.container_no"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+                placeholder="e.g., MSKU2934199"
+              />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+              <textarea
+                v-model="form.remarks"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              ></textarea>
             </div>
           </div>
         </div>
@@ -303,16 +452,42 @@ const form = useForm({
 const loadSalesOrderData = () => {
   const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
   if (selectedOrder) {
+    // Basic shipping info
     form.consignee = selectedOrder.customer || selectedOrder.customer_name || '';
     form.shipper = selectedOrder.shipper || '';
     form.vessel = selectedOrder.vessel || '';
     form.awb_bl_no = selectedOrder.bl_awb || selectedOrder.awb_bl_number || '';
-    form.pol_pod = selectedOrder.pol_pod || '';
+
+    // POL/POD info
+    form.pol_pod = (selectedOrder.pol && selectedOrder.pod) ?
+      `${selectedOrder.pol}/${selectedOrder.pod}` :
+      (selectedOrder.pol_pod || '');
     form.origin = selectedOrder.pol || '';
     form.destination = selectedOrder.pod || '';
+
+    // Dates
     if (selectedOrder.eta) {
       form.eta = selectedOrder.eta;
     }
+    if (selectedOrder.etd) {
+      form.etd = selectedOrder.etd;
+    }
+
+    // Cargo details - auto-populate from Sales Order
+    form.gross_weight = selectedOrder.net_weight || '';
+    form.volume = selectedOrder.measurement || '';
+    form.no_of_packages = selectedOrder.qty || '';
+    form.container_size = selectedOrder.shipment_type || '';
+
+    // Container info
+    if (selectedOrder.container_no) {
+      form.container_no = Array.isArray(selectedOrder.container_no) ?
+        selectedOrder.container_no.join(', ') :
+        selectedOrder.container_no;
+    }
+
+    // Remarks
+    form.remarks = selectedOrder.remarks || selectedOrder.note || '';
   }
 };
 

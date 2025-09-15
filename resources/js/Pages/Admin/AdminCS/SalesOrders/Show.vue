@@ -255,7 +255,7 @@
                 <div v-if="salesOrder.note" class="mb-6">
                   <h5 class="text-sm font-semibold text-gray-800 mb-3">Catatan Tambahan (Note)</h5>
                   <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p class="text-gray-900">{{ salesOrder.note }}</p>
+                    <p class="text-gray-900 whitespace-pre-wrap">{{ salesOrder.note }}</p>
                   </div>
                 </div>
 
@@ -489,24 +489,6 @@
             </div>
           </div>
 
-          <!-- Related Customer -->
-          <div v-if="salesOrder.customer_id" class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">Related Customer</h3>
-            </div>
-            <div class="p-6">
-              <Link
-                :href="route('admin-cs.customers.show', salesOrder.customer_id)"
-                class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors w-full justify-center"
-              >
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                Lihat Data Customer
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

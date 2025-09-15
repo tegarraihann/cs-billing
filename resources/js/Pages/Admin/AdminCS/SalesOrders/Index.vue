@@ -342,7 +342,7 @@
     <!-- Delete Confirmation Dialog -->
     <AlertDialog
       :show="showDeleteDialog"
-      type="danger"
+      type="confirm"
       title="Konfirmasi Hapus Sales Order"
       message="Apakah Anda yakin ingin menghapus sales order ini? Tindakan ini tidak dapat dibatalkan."
       confirm-text="Ya, Hapus"

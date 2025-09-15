@@ -95,6 +95,29 @@
                 </svg>
               </button>
               <div v-show="isCompanyInfoOpen" class="p-4 space-y-4">
+                <!-- Customer Code -->
+                <div>
+                  <label
+                    for="customer_code"
+                    class="block text-sm font-medium text-sage-700 mb-2"
+                  >
+                    Customer Code
+                  </label>
+                  <input
+                    v-model="form.customer_code"
+                    type="text"
+                    id="customer_code"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
+                    placeholder="Customer code (e.g., CUST0001)"
+                  />
+                  <div v-if="form.errors.customer_code" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.customer_code }}
+                  </div>
+                  <p class="mt-1 text-sm text-gray-500">
+                    Customer code harus unik untuk setiap customer
+                  </p>
+                </div>
+
                 <!-- Same company fields as Create.vue -->
                 <div>
                   <label for="company_name" class="block text-sm font-medium text-sage-700 mb-2">
@@ -233,6 +256,7 @@ const toggleCompanyInfo = () => {
 };
 
 const form = useForm({
+  customer_code: props.customer.customer_code || "",
   company_name: props.customer.company_name || "",
   company_type: props.customer.company_type || "",
   company_address: props.customer.company_address || "",
