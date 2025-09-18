@@ -134,6 +134,17 @@
             </select>
           </div>
           <div class="w-48">
+            <select
+              v-model="form.invoice_type"
+              @change="search"
+              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            >
+              <option value="">Semua Tipe</option>
+              <option value="main">Main Invoice</option>
+              <option value="reimbursement">Reimbursement</option>
+            </select>
+          </div>
+          <div class="w-48">
             <input
               v-model="form.date_from"
               @change="search"
@@ -198,6 +209,16 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
                     {{ invoice.invoice_number }}
+                  </div>
+                  <div class="mt-1">
+                    <span :class="[
+                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                      invoice.invoice_type === 'main'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-orange-100 text-orange-800'
+                    ]">
+                      {{ invoice.invoice_type === 'main' ? 'Main' : 'Reimbursement' }}
+                    </span>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -319,6 +340,7 @@ const route = window.route || function(name, params) {
 const form = reactive({
   search: props.filters.search || '',
   status: props.filters.status || '',
+  invoice_type: props.filters.invoice_type || '',
   date_from: props.filters.date_from || '',
   date_to: props.filters.date_to || '',
 });
@@ -327,6 +349,7 @@ const search = debounce(() => {
   router.get(route('admin-keuangan.invoices.index'), {
     search: form.search,
     status: form.status,
+    invoice_type: form.invoice_type,
     date_from: form.date_from,
     date_to: form.date_to,
   }, {

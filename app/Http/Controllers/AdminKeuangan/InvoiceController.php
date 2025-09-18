@@ -27,11 +27,16 @@ class InvoiceController extends Controller
             }
         }
 
+        // Filter by invoice type
+        if ($request->filled('invoice_type')) {
+            $query->where('invoice_type', $request->invoice_type);
+        }
+
         // Filter by date range
         if ($request->filled('date_from')) {
             $query->where('invoice_date', '>=', $request->date_from);
         }
-        
+
         if ($request->filled('date_to')) {
             $query->where('invoice_date', '<=', $request->date_to);
         }
@@ -67,15 +72,45 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Index', [
             'invoices' => $invoices,
-            'filters' => $request->only(['status', 'search', 'date_from', 'date_to']),
+            'filters' => $request->only(['status', 'invoice_type', 'search', 'date_from', 'date_to']),
             'stats' => $stats
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $salesOrders = SalesOrder::where('status', 'approved')
-            ->whereDoesntHave('invoices')
+        // Check if coming from Sales Order detail page
+        if ($request->has('sales_order_id') && $request->has('invoice_type')) {
+            $salesOrder = SalesOrder::findOrFail($request->sales_order_id);
+
+            // Verify SO is eligible for invoice creation
+            if (!in_array($salesOrder->status, ['released', 'approved']) || !$salesOrder->released_at) {
+                return redirect()->route('admin-keuangan.invoices.index')
+                    ->withErrors(['error' => 'Sales Order belum eligible untuk dibuat invoice.']);
+            }
+
+            // Check if invoice type already exists
+            $existingInvoice = Invoice::where('sales_order_id', $request->sales_order_id)
+                ->where('invoice_type', $request->invoice_type)
+                ->first();
+
+            if ($existingInvoice) {
+                return redirect()->route('admin-keuangan.sales-orders.show', $salesOrder->id)
+                    ->withErrors(['error' => 'Invoice ' . ucfirst($request->invoice_type) . ' sudah ada untuk Sales Order ini.']);
+            }
+
+            return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
+                'salesOrders' => collect([$salesOrder]),
+                'preselectedSalesOrder' => $salesOrder->id,
+                'preselectedInvoiceType' => $request->invoice_type
+            ]);
+        }
+
+        // Get SOs that can have invoices created - like the original logic
+        $salesOrders = SalesOrder::whereIn('status', ['released', 'approved'])
+            ->whereNotNull('released_at')
+            ->whereDoesntHave('invoices')  // Only show SOs with NO invoices at all
+            ->orderBy('released_at', 'desc')
             ->get();
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
@@ -87,6 +122,7 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'sales_order_id' => 'required|exists:sales_orders,id',
+            'invoice_type' => 'required|in:main,reimbursement,combined',
             'invoice_date' => 'required|date',
             'term_days' => 'required|integer|min:1',
             'shipper' => 'nullable|string|max:255',
@@ -106,18 +142,43 @@ class InvoiceController extends Controller
             'container_no' => 'nullable|string|max:255',
             'container_size' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit' => 'required|string|max:50',
-            'items.*.rate' => 'required|numeric|min:0',
-            'items.*.currency' => 'required|string|max:3',
+            'items' => 'nullable|array',
+            'items.*.description' => 'required_with:items|string|max:255',
+            'items.*.quantity' => 'required_with:items|numeric|min:0.01',
+            'items.*.unit' => 'required_with:items|string|max:50',
+            'items.*.rate' => 'required_with:items|numeric|min:0',
+            'items.*.currency' => 'required_with:items|string|max:3',
+            'items.*.item_ref' => 'nullable|string|max:255',
+            'items.*.type' => 'nullable|string|in:main,reimbursement',
         ]);
 
         $salesOrder = SalesOrder::findOrFail($validated['sales_order_id']);
-        
+
+        // Check if invoice type already exists for this Sales Order
+        $existingInvoice = Invoice::where('sales_order_id', $validated['sales_order_id'])
+            ->where('invoice_type', $validated['invoice_type'])
+            ->first();
+
+        if ($existingInvoice) {
+            return back()->withErrors([
+                'invoice_type' => 'An invoice of type "' . ucfirst($validated['invoice_type']) . '" already exists for this Sales Order.'
+            ]);
+        }
+
         $invoiceDate = Carbon::parse($validated['invoice_date']);
         $dueDate = $invoiceDate->copy()->addDays($validated['term_days']);
+
+        // Auto-populate items from SO vendor breakdown if no items provided
+        if (empty($validated['items']) && $salesOrder->hasVendorBreakdownForInvoice()) {
+            $validated['items'] = $salesOrder->getInvoiceItemsFromVendorBreakdown();
+        }
+
+        // Validate that we have items either from input or auto-generated
+        if (empty($validated['items'])) {
+            return back()->withErrors([
+                'items' => 'Invoice items are required. Either provide items manually or ensure the Sales Order has vendor breakdown with selling amounts.'
+            ]);
+        }
 
         // Cari customer berdasarkan customer_id jika ada, atau buat dummy customer
         $customerId = $salesOrder->customer_id;
@@ -140,7 +201,8 @@ class InvoiceController extends Controller
         }
 
         $invoice = Invoice::create([
-            'invoice_number' => Invoice::generateInvoiceNumber(),
+            'invoice_number' => $this->generateInvoiceNumberByType($salesOrder, $validated['invoice_type']),
+            'invoice_type' => $validated['invoice_type'],
             'sales_order_id' => $salesOrder->id,
             'customer_id' => $customerId,
             'invoice_date' => $invoiceDate,
@@ -294,6 +356,9 @@ class InvoiceController extends Controller
 
         $invoice->calculateTotals();
 
+        // Sync Account Receivable after invoice update
+        \App\Models\AccountReceivable::syncFromInvoice($invoice);
+
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil diperbarui.');
     }
@@ -418,10 +483,34 @@ class InvoiceController extends Controller
     public function printView(Invoice $invoice)
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
-        
+
         return view('invoices.print', [
             'invoice' => $invoice
         ]);
     }
 
+    private function generateInvoiceNumberByType(SalesOrder $salesOrder, string $type): string
+    {
+        $baseInvoiceNumber = Invoice::generateInvoiceNumberFromSO($salesOrder);
+
+        // Add suffix based on type
+        if ($type === 'reimbursement') {
+            $baseInvoiceNumber .= '-R';
+        }
+
+        // Check for duplicates and add counter if needed
+        $counter = 1;
+        $invoiceNumber = $baseInvoiceNumber;
+
+        while (Invoice::where('invoice_number', $invoiceNumber)->exists()) {
+            if ($type === 'reimbursement') {
+                $invoiceNumber = $baseInvoiceNumber . str_pad($counter, 2, '0', STR_PAD_LEFT);
+            } else {
+                $invoiceNumber = $baseInvoiceNumber . '-' . str_pad($counter, 2, '0', STR_PAD_LEFT);
+            }
+            $counter++;
+        }
+
+        return $invoiceNumber;
+    }
 }

@@ -16,7 +16,8 @@ class InvoiceItem extends Model
         'unit',
         'rate',
         'currency',
-        'amount'
+        'amount',
+        'item_ref'
     ];
 
     protected $casts = [

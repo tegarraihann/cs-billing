@@ -371,6 +371,164 @@
             </div>
           </div>
 
+          <!-- Invoice Management Section -->
+          <div v-if="(salesOrder.status === 'released' || salesOrder.status === 'approved') && salesOrder.released_at"
+               class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-sage-800">Invoice Management</h3>
+                <button
+                  @click="showInvoiceCreateModal = true"
+                  class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Buat Invoice
+                </button>
+              </div>
+            </div>
+            <div class="p-6">
+              <!-- Main Invoices -->
+              <div v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.invoice_type === 'main').length > 0">
+                <h4 class="text-md font-semibold text-gray-800 mb-4">Main Invoices</h4>
+                <div v-for="invoice in salesOrder.invoices.filter(inv => inv.invoice_type === 'main')"
+                     :key="'main-' + invoice.id"
+                     class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <h5 class="font-semibold text-gray-900 flex items-center">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium mr-2 bg-blue-100 text-blue-800">
+                          Main
+                        </span>
+                        {{ invoice.invoice_number }}
+                      </h5>
+                      <p class="text-sm text-gray-600">{{ invoice.description || 'Main Invoice' }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-gray-900">{{ formatCurrency(invoice.total_amount || 0) }}</p>
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                            :class="getInvoiceStatusColor(invoice.status)">
+                        {{ getInvoiceStatusLabel(invoice.status) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span class="text-gray-500">Date:</span>
+                      <span class="ml-1 text-gray-900">{{ formatDate(invoice.invoice_date) }}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500">Customer:</span>
+                      <span class="ml-1 text-gray-900">{{ invoice.customer_name || salesOrder.customer }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Print button for invoices -->
+                  <div class="mt-3 flex space-x-2">
+                    <a
+                      :href="route('admin-keuangan.invoices.print', invoice.id)"
+                      target="_blank"
+                      class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                    >
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                      Download PDF
+                    </a>
+                    <Link
+                      :href="route('admin-keuangan.invoices.show', invoice.id)"
+                      class="inline-flex items-center px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
+                    >
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reimbursement Invoices -->
+              <div v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.invoice_type === 'reimbursement').length > 0" class="mt-6">
+                <h4 class="text-md font-semibold text-gray-800 mb-4">Reimbursement Invoices</h4>
+                <div v-for="invoice in salesOrder.invoices.filter(inv => inv.invoice_type === 'reimbursement')"
+                     :key="'reimb-' + invoice.id"
+                     class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <h5 class="font-semibold text-gray-900 flex items-center">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium mr-2 bg-orange-100 text-orange-800">
+                          Reimbursement
+                        </span>
+                        {{ invoice.invoice_number }}
+                      </h5>
+                      <p class="text-sm text-gray-600">{{ invoice.description || 'Reimbursement Invoice' }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-gray-900">{{ formatCurrency(invoice.total_amount || 0) }}</p>
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                            :class="getInvoiceStatusColor(invoice.status)">
+                        {{ getInvoiceStatusLabel(invoice.status) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span class="text-gray-500">Date:</span>
+                      <span class="ml-1 text-gray-900">{{ formatDate(invoice.invoice_date) }}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500">Customer:</span>
+                      <span class="ml-1 text-gray-900">{{ invoice.customer_name || salesOrder.customer }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Print button for reimbursement invoices -->
+                  <div class="mt-3 flex space-x-2">
+                    <a
+                      :href="route('admin-keuangan.invoices.print', invoice.id)"
+                      target="_blank"
+                      class="inline-flex items-center px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 transition-colors"
+                    >
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                      Download PDF -R
+                    </a>
+                    <Link
+                      :href="route('admin-keuangan.invoices.show', invoice.id)"
+                      class="inline-flex items-center px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
+                    >
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              <!-- No invoices message -->
+              <div v-if="!salesOrder.invoices || salesOrder.invoices.length === 0"
+                   class="text-center py-8">
+                <div class="flex flex-col items-center">
+                  <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada invoice</h3>
+                  <p class="text-sm text-gray-500 max-w-sm">Belum ada invoice yang dibuat untuk sales order ini. Klik tombol "Buat Invoice" untuk memulai.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Sidebar -->
@@ -546,6 +704,70 @@
         </div>
       </div>
     </div>
+
+    <!-- Invoice Create Modal -->
+    <div v-if="showInvoiceCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="flex items-center mb-4">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">Pilih Tipe Invoice</h3>
+        </div>
+
+        <div class="mb-6">
+          <p class="text-gray-600 mb-4">Pilih tipe invoice yang ingin dibuat untuk sales order ini:</p>
+
+          <div class="space-y-3">
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                name="invoice_type"
+                value="main"
+                v-model="selectedInvoiceType"
+                class="mr-3"
+              />
+              <div>
+                <div class="font-medium text-gray-900">Main Invoice</div>
+                <div class="text-sm text-gray-600">Invoice utama untuk tagihan customer</div>
+              </div>
+            </label>
+
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                name="invoice_type"
+                value="reimbursement"
+                v-model="selectedInvoiceType"
+                class="mr-3"
+              />
+              <div>
+                <div class="font-medium text-gray-900">Reimbursement Invoice</div>
+                <div class="text-sm text-gray-600">Invoice untuk penggantian biaya pihak ketiga</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeInvoiceCreateModal"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            @click="createInvoice"
+            :disabled="!selectedInvoiceType"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Lanjutkan
+          </button>
+        </div>
+      </div>
+    </div>
   </AdminKeuanganLayout>
 </template>
 
@@ -565,6 +787,8 @@ const voucherRejectionReason = ref('');
 const selectedVoucher = ref(null);
 const showApprovalModal = ref(false);
 const debugInfo = ref(false);
+const showInvoiceCreateModal = ref(false);
+const selectedInvoiceType = ref('');
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -815,6 +1039,44 @@ const rejectVoucher = () => {
     onError: (errors) => {
       alert('Terjadi kesalahan: ' + Object.values(errors).join(', '));
     }
+  });
+};
+
+// Invoice related functions
+const getInvoiceStatusLabel = (status) => {
+  const labels = {
+    draft: 'Draft',
+    sent: 'Terkirim',
+    paid: 'Lunas',
+    overdue: 'Jatuh Tempo'
+  };
+  return labels[status] || status;
+};
+
+const getInvoiceStatusColor = (status) => {
+  const colors = {
+    draft: 'bg-gray-100 text-gray-800',
+    sent: 'bg-blue-100 text-blue-800',
+    paid: 'bg-green-100 text-green-800',
+    overdue: 'bg-red-100 text-red-800'
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const closeInvoiceCreateModal = () => {
+  showInvoiceCreateModal.value = false;
+  selectedInvoiceType.value = '';
+};
+
+const createInvoice = () => {
+  if (!selectedInvoiceType.value) {
+    alert('Pilih tipe invoice terlebih dahulu');
+    return;
+  }
+
+  router.get(route('admin-keuangan.invoices.create'), {
+    sales_order_id: props.salesOrder.id,
+    invoice_type: selectedInvoiceType.value
   });
 };
 </script>

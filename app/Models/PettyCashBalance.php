@@ -67,7 +67,102 @@ class PettyCashBalance extends Model
 
     public static function getCurrentBalance()
     {
+        // Calculate balance from actual transactions
+        $totalTopups = PettyCashTransaction::where('type', 'topup')->sum('amount');
+        $totalRefunds = PettyCashTransaction::where('type', 'refund')->sum('amount');
+        $totalExpenses = PettyCashTransaction::where('type', 'expense')->sum('amount');
+
+        return $totalTopups + $totalRefunds - $totalExpenses;
+    }
+
+    /**
+     * Get current balance from balance records (legacy method)
+     */
+    public static function getCurrentBalanceFromRecords()
+    {
         $latestBalance = self::orderBy('balance_date', 'desc')->first();
         return $latestBalance ? $latestBalance->closing_balance : 0;
+    }
+
+    /**
+     * Update or create balance record for a specific date
+     */
+    public static function updateBalanceForDate($date = null)
+    {
+        if (!$date) {
+            $date = now()->toDateString();
+        }
+
+        $dateObj = \Carbon\Carbon::parse($date);
+        $startOfDay = $dateObj->copy()->startOfDay();
+        $endOfDay = $dateObj->copy()->endOfDay();
+
+        // Get transactions for this date
+        $dailyTransactions = PettyCashTransaction::whereBetween('transaction_date', [$startOfDay, $endOfDay])->get();
+
+        $totalIn = $dailyTransactions->whereIn('type', ['topup', 'refund'])->sum('amount');
+        $totalOut = $dailyTransactions->where('type', 'expense')->sum('amount');
+
+        // Get opening balance (closing balance from previous day)
+        $previousBalance = self::where('balance_date', '<', $date)
+            ->orderBy('balance_date', 'desc')
+            ->first();
+
+        $openingBalance = $previousBalance ? $previousBalance->closing_balance : self::calculateBalanceUpToDate($date, false);
+        $closingBalance = $openingBalance + $totalIn - $totalOut;
+
+        // Update or create balance record
+        return self::updateOrCreate(
+            ['balance_date' => $date],
+            [
+                'opening_balance' => $openingBalance,
+                'total_in' => $totalIn,
+                'total_out' => $totalOut,
+                'closing_balance' => $closingBalance,
+                'transaction_count' => $dailyTransactions->count(),
+                'notes' => 'Auto-calculated from transactions'
+            ]
+        );
+    }
+
+    /**
+     * Calculate balance up to a specific date
+     */
+    public static function calculateBalanceUpToDate($date, $inclusive = true)
+    {
+        $query = PettyCashTransaction::query();
+
+        if ($inclusive) {
+            $query->where('transaction_date', '<=', $date);
+        } else {
+            $query->where('transaction_date', '<', $date);
+        }
+
+        $totalTopups = $query->clone()->where('type', 'topup')->sum('amount');
+        $totalRefunds = $query->clone()->where('type', 'refund')->sum('amount');
+        $totalExpenses = $query->clone()->where('type', 'expense')->sum('amount');
+
+        return $totalTopups + $totalRefunds - $totalExpenses;
+    }
+
+    /**
+     * Sync all balance records with actual transactions
+     */
+    public static function syncAllBalances()
+    {
+        // Get all unique transaction dates
+        $transactionDates = PettyCashTransaction::selectRaw('DATE(transaction_date) as date')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('date');
+
+        foreach ($transactionDates as $date) {
+            self::updateBalanceForDate($date);
+        }
+
+        // Also update today if no transactions
+        if (!$transactionDates->contains(now()->toDateString())) {
+            self::updateBalanceForDate(now()->toDateString());
+        }
     }
 }

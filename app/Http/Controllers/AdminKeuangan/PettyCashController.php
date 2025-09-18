@@ -98,13 +98,13 @@ class PettyCashController extends Controller
         $request->validate($rules);
 
         DB::transaction(function () use ($request) {
-            $currentBalance = PettyCashBalance::getCurrentBalance();
-            
-            // Calculate new balance
+            // Calculate balance after transaction using the date
+            $balanceBeforeTransaction = PettyCashBalance::calculateBalanceUpToDate($request->transaction_date, false);
+
             if ($request->type === 'expense') {
-                $newBalance = $currentBalance - $request->amount;
+                $balanceAfter = $balanceBeforeTransaction - $request->amount;
             } else { // topup or refund
-                $newBalance = $currentBalance + $request->amount;
+                $balanceAfter = $balanceBeforeTransaction + $request->amount;
             }
 
             // Handle file upload
@@ -121,7 +121,7 @@ class PettyCashController extends Controller
                 'amount' => $request->amount,
                 'type' => $request->type,
                 'so_number' => $request->so_number,
-                'balance_after' => $newBalance,
+                'balance_after' => $balanceAfter,
                 'notes' => $request->notes,
                 'receipt_file' => $receiptFile,
                 'status' => 'approved', // Auto approve for admin keuangan
@@ -130,8 +130,14 @@ class PettyCashController extends Controller
                 'approved_at' => now(),
             ]);
 
-            // Update daily balance
-            $this->updateDailyBalance($request->transaction_date);
+            // Update balance records for this date and future dates
+            PettyCashBalance::updateBalanceForDate($request->transaction_date);
+
+            // Update subsequent balance records if this is a historical transaction
+            $futureBalances = PettyCashBalance::where('balance_date', '>', $request->transaction_date)->get();
+            foreach ($futureBalances as $futureBalance) {
+                PettyCashBalance::updateBalanceForDate($futureBalance->balance_date);
+            }
         });
 
         return redirect()->route('admin-keuangan.petty-cash.index')
@@ -190,22 +196,16 @@ class PettyCashController extends Controller
         $request->validate($rules);
 
         DB::transaction(function () use ($request, $pettyCash) {
-            $oldAmount = $pettyCash->amount;
-            $oldType = $pettyCash->type;
-            
-            // Reverse old transaction impact on balance
-            $currentBalance = PettyCashBalance::getCurrentBalance();
-            if ($oldType === 'expense') {
-                $adjustedBalance = $currentBalance + $oldAmount;
-            } else {
-                $adjustedBalance = $currentBalance - $oldAmount;
-            }
+            $oldTransactionDate = $pettyCash->transaction_date;
+            $newTransactionDate = $request->transaction_date;
 
-            // Apply new transaction
+            // Calculate new balance after the transaction
+            $balanceBeforeTransaction = PettyCashBalance::calculateBalanceUpToDate($newTransactionDate, false);
+
             if ($request->type === 'expense') {
-                $newBalance = $adjustedBalance - $request->amount;
-            } else {
-                $newBalance = $adjustedBalance + $request->amount;
+                $balanceAfter = $balanceBeforeTransaction - $request->amount;
+            } else { // topup or refund
+                $balanceAfter = $balanceBeforeTransaction + $request->amount;
             }
 
             // Handle file upload
@@ -222,15 +222,26 @@ class PettyCashController extends Controller
                 'amount' => $request->amount,
                 'type' => $request->type,
                 'so_number' => $request->so_number,
-                'balance_after' => $newBalance,
+                'balance_after' => $balanceAfter,
                 'notes' => $request->notes,
                 'receipt_file' => $receiptFile,
             ]);
 
-            // Update daily balance for both old and new dates
-            $this->updateDailyBalance($pettyCash->getOriginal('transaction_date'));
-            if ($request->transaction_date !== $pettyCash->getOriginal('transaction_date')) {
-                $this->updateDailyBalance($request->transaction_date);
+            // Get all dates that need to be recalculated
+            $datesToUpdate = collect([$oldTransactionDate, $newTransactionDate])
+                ->unique()
+                ->filter()
+                ->sort();
+
+            // Update balance records for affected dates and subsequent dates
+            foreach ($datesToUpdate as $date) {
+                PettyCashBalance::updateBalanceForDate($date);
+
+                // Update all future dates as well
+                $futureBalances = PettyCashBalance::where('balance_date', '>', $date)->get();
+                foreach ($futureBalances as $futureBalance) {
+                    PettyCashBalance::updateBalanceForDate($futureBalance->balance_date);
+                }
             }
         });
 
@@ -246,9 +257,15 @@ class PettyCashController extends Controller
         DB::transaction(function () use ($pettyCash) {
             $transactionDate = $pettyCash->transaction_date;
             $pettyCash->delete();
-            
-            // Update daily balance after deletion
-            $this->updateDailyBalance($transactionDate);
+
+            // Update balance records for this date and future dates
+            PettyCashBalance::updateBalanceForDate($transactionDate);
+
+            // Update subsequent balance records
+            $futureBalances = PettyCashBalance::where('balance_date', '>', $transactionDate)->get();
+            foreach ($futureBalances as $futureBalance) {
+                PettyCashBalance::updateBalanceForDate($futureBalance->balance_date);
+            }
         });
 
         return redirect()->route('admin-keuangan.petty-cash.index')
@@ -307,38 +324,18 @@ class PettyCashController extends Controller
     }
 
     /**
-     * Update daily balance calculation
+     * Sync all balance records
      */
-    private function updateDailyBalance($date)
+    public function syncBalances()
     {
-        $carbonDate = Carbon::parse($date);
-        
-        // Get all transactions for this date
-        $transactions = PettyCashTransaction::whereDate('transaction_date', $carbonDate)
-            ->where('status', 'approved')
-            ->orderBy('created_at')
-            ->get();
+        try {
+            PettyCashBalance::syncAllBalances();
 
-        $totalIn = $transactions->whereIn('type', ['topup', 'refund'])->sum('amount');
-        $totalOut = $transactions->where('type', 'expense')->sum('amount');
-        
-        // Get opening balance (closing balance from previous day)
-        $previousDay = $carbonDate->copy()->subDay();
-        $previousBalance = PettyCashBalance::where('balance_date', $previousDay)->first();
-        $openingBalance = $previousBalance ? $previousBalance->closing_balance : 0;
-        
-        $closingBalance = $openingBalance + $totalIn - $totalOut;
-
-        // Update or create daily balance record
-        PettyCashBalance::updateOrCreate(
-            ['balance_date' => $carbonDate->format('Y-m-d')],
-            [
-                'opening_balance' => $openingBalance,
-                'total_in' => $totalIn,
-                'total_out' => $totalOut,
-                'closing_balance' => $closingBalance,
-                'transaction_count' => $transactions->count(),
-            ]
-        );
+            return redirect()->back()
+                ->with('success', 'Saldo petty cash berhasil disinkronkan.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Gagal menyinkronkan saldo: ' . $e->getMessage());
+        }
     }
 }

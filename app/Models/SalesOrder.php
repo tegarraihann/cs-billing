@@ -280,4 +280,49 @@ class SalesOrder extends Model
         // Generate final order number: EWILOG + YYMM + Opening + Sequential
         return "EWILOG{$year}{$month}{$nextOpening}{$nextSequential}";
     }
+
+    /**
+     * Get invoice items data from vendor breakdown selling amounts
+     * Used to auto-populate invoice items when creating invoice from SO
+     */
+    public function getInvoiceItemsFromVendorBreakdown(): array
+    {
+        $items = [];
+
+        if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
+            foreach ($this->vendor_breakdown as $vendor) {
+                // Only include items with selling amount
+                if (isset($vendor['selling_amount']) && $vendor['selling_amount'] > 0) {
+                    $items[] = [
+                        'description' => $vendor['description'] ?? 'Service',
+                        'quantity' => 1,
+                        'unit' => 'service',
+                        'rate' => floatval($vendor['selling_amount']),
+                        'currency' => 'IDR'
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Check if SO has vendor breakdown data for auto-populating invoice
+     */
+    public function hasVendorBreakdownForInvoice(): bool
+    {
+        if (!$this->vendor_breakdown || !is_array($this->vendor_breakdown)) {
+            return false;
+        }
+
+        // Check if at least one vendor has selling amount
+        foreach ($this->vendor_breakdown as $vendor) {
+            if (isset($vendor['selling_amount']) && $vendor['selling_amount'] > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

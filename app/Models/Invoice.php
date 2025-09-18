@@ -13,6 +13,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'invoice_number',
+        'invoice_type',
         'sales_order_id',
         'customer_id',
         'invoice_date',
@@ -75,25 +76,53 @@ class Invoice extends Model
     }
 
     /**
-     * Generate unique invoice number with format EWL2509001001
-     * Format: EWL + YYMM + NNN + HHH
-     * - EWL: Company prefix for invoices
-     * - YY: Year (25 for 2025)
-     * - MM: Month (09 for September)
-     * - NNN: Opening number (increments every new invoice, resets every new year)
-     * - HHH: Sequential invoice number (increments every new invoice, resets every new year)
-     * 
-     * Example: EWL2509001001, EWL2509002002, EWL2509003003
-     * Next year: EWL2601001001, EWL2601002002 (resets because new year)
-     * 
-     * Note: Same pattern as Sales Order but with EWL prefix instead of EWILOG
+     * Generate invoice number based on Sales Order number
+     * Format: EWL + (SO number without EWILOG prefix)
+     *
+     * Example:
+     * - SO: EWILOG2509008008 → Invoice: EWL2509008008
+     * - SO: EWILOG2601001001 → Invoice: EWL2601001001
+     *
+     * This ensures invoice numbers follow SO numbers for better tracking
      */
-    public static function generateInvoiceNumber(): string
+    public static function generateInvoiceNumberFromSO(SalesOrder $salesOrder): string
+    {
+        // Extract the number part from SO number (remove EWILOG prefix)
+        $soNumber = $salesOrder->order_number;
+
+        if (strpos($soNumber, 'EWILOG') === 0) {
+            // Remove EWILOG prefix and add EWL prefix
+            $numberPart = substr($soNumber, 6); // Remove 'EWILOG' (6 characters)
+            $invoiceNumber = "EWL{$numberPart}";
+        } else {
+            // Fallback: use old generation method if SO number format is unexpected
+            $invoiceNumber = self::generateInvoiceNumberLegacy();
+        }
+
+        // Check if this invoice number already exists
+        $exists = self::where('invoice_number', $invoiceNumber)->exists();
+        if ($exists) {
+            // If exists, append suffix to make it unique
+            $counter = 1;
+            $baseNumber = $invoiceNumber;
+            do {
+                $invoiceNumber = $baseNumber . 'R' . str_pad($counter, 2, '0', STR_PAD_LEFT);
+                $counter++;
+            } while (self::where('invoice_number', $invoiceNumber)->exists());
+        }
+
+        return $invoiceNumber;
+    }
+
+    /**
+     * Legacy method for generating invoice numbers (kept for backward compatibility)
+     */
+    public static function generateInvoiceNumberLegacy(): string
     {
         $now = Carbon::now();
         $year = $now->format('y'); // 2 digit year (25 for 2025)
         $month = $now->format('m'); // Month with leading zero (01-12)
-        
+
         // Get the highest opening number and sequential number from current year
         $maxNumbers = self::whereNotNull('invoice_number')
                         ->where('invoice_number', 'LIKE', "EWL{$year}%") // Match current year only
@@ -102,16 +131,24 @@ class Invoice extends Model
                             MAX(CAST(SUBSTRING(invoice_number, 11, 3) AS UNSIGNED)) as max_sequential
                         ')
                         ->first();
-        
+
         $maxOpening = $maxNumbers->max_opening ?? 0;
         $maxSequential = $maxNumbers->max_sequential ?? 0;
-        
+
         // Both opening number and sequential number increment for each new invoice
         $nextOpening = str_pad($maxOpening + 1, 3, '0', STR_PAD_LEFT);
         $nextSequential = str_pad($maxSequential + 1, 3, '0', STR_PAD_LEFT);
-        
+
         // Generate final invoice number: EWL + YYMM + Opening + Sequential
         return "EWL{$year}{$month}{$nextOpening}{$nextSequential}";
+    }
+
+    /**
+     * Generate unique invoice number (main method - backwards compatible)
+     */
+    public static function generateInvoiceNumber(): string
+    {
+        return self::generateInvoiceNumberLegacy();
     }
 
     public function confirmedBy()
@@ -187,5 +224,39 @@ class Invoice extends Model
     {
         return $query->whereIn('status', ['sent', 'draft'])
                     ->where('status', '!=', 'paid');
+    }
+
+    public function scopeMainInvoices($query)
+    {
+        return $query->where('invoice_type', 'main');
+    }
+
+    public function scopeReimbursementInvoices($query)
+    {
+        return $query->where('invoice_type', 'reimbursement');
+    }
+
+    public function scopeByType($query, $type)
+    {
+        return $query->where('invoice_type', $type);
+    }
+
+    public function isMainInvoice()
+    {
+        return $this->invoice_type === 'main';
+    }
+
+    public function isReimbursementInvoice()
+    {
+        return $this->invoice_type === 'reimbursement';
+    }
+
+    public function getInvoiceTypeNameAttribute()
+    {
+        return match($this->invoice_type) {
+            'main' => 'Main Invoice',
+            'reimbursement' => 'Reimbursement',
+            default => 'Main Invoice'
+        };
     }
 }

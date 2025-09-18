@@ -154,4 +154,66 @@ class AccountReceivable extends Model
             'created_by' => auth()->id()
         ]);
     }
+
+    /**
+     * Update Account Receivable from Invoice data after invoice revision
+     */
+    public function updateFromInvoice(Invoice $invoice): bool
+    {
+        // Calculate new due date from payment terms
+        $dueDate = null;
+        if ($invoice->term_days) {
+            $dueDate = Carbon::parse($invoice->invoice_date)->addDays($invoice->term_days);
+        }
+
+        // Calculate new outstanding amount
+        // If there were payments, maintain the payment history
+        $oldInvoiceAmount = $this->invoice_amount;
+        $newInvoiceAmount = $invoice->total;
+        $paidAmount = $this->paid_amount ?? 0;
+
+        $newOutstandingAmount = $newInvoiceAmount - $paidAmount;
+
+        // Determine new status
+        $newStatus = 'outstanding';
+        if ($newOutstandingAmount <= 0) {
+            $newStatus = 'paid';
+            $newOutstandingAmount = 0;
+        } elseif ($paidAmount > 0) {
+            $newStatus = 'partial';
+        } elseif ($dueDate && Carbon::now()->gt($dueDate)) {
+            $newStatus = 'overdue';
+        }
+
+        // Update the record
+        return $this->update([
+            'customer_id' => $invoice->customer_id,
+            'customer_name' => $invoice->customer->company_name ?? $this->customer_name,
+            'sales_order_id' => $invoice->sales_order_id,
+            'invoice_date' => $invoice->invoice_date,
+            'due_date' => $dueDate,
+            'invoice_amount' => $newInvoiceAmount,
+            'outstanding_amount' => max(0, $newOutstandingAmount),
+            'payment_terms_days' => $invoice->term_days,
+            'status' => $newStatus,
+            'days_overdue' => $newStatus === 'overdue' ? $this->calculateDaysOverdue() : 0
+        ]);
+    }
+
+    /**
+     * Find or create Account Receivable from Invoice
+     */
+    public static function syncFromInvoice(Invoice $invoice): self
+    {
+        $accountReceivable = self::where('invoice_id', $invoice->id)->first();
+
+        if ($accountReceivable) {
+            // Update existing record
+            $accountReceivable->updateFromInvoice($invoice);
+            return $accountReceivable->fresh();
+        } else {
+            // Create new record
+            return self::createFromInvoice($invoice);
+        }
+    }
 }
