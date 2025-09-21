@@ -60,12 +60,30 @@ class AccountReceivableController extends Controller
             'count_outstanding' => AccountReceivable::whereIn('status', ['outstanding', 'partial'])->count()
         ];
 
+        // Calculate summary per customer (for current filtered results)
+        $currentQuery = clone $query;
+        $currentResults = $currentQuery->get();
+
+        $customerSummary = $currentResults->groupBy('customer_id')->map(function ($receivables, $customerId) {
+            $customer = $receivables->first()->customer;
+            return [
+                'customer_id' => $customerId,
+                'customer_name' => $customer ? $customer->company_name : $receivables->first()->customer_name,
+                'total_amount' => (float) $receivables->sum('invoice_amount'),
+                'total_paid' => (float) $receivables->sum('paid_amount'),
+                'total_outstanding' => (float) $receivables->sum('outstanding_amount'),
+                'count_invoices' => (int) $receivables->count(),
+                'count_overdue' => (int) $receivables->where('status', 'overdue')->count()
+            ];
+        })->sortByDesc('total_outstanding')->values();
+
         // Get customers for filter
         $customers = Customer::select('id', 'company_name')->orderBy('company_name')->get();
 
         return Inertia::render('Admin/AdminKeuangan/AccountReceivables/Index', [
             'receivables' => $receivables,
             'summary' => $summary,
+            'customerSummary' => $customerSummary,
             'customers' => $customers,
             'filters' => $request->only(['search', 'status', 'customer_id', 'date_from', 'date_to'])
         ]);

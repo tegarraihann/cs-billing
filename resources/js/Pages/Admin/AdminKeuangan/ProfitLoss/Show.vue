@@ -27,6 +27,20 @@
                         
                         <div class="flex space-x-3">
                             <button
+                                @click="exportPdf"
+                                :disabled="isExporting"
+                                :class="[
+                                    'inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md transition-colors',
+                                    isExporting
+                                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                                        : 'text-white bg-red-600 hover:bg-red-700 border-red-600'
+                                ]"
+                            >
+                                <Download class="w-4 h-4 mr-2" />
+                                {{ isExporting ? 'Exporting...' : 'Export PDF' }}
+                            </button>
+
+                            <button
                                 v-if="period.status !== 'closed'"
                                 @click="regenerateEntries"
                                 :disabled="loading"
@@ -35,8 +49,8 @@
                                 <RefreshCw class="w-4 h-4 mr-2" />
                                 Regenerate Data
                             </button>
-                            
-                            <Link 
+
+                            <Link
                                 v-if="period.status !== 'closed'"
                                 :href="route('admin-keuangan.profit-loss.edit', period.id)"
                                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
@@ -44,7 +58,7 @@
                                 <Edit class="w-4 h-4 mr-2" />
                                 Edit Periode
                             </Link>
-                            
+
                             <button
                                 v-if="period.status !== 'closed'"
                                 @click="finalizePeriod"
@@ -260,7 +274,7 @@
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ArrowLeft, Edit, RefreshCw, CheckCircle } from 'lucide-vue-next'
+import { ArrowLeft, Edit, RefreshCw, CheckCircle, Download } from 'lucide-vue-next'
 import { ref } from 'vue'
 
 const props = defineProps({
@@ -270,6 +284,7 @@ const props = defineProps({
 })
 
 const loading = ref(false)
+const isExporting = ref(false)
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', {
@@ -329,6 +344,32 @@ const finalizePeriod = () => {
         router.post(route('admin-keuangan.profit-loss.finalize', props.period.id), {}, {
             onFinish: () => loading.value = false
         })
+    }
+}
+
+const exportPdf = async () => {
+    if (isExporting.value) return
+
+    try {
+        isExporting.value = true
+        const url = route('admin-keuangan.profit-loss.export-pdf', props.period.id)
+
+        // Try to open in new window first
+        const newWindow = window.open(url, '_blank')
+
+        // If popup was blocked, fallback to current window
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            // Popup blocked, use current window
+            window.location.href = url
+        }
+
+        // Add small delay to show loading state
+        await new Promise(resolve => setTimeout(resolve, 1000))
+    } catch (error) {
+        console.error('Error exporting PDF:', error)
+        alert('Error exporting PDF. Please try again.')
+    } finally {
+        isExporting.value = false
     }
 }
 </script>

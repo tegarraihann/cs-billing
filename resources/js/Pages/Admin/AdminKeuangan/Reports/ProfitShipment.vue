@@ -7,12 +7,18 @@
                     <h1 class="text-2xl font-bold text-gray-900">Total Profit Shipment Report</h1>
                     <button
                         @click="exportPdf"
-                        class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 flex items-center space-x-2"
+                        :disabled="isExporting"
+                        :class="[
+                            'px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2 transition-colors',
+                            isExporting
+                                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                                : 'bg-red-600 text-white hover:bg-red-700'
+                        ]"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <span>Export PDF</span>
+                        <span>{{ isExporting ? 'Exporting...' : 'Export PDF' }}</span>
                     </button>
                 </div>
 
@@ -231,6 +237,8 @@ const searchForm = reactive({
     customer_id: props.filters.customerId || ''
 })
 
+const isExporting = ref(false)
+
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
 }
@@ -283,12 +291,31 @@ const resetFilters = () => {
     applyFilters()
 }
 
-const exportPdf = () => {
-    const params = new URLSearchParams(searchForm).toString()
-    window.open(
-        route('admin-keuangan.profit-reports.export-pdf') + '?' + params,
-        '_blank'
-    )
+const exportPdf = async () => {
+    if (isExporting.value) return
+
+    try {
+        isExporting.value = true
+        const params = new URLSearchParams(searchForm).toString()
+        const url = route('admin-keuangan.profit-reports.export-pdf') + '?' + params
+
+        // Try to open in new window first
+        const newWindow = window.open(url, '_blank')
+
+        // If popup was blocked, fallback to current window
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            // Popup blocked, use current window
+            window.location.href = url
+        }
+
+        // Add small delay to show loading state
+        await new Promise(resolve => setTimeout(resolve, 1000))
+    } catch (error) {
+        console.error('Error exporting PDF:', error)
+        alert('Error exporting PDF. Please try again.')
+    } finally {
+        isExporting.value = false
+    }
 }
 
 const viewDetail = (salesOrder) => {

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProfitLossController extends Controller
 {
@@ -358,14 +359,39 @@ class ProfitLossController extends Controller
         $period->calculateTotals();
     }
 
+    /**
+     * Export profit loss report to PDF
+     */
+    public function exportPdf(ProfitLossPeriod $profitLoss)
+    {
+        $period = $profitLoss->load(['creator', 'approver']);
+        $reportData = $period->getReportData();
+
+        $pdf = Pdf::loadView('admin.admin-keuangan.reports.profit-loss-pdf', [
+            'period' => $period,
+            'reportData' => $reportData,
+            'generatedAt' => now()
+        ])
+        ->setPaper('a4', 'portrait')
+        ->setOptions([
+            'defaultFont' => 'Arial',
+            'isRemoteEnabled' => true,
+            'isHtml5ParserEnabled' => true
+        ]);
+
+        $fileName = 'Laporan_Laba_Rugi_' . str_replace(' ', '_', $period->period_name) . '_' . now()->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
     private function getStats(): array
     {
         $currentMonth = now()->format('Y-m');
         $lastMonth = now()->subMonth()->format('Y-m');
-        
+
         $currentPeriod = ProfitLossPeriod::where('period_code', 'like', 'PL-M-' . $currentMonth . '%')->first();
         $lastPeriod = ProfitLossPeriod::where('period_code', 'like', 'PL-M-' . $lastMonth . '%')->first();
-        
+
         return [
             'total_periods' => ProfitLossPeriod::count(),
             'closed_periods' => ProfitLossPeriod::where('status', 'closed')->count(),

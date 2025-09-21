@@ -99,6 +99,59 @@
                 </div>
             </div>
 
+            <!-- Customer Summary Section (only show if there are results) -->
+            <div v-if="customerSummary && customerSummary.length > 0" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Per Customer</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-2 text-sm font-medium text-gray-500">Customer</th>
+                                <th class="text-right py-2 text-sm font-medium text-gray-500">Total Invoice</th>
+                                <th class="text-right py-2 text-sm font-medium text-gray-500">Total Paid</th>
+                                <th class="text-right py-2 text-sm font-medium text-gray-500">Outstanding</th>
+                                <th class="text-center py-2 text-sm font-medium text-gray-500">Jumlah Invoice</th>
+                                <th class="text-center py-2 text-sm font-medium text-gray-500">Overdue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="customer in customerSummary" :key="customer.customer_id" class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-2 text-sm font-medium text-gray-900">{{ customer.customer_name }}</td>
+                                <td class="py-2 text-sm text-right text-gray-900">Rp {{ formatNumber(customer.total_amount) }}</td>
+                                <td class="py-2 text-sm text-right text-gray-900">Rp {{ formatNumber(customer.total_paid) }}</td>
+                                <td class="py-2 text-sm text-right font-semibold" :class="customer.total_outstanding > 0 ? 'text-red-600' : 'text-green-600'">
+                                    Rp {{ formatNumber(customer.total_outstanding) }}
+                                </td>
+                                <td class="py-2 text-sm text-center text-gray-900">{{ customer.count_invoices }}</td>
+                                <td class="py-2 text-sm text-center" :class="customer.count_overdue > 0 ? 'text-red-600 font-semibold' : 'text-gray-900'">
+                                    {{ customer.count_overdue }}
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-gray-50 font-semibold">
+                            <tr>
+                                <td class="py-2 text-sm text-gray-900">Total</td>
+                                <td class="py-2 text-sm text-right text-gray-900">
+                                    Rp {{ formatNumber(customerSummaryTotals.totalAmount) }}
+                                </td>
+                                <td class="py-2 text-sm text-right text-gray-900">
+                                    Rp {{ formatNumber(customerSummaryTotals.totalPaid) }}
+                                </td>
+                                <td class="py-2 text-sm text-right text-red-600">
+                                    Rp {{ formatNumber(customerSummaryTotals.totalOutstanding) }}
+                                </td>
+                                <td class="py-2 text-sm text-center text-gray-900">
+                                    {{ customerSummaryTotals.totalInvoices }}
+                                </td>
+                                <td class="py-2 text-sm text-center text-red-600">
+                                    {{ customerSummaryTotals.totalOverdue }}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
             <!-- Table Section -->
             <div class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -209,6 +262,24 @@
                                 </td>
                             </tr>
                         </tbody>
+                        <!-- Footer with totals for current page -->
+                        <tfoot class="bg-gray-100 font-semibold">
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-left text-sm text-gray-900">
+                                    Total Halaman Ini ({{ receivables.data.length }} items)
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(currentPageTotals.totalAmount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(currentPageTotals.totalPaid) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(currentPageTotals.totalOutstanding) }}
+                                </td>
+                                <td colspan="2" class="px-6 py-4"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -312,6 +383,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 const props = defineProps({
     receivables: Object,
     summary: Object,
+    customerSummary: Array,
     customers: Array,
     filters: Object
 })
@@ -342,6 +414,44 @@ const debounceSearch = () => {
         applyFilters()
     }, 500)
 }
+
+// Computed property for current page totals
+const currentPageTotals = computed(() => {
+    if (!props.receivables.data || props.receivables.data.length === 0) {
+        return {
+            totalAmount: 0,
+            totalPaid: 0,
+            totalOutstanding: 0
+        }
+    }
+
+    return {
+        totalAmount: props.receivables.data.reduce((sum, item) => sum + (parseFloat(item.invoice_amount) || 0), 0),
+        totalPaid: props.receivables.data.reduce((sum, item) => sum + (parseFloat(item.paid_amount) || 0), 0),
+        totalOutstanding: props.receivables.data.reduce((sum, item) => sum + (parseFloat(item.outstanding_amount) || 0), 0)
+    }
+})
+
+// Computed property for customer summary totals
+const customerSummaryTotals = computed(() => {
+    if (!props.customerSummary || props.customerSummary.length === 0) {
+        return {
+            totalAmount: 0,
+            totalPaid: 0,
+            totalOutstanding: 0,
+            totalInvoices: 0,
+            totalOverdue: 0
+        }
+    }
+
+    return {
+        totalAmount: props.customerSummary.reduce((sum, customer) => sum + (parseFloat(customer.total_amount) || 0), 0),
+        totalPaid: props.customerSummary.reduce((sum, customer) => sum + (parseFloat(customer.total_paid) || 0), 0),
+        totalOutstanding: props.customerSummary.reduce((sum, customer) => sum + (parseFloat(customer.total_outstanding) || 0), 0),
+        totalInvoices: props.customerSummary.reduce((sum, customer) => sum + (parseInt(customer.count_invoices) || 0), 0),
+        totalOverdue: props.customerSummary.reduce((sum, customer) => sum + (parseInt(customer.count_overdue) || 0), 0)
+    }
+})
 
 const applyFilters = () => {
     router.get(route('admin-keuangan.account-receivables.index'), searchForm, {

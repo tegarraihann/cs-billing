@@ -437,6 +437,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/', 'store')->name('store');
         Route::get('/{profitLoss}', 'show')->name('show');
         Route::get('/{profitLoss}/edit', 'edit')->name('edit');
+        Route::get('/{profitLoss}/export-pdf', 'exportPdf')->name('export-pdf');
         Route::put('/{profitLoss}', 'update')->name('update');
         Route::delete('/{profitLoss}', 'destroy')->name('destroy');
         Route::post('/{profitLoss}/finalize', 'finalize')->name('finalize');
