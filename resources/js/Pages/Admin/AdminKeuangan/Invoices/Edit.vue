@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-2xl font-bold text-sage-800">Edit Invoice</h2>
-            <p class="text-sage-600">{{ form.invoice_number || 'New Invoice' }}</p>
+            <p class="text-sage-600">{{ invoice.invoice_number }}</p>
           </div>
           <Link
             :href="route('admin-keuangan.invoices.index')"
@@ -21,148 +21,215 @@
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="updateInvoice">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <!-- Basic Info -->
-          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-            <h3 class="text-lg font-semibold text-sage-800 mb-4">Informasi Dasar</h3>
-            
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Sales Order</label>
-                <select
-                  v-model="form.sales_order_id"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  disabled
-                >
-                  <option v-for="salesOrder in salesOrders" :key="salesOrder.id" :value="salesOrder.id">
-                    {{ salesOrder.order_number }} - {{ salesOrder.customer || salesOrder.customer_name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Invoice</label>
-                  <input
-                    type="date"
-                    v-model="form.invoice_date"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                    :class="{ 'border-red-500': form.errors.invoice_date }"
-                    required
-                  />
-                  <div v-if="form.errors.invoice_date" class="text-red-500 text-sm mt-1">{{ form.errors.invoice_date }}</div>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Term (Hari)</label>
-                  <input
-                    type="number"
-                    v-model="form.term_days"
-                    min="1"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                    :class="{ 'border-red-500': form.errors.term_days }"
-                    required
-                  />
-                  <div v-if="form.errors.term_days" class="text-red-500 text-sm mt-1">{{ form.errors.term_days }}</div>
-                </div>
-              </div>
+      <form @submit.prevent="submit" class="space-y-6">
+        <!-- Sales Order Selection -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+          <h3 class="text-lg font-semibold text-sage-800 mb-4">Sales Order & Type Invoice</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Sales Order</label>
+              <select
+                v-model="form.sales_order_id"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                disabled
+              >
+                <option v-for="salesOrder in salesOrders" :key="salesOrder.id" :value="salesOrder.id">
+                  {{ salesOrder.order_number }} - {{ salesOrder.customer || salesOrder.customer_name }}
+                </option>
+              </select>
             </div>
-          </div>
-
-          <!-- Shipment Details -->
-          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-            <h3 class="text-lg font-semibold text-sage-800 mb-4">Detail Pengiriman</h3>
-            
-            <div class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Shipper</label>
-                  <input
-                    type="text"
-                    v-model="form.shipper"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Consignee</label>
-                  <input
-                    type="text"
-                    v-model="form.consignee"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">AWB/BL No</label>
-                  <input
-                    type="text"
-                    v-model="form.awb_bl_no"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">MAWB/OBL No</label>
-                  <input
-                    type="text"
-                    v-model="form.mawb_obl_no"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Vessel</label>
-                  <input
-                    type="text"
-                    v-model="form.vessel"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Flight/VOY</label>
-                  <input
-                    type="text"
-                    v-model="form.flight_voy"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Origin</label>
-                  <input
-                    type="text"
-                    v-model="form.origin"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Destination</label>
-                  <input
-                    type="text"
-                    v-model="form.destination"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Invoice</label>
+              <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
+                {{ getInvoiceTypeLabel(invoice.invoice_type) }}
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Invoice Details -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+          <h3 class="text-lg font-semibold text-sage-800 mb-4">Detail Invoice</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Invoice</label>
+              <input
+                type="date"
+                v-model="form.invoice_date"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                required
+              />
+              <div v-if="errors.invoice_date" class="text-red-500 text-sm mt-1">
+                {{ errors.invoice_date }}
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Term (Hari)</label>
+              <input
+                type="number"
+                v-model="form.term_days"
+                min="1"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                required
+              />
+              <div v-if="errors.term_days" class="text-red-500 text-sm mt-1">
+                {{ errors.term_days }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+          <h3 class="text-lg font-semibold text-sage-800 mb-4">Detail Pengiriman</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Shipper</label>
+              <input
+                type="text"
+                v-model="form.shipper"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Consignee</label>
+              <input
+                type="text"
+                v-model="form.consignee"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">AWB/BL No.</label>
+              <input
+                type="text"
+                v-model="form.awb_bl_no"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">MAWB/OBL No.</label>
+              <input
+                type="text"
+                v-model="form.mawb_obl_no"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Vessel</label>
+              <input
+                type="text"
+                v-model="form.vessel"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Flight/VOY</label>
+              <input
+                type="text"
+                v-model="form.flight_voy"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Origin</label>
+              <input
+                type="text"
+                v-model="form.origin"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Destination</label>
+              <input
+                type="text"
+                v-model="form.destination"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">POL/POD</label>
+              <input
+                type="text"
+                v-model="form.pol_pod"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ETD</label>
+              <input
+                type="date"
+                v-model="form.etd"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ETA</label>
+              <input
+                type="date"
+                v-model="form.eta"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Gross Weight</label>
+              <input
+                type="number"
+                step="0.01"
+                v-model="form.gross_weight"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Volume</label>
+              <input
+                type="text"
+                v-model="form.volume"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">No. of Packages</label>
+              <input
+                type="number"
+                v-model="form.no_of_packages"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Container No.</label>
+              <input
+                type="text"
+                v-model="form.container_no"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">20'/40'/45'</label>
+              <input
+                type="text"
+                v-model="form.container_size"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                placeholder="e.g., 20GP, 40GP, 45GP"
+              />
+            </div>
+          </div>
+          <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+            <textarea
+              v-model="form.remarks"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            ></textarea>
+          </div>
+        </div>
+
         <!-- Invoice Items -->
-        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
-          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-sage-800">Item Invoice</h3>
+        <div class="space-y-6">
+          <!-- Main Invoice Items (Table Style) -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-sage-800">Item Invoice Utama</h3>
               <button
                 type="button"
                 @click="addItem"
@@ -174,136 +241,228 @@
                 Tambah Item
               </button>
             </div>
-          </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-sage-50">
-                <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-sage-500 uppercase">Deskripsi</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-sage-500 uppercase">Qty</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-sage-500 uppercase">Unit</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-sage-500 uppercase">Rate</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-sage-500 uppercase">Currency</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-sage-500 uppercase">Amount</th>
-                  <th class="px-4 py-3 text-center text-xs font-medium text-sage-500 uppercase">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-sage-200">
-                <tr v-for="(item, index) in form.items" :key="index">
-                  <td class="px-4 py-4">
+            <div v-if="mainItems.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              <div class="flex flex-col items-center">
+                <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p>Belum ada item invoice utama</p>
+                <p class="text-sm">Klik tombol "Tambah Item" untuk menambah item</p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div v-for="(item, index) in mainItems" :key="'main-' + index" class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="font-medium text-gray-900">Item {{ index + 1 }}</h4>
+                  <button
+                    type="button"
+                    @click="removeMainItem(index)"
+                    class="text-red-600 hover:text-red-800"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
                     <input
                       type="text"
                       v-model="item.description"
-                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                      :class="{ 'border-red-500': form.errors[`items.${index}.description`] }"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                       required
                     />
-                  </td>
-                  <td class="px-4 py-4">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Qty</label>
                     <input
                       type="number"
                       v-model="item.quantity"
-                      @input="calculateAmount(index)"
+                      @input="calculateMainAmount(index)"
                       step="0.01"
                       min="0.01"
-                      class="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                       required
                     />
-                  </td>
-                  <td class="px-4 py-4">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit</label>
                     <input
                       type="text"
                       v-model="item.unit"
-                      class="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                       required
                     />
-                  </td>
-                  <td class="px-4 py-4">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Rate</label>
                     <input
                       type="number"
                       v-model="item.rate"
-                      @input="calculateAmount(index)"
+                      @input="calculateMainAmount(index)"
                       step="0.01"
                       min="0"
-                      class="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                       required
                     />
-                  </td>
-                  <td class="px-4 py-4">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                    <input
+                      type="text"
+                      :value="formatCurrency(item.amount || 0)"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reimbursement Invoice Items (Voucher Style) -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-sage-800">Item Reimbursement</h3>
+              <button
+                type="button"
+                @click="addReimbursementItem"
+                class="inline-flex items-center px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Tambah Item Reimbursement
+              </button>
+            </div>
+
+            <div v-if="reimbursementItems.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              <div class="flex flex-col items-center">
+                <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p>Belum ada item reimbursement</p>
+                <p class="text-sm">Klik tombol "Tambah Item Reimbursement" untuk menambah item</p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div v-for="(item, index) in reimbursementItems" :key="'reimb-' + index" class="border border-gray-200 rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                  <h4 class="font-medium text-gray-700">Reimbursement Item #{{ index + 1 }}</h4>
+                  <button
+                    type="button"
+                    @click="removeReimbursementItem(index)"
+                    class="text-red-600 hover:text-red-800"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Number/Ref</label>
+                    <input
+                      v-model="item.item_ref"
+                      type="text"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      placeholder="e.g., REIMB-001"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
                     <select
                       v-model="item.currency"
-                      class="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                      required
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                     >
                       <option value="IDR">IDR</option>
                       <option value="USD">USD</option>
                       <option value="EUR">EUR</option>
+                      <option value="SGD">SGD</option>
                     </select>
-                  </td>
-                  <td class="px-4 py-4 text-right">
-                    <span class="font-medium">{{ formatCurrency(item.amount || 0, item.currency) }}</span>
-                  </td>
-                  <td class="px-4 py-4 text-center">
-                    <button
-                      type="button"
-                      @click="removeItem(index)"
-                      class="text-red-600 hover:text-red-900"
-                      v-if="form.items.length > 1"
-                    >
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Total -->
-          <div class="px-6 py-4 bg-gray-50 border-t border-sage-200">
-            <div class="flex justify-end">
-              <div class="w-64 space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Subtotal:</span>
-                  <span class="text-sm font-medium">{{ formatCurrency(subtotal) }}</span>
+                  </div>
                 </div>
-                <div class="flex justify-between text-lg font-semibold">
-                  <span>Total:</span>
-                  <span>{{ formatCurrency(subtotal) }}</span>
+
+                <div class="mt-3">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    v-model="item.description"
+                    rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
+                    placeholder="e.g., Biaya trucking dari gudang ke pelabuhan"
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <input
+                      v-model="item.quantity"
+                      @input="calculateReimbursementAmount(index)"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      placeholder="1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit Rate</label>
+                    <input
+                      v-model="item.rate"
+                      @input="calculateReimbursementAmount(index)"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      placeholder="500000"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
+                    <input
+                      type="text"
+                      :value="formatCurrency(item.amount || 0, item.currency || 'IDR')"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                      readonly
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Remarks -->
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 mb-6">
-          <h3 class="text-lg font-semibold text-sage-800 mb-4">Catatan</h3>
-          <textarea
-            v-model="form.remarks"
-            rows="4"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            placeholder="Catatan tambahan untuk invoice..."
-          ></textarea>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex justify-end space-x-4">
-          <Link
-            :href="route('admin-keuangan.invoices.index')"
-            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Batal
-          </Link>
-          <button
-            type="submit"
-            :disabled="form.processing"
-            class="px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50"
-          >
-            {{ form.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
-          </button>
+        <!-- Submit Buttons -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+          <div class="flex items-center justify-between">
+            <div class="text-lg font-semibold text-sage-800">
+              Total: {{ formatCurrency(calculateTotal()) }}
+            </div>
+            <div class="flex space-x-4">
+              <Link
+                :href="route('admin-keuangan.invoices.index')"
+                class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Batal
+              </Link>
+              <button
+                type="submit"
+                :disabled="form.processing"
+                class="px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50"
+              >
+                {{ form.processing ? 'Memperbarui...' : 'Perbarui Invoice' }}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </div>
@@ -311,94 +470,199 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
-import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useForm, Link } from '@inertiajs/vue3'
+import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 const props = defineProps({
   invoice: Object,
   salesOrders: Array,
-});
+  errors: Object,
+})
 
 const route = window.route || function(name, params) {
   const routes = {
     'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
-    'admin-keuangan.invoices.update': (id) => `/admin-keuangan/invoices/${id}`,
+    'admin-keuangan.invoices.update': '/admin-keuangan/invoices/' + (params || ''),
   };
-  return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#';
+  return routes[name] || '#';
 };
 
+// Separate reactive arrays for main and reimbursement items
+const mainItems = ref([])
+const reimbursementItems = ref([])
+
+// Helper function to convert ISO date to YYYY-MM-DD format
+const formatDateForInput = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toISOString().split('T')[0]
+}
+
+// Initialize form with invoice data
 const form = useForm({
-  invoice_number: props.invoice.invoice_number,
   sales_order_id: props.invoice.sales_order_id,
-  invoice_date: props.invoice.invoice_date,
+  invoice_type: props.invoice.invoice_type || 'combined',
+  invoice_date: formatDateForInput(props.invoice.invoice_date),
   term_days: props.invoice.term_days,
   shipper: props.invoice.shipper || '',
   consignee: props.invoice.consignee || '',
   awb_bl_no: props.invoice.awb_bl_no || '',
   mawb_obl_no: props.invoice.mawb_obl_no || '',
+  vessel: props.invoice.vessel || '',
+  flight_voy: props.invoice.flight_voy || '',
+  origin: props.invoice.origin || '',
+  destination: props.invoice.destination || '',
+  pol_pod: props.invoice.pol_pod || '',
+  etd: formatDateForInput(props.invoice.etd),
+  eta: formatDateForInput(props.invoice.eta),
   gross_weight: props.invoice.gross_weight || '',
   volume: props.invoice.volume || '',
   no_of_packages: props.invoice.no_of_packages || '',
-  vessel: props.invoice.vessel || '',
-  flight_voy: props.invoice.flight_voy || '',
-  pol_pod: props.invoice.pol_pod || '',
-  origin: props.invoice.origin || '',
-  destination: props.invoice.destination || '',
-  etd: props.invoice.etd || '',
-  eta: props.invoice.eta || '',
   container_no: props.invoice.container_no || '',
   container_size: props.invoice.container_size || '',
   remarks: props.invoice.remarks || '',
-  items: props.invoice.items || [{
+  items: []
+})
+
+// Main item functions
+const addItem = () => {
+  mainItems.value.push({
     description: '',
     quantity: 1,
-    unit: 'pcs',
+    unit: 'SET',
     rate: 0,
     currency: 'IDR',
-    amount: 0
-  }]
-});
+    amount: 0,
+    item_ref: 'main',
+    type: 'main'
+  })
+}
 
-const subtotal = computed(() => {
-  return form.items.reduce((sum, item) => sum + (item.amount || 0), 0);
-});
+const removeMainItem = (index) => {
+  mainItems.value.splice(index, 1)
+}
+
+const calculateMainAmount = (index) => {
+  const item = mainItems.value[index]
+  item.amount = parseFloat(item.quantity || 0) * parseFloat(item.rate || 0)
+}
+
+// Reimbursement item functions
+const addReimbursementItem = () => {
+  reimbursementItems.value.push({
+    description: '',
+    quantity: 1,
+    unit: 'SET',
+    rate: 0,
+    currency: 'IDR',
+    amount: 0,
+    item_ref: 'reimbursement',
+    type: 'reimbursement'
+  })
+}
+
+const removeReimbursementItem = (index) => {
+  reimbursementItems.value.splice(index, 1)
+}
+
+const calculateReimbursementAmount = (index) => {
+  const item = reimbursementItems.value[index]
+  item.amount = parseFloat(item.quantity || 0) * parseFloat(item.rate || 0)
+}
+
+const calculateTotal = () => {
+  const mainTotal = mainItems.value.reduce((total, item) => {
+    return total + (parseFloat(item.amount || 0))
+  }, 0)
+
+  const reimbursementTotal = reimbursementItems.value.reduce((total, item) => {
+    return total + (parseFloat(item.amount || 0))
+  }, 0)
+
+  return mainTotal + reimbursementTotal
+}
 
 const formatCurrency = (amount, currency = 'IDR') => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 0,
-  }).format(amount);
-};
+  }).format(amount || 0)
+}
 
-const calculateAmount = (index) => {
-  const item = form.items[index];
-  item.amount = (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0);
-};
+const getInvoiceTypeLabel = (type) => {
+  const labels = {
+    'main': 'Main Invoice',
+    'reimbursement': 'Reimbursement',
+    'combined': 'Combined Invoice (Main + Reimbursement)'
+  }
+  return labels[type] || type
+}
 
-const addItem = () => {
-  form.items.push({
-    description: '',
-    quantity: 1,
-    unit: 'pcs',
-    rate: 0,
-    currency: 'IDR',
-    amount: 0
-  });
-};
+const submit = () => {
+  // Combine all items from both arrays with proper item_ref
+  const allItems = [
+    ...mainItems.value.map(item => ({
+      ...item,
+      type: 'main',
+      item_ref: item.item_ref || 'main'
+    })),
+    ...reimbursementItems.value.map(item => ({
+      ...item,
+      type: 'reimbursement',
+      item_ref: item.item_ref || 'reimbursement'
+    }))
+  ]
 
-const removeItem = (index) => {
-  form.items.splice(index, 1);
-};
+  // Set the combined items to form
+  form.items = allItems
 
-const updateInvoice = () => {
-  form.put(route('admin-keuangan.invoices.update', props.invoice.id), {
-    onSuccess: () => {
-      // Handle success
-    }
-  });
-};
+  // Determine the invoice type based on what items exist
+  if (mainItems.value.length > 0 && reimbursementItems.value.length > 0) {
+    form.invoice_type = 'combined'
+  } else if (reimbursementItems.value.length > 0) {
+    form.invoice_type = 'reimbursement'
+  } else {
+    form.invoice_type = 'main'
+  }
+
+  form.put(route('admin-keuangan.invoices.update', props.invoice.id))
+}
+
+// Initialize items separation and amounts
+onMounted(() => {
+  if (props.invoice.items && props.invoice.items.length > 0) {
+    // Separate existing items based on item_ref or type
+    props.invoice.items.forEach(item => {
+      const ref = (item.item_ref || '').toLowerCase().trim()
+      const isReimbursement = ref === 'reimbursement' ||
+                             ref === 'r' ||
+                             ref === '2' ||
+                             ref.includes('reimbur') ||
+                             item.type === 'reimbursement'
+
+      if (isReimbursement) {
+        reimbursementItems.value.push({ ...item })
+      } else {
+        mainItems.value.push({ ...item })
+      }
+    })
+  }
+
+  // Ensure at least one item in main if nothing exists
+  if (mainItems.value.length === 0 && reimbursementItems.value.length === 0) {
+    addItem()
+  }
+
+  // Calculate amounts for existing items
+  mainItems.value.forEach((item, index) => {
+    calculateMainAmount(index)
+  })
+  reimbursementItems.value.forEach((item, index) => {
+    calculateReimbursementAmount(index)
+  })
+})
 </script>
 
 <style scoped>
@@ -409,11 +673,20 @@ const updateInvoice = () => {
 .text-sage-600 {
   color: #8db580;
 }
+.text-sage-700 {
+  color: #7ba169;
+}
 .text-sage-800 {
   color: #6b8f5e;
 }
+.text-sage-900 {
+  color: #5a7a4f;
+}
 .bg-sage-50 {
   background-color: #f4f6f3;
+}
+.bg-sage-100 {
+  background-color: #e8ece5;
 }
 .bg-sage-600 {
   background-color: #8db580;
@@ -424,8 +697,23 @@ const updateInvoice = () => {
 .border-sage-200 {
   border-color: #d4ddd0;
 }
+.border-sage-300 {
+  border-color: #c0cdb8;
+}
 .divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
   border-color: #d4ddd0;
+}
+.hover\:bg-sage-50:hover {
+  background-color: #f4f6f3;
+}
+.hover\:bg-sage-100:hover {
+  background-color: #e8ece5;
+}
+.hover\:bg-sage-700:hover {
+  background-color: #7ba169;
+}
+.hover\:text-sage-900:hover {
+  color: #5a7a4f;
 }
 .focus\:ring-sage-500:focus {
   --tw-ring-color: #8db580;

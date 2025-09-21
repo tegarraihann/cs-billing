@@ -112,7 +112,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable|array',
+            'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
@@ -150,7 +150,12 @@ class SalesOrderController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
-        
+
+        // Convert container_no string to array if needed
+        if (isset($validated['container_no']) && is_string($validated['container_no'])) {
+            $validated['container_no'] = [$validated['container_no']];
+        }
+
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
         $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
@@ -295,7 +300,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable|array',
+            'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
@@ -310,6 +315,11 @@ class SalesOrderController extends Controller
             'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
         ]);
+
+        // Convert container_no string to array if needed
+        if (isset($validated['container_no']) && is_string($validated['container_no'])) {
+            $validated['container_no'] = [$validated['container_no']];
+        }
 
         // Prepare multiple vendors data for storage
         $vendorDetails = $validated['vendor_details'] ?? [];

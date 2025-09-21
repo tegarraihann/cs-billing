@@ -504,7 +504,7 @@
                     @endif
                     <div style="height: 8px;"></div>
                     <div class="shipment-row">
-                        <span class="field-label">REMARKS</span> :{{ $invoice->remarks ?? $invoice->salesOrder->remarks ?? '-' }}
+                        <span class="field-label">REMARKS</span> :{{ $invoice->remarks ?? '-' }}
                     </div>
                 </div>
 

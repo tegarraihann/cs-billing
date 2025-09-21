@@ -16,65 +16,52 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Invoice::with(['salesOrder', 'customer', 'confirmedBy']);
+        try {
+            // Basic query first
+            $invoices = Invoice::with(['salesOrder', 'customer', 'confirmedBy'])
+                              ->orderBy('created_at', 'desc')
+                              ->paginate(10);
 
-        // Filter by status
-        if ($request->filled('status')) {
-            if ($request->status === 'overdue') {
-                $query->overdue();
-            } else {
-                $query->where('status', $request->status);
+            // Simple processing for combined invoices
+            foreach ($invoices as $invoice) {
+                if ($invoice->invoice_type === 'combined') {
+                    $invoice->invoice_types = ['main', 'reimbursement'];
+                } else {
+                    $invoice->invoice_types = [$invoice->invoice_type ?? 'main'];
+                }
             }
+
+            // Basic stats
+            $stats = [
+                'total_invoices' => Invoice::count(),
+                'paid_invoices' => Invoice::where('status', 'paid')->count(),
+                'overdue_invoices' => 0, // Simplified temporarily
+                'pending_invoices' => 0, // Simplified temporarily
+                'total_amount' => Invoice::sum('total') ?? 0,
+                'paid_amount' => Invoice::where('status', 'paid')->sum('paid_amount') ?? 0,
+                'outstanding_amount' => 0 // Simplified temporarily
+            ];
+
+            return Inertia::render('Admin/AdminKeuangan/Invoices/Index', [
+                'invoices' => $invoices,
+                'filters' => $request->only(['status', 'invoice_type', 'search', 'date_from', 'date_to']),
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Invoice index error: ' . $e->getMessage(), [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return simple error response for debugging
+            return response()->json([
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
         }
-
-        // Filter by invoice type
-        if ($request->filled('invoice_type')) {
-            $query->where('invoice_type', $request->invoice_type);
-        }
-
-        // Filter by date range
-        if ($request->filled('date_from')) {
-            $query->where('invoice_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->where('invoice_date', '<=', $request->date_to);
-        }
-
-        // Search by invoice number or customer
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function($customerQuery) use ($search) {
-                      $customerQuery->where('company_name', 'like', "%{$search}%")
-                                  ;
-                  })
-                  ->orWhereHas('salesOrder', function($orderQuery) use ($search) {
-                      $orderQuery->where('order_number', 'like', "%{$search}%")
-                               ->orWhere('customer', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        $invoices = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        // Tambahkan statistik untuk dashboard
-        $stats = [
-            'total_invoices' => Invoice::count(),
-            'paid_invoices' => Invoice::where('status', 'paid')->count(),
-            'overdue_invoices' => Invoice::overdue()->count(),
-            'pending_invoices' => Invoice::pendingPayment()->count(),
-            'total_amount' => Invoice::sum('total'),
-            'paid_amount' => Invoice::where('status', 'paid')->sum('paid_amount'),
-            'outstanding_amount' => Invoice::where('status', '!=', 'paid')->sum('total')
-        ];
-
-        return Inertia::render('Admin/AdminKeuangan/Invoices/Index', [
-            'invoices' => $invoices,
-            'filters' => $request->only(['status', 'invoice_type', 'search', 'date_from', 'date_to']),
-            'stats' => $stats
-        ]);
     }
 
     public function create(Request $request)
@@ -83,10 +70,10 @@ class InvoiceController extends Controller
         if ($request->has('sales_order_id') && $request->has('invoice_type')) {
             $salesOrder = SalesOrder::findOrFail($request->sales_order_id);
 
-            // Verify SO is eligible for invoice creation
-            if (!in_array($salesOrder->status, ['released', 'approved']) || !$salesOrder->released_at) {
+            // Verify SO is eligible for invoice creation - must be approved by finance
+            if ($salesOrder->status !== 'approved' || !$salesOrder->released_at || !$salesOrder->approved_at) {
                 return redirect()->route('admin-keuangan.invoices.index')
-                    ->withErrors(['error' => 'Sales Order belum eligible untuk dibuat invoice.']);
+                    ->withErrors(['error' => 'Sales Order harus sudah disetujui finance untuk dibuat invoice.']);
             }
 
             // Check if invoice type already exists
@@ -106,12 +93,19 @@ class InvoiceController extends Controller
             ]);
         }
 
-        // Get SOs that can have invoices created - like the original logic
-        $salesOrders = SalesOrder::whereIn('status', ['released', 'approved'])
+        // Get only approved SOs (already released and approved by finance)
+        $allSalesOrders = SalesOrder::with('invoices')
+            ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
-            ->whereDoesntHave('invoices')  // Only show SOs with NO invoices at all
-            ->orderBy('released_at', 'desc')
+            ->whereNotNull('approved_at')  // Must be approved by finance
+            ->orderBy('approved_at', 'desc')  // Order by approval date
             ->get();
+
+        // Filter SOs that can still have invoices created
+        $salesOrders = $allSalesOrders->filter(function($salesOrder) {
+            // Only show SOs that have NO invoices at all
+            return $salesOrder->invoices->count() === 0;
+        });
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
             'salesOrders' => $salesOrders
@@ -225,14 +219,14 @@ class InvoiceController extends Controller
             'eta' => $validated['eta'] ?? $salesOrder->eta,
             'container_no' => $validated['container_no'] ?? (is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : $salesOrder->container_no),
             'container_size' => $validated['container_size'] ?? $salesOrder->shipment_type,
-            'remarks' => $validated['remarks'] ?? $salesOrder->remarks,
+            'remarks' => $validated['remarks'],
             'status' => 'draft'
         ]);
 
         // Create invoice items
         foreach ($validated['items'] as $item) {
             $amount = $item['quantity'] * $item['rate'];
-            
+
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
                 'description' => $item['description'],
@@ -240,7 +234,8 @@ class InvoiceController extends Controller
                 'unit' => $item['unit'],
                 'rate' => $item['rate'],
                 'currency' => $item['currency'],
-                'amount' => $amount
+                'amount' => $amount,
+                'item_ref' => $item['item_ref'] ?? null
             ]);
         }
 
@@ -257,15 +252,49 @@ class InvoiceController extends Controller
     {
         $invoice->load(['salesOrder', 'customer', 'items']);
 
+
+        // Get all invoices from the same Sales Order
+        $relatedInvoices = collect();
+        $mainInvoice = null;
+        $reimbursementInvoice = null;
+
+        if ($invoice->sales_order_id) {
+            $relatedInvoices = Invoice::with(['items'])
+                ->where('sales_order_id', $invoice->sales_order_id)
+                ->get();
+
+            $mainInvoice = $relatedInvoices->where('invoice_type', 'main')->first();
+            $reimbursementInvoice = $relatedInvoices->where('invoice_type', 'reimbursement')->first();
+        }
+
+        // Fallback: if no related invoices found, use current invoice
+        if ($relatedInvoices->isEmpty()) {
+            $relatedInvoices = collect([$invoice]);
+
+            if ($invoice->invoice_type === 'main') {
+                $mainInvoice = $invoice;
+            } elseif ($invoice->invoice_type === 'reimbursement') {
+                $reimbursementInvoice = $invoice;
+            } elseif ($invoice->invoice_type === 'combined') {
+                // For combined invoice, show as both main and reimbursement
+                $mainInvoice = $invoice;
+                $reimbursementInvoice = $invoice;
+            }
+        }
+
+
         return Inertia::render('Admin/AdminKeuangan/Invoices/Show', [
-            'invoice' => $invoice
+            'invoice' => $invoice,
+            'mainInvoice' => $mainInvoice,
+            'reimbursementInvoice' => $reimbursementInvoice,
+            'relatedInvoices' => $relatedInvoices
         ]);
     }
 
     public function edit(Invoice $invoice)
     {
         $invoice->load(['salesOrder', 'customer', 'items']);
-        
+
         $salesOrders = SalesOrder::with('customer')
             ->where('status', 'approved')
             ->where(function($query) use ($invoice) {
@@ -308,6 +337,7 @@ class InvoiceController extends Controller
             'items.*.unit' => 'required|string|max:50',
             'items.*.rate' => 'required|numeric|min:0',
             'items.*.currency' => 'required|string|max:3',
+            'items.*.item_ref' => 'nullable|string|max:100',
         ]);
 
         $invoiceDate = Carbon::parse($validated['invoice_date']);
@@ -342,7 +372,7 @@ class InvoiceController extends Controller
         // Create new items
         foreach ($validated['items'] as $item) {
             $amount = $item['quantity'] * $item['rate'];
-            
+
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
                 'description' => $item['description'],
@@ -350,7 +380,8 @@ class InvoiceController extends Controller
                 'unit' => $item['unit'],
                 'rate' => $item['rate'],
                 'currency' => $item['currency'],
-                'amount' => $amount
+                'amount' => $amount,
+                'item_ref' => $item['item_ref'] ?? null
             ]);
         }
 
@@ -375,14 +406,63 @@ class InvoiceController extends Controller
     {
         // Load relationships
         $invoice->load(['salesOrder', 'customer', 'items']);
-        
-        // Generate PDF using Blade template
-        $pdf = PDF::loadView('invoices.pdf', compact('invoice'));
+
+        // Filter only main items (where item_ref is null or 'main')
+        $mainItems = $invoice->items->whereIn('item_ref', [null, 'main']);
+
+        // Calculate totals for main items only
+        $subtotal = $mainItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only main items
+        $mainInvoice = $invoice->replicate();
+        $mainInvoice->setRelation('items', $mainItems);
+        $mainInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $mainInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $mainInvoice->subtotal = $subtotal;
+        $mainInvoice->total = $total;
+
+        // Generate PDF using main invoice template
+        $pdf = PDF::loadView('invoices.main-pdf', ['invoice' => $mainInvoice]);
         $pdf->setPaper('A4', 'portrait');
-        
-        $status = $invoice->status === 'draft' ? 'DRAFT' : strtoupper($invoice->status);
-        $filename = $invoice->invoice_number . '_' . $status . '.pdf';
-        
+
+        // Main invoice filename - only invoice number
+        $filename = $invoice->invoice_number . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    public function generateReimbursementPdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only reimbursement items
+        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+
+        // Calculate totals for reimbursement items only
+        $subtotal = $reimbursementItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only reimbursement items
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $total;
+
+        // Generate PDF using reimbursement template (still uses original template with DEBIT NOTE)
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Reimbursement filename - only invoice number with -R flag
+        $filename = $invoice->invoice_number . '-R.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -424,7 +504,7 @@ class InvoiceController extends Controller
         if ($request->filled('date_from')) {
             $query->where('paid_date', '>=', $request->date_from);
         }
-        
+
         if ($request->filled('date_to')) {
             $query->where('paid_date', '<=', $request->date_to);
         }
@@ -474,7 +554,7 @@ class InvoiceController extends Controller
     public function preview(Invoice $invoice)
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
-        
+
         return view('invoices.preview', [
             'invoice' => $invoice
         ]);

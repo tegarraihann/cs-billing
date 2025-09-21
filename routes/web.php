@@ -378,6 +378,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::delete('/{invoice}', 'destroy')->name('destroy');
         Route::get('/{invoice}/pdf', 'generatePdf')->name('pdf');
         Route::get('/{invoice}/export-pdf', 'generatePdf')->name('export-pdf');
+        Route::get('/{invoice}/export-pdf-reimbursement', 'generateReimbursementPdf')->name('export-pdf-reimbursement');
         Route::get('/{invoice}/print', 'printView')->name('print');
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');

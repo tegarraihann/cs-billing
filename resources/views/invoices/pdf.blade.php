@@ -579,7 +579,7 @@
             </tr>
             <tr>
                 <td class="shipment-label-cell">REMARKS</td>
-                <td class="shipment-value-cell" colspan="3">: {{ $invoice->remarks ?? $invoice->salesOrder->remarks ?? 'N/A' }}</td>
+                <td class="shipment-value-cell" colspan="3">: {{ $invoice->remarks ?? 'N/A' }}</td>
             </tr>
         </table>
 
@@ -804,7 +804,7 @@
                 @endif
                 <div style="height: 8px;"></div>
                 <div class="shipment-row">
-                    <span class="field-label">REMARKS</span> :{{ $invoice->remarks ?? $invoice->salesOrder->remarks ?? '-' }}
+                    <span class="field-label">REMARKS</span> :{{ $invoice->remarks ?? '-' }}
                 </div>
             </div>
 

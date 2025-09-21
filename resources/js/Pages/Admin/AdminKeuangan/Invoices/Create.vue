@@ -36,7 +36,7 @@
               >
                 <option value="">Pilih Sales Order</option>
                 <option v-for="order in salesOrders" :key="order.id" :value="order.id">
-                  {{ order.order_number }} - {{ order.customer || order.customer_name || 'No Customer' }}
+                  {{ order.order_number }} - {{ order.customer || order.customer_name || 'No Customer' }} ({{ order.status?.toUpperCase() || 'APPROVED' }})
                 </option>
               </select>
               <div v-if="errors.sales_order_id" class="text-red-500 text-sm mt-1">
@@ -634,7 +634,7 @@ const addItem = () => {
     rate: 0,
     currency: 'IDR',
     amount: 0,
-    item_ref: '',
+    item_ref: 'main',
     type: 'main'
   });
 };
@@ -657,7 +657,7 @@ const addReimbursementItem = () => {
     rate: 0,
     currency: 'IDR',
     amount: 0,
-    item_ref: '',
+    item_ref: 'reimbursement',
     type: 'reimbursement'
   });
 };
@@ -692,10 +692,18 @@ const formatCurrency = (amount, currency = 'IDR') => {
 };
 
 const submit = () => {
-  // Combine all items from both arrays
+  // Combine all items from both arrays with proper item_ref
   const allItems = [
-    ...mainItems.value.map(item => ({ ...item, type: 'main' })),
-    ...reimbursementItems.value.map(item => ({ ...item, type: 'reimbursement' }))
+    ...mainItems.value.map(item => ({
+      ...item,
+      type: 'main',
+      item_ref: item.item_ref || 'main'
+    })),
+    ...reimbursementItems.value.map(item => ({
+      ...item,
+      type: 'reimbursement',
+      item_ref: item.item_ref || 'reimbursement'
+    }))
   ];
 
   // Set the combined items to form

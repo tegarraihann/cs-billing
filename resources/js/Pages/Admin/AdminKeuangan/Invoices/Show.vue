@@ -48,27 +48,6 @@
               </svg>
               Konfirmasi Pembayaran
             </button>
-            <a
-              :href="route('admin-keuangan.invoices.preview', invoice.id)"
-              class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              target="_blank"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              Preview PDF
-            </a>
-            <a
-              :href="route('admin-keuangan.invoices.export-pdf', invoice.id)"
-              class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              target="_blank"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              Export to PDF
-            </a>
           </div>
         </div>
       </div>
@@ -195,10 +174,27 @@
         </div>
       </div>
 
-      <!-- Invoice Items -->
-      <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-          <h3 class="text-lg font-semibold text-sage-800">Item Invoice</h3>
+      <!-- Main Invoice Items -->
+      <div v-if="mainInvoice || invoice.invoice_type === 'main' || invoice.invoice_type === 'combined'" class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-sage-200 bg-blue-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <h3 class="text-lg font-semibold text-blue-800">Items Invoice Main</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                {{ (mainInvoice || invoice).invoice_number }}
+              </span>
+            </div>
+            <a
+              :href="route('admin-keuangan.invoices.export-pdf', (mainInvoice || invoice).id)"
+              class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+              target="_blank"
+            >
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              Download PDF
+            </a>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -226,7 +222,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-sage-200">
-              <tr v-for="item in invoice.items" :key="item.id" class="hover:bg-sage-50">
+              <tr v-for="item in getMainItems" :key="item.id" class="hover:bg-sage-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
                 </td>
@@ -250,17 +246,131 @@
           </table>
         </div>
 
-        <!-- Total -->
-        <div class="px-6 py-4 bg-gray-50 border-t border-sage-200">
+        <!-- Main Total -->
+        <div class="px-6 py-4 bg-blue-50 border-t border-sage-200">
           <div class="flex justify-end">
             <div class="w-64 space-y-2">
               <div class="flex justify-between">
-                <span class="text-sm text-gray-600">Subtotal:</span>
-                <span class="text-sm font-medium">{{ formatCurrency(invoice.subtotal) }}</span>
+                <span class="text-sm text-gray-600">Subtotal Main:</span>
+                <span class="text-sm font-medium">{{ formatCurrency(getMainTotal) }}</span>
               </div>
-              <div class="flex justify-between text-lg font-semibold">
-                <span>Total:</span>
-                <span>{{ formatCurrency(invoice.total) }}</span>
+              <div class="flex justify-between pt-2 border-t border-blue-200">
+                <span class="text-lg font-semibold text-blue-800">Total Main:</span>
+                <span class="text-lg font-bold text-blue-800">{{ formatCurrency(getMainTotal) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reimbursement Invoice Items -->
+      <div v-if="reimbursementInvoice || invoice.invoice_type === 'reimbursement' || invoice.invoice_type === 'combined'" class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-sage-200 bg-orange-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <h3 class="text-lg font-semibold text-orange-800">Items Invoice Reimbursement</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                {{ (reimbursementInvoice || invoice).invoice_number }}
+              </span>
+            </div>
+            <a
+              :href="route('admin-keuangan.invoices.export-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
+              class="inline-flex items-center px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
+              target="_blank"
+            >
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              Download PDF
+            </a>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-sage-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Deskripsi
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Qty
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Unit
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Rate
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Currency
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-sage-200">
+              <tr v-for="item in getReimbursementItems" :key="item.id" class="hover:bg-sage-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatCurrency(item.rate, item.currency) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.currency }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount, item.currency) }}</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Reimbursement Total -->
+        <div class="px-6 py-4 bg-orange-50 border-t border-sage-200">
+          <div class="flex justify-end">
+            <div class="w-64 space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Subtotal Reimbursement:</span>
+                <span class="text-sm font-medium">{{ formatCurrency(getReimbursementTotal) }}</span>
+              </div>
+              <div class="flex justify-between pt-2 border-t border-orange-200">
+                <span class="text-lg font-semibold text-orange-800">Total Reimbursement:</span>
+                <span class="text-lg font-bold text-orange-800">{{ formatCurrency(getReimbursementTotal) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combined Total -->
+      <div v-if="invoice.invoice_type === 'combined' && getMainItems.length > 0 && getReimbursementItems.length > 0" class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+        <div class="px-6 py-4 bg-sage-50">
+          <div class="flex justify-end">
+            <div class="w-80 space-y-3">
+              <div class="text-center text-lg font-semibold text-sage-800 pb-2 border-b border-sage-300">
+                Combined Invoice Summary
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-blue-700">Total Main Items:</span>
+                <span class="text-sm font-medium text-blue-700">{{ formatCurrency(getMainTotal) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-orange-700">Total Reimbursement Items:</span>
+                <span class="text-sm font-medium text-orange-700">{{ formatCurrency(getReimbursementTotal) }}</span>
+              </div>
+              <div class="flex justify-between pt-3 border-t border-sage-400">
+                <span class="text-xl font-bold text-sage-800">Grand Total:</span>
+                <span class="text-xl font-bold text-sage-800">{{ formatCurrency(getMainTotal + getReimbursementTotal) }}</span>
               </div>
             </div>
           </div>
@@ -366,12 +476,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 
 const props = defineProps({
   invoice: Object,
+  mainInvoice: Object,
+  reimbursementInvoice: Object,
+  relatedInvoices: Array,
 });
 
 const showPaymentModal = ref(false);
@@ -495,6 +608,69 @@ const markAsSent = () => {
     }
   });
 };
+
+// Computed properties untuk memisahkan items berdasarkan item_ref
+const getMainItems = computed(() => {
+  if (props.invoice.invoice_type === 'combined') {
+    // Untuk invoice combined, pisahkan items berdasarkan item_ref
+    return (props.invoice.items || []).filter(item => {
+      const ref = (item.item_ref || '').toLowerCase().trim();
+      // Items masuk ke Main jika: kosong, 'main', 'm', '1', atau mengandung 'main'
+      return !ref ||
+             ref === 'main' ||
+             ref === 'm' ||
+             ref === '1' ||
+             ref.includes('main');
+    });
+  }
+
+  // Untuk invoice type main atau jika ada mainInvoice
+  if (props.mainInvoice) {
+    return props.mainInvoice.items || [];
+  }
+
+  // Fallback untuk invoice type main
+  if (props.invoice.invoice_type === 'main') {
+    return props.invoice.items || [];
+  }
+
+  return [];
+});
+
+const getReimbursementItems = computed(() => {
+  if (props.invoice.invoice_type === 'combined') {
+    // Untuk invoice combined, pisahkan items berdasarkan item_ref
+    return (props.invoice.items || []).filter(item => {
+      const ref = (item.item_ref || '').toLowerCase().trim();
+      // Items masuk ke Reimbursement jika: 'reimbursement', 'r', '2', atau mengandung 'reimbur'
+      return ref === 'reimbursement' ||
+             ref === 'r' ||
+             ref === '2' ||
+             ref.includes('reimbur');
+    });
+  }
+
+  // Untuk invoice type reimbursement atau jika ada reimbursementInvoice
+  if (props.reimbursementInvoice) {
+    return props.reimbursementInvoice.items || [];
+  }
+
+  // Fallback untuk invoice type reimbursement
+  if (props.invoice.invoice_type === 'reimbursement') {
+    return props.invoice.items || [];
+  }
+
+  return [];
+});
+
+// Computed untuk total amount per section
+const getMainTotal = computed(() => {
+  return getMainItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+const getReimbursementTotal = computed(() => {
+  return getReimbursementItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
 </script>
 
 <style scoped>

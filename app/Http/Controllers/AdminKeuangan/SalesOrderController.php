@@ -331,7 +331,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable|string|max:255',
+            'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
@@ -369,7 +369,18 @@ class SalesOrderController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
-        
+
+        // Convert container_no to array format
+        if (isset($validated['container_no'])) {
+            if (is_string($validated['container_no'])) {
+                // Handle multiple containers separated by comma, space, or newline
+                $containers = preg_split('/[,\s\n\r]+/', trim($validated['container_no']));
+                $validated['container_no'] = array_filter($containers, 'strlen'); // Remove empty values
+            } elseif (!is_array($validated['container_no'])) {
+                $validated['container_no'] = [$validated['container_no']];
+            }
+        }
+
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
         $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
@@ -393,7 +404,11 @@ class SalesOrderController extends Controller
         $validated['total_buying'] = $totalBuying;
         $validated['total_revenue'] = $totalSelling - $totalBuying;
         $validated['total_amount'] = $totalSelling;
-        $validated['status'] = 'draft';
+
+        // Auto-release for Sales Order created by Admin Keuangan
+        $validated['status'] = 'released';
+        $validated['released_at'] = now();
+        $validated['released_by'] = Auth::id();
 
         // Prepare multiple vendors data for storage
         $vendorDetails = $validated['vendor_details'] ?? [];
@@ -512,7 +527,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable|string|max:255',
+            'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
@@ -527,6 +542,17 @@ class SalesOrderController extends Controller
             'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
         ]);
+
+        // Convert container_no to array format
+        if (isset($validated['container_no'])) {
+            if (is_string($validated['container_no'])) {
+                // Handle multiple containers separated by comma, space, or newline
+                $containers = preg_split('/[,\s\n\r]+/', trim($validated['container_no']));
+                $validated['container_no'] = array_filter($containers, 'strlen'); // Remove empty values
+            } elseif (!is_array($validated['container_no'])) {
+                $validated['container_no'] = [$validated['container_no']];
+            }
+        }
 
         // Prepare multiple vendors data for storage
         $vendorDetails = $validated['vendor_details'] ?? [];
@@ -556,7 +582,9 @@ class SalesOrderController extends Controller
         $validated['total_buying'] = $totalBuying;
         $validated['total_revenue'] = $totalSelling - $totalBuying;
         $validated['total_amount'] = $totalSelling;
-        $validated['status'] = 'draft';
+
+        // Don't change status on update - preserve existing status
+        // This prevents released Sales Orders from being reverted to draft when edited
 
         $salesOrder->update($validated);
 
@@ -594,22 +622,54 @@ class SalesOrderController extends Controller
         $salesOrder->load(['creator']);
 
         try {
-            // Try using the Facade first
-            $pdf = Pdf::loadView('admin.admin-keuangan.sales-orders.pdf', compact('salesOrder'))
+            // Try using the Facade first (using same template as Admin CS)
+            $pdf = Pdf::loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'Arial',
                     'isRemoteEnabled' => true,
                     'isHtml5ParserEnabled' => true,
                     'isPhpEnabled' => true,
+                    'debugPng' => false,
+                    'debugKeepTemp' => false,
+                    'debugCss' => false,
+                    'debugLayout' => false,
+                    'debugLayoutLines' => false,
+                    'debugLayoutBlocks' => false,
+                    'debugLayoutInline' => false,
+                    'debugLayoutPaddingBox' => false,
                 ]);
-
-            return $pdf->download('sales-order-' . $salesOrder->order_number . '.pdf');
-
         } catch (\Exception $e) {
-            \Log::error('PDF Generation Error: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Gagal membuat PDF: ' . $e->getMessage()]);
+            // Fallback: Use dependency injection if facade fails
+            try {
+                $dompdf = app('dompdf.wrapper');
+                $pdf = $dompdf->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'defaultFont' => 'Arial',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'isPhpEnabled' => true,
+                    ]);
+            } catch (\Exception $e2) {
+                // Final fallback: Use service container resolution
+                $pdfService = app(\Barryvdh\DomPDF\PDF::class);
+                $pdf = $pdfService->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'defaultFont' => 'Arial',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'isPhpEnabled' => true,
+                    ]);
+            }
         }
+
+        // Set filename
+        $filename = 'Sales_Order_' . $salesOrder->order_number . '_' . date('Y-m-d') . '.pdf';
+
+        // Return the PDF as download
+        return $pdf->download($filename);
     }
 
     /**

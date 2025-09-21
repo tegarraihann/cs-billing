@@ -210,14 +210,18 @@
                   <div class="text-sm font-medium text-gray-900">
                     {{ invoice.invoice_number }}
                   </div>
-                  <div class="mt-1">
-                    <span :class="[
-                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-                      invoice.invoice_type === 'main'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-orange-100 text-orange-800'
-                    ]">
-                      {{ invoice.invoice_type === 'main' ? 'Main' : 'Reimbursement' }}
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    <span
+                      v-for="type in (invoice.invoice_types || [invoice.invoice_type])"
+                      :key="type"
+                      :class="[
+                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                        type === 'main'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-orange-100 text-orange-800'
+                      ]"
+                    >
+                      {{ type === 'main' ? 'Main' : 'Reimbursement' }}
                     </span>
                   </div>
                 </td>
