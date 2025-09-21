@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout>
+  <AdminKeuanganLayout>
     <div class="p-4 sm:p-6 lg:p-8">
       <!-- Header Section -->
       <div
@@ -211,13 +211,13 @@
       @cancel="cancelDelete"
       @close="cancelDelete"
     />
-  </AdminLayout>
+  </AdminKeuanganLayout>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
-import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import AlertDialog from '@/Components/AlertDialog.vue'
 

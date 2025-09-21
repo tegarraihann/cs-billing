@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout>
+  <AdminKeuanganLayout>
     <div class="p-4 sm:p-6 lg:p-8">
       <!-- Header Section -->
       <div
@@ -171,13 +171,13 @@
         </div>
       </div>
     </div>
-  </AdminLayout>
+  </AdminKeuanganLayout>
 </template>
 
 <script setup>
 import { reactive, computed } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
-import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 
 const form = useForm({
