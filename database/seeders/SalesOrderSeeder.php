@@ -235,7 +235,7 @@ class SalesOrderSeeder extends Seeder
                 'special_instructions' => null,
                 'terms_conditions' => null,
 
-                'status' => 'approved',
+                'status' => 'confirmed',
                 'sent_at' => now()->subDays(12),
                 'confirmed_at' => now()->subDays(10),
                 'created_by' => $csUser->id,
