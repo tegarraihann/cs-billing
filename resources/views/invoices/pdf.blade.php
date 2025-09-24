@@ -469,9 +469,25 @@
                     <td class="ship-value-right">{{ strtoupper($invoice->salesOrder->pod ?? 'SEMARANG') }}</td>
                 </tr>
                 <tr>
+                    <td class="ship-label">NETT WT</td>
+                    <td class="ship-colon">:</td>
+                    <td class="ship-value">{{ $invoice->salesOrder->net_weight ? number_format($invoice->salesOrder->net_weight, 2) . ' KG' : '-' }}</td>
+                    <td class="ship-label-right">COMMODITY</td>
+                    <td class="ship-colon-right">:</td>
+                    <td class="ship-value-right">{{ strtoupper($invoice->salesOrder->commodity ?? '-') }}</td>
+                </tr>
+                <tr>
                     <td class="ship-label">VOLUME</td>
                     <td class="ship-colon">:</td>
                     <td class="ship-value">{{ $invoice->volume ?? '-' }}</td>
+                    <td class="ship-label-right">MEASUREMENT</td>
+                    <td class="ship-colon-right">:</td>
+                    <td class="ship-value-right">{{ $invoice->salesOrder->measurement ? $invoice->salesOrder->measurement . ' M³' : '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="ship-label"></td>
+                    <td class="ship-colon"></td>
+                    <td class="ship-value"></td>
                     <td class="ship-label-right">ETD / ETA</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">

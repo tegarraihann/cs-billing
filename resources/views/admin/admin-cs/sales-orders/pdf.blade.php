@@ -336,6 +336,56 @@
             </div>
         </div>
 
+        <!-- Informasi Barang -->
+        <div class="section">
+            <div class="section-title">Informasi Barang</div>
+
+            <!-- Two Column Layout -->
+            <div style="width: 100%; display: table; margin-bottom: 15px;">
+                <!-- Left Column -->
+                <div style="width: 48%; display: table-cell; vertical-align: top; padding-right: 2%;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">COMMODITY</td>
+                            <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->commodity ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">QTY</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->qty ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NET WEIGHT</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->net_weight ? $salesOrder->net_weight . ' KG' : '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Right Column -->
+                <div style="width: 48%; display: table-cell; vertical-align: top; padding-left: 2%;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">MEASUREMENT</td>
+                            <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->measurement ? $salesOrder->measurement . ' M³' : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">CONTAINER NO</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : ($salesOrder->container_no ?: '-') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">GROSS WEIGHT</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ isset($salesOrder->gross_weight) ? number_format($salesOrder->gross_weight, 2) . ' KG' : '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Exchange Rate -->
         <div style="margin-bottom: 2px;">
             <table style="width: 49%; border-collapse: collapse;">

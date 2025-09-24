@@ -425,6 +425,16 @@
                         <span class="info-value">{{ $salesOrder->measurement ? $salesOrder->measurement . ' M³' : '-' }}</span>
                     </div>
                 </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">CONTAINER NO:</span>
+                        <span class="info-value">{{ is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : ($salesOrder->container_no ?: '-') }}</span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">GROSS WEIGHT:</span>
+                        <span class="info-value">{{ isset($salesOrder->gross_weight) ? number_format($salesOrder->gross_weight, 2) . ' KG' : '-' }}</span>
+                    </div>
+                </div>
             </div>
         </div>
         @endif
