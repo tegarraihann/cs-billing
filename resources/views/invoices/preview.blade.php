@@ -439,7 +439,7 @@
             <!-- Invoice Details -->
             <div class="invoice-details">
                 <div class="invoice-row">
-                    <span class="invoice-label">INV DATE</span> :{{ $invoice->invoice_date->format('d-n-y') }}
+                    <span class="invoice-label">INV DATE</span> :{{ $invoice->invoice_date->format('d-m-Y') }}
                 </div>
                 <div style="height: 8px;"></div>
                 <div class="invoice-row">
@@ -525,7 +525,7 @@
                         <span class="field-label-right">DEST</span> :{{ strtoupper($invoice->destination ?? $invoice->salesOrder->pod ?? 'SEMARANG') }}
                     </div>
                     <div class="shipment-row">
-                        <span class="field-label-right">ETD / ETA</span> :{{ isset($invoice->etd) ? $invoice->etd->format('d-m-y') : '14-02-25' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-y') : '06-05-25') }}
+                        <span class="field-label-right">ETD / ETA</span> :{{ isset($invoice->etd) ? $invoice->etd->format('d-m-Y') : '14-02-2025' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-Y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-Y') : '06-05-2025') }}
                     </div>
                 </div>
             </div>

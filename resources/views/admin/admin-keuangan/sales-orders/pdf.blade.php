@@ -467,7 +467,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        <div>Dicetak pada: {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}</div>
+        <div>Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }}</div>
         <div>Dokumen ini digenerate secara otomatis oleh sistem.</div>
     </div>
 </body>

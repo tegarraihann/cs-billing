@@ -424,8 +424,11 @@ class InvoiceController extends Controller
         $mainInvoice->subtotal = $subtotal;
         $mainInvoice->total = $total;
 
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
         // Generate PDF using main invoice template
-        $pdf = PDF::loadView('invoices.main-pdf', ['invoice' => $mainInvoice]);
+        $pdf = PDF::loadView('invoices.main-pdf', ['invoice' => $mainInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
         // Main invoice filename - only invoice number
@@ -456,8 +459,11 @@ class InvoiceController extends Controller
         $reimbursementInvoice->subtotal = $subtotal;
         $reimbursementInvoice->total = $total;
 
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
         // Generate PDF using reimbursement template (still uses original template with DEBIT NOTE)
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice]);
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
         // Reimbursement filename - only invoice number with -R flag
@@ -564,8 +570,12 @@ class InvoiceController extends Controller
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
 
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
         return view('invoices.print', [
-            'invoice' => $invoice
+            'invoice' => $invoice,
+            'generatedAt' => $generatedAt
         ]);
     }
 

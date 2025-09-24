@@ -437,9 +437,12 @@ class SalesOrderController extends Controller
         // Load the creator relationship
         $salesOrder->load(['creator']);
 
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
         try {
             // Try using the Facade first
-            $pdf = Pdf::loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+            $pdf = Pdf::loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder', 'generatedAt'))
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'Arial',
@@ -459,7 +462,7 @@ class SalesOrderController extends Controller
             // Fallback: Use dependency injection if facade fails
             try {
                 $dompdf = app('dompdf.wrapper');
-                $pdf = $dompdf->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                $pdf = $dompdf->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder', 'generatedAt'))
                     ->setPaper('a4', 'portrait')
                     ->setOptions([
                         'defaultFont' => 'Arial',
@@ -470,7 +473,7 @@ class SalesOrderController extends Controller
             } catch (\Exception $e2) {
                 // Final fallback: Use service container resolution
                 $pdfService = app(\Barryvdh\DomPDF\PDF::class);
-                $pdf = $pdfService->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder'))
+                $pdf = $pdfService->loadView('admin.admin-cs.sales-orders.pdf', compact('salesOrder', 'generatedAt'))
                     ->setPaper('a4', 'portrait')
                     ->setOptions([
                         'defaultFont' => 'Arial',

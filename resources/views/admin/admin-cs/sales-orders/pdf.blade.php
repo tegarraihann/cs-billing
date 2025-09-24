@@ -497,7 +497,8 @@
 
     <!-- Footer -->
     <div class="footer">
-        Sales Order No: {{ $salesOrder->order_number }} | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1
+        Sales Order No: {{ $salesOrder->order_number }} | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1<br>
+        Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }} | Dokumen ini digenerate secara otomatis oleh sistem
     </div>
 </body>
 </html>

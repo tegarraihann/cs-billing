@@ -564,7 +564,7 @@
                 <td class="shipment-label-cell">VOLUME</td>
                 <td class="shipment-value-cell">: {{ $invoice->volume ?? 'N/A' }}</td>
                 <td class="invoice-label-cell">ETD/ETA</td>
-                <td class="invoice-value-cell">: {{ isset($invoice->etd) ? $invoice->etd->format('d-m-y') : 'N/A' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-y') : 'N/A') }}</td>
+                <td class="invoice-value-cell">: {{ isset($invoice->etd) ? $invoice->etd->format('d-m-Y') : 'N/A' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-Y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-Y') : 'N/A') }}</td>
             </tr>
             <tr>
                 <td class="shipment-label-cell">No. OF PKGS</td>
@@ -725,6 +725,7 @@
         <!-- Footer -->
         <div class="invoice-footer">
             This is system generated document, No signature is required<br>
+            Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }}<br>
             <br>
             Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
             Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
