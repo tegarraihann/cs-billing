@@ -20,26 +20,71 @@ class Response implements Responsable
 {
     use Macroable;
 
+    /**
+     * The name of the root component.
+     *
+     * @var string
+     */
     protected $component;
 
+    /**
+     * The page props.
+     *
+     * @var array<string, mixed>
+     */
     protected $props;
 
+    /**
+     * The name of the root view.
+     *
+     * @var string
+     */
     protected $rootView;
 
+    /**
+     * The asset version.
+     *
+     * @var string
+     */
     protected $version;
 
+    /**
+     * Indicates if the browser history should be cleared.
+     *
+     * @var bool
+     */
     protected $clearHistory;
 
+    /**
+     * Indicates if the browser history should be encrypted.
+     *
+     * @var bool
+     */
     protected $encryptHistory;
 
+    /**
+     * The view data.
+     *
+     * @var array<string, mixed>
+     */
     protected $viewData = [];
 
+    /**
+     * The cache duration settings.
+     *
+     * @var array<int, mixed>
+     */
     protected $cacheFor = [];
 
+    /**
+     * The URL resolver callback.
+     */
     protected ?Closure $urlResolver = null;
 
     /**
-     * @param  array|Arrayable  $props
+     * Create a new Inertia response instance.
+     *
+     * @param  array<array-key, mixed|\Inertia\ProvidesInertiaProperties>  $props
      */
     public function __construct(
         string $component,
@@ -50,7 +95,7 @@ class Response implements Responsable
         ?Closure $urlResolver = null
     ) {
         $this->component = $component;
-        $this->props = $props instanceof Arrayable ? $props->toArray() : $props;
+        $this->props = $props;
         $this->rootView = $rootView;
         $this->version = $version;
         $this->clearHistory = session()->pull('inertia.clear_history', false);
@@ -59,13 +104,17 @@ class Response implements Responsable
     }
 
     /**
-     * @param  string|array  $key
+     * Add additional properties to the page.
+     *
+     * @param  string|array<string, mixed>|ProvidesInertiaProperties  $key
      * @param  mixed  $value
      * @return $this
      */
     public function with($key, $value = null): self
     {
-        if (is_array($key)) {
+        if ($key instanceof ProvidesInertiaProperties) {
+            $this->props[] = $key;
+        } elseif (is_array($key)) {
             $this->props = array_merge($this->props, $key);
         } else {
             $this->props[$key] = $value;
@@ -75,7 +124,9 @@ class Response implements Responsable
     }
 
     /**
-     * @param  string|array  $key
+     * Add additional data to the view.
+     *
+     * @param  string|array<string, mixed>  $key
      * @param  mixed  $value
      * @return $this
      */
@@ -90,6 +141,11 @@ class Response implements Responsable
         return $this;
     }
 
+    /**
+     * Set the root view.
+     *
+     * @return $this
+     */
     public function rootView(string $rootView): self
     {
         $this->rootView = $rootView;
@@ -97,6 +153,12 @@ class Response implements Responsable
         return $this;
     }
 
+    /**
+     * Set the cache duration for the response.
+     *
+     * @param  string|array<int, mixed>  $cacheFor
+     * @return $this
+     */
     public function cache(string|array $cacheFor): self
     {
         $this->cacheFor = is_array($cacheFor) ? $cacheFor : [$cacheFor];
@@ -136,10 +198,14 @@ class Response implements Responsable
     }
 
     /**
-     * Resolve the properites for the response.
+     * Resolve the properties for the response.
+     *
+     * @param  array<array-key, mixed>  $props
+     * @return array<string, mixed>
      */
     public function resolveProperties(Request $request, array $props): array
     {
+        $props = $this->resolveInertiaPropsProviders($props, $request);
         $props = $this->resolvePartialProperties($props, $request);
         $props = $this->resolveArrayableProperties($props, $request);
         $props = $this->resolveAlways($props);
@@ -149,12 +215,43 @@ class Response implements Responsable
     }
 
     /**
-     * Resolve the `only` and `except` partial request props.
+     * Resolve the ProvidesInertiaProperties props.
+     *
+     * @param  array<array-key, mixed>  $props
+     * @return array<string, mixed>
+     */
+    public function resolveInertiaPropsProviders(array $props, Request $request): array
+    {
+        $newProps = [];
+
+        $renderContext = new RenderContext($this->component, $request);
+
+        foreach ($props as $key => $value) {
+            if (is_numeric($key) && $value instanceof ProvidesInertiaProperties) {
+                // Pipe into a Collection to leverage Collection::getArrayableItems()
+                /** @var array<string, mixed> $inertiaProps */
+                $inertiaProps = collect($value->toInertiaProperties($renderContext))->all();
+                $newProps = array_merge($newProps, $inertiaProps);
+            } else {
+                $newProps[$key] = $value;
+            }
+        }
+
+        return $newProps;
+    }
+
+    /**
+     * Resolve properties for partial requests. Filters properties based on
+     * 'only' and 'except' headers from the client, allowing for selective
+     * data loading to improve performance.
+     *
+     * @param  array<string, mixed>  $props
+     * @return array<string, mixed>
      */
     public function resolvePartialProperties(array $props, Request $request): array
     {
         if (! $this->isPartial($request)) {
-            return array_filter($this->props, static function ($prop) {
+            return array_filter($props, static function ($prop) {
                 return ! ($prop instanceof IgnoreFirstLoad);
             });
         }
@@ -180,7 +277,12 @@ class Response implements Responsable
     }
 
     /**
-     * Resolve all arrayables properties into an array.
+     * Resolve arrayable properties and closures. Converts Arrayable objects
+     * to arrays, evaluates closures, and handles dot notation properties
+     * for nested data structures.
+     *
+     * @param  array<string, mixed>  $props
+     * @return array<string, mixed>
      */
     public function resolveArrayableProperties(array $props, Request $request, bool $unpackDotProps = true): array
     {
@@ -210,6 +312,9 @@ class Response implements Responsable
 
     /**
      * Resolve the `only` partial request props.
+     *
+     * @param  array<string, mixed>  $props
+     * @return array<string, mixed>
      */
     public function resolveOnly(Request $request, array $props): array
     {
@@ -226,6 +331,9 @@ class Response implements Responsable
 
     /**
      * Resolve the `except` partial request props.
+     *
+     * @param  array<string, mixed>  $props
+     * @return array<string, mixed>
      */
     public function resolveExcept(Request $request, array $props): array
     {
@@ -237,7 +345,10 @@ class Response implements Responsable
     }
 
     /**
-     * Resolve `always` properties that should always be included on all visits, regardless of "only" or "except" requests.
+     * Resolve `always` properties that should always be included.
+     *
+     * @param  array<string, mixed>  $props
+     * @return array<string, mixed>
      */
     public function resolveAlways(array $props): array
     {
@@ -253,8 +364,11 @@ class Response implements Responsable
 
     /**
      * Resolve all necessary class instances in the given props.
+     *
+     * @param  array<string, mixed>  $props
+     * @return array<string, mixed>
      */
-    public function resolvePropertyInstances(array $props, Request $request): array
+    public function resolvePropertyInstances(array $props, Request $request, ?string $parentKey = null): array
     {
         foreach ($props as $key => $value) {
             $resolveViaApp = collect([
@@ -268,6 +382,12 @@ class Response implements Responsable
 
             if ($resolveViaApp) {
                 $value = App::call($value);
+            }
+
+            $currentKey = $parentKey ? $parentKey.'.'.$key : $key;
+
+            if ($value instanceof ProvidesInertiaProperty) {
+                $value = $value->toInertiaProperty(new PropertyContext($currentKey, $props, $request));
             }
 
             if ($value instanceof Arrayable) {
@@ -287,7 +407,7 @@ class Response implements Responsable
             }
 
             if (is_array($value)) {
-                $value = $this->resolvePropertyInstances($value, $request);
+                $value = $this->resolvePropertyInstances($value, $request, $currentKey);
             }
 
             $props[$key] = $value;
@@ -298,6 +418,8 @@ class Response implements Responsable
 
     /**
      * Resolve the cache directions for the response.
+     *
+     * @return array<string, mixed>
      */
     public function resolveCacheDirections(Request $request): array
     {
@@ -316,6 +438,11 @@ class Response implements Responsable
         ];
     }
 
+    /**
+     * Resolve merge props configuration for client-side prop merging.
+     *
+     * @return array<string, mixed>
+     */
     public function resolveMergeProps(Request $request): array
     {
         $resetProps = array_filter(explode(',', $request->header(Header::RESET, '')));
@@ -334,7 +461,7 @@ class Response implements Responsable
             ->keys();
 
         $matchPropsOn = $mergeProps
-            ->map(function ($prop, $key) {
+            ->map(function (Mergeable $prop, $key) {
                 return collect($prop->matchesOn())
                     ->map(fn ($strategy) => $key.'.'.$strategy)
                     ->toArray();
@@ -353,6 +480,11 @@ class Response implements Responsable
         ], fn ($prop) => count($prop) > 0);
     }
 
+    /**
+     * Resolve deferred props configuration for client-side lazy loading.
+     *
+     * @return array<string, mixed>
+     */
     public function resolveDeferredProps(Request $request): array
     {
         if ($this->isPartial($request)) {
@@ -385,7 +517,7 @@ class Response implements Responsable
     }
 
     /**
-     * Get the URL from the request (without the scheme and host) while preserving the trailing slash if it exists.
+     * Get the URL from the request while preserving the trailing slash.
      */
     protected function getUrl(Request $request): string
     {
@@ -401,7 +533,7 @@ class Response implements Responsable
     }
 
     /**
-     * Ensure the URL has a trailing slash before the query string (if it exists).
+     * Ensure the URL has a trailing slash before the query string.
      */
     protected function finishUrlWithTrailingSlash(string $url): string
     {

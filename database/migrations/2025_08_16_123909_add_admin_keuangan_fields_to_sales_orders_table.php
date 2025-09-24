@@ -15,15 +15,14 @@ return new class extends Migration
             // Admin Keuangan approval fields
             $table->timestamp('approved_at')->nullable()->after('released_by');
             $table->foreignId('approved_by')->nullable()->constrained('users')->after('approved_at');
-            
+
             // Admin Keuangan rejection fields
             $table->timestamp('rejected_at')->nullable()->after('approved_by');
             $table->foreignId('rejected_by')->nullable()->constrained('users')->after('rejected_at');
             $table->text('rejection_reason')->nullable()->after('rejected_by');
-            
-            // Update status enum to include new statuses
-            $table->enum('status', ['draft', 'sent', 'confirmed', 'cancelled', 'released', 'approved', 'rejected'])->default('draft')->change();
         });
+
+        // No enum changes needed - just allow new status values at application level
     }
 
     /**
@@ -34,9 +33,6 @@ return new class extends Migration
         Schema::table('sales_orders', function (Blueprint $table) {
             // Remove admin keuangan fields
             $table->dropColumn(['approved_at', 'approved_by', 'rejected_at', 'rejected_by', 'rejection_reason']);
-            
-            // Revert status enum to previous values
-            $table->enum('status', ['draft', 'sent', 'confirmed', 'cancelled', 'released'])->default('draft')->change();
         });
     }
 };

@@ -12,8 +12,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // For MySQL, we need to use raw SQL to modify ENUM
-        DB::statement("ALTER TABLE invoices MODIFY COLUMN invoice_type ENUM('main', 'reimbursement', 'combined') DEFAULT 'main'");
+        if (DB::getDriverName() === 'mysql') {
+            // MySQL: Use original MODIFY syntax
+            DB::statement("ALTER TABLE invoices MODIFY COLUMN invoice_type ENUM('main', 'reimbursement', 'combined') DEFAULT 'main'");
+        } else {
+            // PostgreSQL: Skip enum modification, just allow new values at application level
+            // Or change to string if needed
+            Schema::table('invoices', function (Blueprint $table) {
+                // If column doesn't exist as string, change it
+                if (Schema::hasColumn('invoices', 'invoice_type')) {
+                    $table->string('invoice_type')->default('main')->change();
+                }
+            });
+        }
     }
 
     /**
@@ -21,6 +32,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE invoices MODIFY COLUMN invoice_type ENUM('main', 'reimbursement') DEFAULT 'main'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE invoices MODIFY COLUMN invoice_type ENUM('main', 'reimbursement') DEFAULT 'main'");
+        } else {
+            // PostgreSQL: Revert to original if needed
+            Schema::table('invoices', function (Blueprint $table) {
+                $table->string('invoice_type')->default('main')->change();
+            });
+        }
     }
 };

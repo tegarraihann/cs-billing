@@ -15,10 +15,10 @@ return new class extends Migration
             // Add release tracking fields
             $table->timestamp('released_at')->nullable()->after('status');
             $table->foreignId('released_by')->nullable()->constrained('users')->after('released_at');
-            
-            // Update status enum to include 'released'
-            $table->enum('status', ['draft', 'sent', 'confirmed', 'cancelled', 'released'])->default('draft')->change();
         });
+
+        // Update status to support 'released' value (PostgreSQL compatible)
+        // No need to change column type, just allow the new value
     }
 
     /**
@@ -29,9 +29,6 @@ return new class extends Migration
         Schema::table('sales_orders', function (Blueprint $table) {
             // Remove release tracking fields
             $table->dropColumn(['released_at', 'released_by']);
-            
-            // Revert status enum to original values
-            $table->enum('status', ['draft', 'sent', 'confirmed', 'cancelled'])->default('draft')->change();
         });
     }
 };
