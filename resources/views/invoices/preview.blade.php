@@ -316,6 +316,17 @@
             line-height: 1.25;
         }
 
+        /* Status label styles */
+        .status-label {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid #000;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 5px;
+            text-align: center;
+        }
+
         /* Preview specific styles */
         .preview-header {
             background: #333;
@@ -356,13 +367,13 @@
         .btn-success:hover {
             background: #1e7e34;
         }
-        
+
         .btn-primary {
             background: #007bff;
             color: white;
             border: 1px solid #007bff;
         }
-        
+
         .btn-primary:hover {
             background: #0056b3;
         }
@@ -385,19 +396,19 @@
             iframe.style.width = '0';
             iframe.style.height = '0';
             iframe.style.border = 'none';
-            
+
             document.body.appendChild(iframe);
-            
+
             // Load the invoice print content (HTML version)
             iframe.src = '{{ route("admin-keuangan.invoices.print", $invoice) }}';
-            
+
             iframe.onload = function() {
                 setTimeout(function() {
                     try {
                         // Focus on iframe and trigger print
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
-                        
+
                         // Clean up iframe after printing
                         setTimeout(function() {
                             document.body.removeChild(iframe);
@@ -426,8 +437,14 @@
 
             <!-- Top Header Line -->
             <div class="top-line">
-                <div class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? 'CPP-MRS79' }}</div>
-                <div class="debit-note-header">DEBIT NOTE</div>
+                <div class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? '-' }}</div>
+                <div class="debit-note-header">
+                    DEBIT NOTE
+                    <br>
+                    <div class="status-label">
+                        {{ $invoice->status === 'draft' ? 'PREVIEW' : 'ORIGINAL' }}
+                    </div>
+                </div>
             </div>
 
             <!-- Customer Information -->
@@ -634,6 +651,10 @@
 
                 <div class="totals-section">
                     <div class="subtotal-line">SUB TOTAL {{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</div>
+                    @if($invoice->hasDownPayment())
+                    <div style="height: 4px;"></div>
+                    <div class="subtotal-line">DOWN PAYMENT (-) {{ number_format($invoice->down_payment_amount, 2) }}</div>
+                    @endif
                     <div style="height: 8px;"></div>
                     <div class="total-line">TOTAL {{ number_format($invoice->total ?? 2289828, 2) }}</div>
                 </div>

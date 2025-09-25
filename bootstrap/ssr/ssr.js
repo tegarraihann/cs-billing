@@ -13,296 +13,329 @@ async function resolvePageComponent(path, pages) {
   throw new Error(`Page not found: ${path}`);
 }
 function t() {
-  return t = Object.assign ? Object.assign.bind() : function(t4) {
+  return t = Object.assign ? Object.assign.bind() : function(t3) {
     for (var e2 = 1; e2 < arguments.length; e2++) {
-      var r2 = arguments[e2];
-      for (var n2 in r2) ({}).hasOwnProperty.call(r2, n2) && (t4[n2] = r2[n2]);
+      var o2 = arguments[e2];
+      for (var n2 in o2) ({}).hasOwnProperty.call(o2, n2) && (t3[n2] = o2[n2]);
     }
-    return t4;
+    return t3;
   }, t.apply(null, arguments);
 }
-var e = String.prototype.replace, r = /%20/g, n = "RFC3986", o = { default: n, formatters: { RFC1738: function(t4) {
-  return e.call(t4, r, "+");
-}, RFC3986: function(t4) {
-  return String(t4);
-} }, RFC1738: "RFC1738" }, i = Object.prototype.hasOwnProperty, u = Array.isArray, a = function() {
-  for (var t4 = [], e2 = 0; e2 < 256; ++e2) t4.push("%" + ((e2 < 16 ? "0" : "") + e2.toString(16)).toUpperCase());
-  return t4;
-}(), s = function(t4, e2) {
-  for (var r2 = e2 && e2.plainObjects ? /* @__PURE__ */ Object.create(null) : {}, n2 = 0; n2 < t4.length; ++n2) void 0 !== t4[n2] && (r2[n2] = t4[n2]);
-  return r2;
-}, f = { arrayToObject: s, assign: function(t4, e2) {
-  return Object.keys(e2).reduce(function(t5, r2) {
-    return t5[r2] = e2[r2], t5;
-  }, t4);
-}, combine: function(t4, e2) {
-  return [].concat(t4, e2);
-}, compact: function(t4) {
-  for (var e2 = [{ obj: { o: t4 }, prop: "o" }], r2 = [], n2 = 0; n2 < e2.length; ++n2) for (var o2 = e2[n2], i2 = o2.obj[o2.prop], a2 = Object.keys(i2), s2 = 0; s2 < a2.length; ++s2) {
-    var f2 = a2[s2], c2 = i2[f2];
-    "object" == typeof c2 && null !== c2 && -1 === r2.indexOf(c2) && (e2.push({ obj: i2, prop: f2 }), r2.push(c2));
-  }
-  return function(t5) {
-    for (; t5.length > 1; ) {
-      var e3 = t5.pop(), r3 = e3.obj[e3.prop];
-      if (u(r3)) {
-        for (var n3 = [], o3 = 0; o3 < r3.length; ++o3) void 0 !== r3[o3] && n3.push(r3[o3]);
-        e3.obj[e3.prop] = n3;
-      }
-    }
-  }(e2), t4;
-}, decode: function(t4, e2, r2) {
-  var n2 = t4.replace(/\+/g, " ");
-  if ("iso-8859-1" === r2) return n2.replace(/%[0-9a-f]{2}/gi, unescape);
-  try {
-    return decodeURIComponent(n2);
-  } catch (t5) {
-    return n2;
-  }
-}, encode: function(t4, e2, r2, n2, i2) {
-  if (0 === t4.length) return t4;
-  var u2 = t4;
-  if ("symbol" == typeof t4 ? u2 = Symbol.prototype.toString.call(t4) : "string" != typeof t4 && (u2 = String(t4)), "iso-8859-1" === r2) return escape(u2).replace(/%u[0-9a-f]{4}/gi, function(t5) {
-    return "%26%23" + parseInt(t5.slice(2), 16) + "%3B";
-  });
-  for (var s2 = "", f2 = 0; f2 < u2.length; ++f2) {
-    var c2 = u2.charCodeAt(f2);
-    45 === c2 || 46 === c2 || 95 === c2 || 126 === c2 || c2 >= 48 && c2 <= 57 || c2 >= 65 && c2 <= 90 || c2 >= 97 && c2 <= 122 || i2 === o.RFC1738 && (40 === c2 || 41 === c2) ? s2 += u2.charAt(f2) : c2 < 128 ? s2 += a[c2] : c2 < 2048 ? s2 += a[192 | c2 >> 6] + a[128 | 63 & c2] : c2 < 55296 || c2 >= 57344 ? s2 += a[224 | c2 >> 12] + a[128 | c2 >> 6 & 63] + a[128 | 63 & c2] : (c2 = 65536 + ((1023 & c2) << 10 | 1023 & u2.charCodeAt(f2 += 1)), s2 += a[240 | c2 >> 18] + a[128 | c2 >> 12 & 63] + a[128 | c2 >> 6 & 63] + a[128 | 63 & c2]);
-  }
-  return s2;
-}, isBuffer: function(t4) {
-  return !(!t4 || "object" != typeof t4 || !(t4.constructor && t4.constructor.isBuffer && t4.constructor.isBuffer(t4)));
-}, isRegExp: function(t4) {
-  return "[object RegExp]" === Object.prototype.toString.call(t4);
-}, maybeMap: function(t4, e2) {
-  if (u(t4)) {
-    for (var r2 = [], n2 = 0; n2 < t4.length; n2 += 1) r2.push(e2(t4[n2]));
-    return r2;
-  }
-  return e2(t4);
-}, merge: function t2(e2, r2, n2) {
-  if (!r2) return e2;
-  if ("object" != typeof r2) {
-    if (u(e2)) e2.push(r2);
+const e = String.prototype.replace, o = /%20/g, n = { RFC1738: function(t3) {
+  return e.call(t3, o, "+");
+}, RFC3986: function(t3) {
+  return String(t3);
+} };
+var r = "RFC3986";
+const i = Object.prototype.hasOwnProperty, s = Array.isArray, u = function() {
+  const t3 = [];
+  for (let e2 = 0; e2 < 256; ++e2) t3.push("%" + ((e2 < 16 ? "0" : "") + e2.toString(16)).toUpperCase());
+  return t3;
+}(), l = function t2(e2, o2, n2) {
+  if (!o2) return e2;
+  if ("object" != typeof o2) {
+    if (s(e2)) e2.push(o2);
     else {
-      if (!e2 || "object" != typeof e2) return [e2, r2];
-      (n2 && (n2.plainObjects || n2.allowPrototypes) || !i.call(Object.prototype, r2)) && (e2[r2] = true);
+      if (!e2 || "object" != typeof e2) return [e2, o2];
+      (n2 && (n2.plainObjects || n2.allowPrototypes) || !i.call(Object.prototype, o2)) && (e2[o2] = true);
     }
     return e2;
   }
-  if (!e2 || "object" != typeof e2) return [e2].concat(r2);
-  var o2 = e2;
-  return u(e2) && !u(r2) && (o2 = s(e2, n2)), u(e2) && u(r2) ? (r2.forEach(function(r3, o3) {
-    if (i.call(e2, o3)) {
-      var u2 = e2[o3];
-      u2 && "object" == typeof u2 && r3 && "object" == typeof r3 ? e2[o3] = t2(u2, r3, n2) : e2.push(r3);
-    } else e2[o3] = r3;
-  }), e2) : Object.keys(r2).reduce(function(e3, o3) {
-    var u2 = r2[o3];
-    return e3[o3] = i.call(e3, o3) ? t2(e3[o3], u2, n2) : u2, e3;
-  }, o2);
-} }, c = Object.prototype.hasOwnProperty, l = { brackets: function(t4) {
-  return t4 + "[]";
-}, comma: "comma", indices: function(t4, e2) {
-  return t4 + "[" + e2 + "]";
-}, repeat: function(t4) {
-  return t4;
-} }, p = Array.isArray, h = String.prototype.split, y = Array.prototype.push, d = function(t4, e2) {
-  y.apply(t4, p(e2) ? e2 : [e2]);
-}, g = Date.prototype.toISOString, b = o.default, v = { addQueryPrefix: false, allowDots: false, charset: "utf-8", charsetSentinel: false, delimiter: "&", encode: true, encoder: f.encode, encodeValuesOnly: false, format: b, formatter: o.formatters[b], indices: false, serializeDate: function(t4) {
-  return g.call(t4);
-}, skipNulls: false, strictNullHandling: false }, m = function t3(e2, r2, n2, o2, i2, u2, a2, s2, c2, l2, y2, g2, b2, m2) {
-  var j2, w2 = e2;
-  if ("function" == typeof a2 ? w2 = a2(r2, w2) : w2 instanceof Date ? w2 = l2(w2) : "comma" === n2 && p(w2) && (w2 = f.maybeMap(w2, function(t4) {
-    return t4 instanceof Date ? l2(t4) : t4;
-  })), null === w2) {
-    if (o2) return u2 && !b2 ? u2(r2, v.encoder, m2, "key", y2) : r2;
-    w2 = "";
+  if (!e2 || "object" != typeof e2) return [e2].concat(o2);
+  let r2 = e2;
+  return s(e2) && !s(o2) && (r2 = function(t3, e3) {
+    const o3 = e3 && e3.plainObjects ? /* @__PURE__ */ Object.create(null) : {};
+    for (let e4 = 0; e4 < t3.length; ++e4) void 0 !== t3[e4] && (o3[e4] = t3[e4]);
+    return o3;
+  }(e2, n2)), s(e2) && s(o2) ? (o2.forEach(function(o3, r3) {
+    if (i.call(e2, r3)) {
+      const i2 = e2[r3];
+      i2 && "object" == typeof i2 && o3 && "object" == typeof o3 ? e2[r3] = t2(i2, o3, n2) : e2.push(o3);
+    } else e2[r3] = o3;
+  }), e2) : Object.keys(o2).reduce(function(e3, r3) {
+    const s2 = o2[r3];
+    return e3[r3] = i.call(e3, r3) ? t2(e3[r3], s2, n2) : s2, e3;
+  }, r2);
+}, c = 1024, a = function(t3, e2) {
+  return [].concat(t3, e2);
+}, f = function(t3, e2) {
+  if (s(t3)) {
+    const o2 = [];
+    for (let n2 = 0; n2 < t3.length; n2 += 1) o2.push(e2(t3[n2]));
+    return o2;
   }
-  if ("string" == typeof (j2 = w2) || "number" == typeof j2 || "boolean" == typeof j2 || "symbol" == typeof j2 || "bigint" == typeof j2 || f.isBuffer(w2)) {
-    if (u2) {
-      var $2 = b2 ? r2 : u2(r2, v.encoder, m2, "key", y2);
-      if ("comma" === n2 && b2) {
-        for (var O2 = h.call(String(w2), ","), E2 = "", R2 = 0; R2 < O2.length; ++R2) E2 += (0 === R2 ? "" : ",") + g2(u2(O2[R2], v.encoder, m2, "value", y2));
-        return [g2($2) + "=" + E2];
-      }
-      return [g2($2) + "=" + g2(u2(w2, v.encoder, m2, "value", y2))];
+  return e2(t3);
+}, p = Object.prototype.hasOwnProperty, y = { brackets: function(t3) {
+  return t3 + "[]";
+}, comma: "comma", indices: function(t3, e2) {
+  return t3 + "[" + e2 + "]";
+}, repeat: function(t3) {
+  return t3;
+} }, d = Array.isArray, h = Array.prototype.push, b = function(t3, e2) {
+  h.apply(t3, d(e2) ? e2 : [e2]);
+}, m = Date.prototype.toISOString, g = { addQueryPrefix: false, allowDots: false, allowEmptyArrays: false, arrayFormat: "indices", charset: "utf-8", charsetSentinel: false, delimiter: "&", encode: true, encodeDotInKeys: false, encoder: function(t3, e2, o2, n2, r2) {
+  if (0 === t3.length) return t3;
+  let i2 = t3;
+  if ("symbol" == typeof t3 ? i2 = Symbol.prototype.toString.call(t3) : "string" != typeof t3 && (i2 = String(t3)), "iso-8859-1" === o2) return escape(i2).replace(/%u[0-9a-f]{4}/gi, function(t4) {
+    return "%26%23" + parseInt(t4.slice(2), 16) + "%3B";
+  });
+  let s2 = "";
+  for (let t4 = 0; t4 < i2.length; t4 += c) {
+    const e3 = i2.length >= c ? i2.slice(t4, t4 + c) : i2, o3 = [];
+    for (let t5 = 0; t5 < e3.length; ++t5) {
+      let n3 = e3.charCodeAt(t5);
+      45 === n3 || 46 === n3 || 95 === n3 || 126 === n3 || n3 >= 48 && n3 <= 57 || n3 >= 65 && n3 <= 90 || n3 >= 97 && n3 <= 122 || "RFC1738" === r2 && (40 === n3 || 41 === n3) ? o3[o3.length] = e3.charAt(t5) : n3 < 128 ? o3[o3.length] = u[n3] : n3 < 2048 ? o3[o3.length] = u[192 | n3 >> 6] + u[128 | 63 & n3] : n3 < 55296 || n3 >= 57344 ? o3[o3.length] = u[224 | n3 >> 12] + u[128 | n3 >> 6 & 63] + u[128 | 63 & n3] : (t5 += 1, n3 = 65536 + ((1023 & n3) << 10 | 1023 & e3.charCodeAt(t5)), o3[o3.length] = u[240 | n3 >> 18] + u[128 | n3 >> 12 & 63] + u[128 | n3 >> 6 & 63] + u[128 | 63 & n3]);
     }
-    return [g2(r2) + "=" + g2(String(w2))];
+    s2 += o3.join("");
   }
-  var S2, x2 = [];
-  if (void 0 === w2) return x2;
-  if ("comma" === n2 && p(w2)) S2 = [{ value: w2.length > 0 ? w2.join(",") || null : void 0 }];
-  else if (p(a2)) S2 = a2;
+  return s2;
+}, encodeValuesOnly: false, format: r, formatter: n[r], indices: false, serializeDate: function(t3) {
+  return m.call(t3);
+}, skipNulls: false, strictNullHandling: false }, w = {}, v = function(t3, e2, o2, n2, r2, i2, s2, u2, l2, c2, a2, p2, y2, h2, m2, j2, $2, E2) {
+  let O2 = t3, T2 = E2, R2 = 0, S2 = false;
+  for (; void 0 !== (T2 = T2.get(w)) && !S2; ) {
+    const e3 = T2.get(t3);
+    if (R2 += 1, void 0 !== e3) {
+      if (e3 === R2) throw new RangeError("Cyclic object value");
+      S2 = true;
+    }
+    void 0 === T2.get(w) && (R2 = 0);
+  }
+  if ("function" == typeof c2 ? O2 = c2(e2, O2) : O2 instanceof Date ? O2 = y2(O2) : "comma" === o2 && d(O2) && (O2 = f(O2, function(t4) {
+    return t4 instanceof Date ? y2(t4) : t4;
+  })), null === O2) {
+    if (i2) return l2 && !j2 ? l2(e2, g.encoder, $2, "key", h2) : e2;
+    O2 = "";
+  }
+  if ("string" == typeof (I2 = O2) || "number" == typeof I2 || "boolean" == typeof I2 || "symbol" == typeof I2 || "bigint" == typeof I2 || function(t4) {
+    return !(!t4 || "object" != typeof t4 || !(t4.constructor && t4.constructor.isBuffer && t4.constructor.isBuffer(t4)));
+  }(O2)) return l2 ? [m2(j2 ? e2 : l2(e2, g.encoder, $2, "key", h2)) + "=" + m2(l2(O2, g.encoder, $2, "value", h2))] : [m2(e2) + "=" + m2(String(O2))];
+  var I2;
+  const A2 = [];
+  if (void 0 === O2) return A2;
+  let D2;
+  if ("comma" === o2 && d(O2)) j2 && l2 && (O2 = f(O2, l2)), D2 = [{ value: O2.length > 0 ? O2.join(",") || null : void 0 }];
+  else if (d(c2)) D2 = c2;
   else {
-    var N2 = Object.keys(w2);
-    S2 = s2 ? N2.sort(s2) : N2;
+    const t4 = Object.keys(O2);
+    D2 = a2 ? t4.sort(a2) : t4;
   }
-  for (var T2 = 0; T2 < S2.length; ++T2) {
-    var k2 = S2[T2], C = "object" == typeof k2 && void 0 !== k2.value ? k2.value : w2[k2];
-    if (!i2 || null !== C) {
-      var _ = p(w2) ? "function" == typeof n2 ? n2(r2, k2) : r2 : r2 + (c2 ? "." + k2 : "[" + k2 + "]");
-      d(x2, t3(C, _, n2, o2, i2, u2, a2, s2, c2, l2, y2, g2, b2, m2));
-    }
+  const _2 = u2 ? e2.replace(/\./g, "%2E") : e2, k = n2 && d(O2) && 1 === O2.length ? _2 + "[]" : _2;
+  if (r2 && d(O2) && 0 === O2.length) return k + "[]";
+  for (let e3 = 0; e3 < D2.length; ++e3) {
+    const f2 = D2[e3], g2 = "object" == typeof f2 && void 0 !== f2.value ? f2.value : O2[f2];
+    if (s2 && null === g2) continue;
+    const T3 = p2 && u2 ? f2.replace(/\./g, "%2E") : f2, S3 = d(O2) ? "function" == typeof o2 ? o2(k, T3) : k : k + (p2 ? "." + T3 : "[" + T3 + "]");
+    E2.set(t3, R2);
+    const I3 = /* @__PURE__ */ new WeakMap();
+    I3.set(w, E2), b(A2, v(g2, S3, o2, n2, r2, i2, s2, u2, "comma" === o2 && j2 && d(O2) ? null : l2, c2, a2, p2, y2, h2, m2, j2, $2, I3));
   }
-  return x2;
-}, j = Object.prototype.hasOwnProperty, w = Array.isArray, $ = { allowDots: false, allowPrototypes: false, arrayLimit: 20, charset: "utf-8", charsetSentinel: false, comma: false, decoder: f.decode, delimiter: "&", depth: 5, ignoreQueryPrefix: false, interpretNumericEntities: false, parameterLimit: 1e3, parseArrays: true, plainObjects: false, strictNullHandling: false }, O = function(t4) {
-  return t4.replace(/&#(\d+);/g, function(t5, e2) {
+  return A2;
+}, j = Object.prototype.hasOwnProperty, $ = Array.isArray, E = { allowDots: false, allowEmptyArrays: false, allowPrototypes: false, allowSparse: false, arrayLimit: 20, charset: "utf-8", charsetSentinel: false, comma: false, decodeDotInKeys: false, decoder: function(t3, e2, o2) {
+  const n2 = t3.replace(/\+/g, " ");
+  if ("iso-8859-1" === o2) return n2.replace(/%[0-9a-f]{2}/gi, unescape);
+  try {
+    return decodeURIComponent(n2);
+  } catch (t4) {
+    return n2;
+  }
+}, delimiter: "&", depth: 5, duplicates: "combine", ignoreQueryPrefix: false, interpretNumericEntities: false, parameterLimit: 1e3, parseArrays: true, plainObjects: false, strictNullHandling: false }, O = function(t3) {
+  return t3.replace(/&#(\d+);/g, function(t4, e2) {
     return String.fromCharCode(parseInt(e2, 10));
   });
-}, E = function(t4, e2) {
-  return t4 && "string" == typeof t4 && e2.comma && t4.indexOf(",") > -1 ? t4.split(",") : t4;
-}, R = function(t4, e2, r2, n2) {
-  if (t4) {
-    var o2 = r2.allowDots ? t4.replace(/\.([^.[]+)/g, "[$1]") : t4, i2 = /(\[[^[\]]*])/g, u2 = r2.depth > 0 && /(\[[^[\]]*])/.exec(o2), a2 = u2 ? o2.slice(0, u2.index) : o2, s2 = [];
-    if (a2) {
-      if (!r2.plainObjects && j.call(Object.prototype, a2) && !r2.allowPrototypes) return;
-      s2.push(a2);
-    }
-    for (var f2 = 0; r2.depth > 0 && null !== (u2 = i2.exec(o2)) && f2 < r2.depth; ) {
-      if (f2 += 1, !r2.plainObjects && j.call(Object.prototype, u2[1].slice(1, -1)) && !r2.allowPrototypes) return;
-      s2.push(u2[1]);
-    }
-    return u2 && s2.push("[" + o2.slice(u2.index) + "]"), function(t5, e3, r3, n3) {
-      for (var o3 = n3 ? e3 : E(e3, r3), i3 = t5.length - 1; i3 >= 0; --i3) {
-        var u3, a3 = t5[i3];
-        if ("[]" === a3 && r3.parseArrays) u3 = [].concat(o3);
-        else {
-          u3 = r3.plainObjects ? /* @__PURE__ */ Object.create(null) : {};
-          var s3 = "[" === a3.charAt(0) && "]" === a3.charAt(a3.length - 1) ? a3.slice(1, -1) : a3, f3 = parseInt(s3, 10);
-          r3.parseArrays || "" !== s3 ? !isNaN(f3) && a3 !== s3 && String(f3) === s3 && f3 >= 0 && r3.parseArrays && f3 <= r3.arrayLimit ? (u3 = [])[f3] = o3 : "__proto__" !== s3 && (u3[s3] = o3) : u3 = { 0: o3 };
-        }
-        o3 = u3;
+}, T = function(t3, e2) {
+  return t3 && "string" == typeof t3 && e2.comma && t3.indexOf(",") > -1 ? t3.split(",") : t3;
+}, R = function(t3, e2, o2, n2) {
+  if (!t3) return;
+  const r2 = o2.allowDots ? t3.replace(/\.([^.[]+)/g, "[$1]") : t3, i2 = /(\[[^[\]]*])/g;
+  let s2 = o2.depth > 0 && /(\[[^[\]]*])/.exec(r2);
+  const u2 = s2 ? r2.slice(0, s2.index) : r2, l2 = [];
+  if (u2) {
+    if (!o2.plainObjects && j.call(Object.prototype, u2) && !o2.allowPrototypes) return;
+    l2.push(u2);
+  }
+  let c2 = 0;
+  for (; o2.depth > 0 && null !== (s2 = i2.exec(r2)) && c2 < o2.depth; ) {
+    if (c2 += 1, !o2.plainObjects && j.call(Object.prototype, s2[1].slice(1, -1)) && !o2.allowPrototypes) return;
+    l2.push(s2[1]);
+  }
+  return s2 && l2.push("[" + r2.slice(s2.index) + "]"), function(t4, e3, o3, n3) {
+    let r3 = n3 ? e3 : T(e3, o3);
+    for (let e4 = t4.length - 1; e4 >= 0; --e4) {
+      let n4;
+      const i3 = t4[e4];
+      if ("[]" === i3 && o3.parseArrays) n4 = o3.allowEmptyArrays && "" === r3 ? [] : [].concat(r3);
+      else {
+        n4 = o3.plainObjects ? /* @__PURE__ */ Object.create(null) : {};
+        const t5 = "[" === i3.charAt(0) && "]" === i3.charAt(i3.length - 1) ? i3.slice(1, -1) : i3, e5 = o3.decodeDotInKeys ? t5.replace(/%2E/g, ".") : t5, s3 = parseInt(e5, 10);
+        o3.parseArrays || "" !== e5 ? !isNaN(s3) && i3 !== e5 && String(s3) === e5 && s3 >= 0 && o3.parseArrays && s3 <= o3.arrayLimit ? (n4 = [], n4[s3] = r3) : "__proto__" !== e5 && (n4[e5] = r3) : n4 = { 0: r3 };
       }
-      return o3;
-    }(s2, e2, r2, n2);
-  }
-}, S = function(t4, e2) {
-  var r2 = /* @__PURE__ */ function(t5) {
-    return $;
-  }();
-  if ("" === t4 || null == t4) return r2.plainObjects ? /* @__PURE__ */ Object.create(null) : {};
-  for (var n2 = "string" == typeof t4 ? function(t5, e3) {
-    var r3, n3 = {}, o3 = (e3.ignoreQueryPrefix ? t5.replace(/^\?/, "") : t5).split(e3.delimiter, Infinity === e3.parameterLimit ? void 0 : e3.parameterLimit), i3 = -1, u3 = e3.charset;
-    if (e3.charsetSentinel) for (r3 = 0; r3 < o3.length; ++r3) 0 === o3[r3].indexOf("utf8=") && ("utf8=%E2%9C%93" === o3[r3] ? u3 = "utf-8" : "utf8=%26%2310003%3B" === o3[r3] && (u3 = "iso-8859-1"), i3 = r3, r3 = o3.length);
-    for (r3 = 0; r3 < o3.length; ++r3) if (r3 !== i3) {
-      var a3, s3, c2 = o3[r3], l2 = c2.indexOf("]="), p2 = -1 === l2 ? c2.indexOf("=") : l2 + 1;
-      -1 === p2 ? (a3 = e3.decoder(c2, $.decoder, u3, "key"), s3 = e3.strictNullHandling ? null : "") : (a3 = e3.decoder(c2.slice(0, p2), $.decoder, u3, "key"), s3 = f.maybeMap(E(c2.slice(p2 + 1), e3), function(t6) {
-        return e3.decoder(t6, $.decoder, u3, "value");
-      })), s3 && e3.interpretNumericEntities && "iso-8859-1" === u3 && (s3 = O(s3)), c2.indexOf("[]=") > -1 && (s3 = w(s3) ? [s3] : s3), n3[a3] = j.call(n3, a3) ? f.combine(n3[a3], s3) : s3;
+      r3 = n4;
     }
-    return n3;
-  }(t4, r2) : t4, o2 = r2.plainObjects ? /* @__PURE__ */ Object.create(null) : {}, i2 = Object.keys(n2), u2 = 0; u2 < i2.length; ++u2) {
-    var a2 = i2[u2], s2 = R(a2, n2[a2], r2, "string" == typeof t4);
-    o2 = f.merge(o2, s2, r2);
-  }
-  return f.compact(o2);
+    return r3;
+  }(l2, e2, o2, n2);
 };
-class x {
-  constructor(t4, e2, r2) {
-    var n2, o2;
-    this.name = t4, this.definition = e2, this.bindings = null != (n2 = e2.bindings) ? n2 : {}, this.wheres = null != (o2 = e2.wheres) ? o2 : {}, this.config = r2;
+function S(t3, e2) {
+  const o2 = /* @__PURE__ */ function(t4) {
+    return E;
+  }();
+  if ("" === t3 || null == t3) return o2.plainObjects ? /* @__PURE__ */ Object.create(null) : {};
+  const n2 = "string" == typeof t3 ? function(t4, e3) {
+    const o3 = { __proto__: null }, n3 = (e3.ignoreQueryPrefix ? t4.replace(/^\?/, "") : t4).split(e3.delimiter, Infinity === e3.parameterLimit ? void 0 : e3.parameterLimit);
+    let r3, i3 = -1, s2 = e3.charset;
+    if (e3.charsetSentinel) for (r3 = 0; r3 < n3.length; ++r3) 0 === n3[r3].indexOf("utf8=") && ("utf8=%E2%9C%93" === n3[r3] ? s2 = "utf-8" : "utf8=%26%2310003%3B" === n3[r3] && (s2 = "iso-8859-1"), i3 = r3, r3 = n3.length);
+    for (r3 = 0; r3 < n3.length; ++r3) {
+      if (r3 === i3) continue;
+      const t5 = n3[r3], u2 = t5.indexOf("]="), l2 = -1 === u2 ? t5.indexOf("=") : u2 + 1;
+      let c2, p2;
+      -1 === l2 ? (c2 = e3.decoder(t5, E.decoder, s2, "key"), p2 = e3.strictNullHandling ? null : "") : (c2 = e3.decoder(t5.slice(0, l2), E.decoder, s2, "key"), p2 = f(T(t5.slice(l2 + 1), e3), function(t6) {
+        return e3.decoder(t6, E.decoder, s2, "value");
+      })), p2 && e3.interpretNumericEntities && "iso-8859-1" === s2 && (p2 = O(p2)), t5.indexOf("[]=") > -1 && (p2 = $(p2) ? [p2] : p2);
+      const y2 = j.call(o3, c2);
+      y2 && "combine" === e3.duplicates ? o3[c2] = a(o3[c2], p2) : y2 && "last" !== e3.duplicates || (o3[c2] = p2);
+    }
+    return o3;
+  }(t3, o2) : t3;
+  let r2 = o2.plainObjects ? /* @__PURE__ */ Object.create(null) : {};
+  const i2 = Object.keys(n2);
+  for (let e3 = 0; e3 < i2.length; ++e3) {
+    const s2 = i2[e3], u2 = R(s2, n2[s2], o2, "string" == typeof t3);
+    r2 = l(r2, u2, o2);
+  }
+  return true === o2.allowSparse ? r2 : function(t4) {
+    const e3 = [{ obj: { o: t4 }, prop: "o" }], o3 = [];
+    for (let t5 = 0; t5 < e3.length; ++t5) {
+      const n3 = e3[t5], r3 = n3.obj[n3.prop], i3 = Object.keys(r3);
+      for (let t6 = 0; t6 < i3.length; ++t6) {
+        const n4 = i3[t6], s2 = r3[n4];
+        "object" == typeof s2 && null !== s2 && -1 === o3.indexOf(s2) && (e3.push({ obj: r3, prop: n4 }), o3.push(s2));
+      }
+    }
+    return function(t5) {
+      for (; t5.length > 1; ) {
+        const e4 = t5.pop(), o4 = e4.obj[e4.prop];
+        if (s(o4)) {
+          const t6 = [];
+          for (let e5 = 0; e5 < o4.length; ++e5) void 0 !== o4[e5] && t6.push(o4[e5]);
+          e4.obj[e4.prop] = t6;
+        }
+      }
+    }(e3), t4;
+  }(r2);
+}
+class I {
+  constructor(t3, e2, o2) {
+    var n2, r2;
+    this.name = t3, this.definition = e2, this.bindings = null != (n2 = e2.bindings) ? n2 : {}, this.wheres = null != (r2 = e2.wheres) ? r2 : {}, this.config = o2;
   }
   get template() {
-    const t4 = `${this.origin}/${this.definition.uri}`.replace(/\/+$/, "");
-    return "" === t4 ? "/" : t4;
+    const t3 = `${this.origin}/${this.definition.uri}`.replace(/\/+$/, "");
+    return "" === t3 ? "/" : t3;
   }
   get origin() {
     return this.config.absolute ? this.definition.domain ? `${this.config.url.match(/^\w+:\/\//)[0]}${this.definition.domain}${this.config.port ? `:${this.config.port}` : ""}` : this.config.url : "";
   }
   get parameterSegments() {
-    var t4, e2;
-    return null != (t4 = null == (e2 = this.template.match(/{[^}?]+\??}/g)) ? void 0 : e2.map((t5) => ({ name: t5.replace(/{|\??}/g, ""), required: !/\?}$/.test(t5) }))) ? t4 : [];
+    var t3, e2;
+    return null != (t3 = null == (e2 = this.template.match(/{[^}?]+\??}/g)) ? void 0 : e2.map((t4) => ({ name: t4.replace(/{|\??}/g, ""), required: !/\?}$/.test(t4) }))) ? t3 : [];
   }
-  matchesUrl(t4) {
+  matchesUrl(t3) {
     var e2;
     if (!this.definition.methods.includes("GET")) return false;
-    const r2 = this.template.replace(/[.*+$()[\]]/g, "\\$&").replace(/(\/?){([^}?]*)(\??)}/g, (t5, e3, r3, n3) => {
-      var o3;
-      const i3 = `(?<${r3}>${(null == (o3 = this.wheres[r3]) ? void 0 : o3.replace(/(^\^)|(\$$)/g, "")) || "[^/?]+"})`;
+    const o2 = this.template.replace(/[.*+$()[\]]/g, "\\$&").replace(/(\/?){([^}?]*)(\??)}/g, (t4, e3, o3, n3) => {
+      var r3;
+      const i3 = `(?<${o3}>${(null == (r3 = this.wheres[o3]) ? void 0 : r3.replace(/(^\^)|(\$$)/g, "")) || "[^/?]+"})`;
       return n3 ? `(${e3}${i3})?` : `${e3}${i3}`;
-    }).replace(/^\w+:\/\//, ""), [n2, o2] = t4.replace(/^\w+:\/\//, "").split("?"), i2 = null != (e2 = new RegExp(`^${r2}/?$`).exec(n2)) ? e2 : new RegExp(`^${r2}/?$`).exec(decodeURI(n2));
+    }).replace(/^\w+:\/\//, ""), [n2, r2] = t3.replace(/^\w+:\/\//, "").split("?"), i2 = null != (e2 = new RegExp(`^${o2}/?$`).exec(n2)) ? e2 : new RegExp(`^${o2}/?$`).exec(decodeURI(n2));
     if (i2) {
-      for (const t5 in i2.groups) i2.groups[t5] = "string" == typeof i2.groups[t5] ? decodeURIComponent(i2.groups[t5]) : i2.groups[t5];
-      return { params: i2.groups, query: S(o2) };
+      for (const t4 in i2.groups) i2.groups[t4] = "string" == typeof i2.groups[t4] ? decodeURIComponent(i2.groups[t4]) : i2.groups[t4];
+      return { params: i2.groups, query: S(r2) };
     }
     return false;
   }
-  compile(t4) {
-    return this.parameterSegments.length ? this.template.replace(/{([^}?]+)(\??)}/g, (e2, r2, n2) => {
-      var o2, i2;
-      if (!n2 && [null, void 0].includes(t4[r2])) throw new Error(`Ziggy error: '${r2}' parameter is required for route '${this.name}'.`);
-      if (this.wheres[r2] && !new RegExp(`^${n2 ? `(${this.wheres[r2]})?` : this.wheres[r2]}$`).test(null != (i2 = t4[r2]) ? i2 : "")) throw new Error(`Ziggy error: '${r2}' parameter '${t4[r2]}' does not match required format '${this.wheres[r2]}' for route '${this.name}'.`);
-      return encodeURI(null != (o2 = t4[r2]) ? o2 : "").replace(/%7C/g, "|").replace(/%25/g, "%").replace(/\$/g, "%24");
+  compile(t3) {
+    return this.parameterSegments.length ? this.template.replace(/{([^}?]+)(\??)}/g, (e2, o2, n2) => {
+      var r2, i2;
+      if (!n2 && [null, void 0].includes(t3[o2])) throw new Error(`Ziggy error: '${o2}' parameter is required for route '${this.name}'.`);
+      if (this.wheres[o2] && !new RegExp(`^${n2 ? `(${this.wheres[o2]})?` : this.wheres[o2]}$`).test(null != (i2 = t3[o2]) ? i2 : "")) throw new Error(`Ziggy error: '${o2}' parameter '${t3[o2]}' does not match required format '${this.wheres[o2]}' for route '${this.name}'.`);
+      return encodeURI(null != (r2 = t3[o2]) ? r2 : "").replace(/%7C/g, "|").replace(/%25/g, "%").replace(/\$/g, "%24");
     }).replace(this.config.absolute ? /(\.[^/]+?)(\/\/)/ : /(^)(\/\/)/, "$1/").replace(/\/+$/, "") : this.template;
   }
 }
-class N extends String {
-  constructor(e2, r2, n2 = true, o2) {
-    if (super(), this.t = null != o2 ? o2 : "undefined" != typeof Ziggy ? Ziggy : null == globalThis ? void 0 : globalThis.Ziggy, this.t = t({}, this.t, { absolute: n2 }), e2) {
+class A extends String {
+  constructor(e2, o2, n2 = true, r2) {
+    if (super(), this.t = null != r2 ? r2 : "undefined" != typeof Ziggy ? Ziggy : null == globalThis ? void 0 : globalThis.Ziggy, !this.t && "undefined" != typeof document && document.getElementById("ziggy-routes-json") && (globalThis.Ziggy = JSON.parse(document.getElementById("ziggy-routes-json").textContent), this.t = globalThis.Ziggy), this.t = t({}, this.t, { absolute: n2 }), e2) {
       if (!this.t.routes[e2]) throw new Error(`Ziggy error: route '${e2}' is not in the route list.`);
-      this.i = new x(e2, this.t.routes[e2], this.t), this.u = this.l(r2);
+      this.i = new I(e2, this.t.routes[e2], this.t), this.u = this.l(o2);
     }
   }
   toString() {
-    const e2 = Object.keys(this.u).filter((t4) => !this.i.parameterSegments.some(({ name: e3 }) => e3 === t4)).filter((t4) => "_query" !== t4).reduce((e3, r2) => t({}, e3, { [r2]: this.u[r2] }), {});
-    return this.i.compile(this.u) + function(t4, e3) {
-      var r2, n2 = t4, i2 = function(t5) {
-        if (!t5) return v;
-        if (null != t5.encoder && "function" != typeof t5.encoder) throw new TypeError("Encoder has to be a function.");
-        var e4 = t5.charset || v.charset;
-        if (void 0 !== t5.charset && "utf-8" !== t5.charset && "iso-8859-1" !== t5.charset) throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
-        var r3 = o.default;
-        if (void 0 !== t5.format) {
-          if (!c.call(o.formatters, t5.format)) throw new TypeError("Unknown format option provided.");
-          r3 = t5.format;
+    const e2 = Object.keys(this.u).filter((t3) => !this.i.parameterSegments.some(({ name: e3 }) => e3 === t3)).filter((t3) => "_query" !== t3).reduce((e3, o2) => t({}, e3, { [o2]: this.u[o2] }), {});
+    return this.i.compile(this.u) + function(t3, e3) {
+      let o2 = t3;
+      const i2 = function(t4) {
+        if (!t4) return g;
+        if (void 0 !== t4.allowEmptyArrays && "boolean" != typeof t4.allowEmptyArrays) throw new TypeError("`allowEmptyArrays` option can only be `true` or `false`, when provided");
+        if (void 0 !== t4.encodeDotInKeys && "boolean" != typeof t4.encodeDotInKeys) throw new TypeError("`encodeDotInKeys` option can only be `true` or `false`, when provided");
+        if (null != t4.encoder && "function" != typeof t4.encoder) throw new TypeError("Encoder has to be a function.");
+        const e4 = t4.charset || g.charset;
+        if (void 0 !== t4.charset && "utf-8" !== t4.charset && "iso-8859-1" !== t4.charset) throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
+        let o3 = r;
+        if (void 0 !== t4.format) {
+          if (!p.call(n, t4.format)) throw new TypeError("Unknown format option provided.");
+          o3 = t4.format;
         }
-        var n3 = o.formatters[r3], i3 = v.filter;
-        return ("function" == typeof t5.filter || p(t5.filter)) && (i3 = t5.filter), { addQueryPrefix: "boolean" == typeof t5.addQueryPrefix ? t5.addQueryPrefix : v.addQueryPrefix, allowDots: void 0 === t5.allowDots ? v.allowDots : !!t5.allowDots, charset: e4, charsetSentinel: "boolean" == typeof t5.charsetSentinel ? t5.charsetSentinel : v.charsetSentinel, delimiter: void 0 === t5.delimiter ? v.delimiter : t5.delimiter, encode: "boolean" == typeof t5.encode ? t5.encode : v.encode, encoder: "function" == typeof t5.encoder ? t5.encoder : v.encoder, encodeValuesOnly: "boolean" == typeof t5.encodeValuesOnly ? t5.encodeValuesOnly : v.encodeValuesOnly, filter: i3, format: r3, formatter: n3, serializeDate: "function" == typeof t5.serializeDate ? t5.serializeDate : v.serializeDate, skipNulls: "boolean" == typeof t5.skipNulls ? t5.skipNulls : v.skipNulls, sort: "function" == typeof t5.sort ? t5.sort : null, strictNullHandling: "boolean" == typeof t5.strictNullHandling ? t5.strictNullHandling : v.strictNullHandling };
+        const i3 = n[o3];
+        let s3, u3 = g.filter;
+        if (("function" == typeof t4.filter || d(t4.filter)) && (u3 = t4.filter), s3 = t4.arrayFormat in y ? t4.arrayFormat : "indices" in t4 ? t4.indices ? "indices" : "repeat" : g.arrayFormat, "commaRoundTrip" in t4 && "boolean" != typeof t4.commaRoundTrip) throw new TypeError("`commaRoundTrip` must be a boolean, or absent");
+        return { addQueryPrefix: "boolean" == typeof t4.addQueryPrefix ? t4.addQueryPrefix : g.addQueryPrefix, allowDots: void 0 === t4.allowDots ? true === t4.encodeDotInKeys || g.allowDots : !!t4.allowDots, allowEmptyArrays: "boolean" == typeof t4.allowEmptyArrays ? !!t4.allowEmptyArrays : g.allowEmptyArrays, arrayFormat: s3, charset: e4, charsetSentinel: "boolean" == typeof t4.charsetSentinel ? t4.charsetSentinel : g.charsetSentinel, commaRoundTrip: t4.commaRoundTrip, delimiter: void 0 === t4.delimiter ? g.delimiter : t4.delimiter, encode: "boolean" == typeof t4.encode ? t4.encode : g.encode, encodeDotInKeys: "boolean" == typeof t4.encodeDotInKeys ? t4.encodeDotInKeys : g.encodeDotInKeys, encoder: "function" == typeof t4.encoder ? t4.encoder : g.encoder, encodeValuesOnly: "boolean" == typeof t4.encodeValuesOnly ? t4.encodeValuesOnly : g.encodeValuesOnly, filter: u3, format: o3, formatter: i3, serializeDate: "function" == typeof t4.serializeDate ? t4.serializeDate : g.serializeDate, skipNulls: "boolean" == typeof t4.skipNulls ? t4.skipNulls : g.skipNulls, sort: "function" == typeof t4.sort ? t4.sort : null, strictNullHandling: "boolean" == typeof t4.strictNullHandling ? t4.strictNullHandling : g.strictNullHandling };
       }(e3);
-      "function" == typeof i2.filter ? n2 = (0, i2.filter)("", n2) : p(i2.filter) && (r2 = i2.filter);
-      var u2 = [];
-      if ("object" != typeof n2 || null === n2) return "";
-      var a2 = l[e3 && e3.arrayFormat in l ? e3.arrayFormat : e3 && "indices" in e3 ? e3.indices ? "indices" : "repeat" : "indices"];
-      r2 || (r2 = Object.keys(n2)), i2.sort && r2.sort(i2.sort);
-      for (var s2 = 0; s2 < r2.length; ++s2) {
-        var f2 = r2[s2];
-        i2.skipNulls && null === n2[f2] || d(u2, m(n2[f2], f2, a2, i2.strictNullHandling, i2.skipNulls, i2.encode ? i2.encoder : null, i2.filter, i2.sort, i2.allowDots, i2.serializeDate, i2.format, i2.formatter, i2.encodeValuesOnly, i2.charset));
+      let s2, u2;
+      "function" == typeof i2.filter ? (u2 = i2.filter, o2 = u2("", o2)) : d(i2.filter) && (u2 = i2.filter, s2 = u2);
+      const l2 = [];
+      if ("object" != typeof o2 || null === o2) return "";
+      const c2 = y[i2.arrayFormat], a2 = "comma" === c2 && i2.commaRoundTrip;
+      s2 || (s2 = Object.keys(o2)), i2.sort && s2.sort(i2.sort);
+      const f2 = /* @__PURE__ */ new WeakMap();
+      for (let t4 = 0; t4 < s2.length; ++t4) {
+        const e4 = s2[t4];
+        i2.skipNulls && null === o2[e4] || b(l2, v(o2[e4], e4, c2, a2, i2.allowEmptyArrays, i2.strictNullHandling, i2.skipNulls, i2.encodeDotInKeys, i2.encode ? i2.encoder : null, i2.filter, i2.sort, i2.allowDots, i2.serializeDate, i2.format, i2.formatter, i2.encodeValuesOnly, i2.charset, f2));
       }
-      var h2 = u2.join(i2.delimiter), y2 = true === i2.addQueryPrefix ? "?" : "";
-      return i2.charsetSentinel && (y2 += "iso-8859-1" === i2.charset ? "utf8=%26%2310003%3B&" : "utf8=%E2%9C%93&"), h2.length > 0 ? y2 + h2 : "";
-    }(t({}, e2, this.u._query), { addQueryPrefix: true, arrayFormat: "indices", encodeValuesOnly: true, skipNulls: true, encoder: (t4, e3) => "boolean" == typeof t4 ? Number(t4) : e3(t4) });
+      const h2 = l2.join(i2.delimiter);
+      let m2 = true === i2.addQueryPrefix ? "?" : "";
+      return i2.charsetSentinel && (m2 += "iso-8859-1" === i2.charset ? "utf8=%26%2310003%3B&" : "utf8=%E2%9C%93&"), h2.length > 0 ? m2 + h2 : "";
+    }(t({}, e2, this.u._query), { addQueryPrefix: true, arrayFormat: "indices", encodeValuesOnly: true, skipNulls: true, encoder: (t3, e3) => "boolean" == typeof t3 ? Number(t3) : e3(t3) });
   }
   p(e2) {
-    e2 ? this.t.absolute && e2.startsWith("/") && (e2 = this.h().host + e2) : e2 = this.v();
-    let r2 = {};
-    const [n2, o2] = Object.entries(this.t.routes).find(([t4, n3]) => r2 = new x(t4, n3, this.t).matchesUrl(e2)) || [void 0, void 0];
-    return t({ name: n2 }, r2, { route: o2 });
+    e2 ? this.t.absolute && e2.startsWith("/") && (e2 = this.h().host + e2) : e2 = this.m();
+    let o2 = {};
+    const [n2, r2] = Object.entries(this.t.routes).find(([t3, n3]) => o2 = new I(t3, n3, this.t).matchesUrl(e2)) || [void 0, void 0];
+    return t({ name: n2 }, o2, { route: r2 });
   }
-  v() {
-    const { host: t4, pathname: e2, search: r2 } = this.h();
-    return (this.t.absolute ? t4 + e2 : e2.replace(this.t.url.replace(/^\w*:\/\/[^/]+/, ""), "").replace(/^\/+/, "/")) + r2;
+  m() {
+    const { host: t3, pathname: e2, search: o2 } = this.h();
+    return (this.t.absolute ? t3 + e2 : e2.replace(this.t.url.replace(/^\w*:\/\/[^/]+/, ""), "").replace(/^\/+/, "/")) + o2;
   }
-  current(e2, r2) {
-    const { name: n2, params: o2, query: i2, route: u2 } = this.p();
+  current(e2, o2) {
+    const { name: n2, params: r2, query: i2, route: s2 } = this.p();
     if (!e2) return n2;
-    const a2 = new RegExp(`^${e2.replace(/\./g, "\\.").replace(/\*/g, ".*")}$`).test(n2);
-    if ([null, void 0].includes(r2) || !a2) return a2;
-    const s2 = new x(n2, u2, this.t);
-    r2 = this.l(r2, s2);
-    const f2 = t({}, o2, i2);
-    if (Object.values(r2).every((t4) => !t4) && !Object.values(f2).some((t4) => void 0 !== t4)) return true;
-    const c2 = (t4, e3) => Object.entries(t4).every(([t5, r3]) => Array.isArray(r3) && Array.isArray(e3[t5]) ? r3.every((r4) => e3[t5].includes(r4)) : "object" == typeof r3 && "object" == typeof e3[t5] && null !== r3 && null !== e3[t5] ? c2(r3, e3[t5]) : e3[t5] == r3);
-    return c2(r2, f2);
+    const u2 = new RegExp(`^${e2.replace(/\./g, "\\.").replace(/\*/g, ".*")}$`).test(n2);
+    if ([null, void 0].includes(o2) || !u2) return u2;
+    const l2 = new I(n2, s2, this.t);
+    o2 = this.l(o2, l2);
+    const c2 = t({}, r2, i2);
+    if (Object.values(o2).every((t3) => !t3) && !Object.values(c2).some((t3) => void 0 !== t3)) return true;
+    const a2 = (t3, e3) => Object.entries(t3).every(([t4, o3]) => Array.isArray(o3) && Array.isArray(e3[t4]) ? o3.every((o4) => e3[t4].includes(o4) || e3[t4].includes(decodeURIComponent(o4))) : "object" == typeof o3 && "object" == typeof e3[t4] && null !== o3 && null !== e3[t4] ? a2(o3, e3[t4]) : e3[t4] == o3 || e3[t4] == decodeURIComponent(o3));
+    return a2(o2, c2);
   }
   h() {
-    var t4, e2, r2, n2, o2, i2;
-    const { host: u2 = "", pathname: a2 = "", search: s2 = "" } = "undefined" != typeof window ? window.location : {};
-    return { host: null != (t4 = null == (e2 = this.t.location) ? void 0 : e2.host) ? t4 : u2, pathname: null != (r2 = null == (n2 = this.t.location) ? void 0 : n2.pathname) ? r2 : a2, search: null != (o2 = null == (i2 = this.t.location) ? void 0 : i2.search) ? o2 : s2 };
+    var t3, e2, o2, n2, r2, i2;
+    const { host: s2 = "", pathname: u2 = "", search: l2 = "" } = "undefined" != typeof window ? window.location : {};
+    return { host: null != (t3 = null == (e2 = this.t.location) ? void 0 : e2.host) ? t3 : s2, pathname: null != (o2 = null == (n2 = this.t.location) ? void 0 : n2.pathname) ? o2 : u2, search: null != (r2 = null == (i2 = this.t.location) ? void 0 : i2.search) ? r2 : l2 };
   }
   get params() {
-    const { params: e2, query: r2 } = this.p();
-    return t({}, e2, r2);
+    const { params: e2, query: o2 } = this.p();
+    return t({}, e2, o2);
   }
   get routeParams() {
     return this.p().params;
@@ -310,38 +343,38 @@ class N extends String {
   get queryParams() {
     return this.p().query;
   }
-  has(t4) {
-    return this.t.routes.hasOwnProperty(t4);
+  has(t3) {
+    return this.t.routes.hasOwnProperty(t3);
   }
-  l(e2 = {}, r2 = this.i) {
+  l(e2 = {}, o2 = this.i) {
     null != e2 || (e2 = {}), e2 = ["string", "number"].includes(typeof e2) ? [e2] : e2;
-    const n2 = r2.parameterSegments.filter(({ name: t4 }) => !this.t.defaults[t4]);
-    return Array.isArray(e2) ? e2 = e2.reduce((e3, r3, o2) => t({}, e3, n2[o2] ? { [n2[o2].name]: r3 } : "object" == typeof r3 ? r3 : { [r3]: "" }), {}) : 1 !== n2.length || e2[n2[0].name] || !e2.hasOwnProperty(Object.values(r2.bindings)[0]) && !e2.hasOwnProperty("id") || (e2 = { [n2[0].name]: e2 }), t({}, this.m(r2), this.j(e2, r2));
+    const n2 = o2.parameterSegments.filter(({ name: t3 }) => !this.t.defaults[t3]);
+    return Array.isArray(e2) ? e2 = e2.reduce((e3, o3, r2) => t({}, e3, n2[r2] ? { [n2[r2].name]: o3 } : "object" == typeof o3 ? o3 : { [o3]: "" }), {}) : 1 !== n2.length || e2[n2[0].name] || !e2.hasOwnProperty(Object.values(o2.bindings)[0]) && !e2.hasOwnProperty("id") || (e2 = { [n2[0].name]: e2 }), t({}, this.v(o2), this.j(e2, o2));
   }
-  m(e2) {
-    return e2.parameterSegments.filter(({ name: t4 }) => this.t.defaults[t4]).reduce((e3, { name: r2 }, n2) => t({}, e3, { [r2]: this.t.defaults[r2] }), {});
+  v(e2) {
+    return e2.parameterSegments.filter(({ name: t3 }) => this.t.defaults[t3]).reduce((e3, { name: o2 }, n2) => t({}, e3, { [o2]: this.t.defaults[o2] }), {});
   }
-  j(e2, { bindings: r2, parameterSegments: n2 }) {
-    return Object.entries(e2).reduce((e3, [o2, i2]) => {
-      if (!i2 || "object" != typeof i2 || Array.isArray(i2) || !n2.some(({ name: t4 }) => t4 === o2)) return t({}, e3, { [o2]: i2 });
-      if (!i2.hasOwnProperty(r2[o2])) {
-        if (!i2.hasOwnProperty("id")) throw new Error(`Ziggy error: object passed as '${o2}' parameter is missing route model binding key '${r2[o2]}'.`);
-        r2[o2] = "id";
+  j(e2, { bindings: o2, parameterSegments: n2 }) {
+    return Object.entries(e2).reduce((e3, [r2, i2]) => {
+      if (!i2 || "object" != typeof i2 || Array.isArray(i2) || !n2.some(({ name: t3 }) => t3 === r2)) return t({}, e3, { [r2]: i2 });
+      if (!i2.hasOwnProperty(o2[r2])) {
+        if (!i2.hasOwnProperty("id")) throw new Error(`Ziggy error: object passed as '${r2}' parameter is missing route model binding key '${o2[r2]}'.`);
+        o2[r2] = "id";
       }
-      return t({}, e3, { [o2]: i2[r2[o2]] });
+      return t({}, e3, { [r2]: i2[o2[r2]] });
     }, {});
   }
   valueOf() {
     return this.toString();
   }
 }
-function T(t4, e2, r2, n2) {
-  const o2 = new N(t4, e2, r2, n2);
-  return t4 ? o2.toString() : o2;
+function D(t3, e2, o2, n2) {
+  const r2 = new A(t3, e2, o2, n2);
+  return t3 ? r2.toString() : r2;
 }
-const k = { install(t4, e2) {
-  const r2 = (t5, r3, n2, o2 = e2) => T(t5, r3, n2, o2);
-  parseInt(t4.version) > 2 ? (t4.config.globalProperties.route = r2, t4.provide("route", r2)) : t4.mixin({ methods: { route: r2 } });
+const _ = { install(t3, e2) {
+  const o2 = (t4, o3, n2, r2 = e2) => D(t4, o3, n2, r2);
+  parseInt(t3.version) > 2 ? (t3.config.globalProperties.route = o2, t3.provide("route", o2)) : t3.mixin({ methods: { route: o2 } });
 } };
 const appName = "Solusi Logistik Internasional Anda | Eshaka Wijaya Logistics";
 createServer(
@@ -351,10 +384,10 @@ createServer(
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(
       `./Pages/${name}.vue`,
-      /* @__PURE__ */ Object.assign({ "./Pages/Admin/AdminCS/Components/SidebarNavigation.vue": () => import("./assets/SidebarNavigation-Bpp5XwQ-.js"), "./Pages/Admin/AdminCS/Dashboard.vue": () => import("./assets/Dashboard-BejqfczT.js"), "./Pages/Admin/AdminCS/SalesOrders/Create.vue": () => import("./assets/Create-BAeRXQrc.js"), "./Pages/Admin/AdminCS/SalesOrders/Edit.vue": () => import("./assets/Edit-D1vf1liz.js"), "./Pages/Admin/AdminCS/SalesOrders/Index.vue": () => import("./assets/Index-DDgk66jh.js"), "./Pages/Admin/AdminCS/SalesOrders/Show.vue": () => import("./assets/Show-B8c8Pubz.js"), "./Pages/Admin/AdminKeuangan/AccountPayables/Index.vue": () => import("./assets/Index-DBWpHSUP.js"), "./Pages/Admin/AdminKeuangan/AccountPayables/Show.vue": () => import("./assets/Show-CMzivkDx.js"), "./Pages/Admin/AdminKeuangan/AccountReceivables/Index.vue": () => import("./assets/Index-CRaTQGXF.js"), "./Pages/Admin/AdminKeuangan/AccountReceivables/Show.vue": () => import("./assets/Show-BqUqFEl8.js"), "./Pages/Admin/AdminKeuangan/Components/SidebarNavigation.vue": () => import("./assets/SidebarNavigation-COHQr_F5.js"), "./Pages/Admin/AdminKeuangan/Customers/Create.vue": () => import("./assets/Create-ZBs5j9kx.js"), "./Pages/Admin/AdminKeuangan/Customers/Edit.vue": () => import("./assets/Edit-CJiPUy7A.js"), "./Pages/Admin/AdminKeuangan/Customers/Index.vue": () => import("./assets/Index-DDZriwca.js"), "./Pages/Admin/AdminKeuangan/Customers/Show.vue": () => import("./assets/Show-vowspNe3.js"), "./Pages/Admin/AdminKeuangan/Dashboard.vue": () => import("./assets/Dashboard-DFwFxCVQ.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/BulkCreate.vue": () => import("./assets/BulkCreate-DcrQcnpW.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Create.vue": () => import("./assets/Create-DTrLmdL_.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Edit.vue": () => import("./assets/Edit-iug6fIRq.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Index.vue": () => import("./assets/Index-DVXZEtBp.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Show.vue": () => import("./assets/Show-DM7zNUSh.js"), "./Pages/Admin/AdminKeuangan/Invoices/Create.vue": () => import("./assets/Create-BxZPwMOb.js"), "./Pages/Admin/AdminKeuangan/Invoices/Edit.vue": () => import("./assets/Edit-CXAbc-um.js"), "./Pages/Admin/AdminKeuangan/Invoices/Index.vue": () => import("./assets/Index-DkoHNi3K.js"), "./Pages/Admin/AdminKeuangan/Invoices/PaymentHistory.vue": () => import("./assets/PaymentHistory-CZ05OUv_.js"), "./Pages/Admin/AdminKeuangan/Invoices/Show.vue": () => import("./assets/Show-lnD7vsUz.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Create.vue": () => import("./assets/Create-CBSY-mKK.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Edit.vue": () => import("./assets/Edit-DCCA1nEd.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Index.vue": () => import("./assets/Index-DLVdrejp.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Show.vue": () => import("./assets/Show-RM3XjAJK.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Create.vue": () => import("./assets/Create-3s1eZPH5.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Edit.vue": () => import("./assets/Edit-CovPgr1y.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Index.vue": () => import("./assets/Index-ygVWbv-S.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Show.vue": () => import("./assets/Show-zUUFGA81.js"), "./Pages/Admin/AdminKeuangan/Reports/ProfitShipment.vue": () => import("./assets/ProfitShipment-D0YeHwwM.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Create.vue": () => import("./assets/Create-Bh9k2iP9.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Edit.vue": () => import("./assets/Edit-CY872Z-s.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Index.vue": () => import("./assets/Index-D0uET87a.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Show.vue": () => import("./assets/Show-B-2u9vl7.js"), "./Pages/Admin/AdminKeuangan/ShipmentTypes/Create.vue": () => import("./assets/Create-DlSU8PSH.js"), "./Pages/Admin/AdminKeuangan/ShipmentTypes/Edit.vue": () => import("./assets/Edit-ZLGfd-FC.js"), "./Pages/Admin/AdminKeuangan/ShipmentTypes/Index.vue": () => import("./assets/Index-BpIWvW0c.js"), "./Pages/Admin/AdminKeuangan/Vendors/Create.vue": () => import("./assets/Create-DFYteV9b.js"), "./Pages/Admin/AdminKeuangan/Vendors/Edit.vue": () => import("./assets/Edit-Z9_FawRc.js"), "./Pages/Admin/AdminKeuangan/Vendors/Index.vue": () => import("./assets/Index-MiRjWd1K.js"), "./Pages/Admin/AdminKeuangan/Vendors/Show.vue": () => import("./assets/Show-DBZxQw6-.js"), "./Pages/Admin/MasterAdmin/Components/SidebarNavigation.vue": () => import("./assets/SidebarNavigation-A0RXUIxC.js"), "./Pages/Admin/MasterAdmin/Dashboard.vue": () => import("./assets/Dashboard-Do_dt8So.js"), "./Pages/Admin/MasterAdmin/Employees/Create.vue": () => import("./assets/Create-9QXICjHN.js"), "./Pages/Admin/MasterAdmin/Employees/Edit.vue": () => import("./assets/Edit-CbwVxL-q.js"), "./Pages/Admin/MasterAdmin/Employees/Index.vue": () => import("./assets/Index-BbsqCGf8.js"), "./Pages/Admin/MasterAdmin/Employees/Show.vue": () => import("./assets/Show-BN6EFS57.js"), "./Pages/Admin/MasterAdmin/Users/Create.vue": () => import("./assets/Create-Kwq7vawR.js"), "./Pages/Admin/MasterAdmin/Users/Edit.vue": () => import("./assets/Edit-Uozb6Op7.js"), "./Pages/Admin/MasterAdmin/Users/Index.vue": () => import("./assets/Index-Da19G8xB.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/PengaturanUmum/Index.vue": () => import("./assets/Index-CBQjK0z1.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Service/Index.vue": () => import("./assets/Index-BmtW62Pn.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Service/create.vue": () => import("./assets/create-DNiyzyED.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Service/edit.vue": () => import("./assets/edit-D7a9OX9A.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/SupportService/Create.vue": () => import("./assets/Create-Z6Lx93kb.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/SupportService/Edit.vue": () => import("./assets/Edit-gSVRdSm-.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/SupportService/Index.vue": () => import("./assets/Index-vHeGQt43.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Team/Create.vue": () => import("./assets/Create-CieKmAT4.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Team/Edit.vue": () => import("./assets/Edit-CVmteWB6.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Team/Index.vue": () => import("./assets/Index-DyuArdm3.js"), "./Pages/Auth/ConfirmPassword.vue": () => import("./assets/ConfirmPassword-BzWFYnYB.js"), "./Pages/Auth/ForgotPassword.vue": () => import("./assets/ForgotPassword-BtJUSq4N.js"), "./Pages/Auth/Login.vue": () => import("./assets/Login-CGUJGnau.js"), "./Pages/Auth/Register.vue": () => import("./assets/Register-wmUHZvMF.js"), "./Pages/Auth/ResetPassword.vue": () => import("./assets/ResetPassword-BYshNLDc.js"), "./Pages/Auth/VerifyEmail.vue": () => import("./assets/VerifyEmail-4BVJVey_.js"), "./Pages/Home.vue": () => import("./assets/Home-BG-_-Y-5.js"), "./Pages/HomePage.vue": () => import("./assets/HomePage-DK0VM_oN.js"), "./Pages/Profile/Edit.vue": () => import("./assets/Edit-BrSG0ylB.js"), "./Pages/Profile/Partials/DeleteUserForm.vue": () => import("./assets/DeleteUserForm-BVZBKAlM.js"), "./Pages/Profile/Partials/UpdatePasswordForm.vue": () => import("./assets/UpdatePasswordForm-62Fx1gq2.js"), "./Pages/Profile/Partials/UpdateProfileInformationForm.vue": () => import("./assets/UpdateProfileInformationForm-BlqLV5MH.js"), "./Pages/Welcome.vue": () => import("./assets/Welcome-DMaBece4.js") })
+      /* @__PURE__ */ Object.assign({ "./Pages/Admin/AdminCS/Components/SidebarNavigation.vue": () => import("./assets/SidebarNavigation-Bpp5XwQ-.js"), "./Pages/Admin/AdminCS/Dashboard.vue": () => import("./assets/Dashboard-BejqfczT.js"), "./Pages/Admin/AdminCS/SalesOrders/Create.vue": () => import("./assets/Create-D47EQ0Yw.js"), "./Pages/Admin/AdminCS/SalesOrders/Edit.vue": () => import("./assets/Edit-0U1R-I0r.js"), "./Pages/Admin/AdminCS/SalesOrders/Index.vue": () => import("./assets/Index-DIot8_RB.js"), "./Pages/Admin/AdminCS/SalesOrders/Show.vue": () => import("./assets/Show-BM5bNPq8.js"), "./Pages/Admin/AdminKeuangan/AccountPayables/Index.vue": () => import("./assets/Index-C0AuUD0E.js"), "./Pages/Admin/AdminKeuangan/AccountPayables/Show.vue": () => import("./assets/Show-umAuts-j.js"), "./Pages/Admin/AdminKeuangan/AccountReceivables/Index.vue": () => import("./assets/Index-BHE2Xzbb.js"), "./Pages/Admin/AdminKeuangan/AccountReceivables/Show.vue": () => import("./assets/Show-DNBVS2lj.js"), "./Pages/Admin/AdminKeuangan/Components/SidebarNavigation.vue": () => import("./assets/SidebarNavigation-COHQr_F5.js"), "./Pages/Admin/AdminKeuangan/Customers/Create.vue": () => import("./assets/Create-D7mSOhC0.js"), "./Pages/Admin/AdminKeuangan/Customers/Edit.vue": () => import("./assets/Edit-wZ_M-loK.js"), "./Pages/Admin/AdminKeuangan/Customers/Index.vue": () => import("./assets/Index-CF5Jo2Cd.js"), "./Pages/Admin/AdminKeuangan/Customers/Show.vue": () => import("./assets/Show-ChQZQ8CK.js"), "./Pages/Admin/AdminKeuangan/Dashboard.vue": () => import("./assets/Dashboard-BLAdFHL3.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/AllInCreate.vue": () => import("./assets/AllInCreate-CiGG0NTL.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/BulkCreate.vue": () => import("./assets/BulkCreate-f4clCFxV.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Create.vue": () => import("./assets/Create-SgQlqOkj.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Edit.vue": () => import("./assets/Edit-D4WB060K.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Index.vue": () => import("./assets/Index-D-j5G7C-.js"), "./Pages/Admin/AdminKeuangan/EmployeeSalary/Show.vue": () => import("./assets/Show-QHCjWapX.js"), "./Pages/Admin/AdminKeuangan/Invoices/Create.vue": () => import("./assets/Create-Bf-3Iv88.js"), "./Pages/Admin/AdminKeuangan/Invoices/Edit.vue": () => import("./assets/Edit-DqWo9mKe.js"), "./Pages/Admin/AdminKeuangan/Invoices/Index.vue": () => import("./assets/Index-B1EUeGN3.js"), "./Pages/Admin/AdminKeuangan/Invoices/PaymentHistory.vue": () => import("./assets/PaymentHistory-BnMhQOkS.js"), "./Pages/Admin/AdminKeuangan/Invoices/Show.vue": () => import("./assets/Show-BdK2kE1E.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Create.vue": () => import("./assets/Create-gZ5hvDk7.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Edit.vue": () => import("./assets/Edit-CsBRL8wq.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Index.vue": () => import("./assets/Index-CQbU8aoD.js"), "./Pages/Admin/AdminKeuangan/PettyCash/Show.vue": () => import("./assets/Show-DfuaRCSG.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Create.vue": () => import("./assets/Create-CFEyx9pU.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Edit.vue": () => import("./assets/Edit-C0F5Rhq0.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Index.vue": () => import("./assets/Index-Cgkxv6MJ.js"), "./Pages/Admin/AdminKeuangan/ProfitLoss/Show.vue": () => import("./assets/Show-CaVdPPSG.js"), "./Pages/Admin/AdminKeuangan/Reports/ProfitShipment.vue": () => import("./assets/ProfitShipment-B-5f5ovf.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Create.vue": () => import("./assets/Create-CksziOPY.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Edit.vue": () => import("./assets/Edit-bkGI4U9s.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Index.vue": () => import("./assets/Index-BaPyHvPP.js"), "./Pages/Admin/AdminKeuangan/SalesOrders/Show.vue": () => import("./assets/Show-C4ZPhFpY.js"), "./Pages/Admin/AdminKeuangan/ShipmentTypes/Create.vue": () => import("./assets/Create-CBtBVln8.js"), "./Pages/Admin/AdminKeuangan/ShipmentTypes/Edit.vue": () => import("./assets/Edit-DVDllbTS.js"), "./Pages/Admin/AdminKeuangan/ShipmentTypes/Index.vue": () => import("./assets/Index-mS1NqxM8.js"), "./Pages/Admin/AdminKeuangan/Vendors/Create.vue": () => import("./assets/Create-Dvi_Y2So.js"), "./Pages/Admin/AdminKeuangan/Vendors/Edit.vue": () => import("./assets/Edit-BJLgbY3q.js"), "./Pages/Admin/AdminKeuangan/Vendors/Index.vue": () => import("./assets/Index-lyI110Kk.js"), "./Pages/Admin/AdminKeuangan/Vendors/Show.vue": () => import("./assets/Show-l_jVutsH.js"), "./Pages/Admin/MasterAdmin/Components/SidebarNavigation.vue": () => import("./assets/SidebarNavigation-A0RXUIxC.js"), "./Pages/Admin/MasterAdmin/Dashboard.vue": () => import("./assets/Dashboard-Do_dt8So.js"), "./Pages/Admin/MasterAdmin/Employees/Create.vue": () => import("./assets/Create-9QXICjHN.js"), "./Pages/Admin/MasterAdmin/Employees/Edit.vue": () => import("./assets/Edit-CbwVxL-q.js"), "./Pages/Admin/MasterAdmin/Employees/Index.vue": () => import("./assets/Index-BbsqCGf8.js"), "./Pages/Admin/MasterAdmin/Employees/Show.vue": () => import("./assets/Show-BN6EFS57.js"), "./Pages/Admin/MasterAdmin/Users/Create.vue": () => import("./assets/Create-Kwq7vawR.js"), "./Pages/Admin/MasterAdmin/Users/Edit.vue": () => import("./assets/Edit-Uozb6Op7.js"), "./Pages/Admin/MasterAdmin/Users/Index.vue": () => import("./assets/Index-Da19G8xB.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/PengaturanUmum/Index.vue": () => import("./assets/Index-CBQjK0z1.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Service/Index.vue": () => import("./assets/Index-BmtW62Pn.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Service/create.vue": () => import("./assets/create-DNiyzyED.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Service/edit.vue": () => import("./assets/edit-D7a9OX9A.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/SupportService/Create.vue": () => import("./assets/Create-Z6Lx93kb.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/SupportService/Edit.vue": () => import("./assets/Edit-gSVRdSm-.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/SupportService/Index.vue": () => import("./assets/Index-vHeGQt43.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Team/Create.vue": () => import("./assets/Create-CieKmAT4.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Team/Edit.vue": () => import("./assets/Edit-CVmteWB6.js"), "./Pages/Admin/MasterAdmin/WebsiteSettings/Team/Index.vue": () => import("./assets/Index-DyuArdm3.js"), "./Pages/Auth/ConfirmPassword.vue": () => import("./assets/ConfirmPassword-BzWFYnYB.js"), "./Pages/Auth/ForgotPassword.vue": () => import("./assets/ForgotPassword-BtJUSq4N.js"), "./Pages/Auth/Login.vue": () => import("./assets/Login-CGUJGnau.js"), "./Pages/Auth/Register.vue": () => import("./assets/Register-wmUHZvMF.js"), "./Pages/Auth/ResetPassword.vue": () => import("./assets/ResetPassword-BYshNLDc.js"), "./Pages/Auth/VerifyEmail.vue": () => import("./assets/VerifyEmail-4BVJVey_.js"), "./Pages/Home.vue": () => import("./assets/Home-BG-_-Y-5.js"), "./Pages/HomePage.vue": () => import("./assets/HomePage-DK0VM_oN.js"), "./Pages/Profile/Edit.vue": () => import("./assets/Edit-BrSG0ylB.js"), "./Pages/Profile/Partials/DeleteUserForm.vue": () => import("./assets/DeleteUserForm-BVZBKAlM.js"), "./Pages/Profile/Partials/UpdatePasswordForm.vue": () => import("./assets/UpdatePasswordForm-62Fx1gq2.js"), "./Pages/Profile/Partials/UpdateProfileInformationForm.vue": () => import("./assets/UpdateProfileInformationForm-BlqLV5MH.js"), "./Pages/Welcome.vue": () => import("./assets/Welcome-DMaBece4.js") })
     ),
     setup({ App, props, plugin }) {
-      return createSSRApp({ render: () => h$1(App, props) }).use(plugin).use(k, {
+      return createSSRApp({ render: () => h$1(App, props) }).use(plugin).use(_, {
         ...page.props.ziggy,
         location: new URL(page.props.ziggy.location)
       });

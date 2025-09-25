@@ -215,7 +215,7 @@
         .status-badge {
             display: inline-block;
             padding: 2px 6px;
-            border-radius: 3px;
+            border: 1px solid #000;
             font-size: 7px;
             font-weight: bold;
             text-transform: uppercase;

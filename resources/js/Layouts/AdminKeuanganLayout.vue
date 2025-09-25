@@ -134,6 +134,9 @@
     <main class="lg:ml-64 pt-16 min-h-screen">
       <slot />
     </main>
+
+    <!-- Auto Logout Timer -->
+    <AutoLogoutTimer />
   </div>
 </template>
 
@@ -143,6 +146,7 @@ import { Link } from "@inertiajs/vue3";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import SidebarNavigation from "@/Pages/Admin/AdminKeuangan/Components/SidebarNavigation.vue";
+import AutoLogoutTimer from "@/Components/AutoLogoutTimer.vue";
 
 // Route function (use global route helper)
 const route = window.route || function(name, params) {

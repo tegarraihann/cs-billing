@@ -224,6 +224,50 @@
           </div>
         </div>
 
+        <!-- Down Payment Section -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
+          <h3 class="text-lg font-semibold text-sage-800 mb-4">Down Payment (DP)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah DP</label>
+              <input
+                type="number"
+                v-model="form.down_payment_amount"
+                step="0.01"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                placeholder="0.00"
+              />
+              <div v-if="errors.down_payment_amount" class="text-red-500 text-sm mt-1">
+                {{ errors.down_payment_amount }}
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal DP</label>
+              <input
+                type="date"
+                v-model="form.down_payment_date"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+              />
+              <div v-if="errors.down_payment_date" class="text-red-500 text-sm mt-1">
+                {{ errors.down_payment_date }}
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Catatan DP</label>
+              <textarea
+                v-model="form.down_payment_notes"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                placeholder="Catatan terkait down payment..."
+              ></textarea>
+              <div v-if="errors.down_payment_notes" class="text-red-500 text-sm mt-1">
+                {{ errors.down_payment_notes }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Invoice Items -->
         <div class="space-y-6">
           <!-- Main Invoice Items (Table Style) -->
@@ -522,6 +566,9 @@ const form = useForm({
   container_no: props.invoice.container_no || '',
   container_size: props.invoice.container_size || '',
   remarks: props.invoice.remarks || '',
+  down_payment_amount: props.invoice.down_payment_amount || '',
+  down_payment_date: formatDateForInput(props.invoice.down_payment_date),
+  down_payment_notes: props.invoice.down_payment_notes || '',
   items: []
 })
 

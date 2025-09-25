@@ -367,17 +367,16 @@ class ProfitLossController extends Controller
         $period = $profitLoss->load(['creator', 'approver']);
         $reportData = $period->getReportData();
 
+        // Get additional financial information
+        $financialInfo = $this->getFinancialInfo();
+
         $pdf = Pdf::loadView('admin.admin-keuangan.reports.profit-loss-pdf', [
             'period' => $period,
             'reportData' => $reportData,
+            'financialInfo' => $financialInfo,
             'generatedAt' => now()
         ])
-        ->setPaper('a4', 'portrait')
-        ->setOptions([
-            'defaultFont' => 'Arial',
-            'isRemoteEnabled' => true,
-            'isHtml5ParserEnabled' => true
-        ]);
+        ->setPaper('a4', 'portrait');
 
         $fileName = 'Laporan_Laba_Rugi_' . str_replace(' ', '_', $period->period_name) . '_' . now()->format('Y-m-d') . '.pdf';
 
@@ -399,6 +398,26 @@ class ProfitLossController extends Controller
             'current_profit' => $currentPeriod?->net_profit ?? 0,
             'last_revenue' => $lastPeriod?->total_revenue ?? 0,
             'last_profit' => $lastPeriod?->net_profit ?? 0,
+        ];
+    }
+
+    private function getFinancialInfo(): array
+    {
+        // Get latest petty cash balance
+        $latestPettyCashBalance = \App\Models\PettyCashBalance::latest('balance_date')->first();
+
+        // Get total outstanding receivables
+        $totalReceivables = \App\Models\AccountReceivable::where('status', '!=', 'paid')
+                                                        ->sum('outstanding_amount');
+
+        // Get total outstanding payables
+        $totalPayables = \App\Models\AccountPayable::where('status', '!=', 'paid')
+                                                   ->sum('outstanding_amount');
+
+        return [
+            'bank_balance' => $latestPettyCashBalance?->closing_balance ?? 0,
+            'total_receivables' => $totalReceivables ?? 0,
+            'total_payables' => $totalPayables ?? 0,
         ];
     }
 }

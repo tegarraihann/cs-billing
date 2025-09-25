@@ -184,16 +184,29 @@
                 {{ (mainInvoice || invoice).invoice_number }}
               </span>
             </div>
-            <a
-              :href="route('admin-keuangan.invoices.export-pdf', (mainInvoice || invoice).id)"
-              class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-              target="_blank"
-            >
-              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              Download PDF
-            </a>
+            <div class="flex space-x-2">
+              <a
+                :href="route('admin-keuangan.invoices.preview-pdf', (mainInvoice || invoice).id)"
+                class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                target="_blank"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Preview PDF
+              </a>
+              <a
+                :href="route('admin-keuangan.invoices.export-pdf', (mainInvoice || invoice).id)"
+                class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                target="_blank"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                </svg>
+                Download PDF
+              </a>
+            </div>
           </div>
         </div>
 
@@ -273,16 +286,29 @@
                 {{ (reimbursementInvoice || invoice).invoice_number }}
               </span>
             </div>
-            <a
-              :href="route('admin-keuangan.invoices.export-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
-              class="inline-flex items-center px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
-              target="_blank"
-            >
-              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              Download PDF
-            </a>
+            <div class="flex space-x-2">
+              <a
+                :href="route('admin-keuangan.invoices.preview-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
+                class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                target="_blank"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Preview PDF
+              </a>
+              <a
+                :href="route('admin-keuangan.invoices.export-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
+                class="inline-flex items-center px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
+                target="_blank"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                </svg>
+                Download PDF
+              </a>
+            </div>
           </div>
         </div>
 

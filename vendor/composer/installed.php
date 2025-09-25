@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '338c96978fe7eec4b206d1eee1fb927e06e4b817',
+        'reference' => '8bed5465aa96f9ddc0d0ecf23ddfd12044d93c22',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -448,7 +448,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '338c96978fe7eec4b206d1eee1fb927e06e4b817',
+            'reference' => '8bed5465aa96f9ddc0d0ecf23ddfd12044d93c22',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -607,6 +607,33 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'mpdf/mpdf' => array(
+            'pretty_version' => 'v8.2.6',
+            'version' => '8.2.6.0',
+            'reference' => 'dd30e3b01061cf8dfe65e7041ab4cc46d8ebdd44',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../mpdf/mpdf',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'mpdf/psr-http-message-shim' => array(
+            'pretty_version' => 'v2.0.1',
+            'version' => '2.0.1.0',
+            'reference' => 'f25a0153d645e234f9db42e5433b16d9b113920f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../mpdf/psr-http-message-shim',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'mpdf/psr-log-aware-trait' => array(
+            'pretty_version' => 'v3.0.0',
+            'version' => '3.0.0.0',
+            'reference' => 'a633da6065e946cc491e1c962850344bb0bf3e78',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../mpdf/psr-log-aware-trait',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'mtdowling/cron-expression' => array(
             'dev_requirement' => false,
             'replaced' => array(
@@ -620,7 +647,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../myclabs/deep-copy',
             'aliases' => array(),
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'nesbot/carbon' => array(
             'pretty_version' => '3.10.3',
@@ -673,6 +700,15 @@
             'reference' => 'dfa08f390e509967a15c22493dc0bac5733d9123',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nunomaduro/termwind',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'paragonie/random_compat' => array(
+            'pretty_version' => 'v9.99.100',
+            'version' => '9.99.100.0',
+            'reference' => '996434e5492cb4c3edcb9168db6fbb1359ef965a',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../paragonie/random_compat',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -886,8 +922,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '3.0.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -1090,6 +1126,15 @@
             'install_path' => __DIR__ . '/../sebastian/version',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'setasign/fpdi' => array(
+            'pretty_version' => 'v2.6.4',
+            'version' => '2.6.4.0',
+            'reference' => '4b53852fde2734ec6a07e458a085db627c60eada',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../setasign/fpdi',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'spatie/laravel-permission' => array(
             'pretty_version' => '6.21.0',

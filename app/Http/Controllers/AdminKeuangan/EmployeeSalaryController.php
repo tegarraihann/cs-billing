@@ -243,6 +243,14 @@ class EmployeeSalaryController extends Controller
         ]);
     }
 
+    public function allInCreate()
+    {
+        return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/AllInCreate', [
+            'divisions' => $this->getDivisions(),
+            'previewStats' => $this->getAllInPreviewStats()
+        ]);
+    }
+
     public function bulkStore(Request $request)
     {
         $request->validate([
@@ -293,6 +301,77 @@ class EmployeeSalaryController extends Controller
         }
     }
 
+    public function allInStore(Request $request)
+    {
+        $request->validate([
+            'target_type' => 'required|in:all_staff,all_division,all_position',
+            'target_value' => 'nullable|string|max:255',
+            'period_month' => 'required|string|size:7',
+            'salary_date' => 'required|date',
+            'basic_salary' => 'required|numeric|min:0',
+            'allowances' => 'nullable|numeric|min:0',
+            'deductions' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Get target employees based on criteria
+            $targetEmployees = $this->getTargetEmployees($request->target_type, $request->target_value);
+
+            if ($targetEmployees->isEmpty()) {
+                return redirect()->back()->withErrors(['target' => 'Tidak ada karyawan yang memenuhi kriteria']);
+            }
+
+            // Check for existing salary records in the same period
+            $existingCount = EmployeeSalary::where('period_month', $request->period_month)
+                ->whereIn('employee_name', $targetEmployees->pluck('name'))
+                ->count();
+
+            if ($existingCount > 0) {
+                return redirect()->back()->withErrors([
+                    'period_month' => "Ada {$existingCount} karyawan yang sudah memiliki data gaji di periode ini"
+                ]);
+            }
+
+            $created_count = 0;
+            $allowances = $request->allowances ?? 0;
+            $deductions = $request->deductions ?? 0;
+            $total_salary = $request->basic_salary + $allowances - $deductions;
+
+            foreach ($targetEmployees as $employee) {
+                EmployeeSalary::create([
+                    'employee_name' => $employee->name,
+                    'employee_id' => $employee->employee_id ?? null,
+                    'division' => $employee->division,
+                    'position' => $employee->position,
+                    'basic_salary' => $request->basic_salary,
+                    'allowances' => $allowances,
+                    'deductions' => $deductions,
+                    'total_salary' => $total_salary,
+                    'salary_date' => $request->salary_date,
+                    'period_month' => $request->period_month,
+                    'notes' => $request->notes . " (All-In: {$request->target_type})",
+                    'status' => 'draft',
+                    'is_active' => true,
+                    'created_by' => Auth::id(),
+                ]);
+                $created_count++;
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin-keuangan.employee-salary.index')
+                           ->with('success', "Berhasil menambahkan gaji untuk {$created_count} karyawan ({$request->target_type})");
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()
+                           ->withErrors(['error' => 'Gagal menambahkan data gaji: ' . $e->getMessage()])
+                           ->withInput();
+        }
+    }
+
     private function getDivisions(): array
     {
         return [
@@ -311,5 +390,60 @@ class EmployeeSalaryController extends Controller
                             ->orderBy('period_month', 'desc')
                             ->pluck('period_month')
                             ->toArray();
+    }
+
+    private function getTargetEmployees($targetType, $targetValue = null)
+    {
+        // Since we don't have an Employee model, we'll get from existing salary records
+        // For a real implementation, you would query from employees table
+        $query = EmployeeSalary::select('employee_name as name', 'employee_id', 'division', 'position')
+                              ->distinct();
+
+        switch ($targetType) {
+            case 'all_staff':
+                // Get all unique employees
+                break;
+            case 'all_division':
+                if ($targetValue) {
+                    $query->where('division', $targetValue);
+                }
+                break;
+            case 'all_position':
+                if ($targetValue) {
+                    $query->where('position', 'LIKE', "%{$targetValue}%");
+                }
+                break;
+        }
+
+        return $query->get();
+    }
+
+    private function getAllInPreviewStats()
+    {
+        $allStaff = EmployeeSalary::distinct()->count('employee_name');
+
+        $divisionStats = [];
+        foreach ($this->getDivisions() as $key => $label) {
+            $count = EmployeeSalary::where('division', $key)->distinct()->count('employee_name');
+            if ($count > 0) {
+                $divisionStats[$key] = ['label' => $label, 'count' => $count];
+            }
+        }
+
+        $positionStats = EmployeeSalary::select('position')
+                                     ->selectRaw('COUNT(DISTINCT employee_name) as count')
+                                     ->groupBy('position')
+                                     ->having('count', '>', 0)
+                                     ->orderBy('count', 'desc')
+                                     ->get()
+                                     ->mapWithKeys(function($item) {
+                                         return [$item->position => $item->count];
+                                     });
+
+        return [
+            'total_staff' => $allStaff,
+            'divisions' => $divisionStats,
+            'positions' => $positionStats->toArray()
+        ];
     }
 }

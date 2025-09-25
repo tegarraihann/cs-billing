@@ -44,7 +44,10 @@ class Invoice extends Model
         'payment_notes',
         'payment_method',
         'paid_amount',
-        'payment_confirmed_at'
+        'payment_confirmed_at',
+        'down_payment_amount',
+        'down_payment_date',
+        'down_payment_notes'
     ];
 
     protected $casts = [
@@ -57,7 +60,9 @@ class Invoice extends Model
         'gross_weight' => 'decimal:4',
         'subtotal' => 'decimal:2',
         'total' => 'decimal:2',
-        'paid_amount' => 'decimal:2'
+        'paid_amount' => 'decimal:2',
+        'down_payment_amount' => 'decimal:2',
+        'down_payment_date' => 'date'
     ];
 
     public function salesOrder()
@@ -159,9 +164,10 @@ class Invoice extends Model
     public function calculateTotals()
     {
         $subtotal = $this->items()->sum('amount');
+        $total = $subtotal - ($this->down_payment_amount ?? 0);
         $this->update([
             'subtotal' => $subtotal,
-            'total' => $subtotal
+            'total' => $total
         ]);
     }
 
@@ -210,8 +216,18 @@ class Invoice extends Model
         if ($this->status === 'paid') {
             return 0;
         }
-        
+
         return $this->total - ($this->paid_amount ?? 0);
+    }
+
+    public function getTotalAfterDownPaymentAttribute()
+    {
+        return $this->subtotal - ($this->down_payment_amount ?? 0);
+    }
+
+    public function hasDownPayment()
+    {
+        return $this->down_payment_amount > 0;
     }
 
     public function scopeOverdue($query)

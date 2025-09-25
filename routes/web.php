@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 /*
 |--------------------------------------------------------------------------
@@ -378,7 +379,9 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::delete('/{invoice}', 'destroy')->name('destroy');
         Route::get('/{invoice}/pdf', 'generatePdf')->name('pdf');
         Route::get('/{invoice}/export-pdf', 'generatePdf')->name('export-pdf');
+        Route::get('/{invoice}/preview-pdf', 'previewPdf')->name('preview-pdf');
         Route::get('/{invoice}/export-pdf-reimbursement', 'generateReimbursementPdf')->name('export-pdf-reimbursement');
+        Route::get('/{invoice}/preview-pdf-reimbursement', 'previewReimbursementPdf')->name('preview-pdf-reimbursement');
         Route::get('/{invoice}/print', 'printView')->name('print');
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
@@ -428,6 +431,8 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{pettyCash}', 'update')->name('update');
         Route::delete('/{pettyCash}', 'destroy')->name('destroy');
         Route::get('/export', 'export')->name('export');
+        Route::post('/sync-balances', 'syncBalances')->name('sync-balances');
+        Route::post('/sync-transaction-balances', 'syncTransactionBalances')->name('sync-transaction-balances');
     });
 
     // Profit Loss Management Routes for Admin Keuangan
@@ -454,6 +459,8 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/', 'store')->name('store');
         Route::get('/bulk-create', 'bulkCreate')->name('bulk-create');
         Route::post('/bulk-store', 'bulkStore')->name('bulk-store');
+        Route::get('/all-in-create', 'allInCreate')->name('all-in-create');
+        Route::post('/all-in-store', 'allInStore')->name('all-in-store');
         Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
         Route::get('/{employeeSalary}', 'show')->name('show');
         Route::get('/{employeeSalary}/edit', 'edit')->name('edit');
@@ -484,5 +491,40 @@ Route::middleware('auth')->group(function () {
     // Additional profile routes for data retrieval
     Route::get('/profile/data', [ProfileController::class, 'getProfileData'])->name('profile.data');
     Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
+
+    // Auto logout - extend session endpoint
+    Route::post('/extend-session', function () {
+        // Simply accessing the session will extend it
+        session()->regenerateToken();
+        return response()->json(['success' => true, 'extended_at' => now()]);
+    })->name('extend-session');
+});
+
+// Test PDF route - test new profit-loss template
+Route::get('/test-pdf', function () {
+    try {
+        // Test profit-loss template yang sudah disederhanakan
+        $pdf = Pdf::loadView('admin.admin-keuangan.reports.profit-loss-pdf', [
+            'period' => (object)[
+                'period_name' => 'Test Period',
+                'start_date' => now(),
+                'end_date' => now(),
+                'status' => 'draft',
+                'approved_at' => null
+            ],
+            'reportData' => [
+                'revenues' => ['main' => [], 'other' => [], 'total' => 0],
+                'expenses' => ['operational' => [], 'administrative' => [], 'other' => [], 'total' => 0]
+            ],
+            'generatedAt' => now()
+        ]);
+        return $pdf->stream('test-profit-loss.pdf');
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+    }
 });
 

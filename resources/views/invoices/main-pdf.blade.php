@@ -299,6 +299,126 @@
             margin: 0;
             padding: 0;
         }
+
+        /* Status label styles */
+        .status-label {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid #000;
+            font-size: 8pt;
+            font-weight: bold;
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        /* Bank Totals Table Layout */
+        .bank-totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-top: 20px;
+        }
+
+        .bank-totals-table td {
+            padding: 2px 4px;
+            vertical-align: top;
+            line-height: 1.2;
+        }
+
+        .bank-label-col {
+            width: 15%;
+            font-weight: bold;
+        }
+
+        .bank-value-col {
+            width: 35%;
+        }
+
+        .total-label-col {
+            width: 20%;
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        .total-value-col {
+            width: 30%;
+            text-align: right;
+        }
+
+        .total-bold {
+            font-weight: bold;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+
+        /* Invoice Footer */
+        .invoice-footer {
+            position: fixed;
+            bottom: 10mm;
+            left: 15mm;
+            right: 15mm;
+            font-size: 6.5pt;
+            text-align: center;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        /* Shipment Details Table Layout for proper alignment */
+        .shipment-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            margin-bottom: 15px;
+        }
+
+        .shipment-details-table td {
+            padding: 1px 0;
+            vertical-align: top;
+            line-height: 1.1;
+        }
+
+        .shipment-label-cell {
+            width: 90px;
+            font-weight: bold;
+        }
+
+        .shipment-value-cell {
+            width: 200px;
+            text-transform: uppercase;
+        }
+
+        .invoice-label-cell {
+            width: 80px;
+            font-weight: bold;
+            padding-left: 20px;
+        }
+
+        .invoice-value-cell {
+            text-transform: uppercase;
+        }
+
+        /* Container Numbers Layout */
+        .container-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            margin-top: -15px;
+        }
+
+        .container-details-table td {
+            padding: 1px 0;
+            vertical-align: top;
+            line-height: 1.1;
+        }
+
+        .container-label-cell {
+            width: 90px;
+            font-weight: bold;
+        }
+
+        .container-value-cell {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -311,14 +431,20 @@
 
         <!-- Header line with CUSTOMER CODE and DEBIT NOTE -->
         <div class="header-line">
-            <span class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? 'CPP-MRS79' }}</span>
-            <span class="debit-note-title">INVOICE</span>
+            <span class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? '-' }}</span>
+            <span class="debit-note-title">
+                INVOICE
+                <br>
+                <div class="status-label">
+                    {{ $invoice->status === 'draft' ? 'PREVIEW' : 'ORIGINAL' }}
+                </div>
+            </span>
             <div class="clear"></div>
         </div>
 
         <!-- Company Name -->
         <div class="company-name">
-            {{ strtoupper($invoice->customer->company_name ?? $invoice->salesOrder->customer ?? 'PT CITRA PERDANA PUTRA') }}
+            {{ strtoupper($invoice->customer->company_name ?? $invoice->salesOrder->customer ?? '-') }}
         </div>
 
         <!-- Company Address -->
@@ -533,7 +659,7 @@
                 </tr>
                 @endforeach
                 @else
-                {{-- Fallback static data jika tidak ada items dinamis --}}
+                {{-- Default items if no items exist --}}
                 <tr>
                     <td class="desc-col">DO CHARGES</td>
                     <td class="qty-col">1</td>
@@ -570,56 +696,76 @@
             </tbody>
         </table>
 
-        <!-- Bottom Section: Bank Details and Totals -->
-        <div class="bottom-section">
-            <div class="bank-details">
-                <div class="bank-block">
-                    <div class="bank-name">BANK NAME : Mandiri</div>
-                    <div class="bank-info">
-                        BANK NUMBER : {{ $invoice->customer->bank_account_mandiri ?? '122-00-12330539' }}<br>
-                        ACCOUNT NAME : Eshaka Wijaya Logistics<br>
-                        SWIFT CODE : BMRIIDJA<br>
-                        ADDRESS : KCP JAKARTA R.S.C.M
-                    </div>
-                </div>
-
-                <div class="bank-block">
-                    <div class="bank-name">BANK NAME : BCA</div>
-                    <div class="bank-info">
-                        BANK NUMBER : {{ $invoice->customer->bank_account_bca ?? '5445-974 975' }}<br>
-                        ACCOUNT NAME : Eshaka Wijaya Logistics<br>
-                        SWIFT CODE : CENAIDJAXXX<br>
-                        ADDRESS : KCP CITRA 2 EXT
-                    </div>
-                </div>
-            </div>
-
-            <div class="totals-section">
-                @php
-                $subtotal = $invoice->subtotal ?? ($invoice->total ?? 2289828);
-                $total = $invoice->total ?? 2289828;
-                @endphp
-
-                <div class="subtotal-line">
-                    SUB TOTAL {{ number_format($subtotal, 2) }}
-                </div>
-
-                <div class="total-line">
-                    TOTAL {{ number_format($total, 2) }}
-                </div>
-            </div>
-        </div>
+        <!-- Bank Details and Totals Table -->
+        <table class="bank-totals-table">
+            <tr>
+                <td class="bank-label-col">BANK NAME</td>
+                <td class="bank-value-col">: Mandiri</td>
+                <td class="total-label-col total-bold">SUB TOTAL</td>
+                <td class="total-value-col total-bold">{{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</td>
+            </tr>
+            <tr>
+                <td class="bank-label-col">BANK NUMBER</td>
+                <td class="bank-value-col">: 122-00-12330539</td>
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+            </tr>
+            <tr>
+                <td class="bank-label-col">ACCOUNT NAME</td>
+                <td class="bank-value-col">: Eshaka Wijaya Logistics</td>
+                @if($invoice->hasDownPayment())
+                <td class="total-label-col">DOWN PAYMENT (-)</td>
+                <td class="total-value-col">{{ number_format($invoice->down_payment_amount, 2) }}</td>
+                @else
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+                @endif
+            </tr>
+            <tr>
+                <td class="bank-label-col">SWIFT CODE</td>
+                <td class="bank-value-col">: BMRIIDJA</td>
+                <td class="total-label-col total-bold">TOTAL</td>
+                <td class="total-value-col total-bold">{{ number_format($invoice->total ?? 2289828, 2) }}</td>
+            </tr>
+            <tr>
+                <td class="bank-label-col"></td>
+                <td class="bank-value-col"></td>
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+            </tr>
+            <tr>
+                <td class="bank-label-col">BANK NAME</td>
+                <td class="bank-value-col">: BCA</td>
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+            </tr>
+            <tr>
+                <td class="bank-label-col">BANK NUMBER</td>
+                <td class="bank-value-col">: 5445-974 975</td>
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+            </tr>
+            <tr>
+                <td class="bank-label-col">ACCOUNT NAME</td>
+                <td class="bank-value-col">: Eshaka Wijaya Logistics</td>
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+            </tr>
+            <tr>
+                <td class="bank-label-col">SWIFT CODE</td>
+                <td class="bank-value-col">: CENAIDJAXXX</td>
+                <td class="total-label-col"></td>
+                <td class="total-value-col"></td>
+            </tr>
+        </table>
 
         <!-- Footer -->
-        <div class="footer">
-            <div class="footer-disclaimer">
-                This is system generated document, No signature is required<br>
-                Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }}
-            </div>
-            <div class="footer-address">
-                Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
-                Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
-            </div>
+        <div class="invoice-footer">
+            This is system generated document, No signature is required<br>
+            Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }}<br>
+            <br>
+            Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
+            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
         </div>
     </div>
 </body>

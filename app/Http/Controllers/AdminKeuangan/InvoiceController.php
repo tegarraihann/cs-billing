@@ -144,6 +144,9 @@ class InvoiceController extends Controller
             'items.*.currency' => 'required_with:items|string|max:3',
             'items.*.item_ref' => 'nullable|string|max:255',
             'items.*.type' => 'nullable|string|in:main,reimbursement',
+            'down_payment_amount' => 'nullable|numeric|min:0',
+            'down_payment_date' => 'nullable|date',
+            'down_payment_notes' => 'nullable|string|max:1000',
         ]);
 
         $salesOrder = SalesOrder::findOrFail($validated['sales_order_id']);
@@ -220,6 +223,9 @@ class InvoiceController extends Controller
             'container_no' => $validated['container_no'] ?? (is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : $salesOrder->container_no),
             'container_size' => $validated['container_size'] ?? $salesOrder->shipment_type,
             'remarks' => $validated['remarks'],
+            'down_payment_amount' => $validated['down_payment_amount'] ?? 0,
+            'down_payment_date' => $validated['down_payment_date'],
+            'down_payment_notes' => $validated['down_payment_notes'],
             'status' => 'draft'
         ]);
 
@@ -338,6 +344,9 @@ class InvoiceController extends Controller
             'items.*.rate' => 'required|numeric|min:0',
             'items.*.currency' => 'required|string|max:3',
             'items.*.item_ref' => 'nullable|string|max:100',
+            'down_payment_amount' => 'nullable|numeric|min:0',
+            'down_payment_date' => 'nullable|date',
+            'down_payment_notes' => 'nullable|string|max:1000',
         ]);
 
         $invoiceDate = Carbon::parse($validated['invoice_date']);
@@ -363,7 +372,10 @@ class InvoiceController extends Controller
             'eta' => $validated['eta'],
             'container_no' => $validated['container_no'],
             'container_size' => $validated['container_size'],
-            'remarks' => $validated['remarks']
+            'remarks' => $validated['remarks'],
+            'down_payment_amount' => $validated['down_payment_amount'] ?? 0,
+            'down_payment_date' => $validated['down_payment_date'],
+            'down_payment_notes' => $validated['down_payment_notes']
         ]);
 
         // Delete existing items
@@ -459,6 +471,9 @@ class InvoiceController extends Controller
         $reimbursementInvoice->subtotal = $subtotal;
         $reimbursementInvoice->total = $total;
 
+        // Add -R suffix to invoice number for reimbursement
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
@@ -466,12 +481,83 @@ class InvoiceController extends Controller
         $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
-        // Reimbursement filename - only invoice number with -R flag
-        $filename = $invoice->invoice_number . '-R.pdf';
+        // Reimbursement filename - invoice number already has -R suffix
+        $filename = $reimbursementInvoice->invoice_number . '.pdf';
 
         return $pdf->download($filename);
     }
 
+    public function previewPdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only main items (where item_ref is null or 'main')
+        $mainItems = $invoice->items->whereIn('item_ref', [null, 'main']);
+
+        // Calculate totals for main items only
+        $subtotal = $mainItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only main items
+        $mainInvoice = $invoice->replicate();
+        $mainInvoice->setRelation('items', $mainItems);
+        $mainInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $mainInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $mainInvoice->subtotal = $subtotal;
+        $mainInvoice->total = $total;
+
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
+        // Generate PDF using main invoice template (check if main-pdf exists, fallback to pdf)
+        $templatePath = resource_path('views/invoices/main-pdf.blade.php');
+        $template = file_exists($templatePath) ? 'invoices.main-pdf' : 'invoices.pdf';
+
+        $pdf = PDF::loadView($template, ['invoice' => $mainInvoice, 'generatedAt' => $generatedAt]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Return inline view instead of download
+        return $pdf->stream($mainInvoice->invoice_number . '.pdf');
+    }
+
+    public function previewReimbursementPdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only reimbursement items
+        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+
+        // Calculate totals for reimbursement items only
+        $subtotal = $reimbursementItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only reimbursement items
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $total;
+
+        // Add -R suffix to invoice number for reimbursement
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
+        // Generate PDF using reimbursement template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Return inline view instead of download
+        return $pdf->stream($reimbursementInvoice->invoice_number . '.pdf');
+    }
 
     public function confirmPayment(Request $request, Invoice $invoice)
     {

@@ -98,6 +98,70 @@
                 </div>
             </div>
 
+            <!-- Vendor Summary Section -->
+            <div v-if="vendorSummary && vendorSummary.length > 0" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan per Vendor</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Vendor
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Total Amount
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Total Paid
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Total Outstanding
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Jumlah Invoice
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Overdue
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr
+                                v-for="vendor in vendorSummary"
+                                :key="vendor.vendor_id"
+                                class="hover:bg-gray-50"
+                            >
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ vendor.vendor_name }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(vendor.total_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-green-600">
+                                    Rp {{ formatNumber(vendor.total_paid) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <span :class="vendor.total_outstanding > 0 ? 'text-red-600' : 'text-green-600'">
+                                        Rp {{ formatNumber(vendor.total_outstanding) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                                    {{ vendor.count_invoices }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                    <span v-if="vendor.count_overdue > 0" class="text-red-600 font-medium">
+                                        {{ vendor.count_overdue }}
+                                    </span>
+                                    <span v-else class="text-gray-400">0</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Table Section -->
             <div class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -316,6 +380,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 const props = defineProps({
     payables: Object,
     summary: Object,
+    vendorSummary: Array,
     vendors: Array,
     filters: Object
 })

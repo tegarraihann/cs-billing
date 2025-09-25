@@ -165,4 +165,34 @@ class PettyCashBalance extends Model
             self::updateBalanceForDate(now()->toDateString());
         }
     }
+
+    /**
+     * Sync all transaction balance_after fields with correct cumulative calculation
+     */
+    public static function syncAllTransactionBalances()
+    {
+        // Get all transactions ordered by date and time
+        $transactions = PettyCashTransaction::orderBy('transaction_date')
+            ->orderBy('created_at')
+            ->get();
+
+        $runningBalance = 0;
+
+        foreach ($transactions as $transaction) {
+            // Calculate new balance after this transaction
+            if ($transaction->type === 'expense') {
+                $runningBalance -= $transaction->amount;
+            } else { // topup or refund
+                $runningBalance += $transaction->amount;
+            }
+
+            // Update the balance_after field
+            $transaction->update(['balance_after' => $runningBalance]);
+        }
+
+        // Also sync the balance records
+        self::syncAllBalances();
+
+        return $runningBalance; // Return final balance
+    }
 }

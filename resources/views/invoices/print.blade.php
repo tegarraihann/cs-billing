@@ -304,6 +304,17 @@
             font-size: 9px;
             line-height: 1.25;
         }
+
+        /* Status label styles */
+        .status-label {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid #000;
+            font-size: 8px;
+            font-weight: bold;
+            margin-top: 3px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -324,7 +335,13 @@
         <!-- Top Header Line -->
         <div class="top-line">
             <div class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? 'CPP-MRS79' }}</div>
-            <div class="debit-note-header">DEBIT NOTE</div>
+            <div class="debit-note-header">
+                DEBIT NOTE
+                <br>
+                <div class="status-label">
+                    {{ $invoice->status === 'draft' ? 'PREVIEW' : 'ORIGINAL' }}
+                </div>
+            </div>
         </div>
 
         <!-- Customer Information -->
@@ -512,6 +529,10 @@
 
             <div class="totals-section">
                 <div class="subtotal-line">SUB TOTAL {{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</div>
+                @if($invoice->hasDownPayment())
+                <div style="height: 4px;"></div>
+                <div class="subtotal-line">DOWN PAYMENT (-) {{ number_format($invoice->down_payment_amount, 2) }}</div>
+                @endif
                 <div style="height: 8px;"></div>
                 <div class="total-line">TOTAL {{ number_format($invoice->total ?? 2289828, 2) }}</div>
             </div>

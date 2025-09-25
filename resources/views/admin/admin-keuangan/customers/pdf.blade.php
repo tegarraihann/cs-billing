@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $type == 'individual' ? 'Data Customer - ' . $customer->company_name : 'Daftar Customer' }}</title>
     <style>
+        @page {
+            size: landscape;
+            margin: 1cm;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -225,15 +230,15 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">No</th>
-                            <th style="width: 15%;">Nama Perusahaan</th>
+                            <th style="width: 4%;">No</th>
+                            <th style="width: 18%;">Nama Perusahaan</th>
                             <th style="width: 10%;">Jenis Perusahaan</th>
-                            <th style="width: 10%;">PIC Name</th>
+                            <th style="width: 12%;">PIC Name</th>
                             <th style="width: 10%;">PIC Phone</th>
-                            <th style="width: 12%;">PIC Email</th>
-                            <th style="width: 10%;">NPWP</th>
+                            <th style="width: 16%;">PIC Email</th>
+                            <th style="width: 12%;">NPWP</th>
                             <th style="width: 10%;">NIB</th>
-                            <th style="width: 10%;">Tanggal Dibuat</th>
+                            <th style="width: 8%;">Tanggal Dibuat</th>
                         </tr>
                     </thead>
                     <tbody>

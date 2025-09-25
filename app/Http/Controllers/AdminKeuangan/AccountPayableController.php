@@ -64,12 +64,30 @@ class AccountPayableController extends Controller
             'count_unpaid' => AccountPayable::whereIn('status', ['unpaid', 'partial'])->count()
         ];
 
+        // Calculate summary per vendor (for current filtered results)
+        $currentQuery = clone $query;
+        $currentResults = $currentQuery->get();
+
+        $vendorSummary = $currentResults->groupBy('vendor_id')->map(function ($payables, $vendorId) {
+            $vendor = $payables->first()->vendor;
+            return [
+                'vendor_id' => $vendorId,
+                'vendor_name' => $vendor ? $vendor->nama_vendor : $payables->first()->vendor_name,
+                'total_amount' => (float) $payables->sum('amount'),
+                'total_paid' => (float) $payables->sum('paid_amount'),
+                'total_outstanding' => (float) $payables->sum('outstanding_amount'),
+                'count_invoices' => (int) $payables->count(),
+                'count_overdue' => (int) $payables->where('payment_due_date', '<', now())->whereIn('status', ['unpaid', 'partial'])->count()
+            ];
+        })->sortByDesc('total_outstanding')->values();
+
         // Get vendors for filter
         $vendors = Vendor::select('id', 'nama_vendor')->orderBy('nama_vendor')->get();
 
         return Inertia::render('Admin/AdminKeuangan/AccountPayables/Index', [
             'payables' => $payables,
             'summary' => $summary,
+            'vendorSummary' => $vendorSummary,
             'vendors' => $vendors,
             'filters' => $request->only(['search', 'status', 'vendor_id', 'date_from', 'date_to'])
         ]);

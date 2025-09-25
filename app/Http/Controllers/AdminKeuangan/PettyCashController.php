@@ -338,4 +338,20 @@ class PettyCashController extends Controller
                 ->with('error', 'Gagal menyinkronkan saldo: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Sync all transaction balances with correct cumulative calculation
+     */
+    public function syncTransactionBalances()
+    {
+        try {
+            $finalBalance = PettyCashBalance::syncAllTransactionBalances();
+
+            return redirect()->back()
+                ->with('success', "Saldo kolom tabel berhasil disinkronkan. Saldo akhir: Rp " . number_format($finalBalance, 0, ',', '.'));
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Gagal menyinkronkan saldo kolom tabel: ' . $e->getMessage());
+        }
+    }
 }

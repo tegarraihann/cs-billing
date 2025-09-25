@@ -14,15 +14,27 @@
               {{ formatCurrency(currentBalance) }}
             </div>
           </div>
-          <Link
-            :href="route('admin-keuangan.petty-cash.create')"
-            class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-lg hover:bg-sage-700 transition-colors focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Tambah Transaksi
-          </Link>
+          <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <button
+              @click="syncTransactionBalances"
+              class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              title="Sinkronkan saldo kolom tabel dengan saldo saat ini"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Sync Saldo
+            </button>
+            <Link
+              :href="route('admin-keuangan.petty-cash.create')"
+              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-lg hover:bg-sage-700 transition-colors focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Tambah Transaksi
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -332,6 +344,15 @@ const deleteTransaction = () => {
   }
 }
 
+const syncTransactionBalances = () => {
+  router.post(route('admin-keuangan.petty-cash.sync-transaction-balances'), {}, {
+    onSuccess: (page) => {
+      // Reload page to show updated balances
+      router.reload()
+    }
+  })
+}
+
 // Route helper
 const route = window.route || function(name, params) {
   const routes = {
@@ -339,7 +360,8 @@ const route = window.route || function(name, params) {
     'admin-keuangan.petty-cash.create': '/admin-keuangan/petty-cash/create',
     'admin-keuangan.petty-cash.show': '/admin-keuangan/petty-cash',
     'admin-keuangan.petty-cash.edit': '/admin-keuangan/petty-cash',
-    'admin-keuangan.petty-cash.destroy': '/admin-keuangan/petty-cash'
+    'admin-keuangan.petty-cash.destroy': '/admin-keuangan/petty-cash',
+    'admin-keuangan.petty-cash.sync-transaction-balances': '/admin-keuangan/petty-cash/sync-transaction-balances'
   }
   let url = routes[name] || '#'
   if (params) {
