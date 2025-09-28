@@ -300,15 +300,33 @@
             padding: 0;
         }
 
-        /* Status label styles */
+        /* Status label styles - watermark appearance like the reference */
         .status-label {
             display: inline-block;
-            padding: 2px 8px;
-            border: 1px solid #000;
-            font-size: 8pt;
+            padding: 4px 12px;
+            border: 2px solid #000;
+            font-size: 10pt;
             font-weight: bold;
-            margin-top: 3px;
+            margin-top: 5px;
             text-align: center;
+            color: #000;
+            background-color: #fff;
+            letter-spacing: 1px;
+        }
+
+        /* Large watermark background text */
+        .container::before {
+            content: attr(data-status);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120pt;
+            font-weight: bold;
+            color: rgba(128, 128, 128, 0.15);
+            z-index: -1;
+            pointer-events: none;
+            white-space: nowrap;
         }
 
         /* Bank Totals Table Layout */
@@ -423,7 +441,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container" data-status="{{ $invoice->status === 'draft' ? 'PREVIEW' : 'ORIGINAL' }}">
         <!-- Company Logo positioned exactly like example -->
         <div class="logo-section">
             <img src="{{ public_path('images/logo/logo.png') }}" alt="Eshaka Wijaya Logistics" class="logo-image">
@@ -434,10 +452,6 @@
             <span class="customer-code">CUSTOMER CODE :{{ $invoice->customer->customer_code ?? '-' }}</span>
             <span class="debit-note-title">
                 INVOICE
-                <br>
-                <div class="status-label">
-                    {{ $invoice->status === 'draft' ? 'PREVIEW' : 'ORIGINAL' }}
-                </div>
             </span>
             <div class="clear"></div>
         </div>
@@ -449,8 +463,8 @@
 
         <!-- Company Address -->
         <div class="company-address">
-            {{ strtoupper($invoice->customer->company_address ?? $invoice->customer->invoice_address ?? 'KO. CITY PARK BLOK L NO.11 CENGKARENG') }}<br>
-            {{ strtoupper(($invoice->customer->city ?? 'JAKARTA BARAT') . ' ' . ($invoice->customer->postal_code ?? '11730')) }}
+            {{ strtoupper($invoice->customer->invoice_address ?? $invoice->customer->company_address ?? 'KO. CITY PARK BLOK L NO.11 CENGKARENG') }}<br>
+            {{ strtoupper(($invoice->customer->city ?? '') . ' ' . ($invoice->customer->postal_code ?? '')) }}
         </div>
 
         <!-- Invoice Details Table (Right Side) -->

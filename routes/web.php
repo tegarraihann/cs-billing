@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Examples\PerformanceExampleController;
 use App\Http\Controllers\Admin\MasterAdmin\WebsiteSettingsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -222,7 +223,7 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
 });
 
 // ADMIN CS ROUTES
-Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
+Route::middleware(['auth', 'role:admin_cs', 'session.timeout'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -287,7 +288,7 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
 });
 
 // ADMIN KEUANGAN ROUTES
-Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
+Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -526,5 +527,12 @@ Route::get('/test-pdf', function () {
             'line' => $e->getLine()
         ]);
     }
+});
+
+// Performance Monitoring Routes (for testing)
+Route::prefix('performance')->group(function () {
+    Route::get('/memory-status', [PerformanceExampleController::class, 'memoryStatus'])->name('performance.memory-status');
+    Route::get('/pdf-test', [PerformanceExampleController::class, 'generatePdfExample'])->name('performance.pdf-test');
+    Route::get('/invoice-test', [PerformanceExampleController::class, 'invoiceListExample'])->name('performance.invoice-test');
 });
 

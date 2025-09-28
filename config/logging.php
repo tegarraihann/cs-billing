@@ -94,6 +94,18 @@ return [
             'processors' => [PsrLogMessageProcessor::class],
         ],
 
+        'memory' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/memory.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+
+        'performance' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/performance.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+
         'stderr' => [
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),

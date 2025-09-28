@@ -667,8 +667,8 @@ const loadSalesOrderData = () => {
         selectedOrder.container_no;
     }
 
-    // Remarks
-    form.remarks = selectedOrder.remarks || selectedOrder.note || '';
+    // Remarks - keep empty, don't auto-populate from sales order
+    // form.remarks remains empty for manual input
   }
 };
 

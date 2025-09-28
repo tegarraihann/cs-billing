@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\TrackUserActivity::class,
+            \App\Http\Middleware\MemoryMonitoringMiddleware::class,
         ]);
 
         // Register custom middleware aliases
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'admin.domain' => \App\Http\Middleware\AdminDomainOnly::class,
             'public.domain' => \App\Http\Middleware\PublicDomainOnly::class,
+            'session.timeout' => \App\Http\Middleware\SessionTimeoutMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
