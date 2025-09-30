@@ -194,6 +194,9 @@
                   Total
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Profit Margin
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
@@ -241,6 +244,14 @@
                   <div class="text-sm text-gray-900">
                     {{ formatCurrency(invoice.total) }}
                   </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium"
+                    :class="getProfitMarginClass(calculateProfitMargin(invoice))"
+                  >
+                    {{ calculateProfitMargin(invoice).toFixed(1) }}%
+                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
@@ -420,6 +431,29 @@ const getPaymentStatusColor = (invoice) => {
     'Belum Dibayar': 'bg-yellow-100 text-yellow-800'
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const calculateProfitMargin = (invoice) => {
+  if (!invoice.items || invoice.items.length === 0) return 0;
+
+  const grossRevenue = invoice.items
+    .filter(item => (item.item_type || 'billable') !== 'operational_cost')
+    .filter(item => item.include_in_customer_invoice !== false)
+    .filter(item => !item.is_hidden_from_customer)
+    .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+  const operationalCosts = invoice.items
+    .filter(item => (item.item_type || 'billable') === 'operational_cost')
+    .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+  const netProfit = grossRevenue - operationalCosts;
+  return grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
+};
+
+const getProfitMarginClass = (margin) => {
+  if (margin >= 20) return "bg-green-100 text-green-800";
+  if (margin >= 10) return "bg-yellow-100 text-yellow-800";
+  return "bg-red-100 text-red-800";
 };
 </script>
 

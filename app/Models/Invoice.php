@@ -47,7 +47,11 @@ class Invoice extends Model
         'payment_confirmed_at',
         'down_payment_amount',
         'down_payment_date',
-        'down_payment_notes'
+        'down_payment_notes',
+        'posted_to_profit_loss',
+        'posted_to_profit_loss_at',
+        'posted_by',
+        'profit_loss_entries'
     ];
 
     protected $casts = [
@@ -62,7 +66,10 @@ class Invoice extends Model
         'total' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'down_payment_amount' => 'decimal:2',
-        'down_payment_date' => 'date'
+        'down_payment_date' => 'date',
+        'posted_to_profit_loss' => 'boolean',
+        'posted_to_profit_loss_at' => 'datetime',
+        'profit_loss_entries' => 'array'
     ];
 
     public function salesOrder()
@@ -78,6 +85,22 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    // New relationships for operational costs feature
+    public function billableItems()
+    {
+        return $this->hasMany(InvoiceItem::class)->billable();
+    }
+
+    public function operationalCosts()
+    {
+        return $this->hasMany(InvoiceItem::class)->operationalCost();
+    }
+
+    public function customerVisibleItems()
+    {
+        return $this->hasMany(InvoiceItem::class)->customerVisible();
     }
 
     /**
@@ -163,12 +186,70 @@ class Invoice extends Model
 
     public function calculateTotals()
     {
-        $subtotal = $this->items()->sum('amount');
+        // Only calculate totals from billable items (customer-facing)
+        // Operational costs should not be included in customer invoice totals
+        $subtotal = $this->customerVisibleItems()->sum('amount');
         $total = $subtotal - ($this->down_payment_amount ?? 0);
         $this->update([
             'subtotal' => $subtotal,
             'total' => $total
         ]);
+    }
+
+    // New profit calculation methods for operational costs
+    public function calculateGrossRevenue(): float
+    {
+        return (float) $this->billableItems()->sum('amount');
+    }
+
+    public function calculateOperationalCosts(): float
+    {
+        return (float) $this->operationalCosts()->sum('amount');
+    }
+
+    public function calculateNetProfit(): float
+    {
+        return $this->calculateGrossRevenue() - $this->calculateOperationalCosts();
+    }
+
+    public function calculateCustomerInvoiceTotal(): float
+    {
+        return (float) $this->customerVisibleItems()->sum('amount');
+    }
+
+    public function getProfitMarginPercentage(): float
+    {
+        $grossRevenue = $this->calculateGrossRevenue();
+        if ($grossRevenue <= 0) {
+            return 0;
+        }
+        return ($this->calculateNetProfit() / $grossRevenue) * 100;
+    }
+
+    // Accessor methods for easy access
+    public function getGrossRevenueAttribute(): float
+    {
+        return $this->calculateGrossRevenue();
+    }
+
+    public function getOperationalCostsAttribute(): float
+    {
+        return $this->calculateOperationalCosts();
+    }
+
+    public function getNetProfitAttribute(): float
+    {
+        return $this->calculateNetProfit();
+    }
+
+    public function getCustomerTotalAttribute(): float
+    {
+        return $this->calculateCustomerInvoiceTotal();
+    }
+
+    public function getProfitMarginAttribute(): float
+    {
+        return $this->getProfitMarginPercentage();
     }
 
     public function confirmPayment($paidAmount, $paymentDate, $paymentMethod = null, $notes = null)
@@ -274,5 +355,147 @@ class Invoice extends Model
             'reimbursement' => 'Reimbursement',
             default => 'Main Invoice'
         };
+    }
+
+    // Relationship to posted by user
+    public function postedByUser()
+    {
+        return $this->belongsTo(User::class, 'posted_by');
+    }
+
+    // Method untuk post ke laba rugi
+    public function postToProfitLoss($periodId, $userId = null): array
+    {
+        if ($this->posted_to_profit_loss) {
+            throw new \Exception('Invoice sudah di-post ke laba rugi sebelumnya.');
+        }
+
+        $userId = $userId ?? auth()->id();
+        $entryIds = [];
+
+        try {
+            \DB::beginTransaction();
+
+            // Get accounts
+            $revenueAccount = \App\Models\ChartOfAccount::where('account_category', 'revenue_main')->first();
+            $expenseAccount = \App\Models\ChartOfAccount::where('account_category', 'expense_operational')->first();
+
+            if (!$revenueAccount || !$expenseAccount) {
+                throw new \Exception('Account laba rugi belum dikonfigurasi. Hubungi administrator.');
+            }
+
+            // Create revenue entry (jika ada gross revenue)
+            if ($this->calculateGrossRevenue() > 0) {
+                $revenueEntry = \App\Models\ProfitLossEntry::create([
+                    'period_id' => $periodId,
+                    'account_id' => $revenueAccount->id,
+                    'description' => "Pendapatan - Invoice {$this->invoice_number}",
+                    'amount' => $this->calculateGrossRevenue(),
+                    'entry_type' => 'auto_invoice',
+                    'reference_type' => 'invoice',
+                    'reference_id' => $this->id,
+                    'transaction_date' => $this->invoice_date,
+                    'notes' => "Auto-generated dari invoice {$this->invoice_number}",
+                    'additional_data' => [
+                        'invoice_number' => $this->invoice_number,
+                        'customer_name' => $this->customer->company_name ?? 'Unknown',
+                        'gross_revenue' => $this->calculateGrossRevenue(),
+                        'operational_costs' => $this->calculateOperationalCosts(),
+                        'net_profit' => $this->calculateNetProfit()
+                    ],
+                    'created_by' => $userId,
+                ]);
+                $entryIds[] = $revenueEntry->id;
+            }
+
+            // Create operational cost entries (per item)
+            foreach ($this->operationalCosts as $cost) {
+                $costEntry = \App\Models\ProfitLossEntry::create([
+                    'period_id' => $periodId,
+                    'account_id' => $expenseAccount->id,
+                    'description' => "Biaya Operasional - {$cost->description}",
+                    'amount' => $cost->amount,
+                    'entry_type' => 'auto_invoice',
+                    'reference_type' => 'invoice_item',
+                    'reference_id' => $cost->id,
+                    'transaction_date' => $this->invoice_date,
+                    'notes' => "Auto-generated dari invoice {$this->invoice_number} - {$cost->description}",
+                    'additional_data' => [
+                        'invoice_number' => $this->invoice_number,
+                        'invoice_item_id' => $cost->id,
+                        'item_description' => $cost->description,
+                        'item_quantity' => $cost->quantity,
+                        'item_rate' => $cost->rate
+                    ],
+                    'created_by' => $userId,
+                ]);
+                $entryIds[] = $costEntry->id;
+            }
+
+            // Update invoice status
+            $this->update([
+                'posted_to_profit_loss' => true,
+                'posted_to_profit_loss_at' => now(),
+                'posted_by' => $userId,
+                'profit_loss_entries' => $entryIds
+            ]);
+
+            \DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Invoice berhasil di-post ke laba rugi.',
+                'entry_ids' => $entryIds,
+                'gross_revenue' => $this->calculateGrossRevenue(),
+                'operational_costs' => $this->calculateOperationalCosts(),
+                'net_profit' => $this->calculateNetProfit()
+            ];
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            throw $e;
+        }
+    }
+
+    // Method untuk unpost dari laba rugi (jika diperlukan)
+    public function unpostFromProfitLoss($userId = null): bool
+    {
+        if (!$this->posted_to_profit_loss) {
+            throw new \Exception('Invoice belum pernah di-post ke laba rugi.');
+        }
+
+        $userId = $userId ?? auth()->id();
+
+        try {
+            \DB::beginTransaction();
+
+            // Delete related profit loss entries
+            if ($this->profit_loss_entries && is_array($this->profit_loss_entries)) {
+                \App\Models\ProfitLossEntry::whereIn('id', $this->profit_loss_entries)->delete();
+            }
+
+            // Update invoice status
+            $this->update([
+                'posted_to_profit_loss' => false,
+                'posted_to_profit_loss_at' => null,
+                'posted_by' => null,
+                'profit_loss_entries' => null
+            ]);
+
+            \DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            throw $e;
+        }
+    }
+
+    // Check if can be posted
+    public function canBePostedToProfitLoss(): bool
+    {
+        return $this->status === 'sent' &&
+               !$this->posted_to_profit_loss &&
+               ($this->calculateGrossRevenue() > 0 || $this->calculateOperationalCosts() > 0);
     }
 }

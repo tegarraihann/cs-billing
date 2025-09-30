@@ -48,6 +48,26 @@
               </svg>
               Konfirmasi Pembayaran
             </button>
+            <button
+              @click="openProfitLossModal"
+              class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              v-if="shouldShowProfitLossButton"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              Post ke Laba Rugi
+            </button>
+            <button
+              @click="unpostFromProfitLoss"
+              class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              v-if="invoice.posted_to_profit_loss"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+              Batal Post Laba Rugi
+            </button>
           </div>
         </div>
       </div>
@@ -98,6 +118,15 @@
                 :class="getPaymentStatusColor(invoice)"
               >
                 {{ getPaymentStatusLabel(invoice) }}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Status Laba Rugi:</span>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                :class="invoice.posted_to_profit_loss ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'"
+              >
+                {{ invoice.posted_to_profit_loss ? 'Sudah Di-post' : 'Belum Di-post' }}
               </span>
             </div>
           </div>
@@ -169,6 +198,31 @@
             <div v-if="invoice.payment_notes" class="pt-2">
               <span class="text-gray-600">Catatan:</span>
               <p class="text-gray-900 mt-1">{{ invoice.payment_notes }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profit Loss Posting Information (if posted) -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-purple-200" v-if="invoice.posted_to_profit_loss">
+          <h3 class="text-lg font-semibold text-purple-800 mb-4">Informasi Posting Laba Rugi</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Status:</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                Sudah Di-post
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Tanggal Posting:</span>
+              <span class="font-medium">{{ formatDateTime(invoice.posted_to_profit_loss_at) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Di-post oleh:</span>
+              <span class="font-medium">{{ invoice.posted_by_user?.name || '-' }}</span>
+            </div>
+            <div v-if="invoice.profit_loss_entries && invoice.profit_loss_entries.length > 0" class="pt-2">
+              <span class="text-gray-600">Entry IDs:</span>
+              <p class="text-gray-900 mt-1 text-sm">{{ invoice.profit_loss_entries.join(', ') }}</p>
             </div>
           </div>
         </div>
@@ -378,6 +432,166 @@
         </div>
       </div>
 
+      <!-- Operational Costs Section -->
+      <div v-if="getOperationalCosts.length > 0" class="bg-white rounded-lg shadow-sm border border-red-200 overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-red-200 bg-red-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <h3 class="text-lg font-semibold text-red-800">Biaya Lain / Operational Costs</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                Internal Only
+              </span>
+            </div>
+            <div class="text-sm text-red-600">
+              Tidak terlihat oleh customer
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-red-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
+                  Deskripsi
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
+                  Qty
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
+                  Unit
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
+                  Rate
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
+                  Currency
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-red-500 uppercase tracking-wider">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-red-200">
+              <tr v-for="item in getOperationalCosts" :key="item.id" class="hover:bg-red-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatCurrency(item.rate, item.currency) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.currency }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount, item.currency) }}</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Operational Costs Total -->
+        <div class="px-6 py-4 bg-red-50 border-t border-red-200">
+          <div class="flex justify-end">
+            <div class="w-64 space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Subtotal Biaya Lain:</span>
+                <span class="text-sm font-medium">{{ formatCurrency(getOperationalCostsTotal) }}</span>
+              </div>
+              <div class="flex justify-between pt-2 border-t border-red-200">
+                <span class="text-lg font-semibold text-red-800">Total Biaya Lain:</span>
+                <span class="text-lg font-bold text-red-800">{{ formatCurrency(getOperationalCostsTotal) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profit Breakdown Section -->
+      <div class="bg-white rounded-lg shadow-sm border border-purple-200 overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-purple-200 bg-purple-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <h3 class="text-lg font-semibold text-purple-800">Analisis Profit</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                Internal Analysis
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Gross Revenue -->
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-green-800">{{ formatCurrency(getGrossRevenue) }}</div>
+                <div class="text-sm text-green-600 mt-1">Gross Revenue</div>
+                <div class="text-xs text-gray-500 mt-1">Total yang dapat ditagih</div>
+              </div>
+            </div>
+
+            <!-- Operational Costs -->
+            <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-red-800">{{ formatCurrency(getOperationalCostsTotal) }}</div>
+                <div class="text-sm text-red-600 mt-1">Operational Costs</div>
+                <div class="text-xs text-gray-500 mt-1">Biaya operasional</div>
+              </div>
+            </div>
+
+            <!-- Net Profit -->
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-blue-800">{{ formatCurrency(getNetProfit) }}</div>
+                <div class="text-sm text-blue-600 mt-1">Net Profit</div>
+                <div class="text-xs text-gray-500 mt-1">Keuntungan bersih</div>
+              </div>
+            </div>
+
+            <!-- Profit Margin -->
+            <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-purple-800">{{ getProfitMargin }}%</div>
+                <div class="text-sm text-purple-600 mt-1">Profit Margin</div>
+                <div class="text-xs text-gray-500 mt-1">Persentase keuntungan</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profit Calculation Details -->
+          <div class="mt-6 bg-gray-50 rounded-lg p-4">
+            <h4 class="text-sm font-semibold text-gray-800 mb-3">Detail Perhitungan:</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Gross Revenue (Items yang dapat ditagih):</span>
+                <span class="font-medium text-green-700">{{ formatCurrency(getGrossRevenue) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Operational Costs (Biaya internal):</span>
+                <span class="font-medium text-red-700">- {{ formatCurrency(getOperationalCostsTotal) }}</span>
+              </div>
+              <hr class="border-gray-300">
+              <div class="flex justify-between font-semibold">
+                <span class="text-gray-800">Net Profit:</span>
+                <span class="text-blue-700">{{ formatCurrency(getNetProfit) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Profit Margin:</span>
+                <span class="text-purple-700 font-medium">{{ getProfitMargin }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Combined Total -->
       <div v-if="invoice.invoice_type === 'combined' && getMainItems.length > 0 && getReimbursementItems.length > 0" class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
         <div class="px-6 py-4 bg-sage-50">
@@ -481,7 +695,7 @@
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Tandai Invoice Sebagai Terkirim</h3>
         <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menandai invoice ini sebagai terkirim ke customer?</p>
-        
+
         <div class="flex justify-end space-x-3">
           <button
             @click="showMarkSentModal = false"
@@ -496,6 +710,107 @@
             Ya, Tandai Terkirim
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Profit Loss Posting Modal -->
+    <div v-if="showProfitLossModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+        <h3 class="text-lg font-semibold text-purple-800 mb-4">Post Invoice ke Laba Rugi</h3>
+
+        <!-- Invoice Summary -->
+        <div class="bg-purple-50 rounded-lg p-4 mb-6 border border-purple-200">
+          <h4 class="text-sm font-semibold text-purple-800 mb-3">Ringkasan Invoice:</h4>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-600">Invoice Number:</span>
+              <span class="font-medium text-purple-800 ml-2">{{ invoice.invoice_number }}</span>
+            </div>
+            <div>
+              <span class="text-gray-600">Customer:</span>
+              <span class="font-medium text-purple-800 ml-2">{{ invoice.customer?.company_name }}</span>
+            </div>
+            <div>
+              <span class="text-gray-600">Gross Revenue:</span>
+              <span class="font-medium text-green-700 ml-2">{{ formatCurrency(getGrossRevenue) }}</span>
+            </div>
+            <div>
+              <span class="text-gray-600">Operational Costs:</span>
+              <span class="font-medium text-red-700 ml-2">{{ formatCurrency(getOperationalCostsTotal) }}</span>
+            </div>
+            <div class="col-span-2 pt-2 border-t border-purple-200">
+              <span class="text-gray-600">Net Profit:</span>
+              <span class="font-bold text-blue-700 ml-2">{{ formatCurrency(getNetProfit) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <form @submit.prevent="submitProfitLossPosting">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Periode Laba Rugi <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="profitLossForm.period_id"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                required
+              >
+                <option value="">Pilih Periode...</option>
+                <option v-for="period in profitLossPeriods" :key="period.id" :value="period.id">
+                  {{ period.name }} ({{ period.start_date }} - {{ period.end_date }})
+                </option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">
+                Pilih periode laba rugi dimana transaksi ini akan dicatat
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
+              <textarea
+                v-model="profitLossForm.notes"
+                rows="3"
+                placeholder="Catatan tambahan untuk posting laba rugi..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              ></textarea>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm">
+                  <p class="text-blue-800 font-medium mb-1">Yang akan di-posting:</p>
+                  <ul class="text-blue-700 space-y-1">
+                    <li v-if="getGrossRevenue > 0">• Pendapatan: {{ formatCurrency(getGrossRevenue) }}</li>
+                    <li v-if="getOperationalCostsTotal > 0">• Biaya Operasional: {{ formatCurrency(getOperationalCostsTotal) }}</li>
+                    <li>• Net Profit Impact: {{ formatCurrency(getNetProfit) }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              @click="showProfitLossModal = false"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              :disabled="processing || !profitLossForm.period_id"
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+            >
+              {{ processing ? 'Memproses...' : 'Post ke Laba Rugi' }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </AdminKeuanganLayout>
@@ -515,6 +830,7 @@ const props = defineProps({
 
 const showPaymentModal = ref(false);
 const showMarkSentModal = ref(false);
+const showProfitLossModal = ref(false);
 const processing = ref(false);
 
 const paymentForm = reactive({
@@ -524,6 +840,14 @@ const paymentForm = reactive({
   payment_notes: ''
 });
 
+const profitLossForm = reactive({
+  period_id: '',
+  notes: ''
+});
+
+const profitLossPeriods = ref([]);
+const profitLossAccounts = ref([]);
+
 const route = window.route || function(name, params) {
   const routes = {
     'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
@@ -531,6 +855,9 @@ const route = window.route || function(name, params) {
     'admin-keuangan.invoices.pdf': (id) => `/admin-keuangan/invoices/${id}/pdf`,
     'admin-keuangan.invoices.confirm-payment': (id) => `/admin-keuangan/invoices/${id}/confirm-payment`,
     'admin-keuangan.invoices.mark-sent': (id) => `/admin-keuangan/invoices/${id}/mark-sent`,
+    'admin-keuangan.invoices.post-to-profit-loss': (id) => `/admin-keuangan/invoices/${id}/post-to-profit-loss`,
+    'admin-keuangan.invoices.unpost-from-profit-loss': (id) => `/admin-keuangan/invoices/${id}/unpost-from-profit-loss`,
+    'admin-keuangan.invoices.profit-loss-periods': '/admin-keuangan/invoices/profit-loss-periods',
   };
   return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#';
 };
@@ -697,6 +1024,91 @@ const getMainTotal = computed(() => {
 const getReimbursementTotal = computed(() => {
   return getReimbursementItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
 });
+
+// Computed untuk operational costs
+const getOperationalCosts = computed(() => {
+  return (props.invoice.items || []).filter(item => item.item_type === 'operational_cost');
+});
+
+const getOperationalCostsTotal = computed(() => {
+  return getOperationalCosts.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+// Computed untuk profit calculation
+const getBillableItems = computed(() => {
+  return (props.invoice.items || []).filter(item => item.item_type === 'billable' || item.item_type === null);
+});
+
+const getGrossRevenue = computed(() => {
+  return getBillableItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+const getNetProfit = computed(() => {
+  return getGrossRevenue.value - getOperationalCostsTotal.value;
+});
+
+const getProfitMargin = computed(() => {
+  if (getGrossRevenue.value <= 0) {
+    return 0;
+  }
+  return ((getNetProfit.value / getGrossRevenue.value) * 100).toFixed(2);
+});
+
+// Computed property untuk menampilkan tombol Post ke Laba Rugi
+const shouldShowProfitLossButton = computed(() => {
+  return props.invoice.status === 'sent' &&
+         !props.invoice.posted_to_profit_loss &&
+         (getGrossRevenue.value > 0 || getOperationalCostsTotal.value > 0);
+});
+
+// Method untuk load profit loss periods
+const loadProfitLossPeriods = async () => {
+  try {
+    const response = await fetch(route('admin-keuangan.invoices.profit-loss-periods'));
+    const data = await response.json();
+    profitLossPeriods.value = data.periods || [];
+    profitLossAccounts.value = data.accounts || [];
+  } catch (error) {
+    console.error('Error loading profit loss periods:', error);
+  }
+};
+
+// Method untuk submit profit loss posting
+const submitProfitLossPosting = () => {
+  processing.value = true;
+
+  router.post(route('admin-keuangan.invoices.post-to-profit-loss', props.invoice.id), profitLossForm, {
+    onSuccess: () => {
+      showProfitLossModal.value = false;
+      processing.value = false;
+    },
+    onError: () => {
+      processing.value = false;
+    }
+  });
+};
+
+// Method untuk unpost dari profit loss
+const unpostFromProfitLoss = () => {
+  if (confirm('Apakah Anda yakin ingin membatalkan posting ke laba rugi?')) {
+    processing.value = true;
+
+    router.post(route('admin-keuangan.invoices.unpost-from-profit-loss', props.invoice.id), {}, {
+      onSuccess: () => {
+        processing.value = false;
+      },
+      onError: () => {
+        processing.value = false;
+      }
+    });
+  }
+};
+
+// Method untuk open profit loss modal
+const openProfitLossModal = async () => {
+  await loadProfitLossPeriods();
+  showProfitLossModal.value = true;
+};
 </script>
 
 <style scoped>

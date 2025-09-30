@@ -548,6 +548,123 @@
               </div>
             </div>
           </div>
+
+          <!-- Operational Costs (Internal Only) -->
+          <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 border-l-4 border-l-red-500">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-red-800">Biaya Operasional (Internal)</h3>
+                <p class="text-sm text-red-600">Biaya ini tidak akan ditampilkan di invoice customer dan akan mengurangi profit</p>
+              </div>
+              <button
+                type="button"
+                @click="addOperationalCost"
+                class="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Tambah Biaya Operasional
+              </button>
+            </div>
+
+            <div v-if="operationalCosts.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-red-300 rounded-lg bg-red-50">
+              <div class="flex flex-col items-center">
+                <svg class="w-12 h-12 text-red-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-red-600">Belum ada biaya operasional</p>
+                <p class="text-sm text-red-500">Contoh: Kirim dokumen, biaya kawalan, parkir, dll</p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div v-for="(cost, index) in operationalCosts" :key="'opex-' + index" class="border border-red-200 rounded-lg p-4 bg-red-50">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="font-medium text-red-800">Biaya Operasional {{ index + 1 }}</h4>
+                  <button
+                    type="button"
+                    @click="removeOperationalCost(index)"
+                    class="text-red-600 hover:text-red-800"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-red-700 mb-2">Deskripsi</label>
+                    <input
+                      type="text"
+                      v-model="cost.description"
+                      class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      placeholder="e.g., Kirim dokumen, biaya kawalan"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-red-700 mb-2">Biaya</label>
+                    <input
+                      type="number"
+                      v-model="cost.rate"
+                      @input="calculateOperationalAmount(index)"
+                      step="1000"
+                      min="0"
+                      class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      placeholder="50000"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-red-700 mb-2">Total</label>
+                    <input
+                      type="text"
+                      :value="formatCurrency(cost.amount || 0)"
+                      class="w-full px-3 py-2 border border-red-300 rounded-lg bg-red-100"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Operational Costs Summary -->
+            <div v-if="operationalCosts.length > 0" class="mt-4 pt-4 border-t border-red-200">
+              <div class="flex justify-between items-center text-sm">
+                <span class="font-medium text-red-700">Total Biaya Operasional:</span>
+                <span class="font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal()) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profit Summary (if operational costs exist) -->
+        <div v-if="operationalCosts.length > 0" class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 border border-blue-200">
+          <h3 class="text-lg font-semibold text-blue-800 mb-4">Ringkasan Profit</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div class="bg-white rounded-lg p-4 border border-blue-200">
+              <div class="text-blue-600 font-medium">Gross Revenue</div>
+              <div class="text-xl font-bold text-blue-800">{{ formatCurrency(calculateGrossRevenue()) }}</div>
+              <div class="text-xs text-blue-500">Customer invoice total</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-red-200">
+              <div class="text-red-600 font-medium">Operational Costs</div>
+              <div class="text-xl font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal()) }}</div>
+              <div class="text-xs text-red-500">Internal costs only</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-green-200">
+              <div class="text-green-600 font-medium">Net Profit</div>
+              <div class="text-xl font-bold text-green-800">{{ formatCurrency(calculateNetProfit()) }}</div>
+              <div class="text-xs text-green-500">Gross - Operational</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-purple-200">
+              <div class="text-purple-600 font-medium">Profit Margin</div>
+              <div class="text-xl font-bold text-purple-800">{{ calculateProfitMargin() }}%</div>
+              <div class="text-xs text-purple-500">Net profit percentage</div>
+            </div>
+          </div>
         </div>
 
         <!-- Submit Buttons -->
@@ -598,9 +715,10 @@ const route = window.route || function(name, params) {
   return routes[name] || '#';
 };
 
-// Separate reactive arrays for main and reimbursement items
+// Separate reactive arrays for main, reimbursement items, and operational costs
 const mainItems = ref([]);
 const reimbursementItems = ref([]);
+const operationalCosts = ref([]);
 
 const form = useForm({
   sales_order_id: props.preselectedSalesOrder || '',
@@ -646,12 +764,12 @@ const loadSalesOrderData = () => {
     form.origin = selectedOrder.pol || '';
     form.destination = selectedOrder.pod || '';
 
-    // Dates
+    // Dates - format to YYYY-MM-DD for HTML date input
     if (selectedOrder.eta) {
-      form.eta = selectedOrder.eta;
+      form.eta = formatDateForInput(selectedOrder.eta);
     }
     if (selectedOrder.etd) {
-      form.etd = selectedOrder.etd;
+      form.etd = formatDateForInput(selectedOrder.etd);
     }
 
     // Cargo details - auto-populate from Sales Order
@@ -718,6 +836,60 @@ const calculateReimbursementAmount = (index) => {
   item.amount = parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
 };
 
+// Operational costs functions
+const addOperationalCost = () => {
+  operationalCosts.value.push({
+    description: '',
+    quantity: 1,
+    unit: 'pcs',
+    rate: 0,
+    currency: 'IDR',
+    amount: 0,
+    item_type: 'operational_cost',
+    include_in_customer_invoice: false,
+    is_hidden_from_customer: true
+  });
+};
+
+const removeOperationalCost = (index) => {
+  operationalCosts.value.splice(index, 1);
+};
+
+const calculateOperationalAmount = (index) => {
+  const cost = operationalCosts.value[index];
+  cost.quantity = 1; // Always 1 for operational costs
+  cost.amount = parseFloat(cost.rate || 0);
+};
+
+const calculateOperationalTotal = () => {
+  return operationalCosts.value.reduce((total, cost) => {
+    return total + (parseFloat(cost.amount || 0));
+  }, 0);
+};
+
+// Profit calculation methods
+const calculateGrossRevenue = () => {
+  const mainTotal = mainItems.value.reduce((total, item) => {
+    return total + (parseFloat(item.amount || 0));
+  }, 0);
+
+  const reimbursementTotal = reimbursementItems.value.reduce((total, item) => {
+    return total + (parseFloat(item.amount || 0));
+  }, 0);
+
+  return mainTotal + reimbursementTotal;
+};
+
+const calculateNetProfit = () => {
+  return calculateGrossRevenue() - calculateOperationalTotal();
+};
+
+const calculateProfitMargin = () => {
+  const grossRevenue = calculateGrossRevenue();
+  if (grossRevenue <= 0) return '0.00';
+  return ((calculateNetProfit() / grossRevenue) * 100).toFixed(2);
+};
+
 const calculateTotal = () => {
   const mainTotal = mainItems.value.reduce((total, item) => {
     return total + (parseFloat(item.amount || 0));
@@ -738,18 +910,53 @@ const formatCurrency = (amount, currency = 'IDR') => {
   }).format(amount || 0);
 };
 
+// Helper function to format date for HTML date input (YYYY-MM-DD)
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+
+  try {
+    // Handle different date formats
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    // Format to YYYY-MM-DD
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.warn('Error formatting date:', dateString, error);
+    return '';
+  }
+};
+
 const submit = () => {
-  // Combine all items from both arrays with proper item_ref
+  // Combine all items from arrays with proper item_ref and item_type
   const allItems = [
     ...mainItems.value.map(item => ({
       ...item,
       type: 'main',
-      item_ref: item.item_ref || 'main'
+      item_ref: item.item_ref || 'main',
+      item_type: 'billable',
+      include_in_customer_invoice: true,
+      is_hidden_from_customer: false
     })),
     ...reimbursementItems.value.map(item => ({
       ...item,
       type: 'reimbursement',
-      item_ref: item.item_ref || 'reimbursement'
+      item_ref: item.item_ref || 'reimbursement',
+      item_type: 'billable',
+      include_in_customer_invoice: true,
+      is_hidden_from_customer: false
+    })),
+    ...operationalCosts.value.map(cost => ({
+      ...cost,
+      type: 'operational',
+      item_ref: 'operational_cost',
+      item_type: 'operational_cost',
+      include_in_customer_invoice: false,
+      is_hidden_from_customer: true
     }))
   ];
 

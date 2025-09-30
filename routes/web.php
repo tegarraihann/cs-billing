@@ -308,6 +308,58 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
         $totalInvoices = \App\Models\Invoice::count();
         $paidInvoices = \App\Models\Invoice::where('status', 'paid')->count();
 
+        // Profit Analytics - New calculations for operational costs feature
+        $invoicesWithItems = \App\Models\Invoice::with('items')->get();
+
+        // Calculate gross revenue (all billable items)
+        $grossRevenue = $invoicesWithItems->sum(function($invoice) {
+            return $invoice->items->where('item_type', '!=', 'operational_cost')
+                ->where('include_in_customer_invoice', true)
+                ->where('is_hidden_from_customer', false)
+                ->sum('amount');
+        });
+
+        // Calculate operational costs (internal costs)
+        $operationalCosts = $invoicesWithItems->sum(function($invoice) {
+            return $invoice->items->where('item_type', 'operational_cost')->sum('amount');
+        });
+
+        // Calculate net profit and margin
+        $netProfit = $grossRevenue - $operationalCosts;
+        $profitMargin = $grossRevenue > 0 ? ($netProfit / $grossRevenue) * 100 : 0;
+
+        // Monthly profit trends (last 6 months)
+        $monthlyProfits = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $monthStart = now()->subMonths($i)->startOfMonth();
+            $monthEnd = now()->subMonths($i)->endOfMonth();
+
+            $monthlyInvoices = \App\Models\Invoice::with('items')
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->get();
+
+            $monthlyGrossRevenue = $monthlyInvoices->sum(function($invoice) {
+                return $invoice->items->where('item_type', '!=', 'operational_cost')
+                    ->where('include_in_customer_invoice', true)
+                    ->where('is_hidden_from_customer', false)
+                    ->sum('amount');
+            });
+
+            $monthlyOperationalCosts = $monthlyInvoices->sum(function($invoice) {
+                return $invoice->items->where('item_type', 'operational_cost')->sum('amount');
+            });
+
+            $monthlyNetProfit = $monthlyGrossRevenue - $monthlyOperationalCosts;
+
+            $monthlyProfits->push([
+                'month' => $monthStart->format('M Y'),
+                'gross_revenue' => $monthlyGrossRevenue,
+                'operational_costs' => $monthlyOperationalCosts,
+                'net_profit' => $monthlyNetProfit,
+                'profit_margin' => $monthlyGrossRevenue > 0 ? ($monthlyNetProfit / $monthlyGrossRevenue) * 100 : 0
+            ]);
+        }
+
         // Recent Financial Transactions (Real Data)
         $recentTransactions = collect();
 
@@ -426,7 +478,13 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
                 'overdueInvoices' => $overdueInvoices,
                 'totalInvoices' => $totalInvoices,
                 'paidInvoices' => $paidInvoices,
+                // New profit analytics
+                'grossRevenue' => $grossRevenue,
+                'operationalCosts' => $operationalCosts,
+                'netProfit' => $netProfit,
+                'profitMargin' => round($profitMargin, 2),
             ],
+            'monthlyProfits' => $monthlyProfits,
             'recentTransactions' => $recentTransactions,
         ]);
     })->name('dashboard');
@@ -499,6 +557,9 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
         Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
+        Route::post('/{invoice}/post-to-profit-loss', 'postToProfitLoss')->name('post-to-profit-loss');
+        Route::delete('/{invoice}/unpost-from-profit-loss', 'unpostFromProfitLoss')->name('unpost-from-profit-loss');
+        Route::get('/profit-loss-periods', 'getProfitLossPeriods')->name('profit-loss-periods');
     });
 
     // Account Receivables Management Routes for Admin Keuangan

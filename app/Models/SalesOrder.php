@@ -251,16 +251,18 @@ class SalesOrder extends Model
      * - MM: Month (09 for September)
      * - NNN: Opening number (increments every new SO, resets every new year)
      * - HHH: Sequential SO number (increments every new SO, resets every new year)
-     * 
+     *
      * Example: EWILOG2509001001, EWILOG2509002002, EWILOG2509003003
      * Next year: EWILOG2601001001, EWILOG2601002002 (resets because new year)
+     *
+     * Starting from: EWILOG2509219020 for September 2025
      */
     public static function generateOrderNumber(): string
     {
         $now = now();
         $year = $now->format('y'); // 2 digit year (25 for 2025)
         $month = $now->format('m'); // Month with leading zero (01-12)
-        
+
         // Get the highest opening number and sequential number from current year
         $maxNumbers = self::whereNotNull('order_number')
                         ->where('order_number', 'LIKE', "EWILOG{$year}%") // Match current year only
@@ -269,14 +271,23 @@ class SalesOrder extends Model
                             MAX(CAST(SUBSTRING(order_number, 14, 3) AS UNSIGNED)) as max_sequential
                         ')
                         ->first();
-        
+
         $maxOpening = $maxNumbers->max_opening ?? 0;
         $maxSequential = $maxNumbers->max_sequential ?? 0;
-        
+
+        // Set minimum starting numbers for September 2025
+        if ($year == '25' && $month == '09') {
+            $minOpening = 219;  // Start from 219
+            $minSequential = 20; // Start from 020
+
+            $maxOpening = max($maxOpening, $minOpening);
+            $maxSequential = max($maxSequential, $minSequential);
+        }
+
         // Both opening number and sequential number increment for each new SO
         $nextOpening = str_pad($maxOpening + 1, 3, '0', STR_PAD_LEFT);
         $nextSequential = str_pad($maxSequential + 1, 3, '0', STR_PAD_LEFT);
-        
+
         // Generate final order number: EWILOG + YYMM + Opening + Sequential
         return "EWILOG{$year}{$month}{$nextOpening}{$nextSequential}";
     }

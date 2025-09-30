@@ -632,15 +632,23 @@
             </thead>
             <tbody>
                 @php
-                // Try different possible relationship names
-                $items = null;
+                // Try different possible relationship names and filter out operational costs
+                $allItems = null;
                 if (isset($invoice->invoiceItems) && $invoice->invoiceItems->count() > 0) {
-                $items = $invoice->invoiceItems;
+                    $allItems = $invoice->invoiceItems;
                 } elseif (isset($invoice->items) && $invoice->items->count() > 0) {
-                $items = $invoice->items;
+                    $allItems = $invoice->items;
                 } elseif (isset($invoice->invoice_items) && $invoice->invoice_items->count() > 0) {
-                $items = $invoice->invoice_items;
+                    $allItems = $invoice->invoice_items;
                 }
+
+                // Filter out operational costs - only show customer-visible items
+                $items = $allItems ? $allItems->filter(function($item) {
+                    // Hide operational costs from customer invoice
+                    return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+                           ($item->include_in_customer_invoice ?? true) &&
+                           !($item->is_hidden_from_customer ?? false);
+                }) : collect();
                 @endphp
 
                 @if($items && $items->count() > 0)
@@ -703,7 +711,15 @@
                 <td class="bank-label-col">BANK NAME</td>
                 <td class="bank-value-col">: Mandiri</td>
                 <td class="total-label-col total-bold">SUB TOTAL</td>
-                <td class="total-value-col total-bold">{{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</td>
+                <td class="total-value-col total-bold">
+                    @php
+                    // Calculate customer-visible subtotal (excluding operational costs)
+                    $customerSubtotal = $items->sum(function($item) {
+                        return $item->total_price ?? $item->amount ?? $item->total ?? (($item->quantity ?? 1) * ($item->unit_price ?? $item->rate ?? $item->price ?? 0));
+                    });
+                    @endphp
+                    {{ number_format($customerSubtotal, 2) }}
+                </td>
             </tr>
             <tr>
                 <td class="bank-label-col">BANK NUMBER</td>
@@ -726,7 +742,13 @@
                 <td class="bank-label-col">SWIFT CODE</td>
                 <td class="bank-value-col">: BMRIIDJA</td>
                 <td class="total-label-col total-bold">TOTAL</td>
-                <td class="total-value-col total-bold">{{ number_format($invoice->total ?? 2289828, 2) }}</td>
+                <td class="total-value-col total-bold">
+                    @php
+                    // Calculate customer-visible total (subtotal minus down payment)
+                    $customerTotal = $customerSubtotal - ($invoice->down_payment_amount ?? 0);
+                    @endphp
+                    {{ number_format($customerTotal, 2) }}
+                </td>
             </tr>
             <tr>
                 <td class="bank-label-col"></td>

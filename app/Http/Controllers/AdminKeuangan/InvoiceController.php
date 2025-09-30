@@ -17,8 +17,8 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         try {
-            // Basic query first
-            $invoices = Invoice::with(['salesOrder', 'customer', 'confirmedBy'])
+            // Basic query first - include items for profit margin calculations
+            $invoices = Invoice::with(['salesOrder', 'customer', 'confirmedBy', 'items'])
                               ->orderBy('created_at', 'desc')
                               ->paginate(10);
 
@@ -114,7 +114,8 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        try {
+            $validated = $request->validate([
             'sales_order_id' => 'required|exists:sales_orders,id',
             'invoice_type' => 'required|in:main,reimbursement,combined',
             'invoice_date' => 'required|date',
@@ -143,7 +144,10 @@ class InvoiceController extends Controller
             'items.*.rate' => 'required_with:items|numeric|min:0',
             'items.*.currency' => 'required_with:items|string|max:3',
             'items.*.item_ref' => 'nullable|string|max:255',
-            'items.*.type' => 'nullable|string|in:main,reimbursement',
+            'items.*.type' => 'nullable|string|in:main,reimbursement,operational',
+            'items.*.item_type' => 'nullable|string|in:billable,operational_cost',
+            'items.*.include_in_customer_invoice' => 'nullable|boolean',
+            'items.*.is_hidden_from_customer' => 'nullable|boolean',
             'down_payment_amount' => 'nullable|numeric|min:0',
             'down_payment_date' => 'nullable|date',
             'down_payment_notes' => 'nullable|string|max:1000',
@@ -233,6 +237,17 @@ class InvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $amount = $item['quantity'] * $item['rate'];
 
+            // Determine item type and visibility based on input
+            $itemType = $item['item_type'] ?? 'billable';
+            $includeInCustomerInvoice = $item['include_in_customer_invoice'] ?? true;
+            $isHiddenFromCustomer = $item['is_hidden_from_customer'] ?? false;
+
+            // If item is operational_cost, automatically hide from customer
+            if ($itemType === 'operational_cost') {
+                $includeInCustomerInvoice = false;
+                $isHiddenFromCustomer = true;
+            }
+
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
                 'description' => $item['description'],
@@ -241,7 +256,10 @@ class InvoiceController extends Controller
                 'rate' => $item['rate'],
                 'currency' => $item['currency'],
                 'amount' => $amount,
-                'item_ref' => $item['item_ref'] ?? null
+                'item_ref' => $item['item_ref'] ?? null,
+                'item_type' => $itemType,
+                'include_in_customer_invoice' => $includeInCustomerInvoice,
+                'is_hidden_from_customer' => $isHiddenFromCustomer
             ]);
         }
 
@@ -252,6 +270,20 @@ class InvoiceController extends Controller
 
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil dibuat.');
+
+        } catch (\Exception $e) {
+            \Log::error('Invoice Store Error', [
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+                'user_id' => auth()->id(),
+                'request_data' => $request->all()
+            ]);
+
+            return back()->withErrors([
+                'general' => 'Terjadi kesalahan saat membuat invoice: ' . $e->getMessage()
+            ])->withInput();
+        }
     }
 
     public function show(Invoice $invoice)
@@ -289,11 +321,37 @@ class InvoiceController extends Controller
         }
 
 
+        // Calculate profit breakdown for display
+        $profitBreakdown = [
+            'gross_revenue' => $invoice->gross_revenue,
+            'operational_costs' => $invoice->operational_costs,
+            'net_profit' => $invoice->net_profit,
+            'customer_total' => $invoice->customer_total,
+            'profit_margin' => $invoice->profit_margin,
+            'billable_items_count' => $invoice->billableItems()->count(),
+            'operational_costs_count' => $invoice->operationalCosts()->count()
+        ];
+
+        // Get data untuk profit loss posting
+        $profitLossPeriods = \App\Models\ProfitLossPeriod::where('is_active', true)
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get();
+
+        $accounts = \App\Models\ChartOfAccount::where('is_active', true)
+            ->whereIn('account_category', ['revenue_main', 'expense_operational'])
+            ->orderBy('account_code')
+            ->get()
+            ->groupBy('account_category');
+
         return Inertia::render('Admin/AdminKeuangan/Invoices/Show', [
             'invoice' => $invoice,
             'mainInvoice' => $mainInvoice,
             'reimbursementInvoice' => $reimbursementInvoice,
-            'relatedInvoices' => $relatedInvoices
+            'relatedInvoices' => $relatedInvoices,
+            'profitBreakdown' => $profitBreakdown,
+            'profitLossPeriods' => $profitLossPeriods,
+            'accounts' => $accounts
         ]);
     }
 
@@ -688,5 +746,67 @@ class InvoiceController extends Controller
         }
 
         return $invoiceNumber;
+    }
+
+    public function postToProfitLoss(Request $request, Invoice $invoice)
+    {
+        try {
+            $validated = $request->validate([
+                'period_id' => 'required|exists:profit_loss_periods,id',
+            ]);
+
+            $result = $invoice->postToProfitLoss($validated['period_id']);
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'data' => $result
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function unpostFromProfitLoss(Invoice $invoice)
+    {
+        try {
+            $invoice->unpostFromProfitLoss();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice berhasil di-unpost dari laba rugi.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function getProfitLossPeriods()
+    {
+        $periods = \App\Models\ProfitLossPeriod::where('is_active', true)
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get();
+
+        return response()->json($periods);
+    }
+
+    public function getAvailableAccounts()
+    {
+        $accounts = \App\Models\ChartOfAccount::where('is_active', true)
+            ->whereIn('account_category', ['revenue_main', 'expense_operational'])
+            ->orderBy('account_code')
+            ->get()
+            ->groupBy('account_category');
+
+        return response()->json($accounts);
     }
 }
