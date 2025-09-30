@@ -629,6 +629,8 @@ class ComposerStaticInited1a7471efa1be1aa1a70b81b29f83e8
     );
 
     public static $classMap = array (
+        'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
+        'App\\Exceptions\\PageExpiredException' => __DIR__ . '/../..' . '/app/Exceptions/PageExpiredException.php',
         'App\\Exceptions\\UnauthorizedRoleException' => __DIR__ . '/../..' . '/app/Exceptions/UnauthorizedRoleException.php',
         'App\\Http\\Controllers\\AdminKeuangan\\AccountPayableController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/AccountPayableController.php',
         'App\\Http\\Controllers\\AdminKeuangan\\AccountReceivableController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminKeuangan/AccountReceivableController.php',
@@ -654,13 +656,16 @@ class ComposerStaticInited1a7471efa1be1aa1a70b81b29f83e8
         'App\\Http\\Controllers\\Auth\\RegisteredUserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/RegisteredUserController.php',
         'App\\Http\\Controllers\\Auth\\VerifyEmailController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/VerifyEmailController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\Examples\\PerformanceExampleController' => __DIR__ . '/../..' . '/app/Http/Controllers/Examples/PerformanceExampleController.php',
         'App\\Http\\Controllers\\HomeController' => __DIR__ . '/../..' . '/app/Http/Controllers/HomeController.php',
         'App\\Http\\Controllers\\ProfileController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProfileController.php',
         'App\\Http\\Controllers\\SalesOrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/SalesOrderController.php',
         'App\\Http\\Middleware\\AdminDomainOnly' => __DIR__ . '/../..' . '/app/Http/Middleware/AdminDomainOnly.php',
         'App\\Http\\Middleware\\HandleInertiaRequests' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleInertiaRequests.php',
+        'App\\Http\\Middleware\\MemoryMonitoringMiddleware' => __DIR__ . '/../..' . '/app/Http/Middleware/MemoryMonitoringMiddleware.php',
         'App\\Http\\Middleware\\PublicDomainOnly' => __DIR__ . '/../..' . '/app/Http/Middleware/PublicDomainOnly.php',
         'App\\Http\\Middleware\\RoleMiddleware' => __DIR__ . '/../..' . '/app/Http/Middleware/RoleMiddleware.php',
+        'App\\Http\\Middleware\\SessionTimeoutMiddleware' => __DIR__ . '/../..' . '/app/Http/Middleware/SessionTimeoutMiddleware.php',
         'App\\Http\\Middleware\\TrackUserActivity' => __DIR__ . '/../..' . '/app/Http/Middleware/TrackUserActivity.php',
         'App\\Http\\Requests\\Auth\\LoginRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Auth/LoginRequest.php',
         'App\\Http\\Requests\\ProfileUpdateRequest' => __DIR__ . '/../..' . '/app/Http/Requests/ProfileUpdateRequest.php',
@@ -696,6 +701,7 @@ class ComposerStaticInited1a7471efa1be1aa1a70b81b29f83e8
         'App\\Models\\WebsiteSettings' => __DIR__ . '/../..' . '/app/Models/WebsiteSettings.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\EventServiceProvider' => __DIR__ . '/../..' . '/app/Providers/EventServiceProvider.php',
+        'App\\Utils\\PerformanceMonitor' => __DIR__ . '/../..' . '/app/Utils/PerformanceMonitor.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Barryvdh\\DomPDF\\Facade\\Pdf' => __DIR__ . '/..' . '/barryvdh/laravel-dompdf/src/Facade/Pdf.php',
         'Barryvdh\\DomPDF\\PDF' => __DIR__ . '/..' . '/barryvdh/laravel-dompdf/src/PDF.php',

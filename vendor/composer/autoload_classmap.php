@@ -6,6 +6,8 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
+    'App\\Exceptions\\PageExpiredException' => $baseDir . '/app/Exceptions/PageExpiredException.php',
     'App\\Exceptions\\UnauthorizedRoleException' => $baseDir . '/app/Exceptions/UnauthorizedRoleException.php',
     'App\\Http\\Controllers\\AdminKeuangan\\AccountPayableController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/AccountPayableController.php',
     'App\\Http\\Controllers\\AdminKeuangan\\AccountReceivableController' => $baseDir . '/app/Http/Controllers/AdminKeuangan/AccountReceivableController.php',
@@ -31,13 +33,16 @@ return array(
     'App\\Http\\Controllers\\Auth\\RegisteredUserController' => $baseDir . '/app/Http/Controllers/Auth/RegisteredUserController.php',
     'App\\Http\\Controllers\\Auth\\VerifyEmailController' => $baseDir . '/app/Http/Controllers/Auth/VerifyEmailController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\Examples\\PerformanceExampleController' => $baseDir . '/app/Http/Controllers/Examples/PerformanceExampleController.php',
     'App\\Http\\Controllers\\HomeController' => $baseDir . '/app/Http/Controllers/HomeController.php',
     'App\\Http\\Controllers\\ProfileController' => $baseDir . '/app/Http/Controllers/ProfileController.php',
     'App\\Http\\Controllers\\SalesOrderController' => $baseDir . '/app/Http/Controllers/SalesOrderController.php',
     'App\\Http\\Middleware\\AdminDomainOnly' => $baseDir . '/app/Http/Middleware/AdminDomainOnly.php',
     'App\\Http\\Middleware\\HandleInertiaRequests' => $baseDir . '/app/Http/Middleware/HandleInertiaRequests.php',
+    'App\\Http\\Middleware\\MemoryMonitoringMiddleware' => $baseDir . '/app/Http/Middleware/MemoryMonitoringMiddleware.php',
     'App\\Http\\Middleware\\PublicDomainOnly' => $baseDir . '/app/Http/Middleware/PublicDomainOnly.php',
     'App\\Http\\Middleware\\RoleMiddleware' => $baseDir . '/app/Http/Middleware/RoleMiddleware.php',
+    'App\\Http\\Middleware\\SessionTimeoutMiddleware' => $baseDir . '/app/Http/Middleware/SessionTimeoutMiddleware.php',
     'App\\Http\\Middleware\\TrackUserActivity' => $baseDir . '/app/Http/Middleware/TrackUserActivity.php',
     'App\\Http\\Requests\\Auth\\LoginRequest' => $baseDir . '/app/Http/Requests/Auth/LoginRequest.php',
     'App\\Http\\Requests\\ProfileUpdateRequest' => $baseDir . '/app/Http/Requests/ProfileUpdateRequest.php',
@@ -73,6 +78,7 @@ return array(
     'App\\Models\\WebsiteSettings' => $baseDir . '/app/Models/WebsiteSettings.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Providers\\EventServiceProvider' => $baseDir . '/app/Providers/EventServiceProvider.php',
+    'App\\Utils\\PerformanceMonitor' => $baseDir . '/app/Utils/PerformanceMonitor.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Barryvdh\\DomPDF\\Facade\\Pdf' => $vendorDir . '/barryvdh/laravel-dompdf/src/Facade/Pdf.php',
     'Barryvdh\\DomPDF\\PDF' => $vendorDir . '/barryvdh/laravel-dompdf/src/PDF.php',

@@ -94,6 +94,22 @@ return [
             'processors' => [PsrLogMessageProcessor::class],
         ],
 
+        'session' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/session.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_SESSION_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => env('LOG_LEVEL', 'warning'),
+            'days' => env('LOG_SECURITY_DAYS', 60),
+            'replace_placeholders' => true,
+        ],
+
         'memory' => [
             'driver' => 'single',
             'path' => storage_path('logs/memory.log'),

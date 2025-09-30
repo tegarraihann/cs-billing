@@ -6,6 +6,9 @@ use App\Http\Controllers\Admin\MasterAdmin\WebsiteSettingsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -92,7 +95,7 @@ Route::middleware('auth')->get('/dashboard', function () {
 })->name('dashboard');
 
 // MASTER ADMIN ROUTES
-Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('masteradmin.')->group(function () {
+Route::middleware(['auth', 'role:masteradmin', 'session.timeout'])->prefix('master-admin')->name('masteradmin.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -305,6 +308,114 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
         $totalInvoices = \App\Models\Invoice::count();
         $paidInvoices = \App\Models\Invoice::where('status', 'paid')->count();
 
+        // Recent Financial Transactions (Real Data)
+        $recentTransactions = collect();
+
+        // 1. Recent Invoices (New invoices that need approval)
+        $recentInvoices = \App\Models\Invoice::with('customer')
+            ->whereIn('status', ['draft', 'released', 'pending_approval'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($invoice) {
+                return [
+                    'id' => $invoice->invoice_number,
+                    'customer' => $invoice->customer->company_name ?? $invoice->customer_name ?? 'Unknown Customer',
+                    'amount' => $invoice->total,
+                    'type' => 'Invoice ' . ucfirst($invoice->status),
+                    'status' => $invoice->status === 'draft' ? 'Draft' : ($invoice->status === 'released' ? 'Pending Approval' : 'Processing'),
+                    'date' => $invoice->created_at->format('Y-m-d'),
+                    'priority' => $invoice->status === 'draft' ? 3 : 2,
+                ];
+            });
+
+        // 2. Recent Payments (Customer payments received)
+        $recentPayments = \App\Models\Invoice::with('customer')
+            ->where('status', 'paid')
+            ->whereNotNull('payment_confirmed_at')
+            ->orderBy('payment_confirmed_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($invoice) {
+                return [
+                    'id' => $invoice->invoice_number,
+                    'customer' => $invoice->customer->company_name ?? $invoice->customer_name ?? 'Unknown Customer',
+                    'amount' => $invoice->total,
+                    'type' => 'Payment Received',
+                    'status' => 'Completed',
+                    'date' => $invoice->payment_confirmed_at->format('Y-m-d'),
+                    'priority' => 4,
+                ];
+            });
+
+        // 3. Outstanding Vendor Bills (Account Payables)
+        $outstandingVendorBills = \App\Models\AccountPayable::with('vendor')
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->whereNotNull('payment_due_date')
+            ->orderBy('payment_due_date', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function ($payable) {
+                return [
+                    'id' => $payable->vendor_invoice_number ?? 'AP-' . $payable->id,
+                    'customer' => $payable->vendor->nama_vendor ?? $payable->vendor_name ?? 'Unknown Vendor',
+                    'amount' => $payable->outstanding_amount ?? $payable->amount,
+                    'type' => 'Vendor Bill Due',
+                    'status' => $payable->payment_due_date < now() ? 'Overdue' : 'Pending',
+                    'date' => $payable->payment_due_date->format('Y-m-d'),
+                    'priority' => $payable->payment_due_date < now() ? 1 : 2,
+                ];
+            });
+
+        // 4. Recent Sales Order Approvals
+        $recentApprovals = \App\Models\SalesOrder::whereIn('status', ['released', 'approved'])
+            ->whereNotNull('released_at')
+            ->orderBy('released_at', 'desc')
+            ->limit(3)
+            ->get()
+            ->map(function ($so) {
+                return [
+                    'id' => $so->order_number,
+                    'customer' => $so->customer,
+                    'amount' => $so->total_selling,
+                    'type' => 'Sales Order ' . ucfirst($so->status),
+                    'status' => $so->status === 'released' ? 'Pending Approval' : 'Approved',
+                    'date' => ($so->approved_at ?? $so->released_at)->format('Y-m-d'),
+                    'priority' => $so->status === 'released' ? 2 : 3,
+                ];
+            });
+
+        // 5. Overdue Invoices (High Priority)
+        $overdueTransactions = \App\Models\Invoice::with('customer')
+            ->where('status', '!=', 'paid')
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', now()->toDateString())
+            ->orderBy('due_date', 'asc')
+            ->limit(3)
+            ->get()
+            ->map(function ($invoice) {
+                return [
+                    'id' => $invoice->invoice_number,
+                    'customer' => $invoice->customer->company_name ?? $invoice->customer_name ?? 'Unknown Customer',
+                    'amount' => $invoice->total,
+                    'type' => 'Overdue Invoice',
+                    'status' => 'Overdue',
+                    'date' => $invoice->due_date->format('Y-m-d'),
+                    'priority' => 1,
+                ];
+            });
+
+        // Combine and sort by priority (1 = highest)
+        $recentTransactions = $recentTransactions
+            ->concat($recentInvoices)
+            ->concat($recentPayments)
+            ->concat($outstandingVendorBills)
+            ->concat($recentApprovals)
+            ->concat($overdueTransactions)
+            ->sortBy('priority')
+            ->take(10)
+            ->values();
+
         return Inertia::render('Admin/AdminKeuangan/Dashboard', [
             'user' => $user,
             'userRole' => $user->role,
@@ -315,7 +426,8 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
                 'overdueInvoices' => $overdueInvoices,
                 'totalInvoices' => $totalInvoices,
                 'paidInvoices' => $paidInvoices,
-            ]
+            ],
+            'recentTransactions' => $recentTransactions,
         ]);
     })->name('dashboard');
 
@@ -483,7 +595,7 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
 });
 
 // SHARED ROUTES (All authenticated users)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'session.timeout'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
@@ -494,12 +606,99 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
 
     // Auto logout - extend session endpoint
-    Route::post('/extend-session', function () {
-        // Simply accessing the session will extend it
-        session()->regenerateToken();
-        return response()->json(['success' => true, 'extended_at' => now()]);
-    })->name('extend-session');
+    Route::post('/extend-session', function (Request $request) {
+        try {
+            // Validate CSRF token (automatically handled by web middleware)
+
+            // Update last activity time for middleware
+            Session::put('last_activity', Carbon\Carbon::now());
+
+            // Store session info for security tracking
+            $sessionData = [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'extended_at' => now()
+            ];
+
+            // Check for suspicious activity (IP/User Agent change)
+            $lastIp = Session::get('session_ip');
+            $lastUserAgent = Session::get('session_user_agent');
+
+            if ($lastIp && ($lastIp !== $request->ip())) {
+                // Possible session hijacking - log and force logout
+                \Log::channel('security')->warning('Possible Session Hijacking Detected', [
+                    'user_id' => Auth::id(),
+                    'user_email' => Auth::user()->email,
+                    'original_ip' => $lastIp,
+                    'current_ip' => $request->ip(),
+                    'original_user_agent' => $lastUserAgent,
+                    'current_user_agent' => $request->userAgent(),
+                    'action' => 'extend_session_blocked'
+                ]);
+
+                // Invalidate session
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session tidak valid karena alasan keamanan. Silakan login kembali.',
+                    'redirect' => route('login'),
+                    'logout' => true
+                ], 401);
+            }
+
+            // Update session security info
+            Session::put('session_ip', $request->ip());
+            Session::put('session_user_agent', $request->userAgent());
+
+            // Regenerate token for security
+            $request->session()->regenerateToken();
+
+            // Log successful session extension
+            \Log::channel('session')->info('Session Extended Successfully', [
+                'user_id' => Auth::id(),
+                'user_email' => Auth::user()->email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'extended_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'extended_at' => now(),
+                'expires_at' => now()->addMinutes(config('session.lifetime')),
+                'message' => 'Session berhasil diperpanjang'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::channel('session')->error('Session Extension Failed', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperpanjang session'
+            ], 500);
+        }
+    })->middleware(['throttle:30,1'])->name('extend-session');
 });
+
+// Test session timeout
+Route::get('/test-session-timeout', function () {
+    return response()->json([
+        'session_lifetime' => config('session.lifetime'),
+        'last_activity' => Session::get('last_activity'),
+        'session_ip' => Session::get('session_ip'),
+        'current_ip' => request()->ip(),
+        'login_time' => Session::get('login_time'),
+        'session_id' => session()->getId(),
+        'current_time' => now(),
+        'middleware_active' => true
+    ]);
+})->middleware(['auth', 'session.timeout'])->name('test-session-timeout');
 
 // Test PDF route - test new profit-loss template
 Route::get('/test-pdf', function () {

@@ -121,6 +121,7 @@
 
         .inv-value {
             text-align: left;
+            white-space: nowrap;
         }
 
         /* Shipment details section - exactly like example layout */
@@ -292,6 +293,9 @@
         /* Container numbers - handle multiline */
         .container-list {
             line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Remove any extra spacing */
@@ -470,6 +474,11 @@
         <!-- Invoice Details Table (Right Side) -->
         <table class="invoice-details-table">
             <tr>
+                <td class="inv-label">INV No.</td>
+                <td class="inv-colon">:</td>
+                <td class="inv-value">{{ $invoice->invoice_number }}</td>
+            </tr>
+            <tr>
                 <td class="inv-label">INV DATE</td>
                 <td class="inv-colon">:</td>
                 <td class="inv-value">
@@ -483,17 +492,9 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="3">&nbsp;</td>
-            </tr>
-            <tr>
                 <td class="inv-label">TERM</td>
                 <td class="inv-colon">:</td>
                 <td class="inv-value">{{ $invoice->term_days ?? 30 }} DAYS</td>
-            </tr>
-            <tr>
-                <td class="inv-label">INV No.</td>
-                <td class="inv-colon">:</td>
-                <td class="inv-value">{{ $invoice->invoice_number }}</td>
             </tr>
             <tr>
                 <td class="inv-label">AJU No.</td>
@@ -557,14 +558,6 @@
                     <td class="ship-label">VOLUME</td>
                     <td class="ship-colon">:</td>
                     <td class="ship-value">{{ $invoice->volume ?? '-' }}</td>
-                    <td class="ship-label-right">MEASUREMENT</td>
-                    <td class="ship-colon-right">:</td>
-                    <td class="ship-value-right">{{ $invoice->salesOrder->measurement ? $invoice->salesOrder->measurement . ' M³' : '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="ship-label"></td>
-                    <td class="ship-colon"></td>
-                    <td class="ship-value"></td>
                     <td class="ship-label-right">ETD / ETA</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
@@ -598,16 +591,14 @@
                     <td class="ship-label">No. OF PKGS</td>
                     <td class="ship-colon">:</td>
                     <td class="ship-value">{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . ($invoice->package_type ?? 'PCS') : '-' }}</td>
-                    <td class="ship-label-right">CONTAINER No.</td>
+                    <td class="ship-label-right">CONTAINER</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         <div class="container-list">
                             @if($invoice->container_no)
                             {{ $invoice->container_no }}
                             @elseif($invoice->salesOrder && $invoice->salesOrder->containers && $invoice->salesOrder->containers->count() > 0)
-                            @foreach($invoice->salesOrder->containers as $container)
-                            {{ $container->container_number }}<br>
-                            @endforeach
+                            {{ $invoice->salesOrder->containers->pluck('container_number')->join(', ') }}
                             @else
                             -
                             @endif
@@ -619,9 +610,6 @@
                     <td class="ship-colon">:</td>
                     <td class="ship-value">{{ $invoice->container_size ?? '3X20' }}</td>
                     <td colspan="3"></td>
-                </tr>
-                <tr>
-                    <td colspan="6">&nbsp;</td>
                 </tr>
                 <tr>
                     <td class="ship-label">REMARKS</td>
