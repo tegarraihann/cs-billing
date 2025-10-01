@@ -95,7 +95,7 @@ Route::middleware('auth')->get('/dashboard', function () {
 })->name('dashboard');
 
 // MASTER ADMIN ROUTES
-Route::middleware(['auth', 'role:masteradmin', 'session.timeout'])->prefix('master-admin')->name('masteradmin.')->group(function () {
+Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('masteradmin.')->group(function () { // Removed session.timeout
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -226,7 +226,7 @@ Route::middleware(['auth', 'role:masteradmin', 'session.timeout'])->prefix('mast
 });
 
 // ADMIN CS ROUTES
-Route::middleware(['auth', 'role:admin_cs', 'session.timeout'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
+Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () { // Removed session.timeout
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -291,7 +291,7 @@ Route::middleware(['auth', 'role:admin_cs', 'session.timeout'])->prefix('admin-c
 });
 
 // ADMIN KEUANGAN ROUTES
-Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
+Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () { // Removed session.timeout
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -656,7 +656,7 @@ Route::middleware(['auth', 'role:admin_keuangan', 'session.timeout'])->prefix('a
 });
 
 // SHARED ROUTES (All authenticated users)
-Route::middleware(['auth', 'session.timeout'])->group(function () {
+Route::middleware(['auth'])->group(function () { // Removed session.timeout
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
@@ -666,7 +666,8 @@ Route::middleware(['auth', 'session.timeout'])->group(function () {
     Route::get('/profile/data', [ProfileController::class, 'getProfileData'])->name('profile.data');
     Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
 
-    // Auto logout - extend session endpoint
+    // Auto logout - extend session endpoint (DISABLED)
+    /*
     Route::post('/extend-session', function (Request $request) {
         try {
             // Validate CSRF token (automatically handled by web middleware)
@@ -745,6 +746,7 @@ Route::middleware(['auth', 'session.timeout'])->group(function () {
             ], 500);
         }
     })->middleware(['throttle:30,1'])->name('extend-session');
+    */
 });
 
 // Test session timeout
@@ -759,7 +761,7 @@ Route::get('/test-session-timeout', function () {
         'current_time' => now(),
         'middleware_active' => true
     ]);
-})->middleware(['auth', 'session.timeout'])->name('test-session-timeout');
+})->middleware(['auth'])->name('test-session-timeout'); // Removed session.timeout
 
 // Test PDF route - test new profit-loss template
 Route::get('/test-pdf', function () {

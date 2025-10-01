@@ -136,7 +136,7 @@
     </main>
 
     <!-- Auto Logout Timer -->
-    <AutoLogoutTimer />
+    <!-- <AutoLogoutTimer /> --> <!-- Disabled auto-logout feature -->
   </div>
 </template>
 
@@ -146,7 +146,7 @@ import { Link } from "@inertiajs/vue3";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import SidebarNavigation from "@/Pages/Admin/AdminCS/Components/SidebarNavigation.vue";
-import AutoLogoutTimer from "@/Components/AutoLogoutTimer.vue";
+// import AutoLogoutTimer from "@/Components/AutoLogoutTimer.vue"; // Disabled auto-logout feature
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);

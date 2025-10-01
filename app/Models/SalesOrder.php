@@ -244,18 +244,20 @@ class SalesOrder extends Model
     }
 
     /**
-     * Generate unique order number with format EWILOG2509001001
+     * Generate unique order number with format EWILOG2510226001
      * Format: EWILOG + YYMM + NNN + HHH
      * - EWILOG: Company prefix
      * - YY: Year (25 for 2025)
-     * - MM: Month (09 for September)
+     * - MM: Month (10 for October)
      * - NNN: Opening number (increments every new SO, resets every new year)
      * - HHH: Sequential SO number (increments every new SO, resets every new year)
      *
-     * Example: EWILOG2509001001, EWILOG2509002002, EWILOG2509003003
+     * Example: EWILOG2510226001, EWILOG2510227002, EWILOG2510228003
      * Next year: EWILOG2601001001, EWILOG2601002002 (resets because new year)
      *
-     * Starting from: EWILOG2509219020 for September 2025
+     * Starting numbers:
+     * - September 2025: EWILOG2509219020 (closed at EWILOG2509225026)
+     * - October 2025: EWILOG2510226001
      */
     public static function generateOrderNumber(): string
     {
@@ -263,9 +265,9 @@ class SalesOrder extends Model
         $year = $now->format('y'); // 2 digit year (25 for 2025)
         $month = $now->format('m'); // Month with leading zero (01-12)
 
-        // Get the highest opening number and sequential number from current year
+        // Get the highest opening number and sequential number from current year and month
         $maxNumbers = self::whereNotNull('order_number')
-                        ->where('order_number', 'LIKE', "EWILOG{$year}%") // Match current year only
+                        ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%") // Match current year and month only
                         ->selectRaw('
                             MAX(CAST(SUBSTRING(order_number, 11, 3) AS UNSIGNED)) as max_opening,
                             MAX(CAST(SUBSTRING(order_number, 14, 3) AS UNSIGNED)) as max_sequential
@@ -275,13 +277,20 @@ class SalesOrder extends Model
         $maxOpening = $maxNumbers->max_opening ?? 0;
         $maxSequential = $maxNumbers->max_sequential ?? 0;
 
-        // Set minimum starting numbers for September 2025
-        if ($year == '25' && $month == '09') {
-            $minOpening = 219;  // Start from 219
-            $minSequential = 20; // Start from 020
-
-            $maxOpening = max($maxOpening, $minOpening);
-            $maxSequential = max($maxSequential, $minSequential);
+        // Set minimum starting numbers for specific months in 2025
+        if ($year == '25') {
+            if ($month == '09') {
+                $minOpening = 219;  // Start from 219
+                $minSequential = 20; // Start from 020
+                $maxOpening = max($maxOpening, $minOpening);
+                $maxSequential = max($maxSequential, $minSequential);
+            } elseif ($month == '10') {
+                // For October 2025, start from EWILOG2510226001
+                $minOpening = 225;  // Start from 225 (will increment to 226)
+                $minSequential = 0;  // Start from 000 (will increment to 001)
+                $maxOpening = max($maxOpening, $minOpening);
+                $maxSequential = max($maxSequential, $minSequential);
+            }
         }
 
         // Both opening number and sequential number increment for each new SO

@@ -5,7 +5,7 @@ import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import NavLink from "@/Components/NavLink.vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
-import AutoLogoutTimer from "@/Components/AutoLogoutTimer.vue";
+// import AutoLogoutTimer from "@/Components/AutoLogoutTimer.vue"; // Disabled auto-logout feature
 import { Link } from "@inertiajs/vue3";
 
 const showingNavigationDropdown = ref(false);
@@ -179,6 +179,6 @@ const showingNavigationDropdown = ref(false);
     </div>
 
     <!-- Auto Logout Timer -->
-    <AutoLogoutTimer />
+    <!-- <AutoLogoutTimer /> --> <!-- Disabled auto-logout feature -->
   </div>
 </template>
