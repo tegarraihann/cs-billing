@@ -190,8 +190,12 @@ class InvoiceController extends Controller
                               ->first();
             if (!$customer) {
                 // Buat dummy customer jika tidak ditemukan
+                $customerName = $salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer';
                 $customer = Customer::create([
-                    'company_name' => $salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer',
+                    'name' => $customerName, // Field name yang diperlukan
+                    'email' => 'unknown@example.com', // Field email yang diperlukan
+                    'phone' => 'N/A', // Field phone yang diperlukan
+                    'company_name' => $customerName,
                     'company_address' => $salesOrder->customer_address ?? 'N/A',
                     'pic_phone' => 'N/A',
                     'pic_email' => 'unknown@example.com',
@@ -333,9 +337,8 @@ class InvoiceController extends Controller
         ];
 
         // Get data untuk profit loss posting
-        $profitLossPeriods = \App\Models\ProfitLossPeriod::where('is_active', true)
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
+        $profitLossPeriods = \App\Models\ProfitLossPeriod::where('status', '!=', 'closed')
+            ->orderBy('start_date', 'desc')
             ->get();
 
         $accounts = \App\Models\ChartOfAccount::where('is_active', true)
@@ -791,9 +794,8 @@ class InvoiceController extends Controller
 
     public function getProfitLossPeriods()
     {
-        $periods = \App\Models\ProfitLossPeriod::where('is_active', true)
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
+        $periods = \App\Models\ProfitLossPeriod::where('status', '!=', 'closed')
+            ->orderBy('start_date', 'desc')
             ->get();
 
         return response()->json($periods);
