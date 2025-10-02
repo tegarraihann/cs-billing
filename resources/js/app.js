@@ -5,6 +5,7 @@ import { createInertiaApp } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createApp, h } from "vue";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
+import axios from 'axios';
 
 const appName = import.meta.env.VITE_APP_NAME || "ewilog";
 
@@ -12,16 +13,19 @@ const appName = import.meta.env.VITE_APP_NAME || "ewilog";
 const setupCSRF = () => {
     const token = document.querySelector('meta[name="csrf-token"]');
     if (token) {
+        const csrfToken = token.getAttribute("content");
+
         window.Laravel = window.Laravel || {};
-        window.Laravel.csrfToken = token.getAttribute("content");
+        window.Laravel.csrfToken = csrfToken;
 
-        // Optional: If you use axios
-        if (window.axios) {
-            window.axios.defaults.headers.common["X-CSRF-TOKEN"] = token.getAttribute("content");
-            window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
-        }
+        // Set up axios defaults
+        axios.defaults.headers.common["X-CSRF-TOKEN"] = csrfToken;
+        axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 
-        // console.log("CSRF token loaded:", token.getAttribute("content"));
+        // Set up Inertia CSRF
+        window.axios = axios;
+
+        // console.log("CSRF token loaded:", csrfToken);
     } else {
         console.warn("CSRF token not found in meta tags");
     }

@@ -802,3 +802,4 @@ Route::prefix('performance')->group(function () {
     Route::get('/invoice-test', [PerformanceExampleController::class, 'invoiceListExample'])->name('performance.invoice-test');
 });
 
+

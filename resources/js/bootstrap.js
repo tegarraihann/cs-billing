@@ -15,21 +15,18 @@ if (token) {
 // Setup Inertia CSRF handling
 import { router } from '@inertiajs/vue3';
 
-// Intercept all Inertia requests to ensure CSRF token is included
-const originalPost = router.post;
-router.post = function(url, data = {}, options = {}) {
-    // Ensure CSRF token is in headers
+// Set global interceptor for all Inertia requests
+router.on('before', (event) => {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    if (csrfToken) {
-        options.headers = {
+    if (csrfToken && event.detail.visit.method !== 'get') {
+        // Add CSRF token to headers for non-GET requests
+        event.detail.visit.headers = {
             'X-CSRF-TOKEN': csrfToken,
-            ...options.headers
+            ...event.detail.visit.headers
         };
     }
-
-    return originalPost.call(this, url, data, options);
-};
+});
 
 // Handle CSRF token mismatch errors globally
 router.on('error', (event) => {
