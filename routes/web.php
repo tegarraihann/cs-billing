@@ -553,6 +553,10 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{invoice}/preview-pdf', 'previewPdf')->name('preview-pdf');
         Route::get('/{invoice}/export-pdf-reimbursement', 'generateReimbursementPdf')->name('export-pdf-reimbursement');
         Route::get('/{invoice}/preview-pdf-reimbursement', 'previewReimbursementPdf')->name('preview-pdf-reimbursement');
+        Route::get('/{invoice}/export-nota-reimbursement', 'generateReimbursementNotaPdf')->name('export-nota-reimbursement');
+        Route::get('/{invoice}/preview-nota-reimbursement', 'previewReimbursementNotaPdf')->name('preview-nota-reimbursement');
+        Route::get('/{invoice}/export-debit-note-reimbursement', 'generateReimbursementDebitNotePdf')->name('export-debit-note-reimbursement');
+        Route::get('/{invoice}/preview-debit-note-reimbursement', 'previewReimbursementDebitNotePdf')->name('preview-debit-note-reimbursement');
         Route::get('/{invoice}/print', 'printView')->name('print');
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');

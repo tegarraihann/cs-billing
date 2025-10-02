@@ -53,7 +53,7 @@
                     <p class="text-sm font-medium text-sage-700">
                       {{ $page.props.auth.user?.name }}
                     </p>
-                    <p class="text-xs text-sage-500">Admin Customer Service</p>
+                    <p class="text-xs text-sage-500">Admin CS</p>
                   </div>
                   <svg
                     class="w-4 h-4 text-sage-600 hidden sm:block"

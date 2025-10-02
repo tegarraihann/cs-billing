@@ -227,7 +227,7 @@
                 <option value="">All Roles</option>
                 <option value="masteradmin">Master Admin</option>
                 <option value="admin_cs">Admin CS</option>
-                <option value="admin_keuangan">Admin Keuangan</option>
+                <option value="admin_keuangan">Finance Dept</option>
               </select>
             </div>
 
@@ -585,7 +585,7 @@ const getRoleLabel = (role) => {
   const labels = {
     masteradmin: "Master Admin",
     admin_cs: "Admin CS",
-    admin_keuangan: "Admin Keuangan",
+    admin_keuangan: "Finance Dept",
   };
   return labels[role] || role;
 };

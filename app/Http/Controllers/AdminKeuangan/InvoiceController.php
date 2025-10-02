@@ -538,12 +538,12 @@ class InvoiceController extends Controller
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
-        // Generate PDF using reimbursement template (still uses original template with DEBIT NOTE)
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        // Generate PDF using new NOTA template
+        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
-        // Reimbursement filename - invoice number already has -R suffix
-        $filename = $reimbursementInvoice->invoice_number . '.pdf';
+        // NOTA reimbursement filename - invoice number already has -R suffix
+        $filename = 'NOTA-' . $reimbursementInvoice->invoice_number . '.pdf';
 
         return $pdf->download($filename);
     }
@@ -612,12 +612,12 @@ class InvoiceController extends Controller
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
-        // Generate PDF using reimbursement template
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        // Generate PDF using new NOTA template
+        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
-        return $pdf->stream($reimbursementInvoice->invoice_number . '.pdf');
+        return $pdf->stream('NOTA-' . $reimbursementInvoice->invoice_number . '.pdf');
     }
 
     public function confirmPayment(Request $request, Invoice $invoice)
@@ -810,5 +810,165 @@ class InvoiceController extends Controller
             ->groupBy('account_category');
 
         return response()->json($accounts);
+    }
+
+    /**
+     * Generate reimbursement PDF using new NOTA template
+     */
+    public function generateReimbursementNotaPdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only reimbursement items
+        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+
+        // Calculate totals for reimbursement items only
+        $subtotal = $reimbursementItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only reimbursement items
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $total;
+
+        // Add -R suffix to invoice number for reimbursement
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
+        // Generate PDF using new NOTA template
+        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // NOTA filename - invoice number already has -R suffix
+        $filename = 'NOTA-' . $reimbursementInvoice->invoice_number . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Preview reimbursement PDF using new NOTA template
+     */
+    public function previewReimbursementNotaPdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only reimbursement items
+        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+
+        // Calculate totals for reimbursement items only
+        $subtotal = $reimbursementItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only reimbursement items
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $total;
+
+        // Add -R suffix to invoice number for reimbursement
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
+        // Generate PDF using new NOTA template
+        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Return inline view instead of download
+        return $pdf->stream('NOTA-' . $reimbursementInvoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * Generate reimbursement PDF using old DEBIT NOTE template (backup)
+     */
+    public function generateReimbursementDebitNotePdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only reimbursement items
+        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+
+        // Calculate totals for reimbursement items only
+        $subtotal = $reimbursementItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only reimbursement items
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $total;
+
+        // Add -R suffix to invoice number for reimbursement
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
+        // Generate PDF using old DEBIT NOTE template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // DEBIT NOTE filename - invoice number already has -R suffix
+        $filename = 'DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Preview reimbursement PDF using old DEBIT NOTE template (backup)
+     */
+    public function previewReimbursementDebitNotePdf(Invoice $invoice)
+    {
+        // Load relationships
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        // Filter only reimbursement items
+        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+
+        // Calculate totals for reimbursement items only
+        $subtotal = $reimbursementItems->sum('amount');
+        $total = $subtotal; // Assuming no additional charges
+
+        // Create a copy of invoice with only reimbursement items
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        // Override subtotal and total with calculated values
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $total;
+
+        // Add -R suffix to invoice number for reimbursement
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
+        // Set current timestamp for print time
+        $generatedAt = \Carbon\Carbon::now();
+
+        // Generate PDF using old DEBIT NOTE template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Return inline view instead of download
+        return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
     }
 }

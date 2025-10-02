@@ -343,7 +343,7 @@
                   <option value="">Select Role</option>
                   <option value="masteradmin">Master Admin</option>
                   <option value="admin_cs">Admin CS</option>
-                  <option value="admin_keuangan">Admin Keuangan</option>
+                  <option value="admin_keuangan">Finance Dept</option>
                 </select>
                 <div v-if="errors.role" class="mt-1 text-sm text-red-600">
                   {{ errors.role[0] }}

@@ -31,7 +31,7 @@
           <!-- Page Title -->
           <div class="flex-1 lg:flex-none">
             <h1 class="text-lg sm:text-xl font-semibold text-sage-800 truncate">
-              Admin Keuangan Dashboard
+              Finance Dept Dashboard
             </h1>
           </div>
 
@@ -53,7 +53,7 @@
                     <p class="text-sm font-medium text-sage-700">
                       {{ $page.props.auth.user?.name }}
                     </p>
-                    <p class="text-xs text-sage-500">Admin Keuangan</p>
+                    <p class="text-xs text-sage-500">Finance Dept</p>
                   </div>
                   <svg
                     class="w-4 h-4 text-sage-600 hidden sm:block"

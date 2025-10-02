@@ -919,8 +919,8 @@ const getInitials = (name) => {
 const getRoleLabel = (role) => {
   const labels = {
     masteradmin: "Master Administrator",
-    admin_cs: "Admin Customer Service",
-    admin_keuangan: "Admin Keuangan",
+    admin_cs: "Admin CS",
+    admin_keuangan: "Finance Dept",
   };
   return labels[role] || role;
 };
@@ -929,7 +929,7 @@ const getSidebarTitle = () => {
   const titles = {
     masteradmin: "Master Admin",
     admin_cs: "Admin CS",
-    admin_keuangan: "Admin Keuangan",
+    admin_keuangan: "Finance Dept",
   };
   return titles[props.user?.role] || "Admin Panel";
 };

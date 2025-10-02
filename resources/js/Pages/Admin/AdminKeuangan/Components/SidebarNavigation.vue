@@ -36,7 +36,7 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-lg font-bold text-sage-700">Admin Keuangan</h2>
+          <h2 class="text-lg font-bold text-sage-700">Finance Dept</h2>
           <p class="text-xs text-sage-500">Finance Admin</p>
         </div>
       </div>

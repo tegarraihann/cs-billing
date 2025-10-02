@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admincs@example.com'],
             [
-                'name' => 'Admin Customer Service',
+                'name' => 'Admin CS',
                 'email' => 'cs@example.com',
                 'phone' => '+62812-3456-7891',
                 'password' => Hash::make('password'),
@@ -47,7 +47,7 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'adminkeuangan@example.com'],
             [
-                'name' => 'Admin Keuangan',
+                'name' => 'Finance Dept',
                 'email' => 'keuangan@example.com',
                 'phone' => '+62812-3456-7892',
                 'password' => Hash::make('password'),
