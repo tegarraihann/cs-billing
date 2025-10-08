@@ -25,6 +25,16 @@ class PettyCashCategory extends Model
         return $this->hasMany(PettyCashTransaction::class, 'category_id');
     }
 
+    public function templates()
+    {
+        return $this->hasMany(ExpenseTemplate::class, 'category_id');
+    }
+
+    public function rules()
+    {
+        return $this->hasMany(SimpleCategoryRule::class, 'category_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

@@ -354,4 +354,173 @@ class PettyCashController extends Controller
                 ->with('error', 'Gagal menyinkronkan saldo kolom tabel: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Show auto-generated transactions awaiting approval
+     */
+    public function pendingApproval(Request $request)
+    {
+        $query = PettyCashTransaction::with(['category', 'user', 'invoice', 'template'])
+            ->where('auto_generated', true)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc');
+
+        // Filter by date range
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('transaction_date', [
+                $request->start_date,
+                $request->end_date
+            ]);
+        }
+
+        // Filter by categorization method
+        if ($request->filled('categorization_method')) {
+            $query->where('categorization_method', $request->categorization_method);
+        }
+
+        // Filter by invoice
+        if ($request->filled('invoice_id')) {
+            $query->where('invoice_id', $request->invoice_id);
+        }
+
+        $pendingTransactions = $query->paginate(15)->withQueryString();
+        $categories = PettyCashCategory::active()->ordered()->get();
+
+        // Get summary stats
+        $stats = [
+            'total_pending' => PettyCashTransaction::where('auto_generated', true)->where('status', 'pending')->count(),
+            'total_amount' => PettyCashTransaction::where('auto_generated', true)->where('status', 'pending')->sum('amount'),
+            'by_method' => PettyCashTransaction::where('auto_generated', true)
+                ->where('status', 'pending')
+                ->select('categorization_method', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
+                ->groupBy('categorization_method')
+                ->get()
+        ];
+
+        return Inertia::render('Admin/AdminKeuangan/PettyCash/PendingApproval', [
+            'pendingTransactions' => $pendingTransactions,
+            'categories' => $categories,
+            'stats' => $stats,
+            'filters' => $request->only(['start_date', 'end_date', 'categorization_method', 'invoice_id'])
+        ]);
+    }
+
+    /**
+     * Bulk approve selected transactions
+     */
+    public function bulkApprove(Request $request)
+    {
+        $request->validate([
+            'transaction_ids' => 'required|array',
+            'transaction_ids.*' => 'exists:petty_cash_transactions,id'
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $transactions = PettyCashTransaction::whereIn('id', $request->transaction_ids)
+                ->where('auto_generated', true)
+                ->where('status', 'pending')
+                ->get();
+
+            foreach ($transactions as $transaction) {
+                $transaction->update([
+                    'status' => 'approved',
+                    'approved_by' => Auth::id(),
+                    'approved_at' => now()
+                ]);
+
+                // Recalculate balance for this transaction's date
+                PettyCashBalance::updateBalanceForDate($transaction->transaction_date);
+            }
+
+            // Update subsequent balance records
+            $earliestDate = $transactions->min('transaction_date');
+            if ($earliestDate) {
+                $futureBalances = PettyCashBalance::where('balance_date', '>', $earliestDate)->get();
+                foreach ($futureBalances as $futureBalance) {
+                    PettyCashBalance::updateBalanceForDate($futureBalance->balance_date);
+                }
+            }
+        });
+
+        return redirect()->back()
+            ->with('success', count($request->transaction_ids) . ' transaksi berhasil disetujui.');
+    }
+
+    /**
+     * Bulk reject selected transactions
+     */
+    public function bulkReject(Request $request)
+    {
+        $request->validate([
+            'transaction_ids' => 'required|array',
+            'transaction_ids.*' => 'exists:petty_cash_transactions,id',
+            'rejection_reason' => 'nullable|string|max:500'
+        ]);
+
+        DB::transaction(function () use ($request) {
+            PettyCashTransaction::whereIn('id', $request->transaction_ids)
+                ->where('auto_generated', true)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'rejected',
+                    'approved_by' => Auth::id(),
+                    'approved_at' => now(),
+                    'notes' => ($request->rejection_reason ? 'Rejection reason: ' . $request->rejection_reason : null)
+                ]);
+        });
+
+        return redirect()->back()
+            ->with('success', count($request->transaction_ids) . ' transaksi berhasil ditolak.');
+    }
+
+    /**
+     * Edit auto-generated transaction before approval
+     */
+    public function editPending(PettyCashTransaction $pettyCash)
+    {
+        if (!$pettyCash->auto_generated || $pettyCash->status !== 'pending') {
+            return redirect()->route('admin-keuangan.petty-cash.pending-approval')
+                ->with('error', 'Transaksi ini tidak dapat diedit.');
+        }
+
+        $categories = PettyCashCategory::active()->ordered()->get();
+        $currentBalance = PettyCashBalance::getCurrentBalance();
+
+        return Inertia::render('Admin/AdminKeuangan/PettyCash/EditPending', [
+            'transaction' => $pettyCash->load(['category', 'invoice', 'template']),
+            'categories' => $categories,
+            'currentBalance' => $currentBalance
+        ]);
+    }
+
+    /**
+     * Update auto-generated transaction before approval
+     */
+    public function updatePending(Request $request, PettyCashTransaction $pettyCash)
+    {
+        if (!$pettyCash->auto_generated || $pettyCash->status !== 'pending') {
+            return redirect()->route('admin-keuangan.petty-cash.pending-approval')
+                ->with('error', 'Transaksi ini tidak dapat diedit.');
+        }
+
+        $request->validate([
+            'transaction_date' => 'required|date',
+            'description' => 'required|string|max:255',
+            'category_id' => 'required|exists:petty_cash_categories,id',
+            'amount' => 'required|numeric|min:0.01',
+            'notes' => 'nullable|string'
+        ]);
+
+        $pettyCash->update([
+            'transaction_date' => $request->transaction_date,
+            'description' => $request->description,
+            'category_id' => $request->category_id,
+            'amount' => $request->amount,
+            'notes' => $request->notes,
+            'categorization_method' => 'manual' // Mark as manually adjusted
+        ]);
+
+        return redirect()->route('admin-keuangan.petty-cash.pending-approval')
+            ->with('success', 'Transaksi berhasil diperbarui.');
+    }
 }

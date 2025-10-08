@@ -566,6 +566,18 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/profit-loss-periods', 'getProfitLossPeriods')->name('profit-loss-periods');
     });
 
+    // Expense Template Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\ExpenseTemplateController::class)->prefix('expense-templates')->name('expense-templates.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{expenseTemplate}', 'show')->name('show');
+        Route::get('/{expenseTemplate}/edit', 'edit')->name('edit');
+        Route::put('/{expenseTemplate}', 'update')->name('update');
+        Route::delete('/{expenseTemplate}', 'destroy')->name('destroy');
+        Route::patch('/{expenseTemplate}/toggle-status', 'toggleStatus')->name('toggle-status');
+    });
+
     // Account Receivables Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\AccountReceivableController::class)->prefix('account-receivables')->name('account-receivables.')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -611,6 +623,22 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/export', 'export')->name('export');
         Route::post('/sync-balances', 'syncBalances')->name('sync-balances');
         Route::post('/sync-transaction-balances', 'syncTransactionBalances')->name('sync-transaction-balances');
+
+        // Auto-generation bulk approval routes
+        Route::get('/pending-approval', 'pendingApproval')->name('pending-approval');
+        Route::post('/bulk-approve', 'bulkApprove')->name('bulk-approve');
+        Route::post('/bulk-reject', 'bulkReject')->name('bulk-reject');
+        Route::get('/{pettyCash}/edit-pending', 'editPending')->name('edit-pending');
+        Route::put('/{pettyCash}/update-pending', 'updatePending')->name('update-pending');
+    });
+
+    // Expense Template API Routes for Auto-Categorization
+    Route::controller(\App\Http\Controllers\Api\ExpenseTemplateController::class)->prefix('api/expense-templates')->name('api.expense-templates.')->group(function () {
+        Route::get('/by-category', 'getTemplatesByCategory')->name('by-category');
+        Route::get('/popular', 'getPopularTemplates')->name('popular');
+        Route::post('/check-keywords', 'checkKeywords')->name('check-keywords');
+        Route::post('/process-operational-cost', 'processOperationalCost')->name('process-operational-cost');
+        Route::get('/stats', 'getStats')->name('stats');
     });
 
     // Profit Loss Management Routes for Admin Keuangan

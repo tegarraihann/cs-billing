@@ -593,6 +593,24 @@
                   </button>
                 </div>
 
+                <!-- Category Selection -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-red-700 mb-2">
+                    Kategori Biaya
+                  </label>
+                  <select
+                    v-model="cost.category_id"
+                    @change="onCategoryChange(index)"
+                    class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    required
+                  >
+                    <option value="">-- Pilih Kategori Biaya --</option>
+                    <option v-for="category in pettyCashCategories" :key="category.id" :value="category.id">
+                      {{ category.name }}
+                    </option>
+                  </select>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-red-700 mb-2">Deskripsi</label>
@@ -600,7 +618,7 @@
                       type="text"
                       v-model="cost.description"
                       class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="e.g., Kirim dokumen, biaya kawalan"
+                      placeholder="e.g., Kirim dokumen, biaya kawalan, konsumsi"
                       required
                     />
                   </div>
@@ -699,12 +717,17 @@
 import { ref, reactive } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
+import OperationalCostsSection from '@/Components/OperationalCostsSection.vue';
 
 const props = defineProps({
   salesOrders: Array,
   errors: Object,
   preselectedSalesOrder: [String, Number],
   preselectedInvoiceType: String,
+  pettyCashCategories: {
+    type: Array,
+    default: () => []
+  },
 });
 
 const route = window.route || function(name, params) {
@@ -847,12 +870,35 @@ const addOperationalCost = () => {
     amount: 0,
     item_type: 'operational_cost',
     include_in_customer_invoice: false,
-    is_hidden_from_customer: true
+    is_hidden_from_customer: true,
+    category_id: ''
   });
 };
 
 const removeOperationalCost = (index) => {
   operationalCosts.value.splice(index, 1);
+};
+
+// NEW: Template application method
+// Format currency helper (removed duplicate - using the one below)
+
+// Category change handler
+const onCategoryChange = (index) => {
+  const cost = operationalCosts.value[index];
+
+  if (!cost.category_id) {
+    return;
+  }
+
+  // Find selected category
+  const selectedCategory = props.pettyCashCategories.find(cat => cat.id == cost.category_id);
+
+  if (selectedCategory) {
+    // Optional: Pre-fill description with category name as starting point
+    if (!cost.description) {
+      cost.description = `Biaya ${selectedCategory.name.toLowerCase()}`;
+    }
+  }
 };
 
 const calculateOperationalAmount = (index) => {
@@ -902,12 +948,22 @@ const calculateTotal = () => {
   return mainTotal + reimbursementTotal;
 };
 
-const formatCurrency = (amount, currency = 'IDR') => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 0,
-  }).format(amount || 0);
+const formatCurrency = (amount, options = {}) => {
+  const {
+    style = 'decimal',
+    currency = 'IDR',
+    withCurrency = false
+  } = options;
+
+  if (withCurrency) {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+    }).format(amount || 0);
+  } else {
+    return new Intl.NumberFormat('id-ID').format(amount || 0);
+  }
 };
 
 // Helper function to format date for HTML date input (YYYY-MM-DD)

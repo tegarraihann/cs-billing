@@ -59,6 +59,8 @@ class DatabaseSeeder extends Seeder
         $this->command->info('📋 STEP 5: Initializing petty cash system...');
         $this->call([
             PettyCashCategorySeeder::class,
+            ExpenseTemplateSeeder::class,
+            SimpleCategoryRuleSeeder::class,
             PettyCashTransactionSeeder::class,
             PettyCashBalanceSeeder::class,
         ]);

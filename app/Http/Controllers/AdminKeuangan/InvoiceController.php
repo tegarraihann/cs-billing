@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ExpenseCategorizationService;
 
 class InvoiceController extends Controller
 {
@@ -89,7 +90,8 @@ class InvoiceController extends Controller
             return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
                 'salesOrders' => collect([$salesOrder]),
                 'preselectedSalesOrder' => $salesOrder->id,
-                'preselectedInvoiceType' => $request->invoice_type
+                'preselectedInvoiceType' => $request->invoice_type,
+                'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get()
             ]);
         }
 
@@ -108,7 +110,8 @@ class InvoiceController extends Controller
         });
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
-            'salesOrders' => $salesOrders
+            'salesOrders' => $salesOrders,
+            'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get()
         ]);
     }
 
@@ -268,6 +271,17 @@ class InvoiceController extends Controller
         }
 
         $invoice->calculateTotals();
+
+        // Auto-generate petty cash transactions from operational costs
+        try {
+            $categorizationService = new ExpenseCategorizationService();
+            $categorizationService->autoGeneratePettyCashFromInvoice($invoice);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to auto-generate petty cash from invoice', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         // Auto-generate Account Receivable
         \App\Models\AccountReceivable::createFromInvoice($invoice);

@@ -390,6 +390,32 @@
           </svg>
           <span class="font-medium">Shipment Type</span>
         </a>
+
+        <!-- Expense Template -->
+        <a
+          href="/admin-keuangan/expense-templates"
+          class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+          :class="
+            isActive('admin-keuangan.expense-templates.*')
+              ? 'bg-sage-100 text-sage-800 shadow-sm'
+              : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+          "
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span class="font-medium">Template Biaya</span>
+        </a>
       </div>
 
       <!-- Quick Actions -->
@@ -503,6 +529,8 @@ const route = window.route || function(name, params) {
     'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
     'admin-keuangan.shipment-types.index': '/admin-keuangan/shipment-types',
     'admin-keuangan.shipment-types.create': '/admin-keuangan/shipment-types/create',
+    'admin-keuangan.expense-templates.index': '/admin-keuangan/expense-templates',
+    'admin-keuangan.expense-templates.create': '/admin-keuangan/expense-templates/create',
   };
   return routes[name] || '#';
 };
@@ -523,6 +551,7 @@ const isActive = (routePattern) => {
       'admin-keuangan.customers': '/admin-keuangan/customers',
       'admin-keuangan.vendors': '/admin-keuangan/vendors',
       'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
+      'admin-keuangan.expense-templates': '/admin-keuangan/expense-templates',
     };
     
     const basePath = routeMap[basePattern] || basePattern;
@@ -543,6 +572,7 @@ const isActive = (routePattern) => {
     'admin-keuangan.petty-cash': '/admin-keuangan/petty-cash',
     'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
     'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',
+    'admin-keuangan.expense-templates': '/admin-keuangan/expense-templates',
   };
   
   const routePath = routeMap[routePattern];
