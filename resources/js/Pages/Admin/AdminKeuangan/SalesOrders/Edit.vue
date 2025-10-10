@@ -1,108 +1,116 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">Edit Sales Order: {{ salesOrder.order_number }}</h2>
-              <p class="text-sage-600">Edit dokumen sales order untuk pelanggan</p>
-            </div>
-          </div>
-          <div class="mt-4 sm:mt-0">
-            <Link
-              :href="route('admin-keuangan.sales-orders.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Kembali
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <!-- Form Section -->
-      <form @submit.prevent="submit" class="space-y-6">
-
-        <!-- Basic Information -->
-        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div
-            @click="toggleSection('basic')"
-            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
-          >
-            <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
-            <svg
-              :class="{'rotate-180': !sections.basic}"
-              class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-          <div v-show="sections.basic" class="p-6 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">ORDER NUMB <span class="text-red-500">*</span></label>
-                <input
-                  v-model="form.order_number"
-                  type="text"
-                  required
-                  readonly
-                  placeholder="EWILOG2509001001"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
-                />
-                <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                  <Edit class="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 class="text-2xl font-semibold text-gray-900">Edit Sales Order: {{ salesOrder.order_number }}</h1>
+                  <p class="mt-1 text-sm text-gray-600">Edit dokumen sales order untuk pelanggan</p>
+                </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">REF NO</label>
-                <input
-                  v-model="form.ref_no"
-                  type="text"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                />
-                <div v-if="form.errors.ref_no" class="mt-2 text-sm text-red-600">{{ form.errors.ref_no }}</div>
+              <div class="mt-4 sm:mt-0 flex space-x-3">
+                <Link
+                  :href="route('admin-keuangan.sales-orders.show', salesOrder.id)"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  <Eye class="mr-2 h-4 w-4" />
+                  Lihat Detail
+                </Link>
+                <Link
+                  :href="route('admin-keuangan.sales-orders.index')"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  <ArrowLeft class="mr-2 h-4 w-4" />
+                  Kembali
+                </Link>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">DATE</label>
-                <input
-                  v-model="form.so_date"
-                  type="date"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                />
-                <div v-if="form.errors.so_date" class="mt-2 text-sm text-red-600">{{ form.errors.so_date }}</div>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">CUSTOMER <span class="text-red-500">*</span></label>
-              <input
-                v-model="form.customer"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.customer" class="mt-2 text-sm text-red-600">{{ form.errors.customer }}</div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-sage-700 mb-2">SHIPPER</label>
-              <input
-                v-model="form.shipper"
-                type="text"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
-              <div v-if="form.errors.shipper" class="mt-2 text-sm text-red-600">{{ form.errors.shipper }}</div>
             </div>
           </div>
         </div>
+
+        <!-- Form Section -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Form Edit Sales Order</h3>
+            <p class="mt-1 text-sm text-gray-600">Perbarui informasi sales order dengan benar</p>
+          </div>
+
+          <div class="p-6">
+            <form @submit.prevent="submit" class="space-y-6">
+
+              <!-- Basic Information -->
+              <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div
+                  @click="toggleSection('basic')"
+                  class="px-6 py-4 border-b border-gray-200 bg-gray-50 cursor-pointer flex justify-between items-center hover:bg-gray-100 transition-colors"
+                >
+                  <h3 class="text-lg font-medium text-gray-900">Informasi Dasar</h3>
+                  <ChevronDown
+                    :class="{'rotate-180': !sections.basic}"
+                    class="w-5 h-5 text-gray-600 transition-transform duration-200"
+                  />
+                </div>
+                <div v-show="sections.basic" class="p-6 space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-2">ORDER NUMB <span class="text-red-500">*</span></label>
+                      <input
+                        v-model="form.order_number"
+                        type="text"
+                        required
+                        readonly
+                        placeholder="EWILOG2509001001"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                      />
+                      <div v-if="form.errors.order_number" class="mt-2 text-sm text-red-600">{{ form.errors.order_number }}</div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-2">REF NO</label>
+                      <input
+                        v-model="form.ref_no"
+                        type="text"
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      />
+                      <div v-if="form.errors.ref_no" class="mt-2 text-sm text-red-600">{{ form.errors.ref_no }}</div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-sage-700 mb-2">DATE</label>
+                      <input
+                        v-model="form.so_date"
+                        type="date"
+                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                      />
+                      <div v-if="form.errors.so_date" class="mt-2 text-sm text-red-600">{{ form.errors.so_date }}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">CUSTOMER <span class="text-red-500">*</span></label>
+                    <input
+                      v-model="form.customer"
+                      type="text"
+                      required
+                      class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    />
+                    <div v-if="form.errors.customer" class="mt-2 text-sm text-red-600">{{ form.errors.customer }}</div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-sage-700 mb-2">SHIPPER</label>
+                    <input
+                      v-model="form.shipper"
+                      type="text"
+                      class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                    />
+                    <div v-if="form.errors.shipper" class="mt-2 text-sm text-red-600">{{ form.errors.shipper }}</div>
+                  </div>
+                </div>
+              </div>
 
         <!-- Shipping Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
@@ -644,19 +652,22 @@
         </div>
       </form>
     </div>
+  </div>
+      </div>
+    </div>
 
-    <!-- Alert Dialog -->
-    <AlertDialog
-      :show="alertDialog.show"
-      :type="alertDialog.type"
-      :title="alertDialog.title"
-      :message="alertDialog.message"
-      :confirm-text="alertDialog.confirmText"
-      :cancel-text="alertDialog.cancelText"
-      @confirm="handleAlertConfirm"
-      @cancel="handleAlertCancel"
-      @close="closeAlert"
-    />
+  <!-- Alert Dialog -->
+  <AlertDialog
+    :show="alertDialog.show"
+    :type="alertDialog.type"
+    :title="alertDialog.title"
+    :message="alertDialog.message"
+    :confirm-text="alertDialog.confirmText"
+    :cancel-text="alertDialog.cancelText"
+    @confirm="handleAlertConfirm"
+    @cancel="handleAlertCancel"
+    @close="closeAlert"
+  />
   </AdminKeuanganLayout>
 </template>
 
@@ -665,6 +676,7 @@ import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import { Edit, Eye, ArrowLeft, ChevronDown, LoaderCircle, CheckCircle } from 'lucide-vue-next';
 
 const props = defineProps({
   salesOrder: Object,

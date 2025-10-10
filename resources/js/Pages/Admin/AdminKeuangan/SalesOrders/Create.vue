@@ -1,42 +1,48 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                  <Plus class="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 class="text-2xl font-semibold text-gray-900">Buat Sales Order Baru</h1>
+                  <p class="mt-1 text-sm text-gray-600">Buat dokumen sales order untuk pelanggan</p>
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex space-x-3">
+                <Link
+                  :href="route('admin-keuangan.sales-orders.index')"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  <ArrowLeft class="mr-2 h-4 w-4" />
+                  Kembali
+                </Link>
+              </div>
             </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">Buat Sales Order Baru</h2>
-              <p class="text-sage-600">Buat dokumen sales order untuk pelanggan</p>
-            </div>
-          </div>
-          <div class="mt-4 sm:mt-0">
-            <Link
-              :href="route('admin-keuangan.sales-orders.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Kembali
-            </Link>
           </div>
         </div>
-      </div>
 
-      <!-- Form Section -->
-      <form @submit.prevent="submit" class="space-y-6">
-        <!-- Customer Selection -->
-        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-            <h3 class="text-lg font-semibold text-sage-800">Pilih Metode Input</h3>
+        <!-- Form Section -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Form Sales Order Baru</h3>
+            <p class="mt-1 text-sm text-gray-600">Lengkapi informasi sales order dengan benar</p>
           </div>
+
           <div class="p-6">
+            <form @submit.prevent="submit" class="space-y-6">
+              <!-- Customer Selection -->
+              <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                  <h3 class="text-lg font-medium text-gray-900">Pilih Metode Input</h3>
+                </div>
+                <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label class="flex items-center">
@@ -864,33 +870,36 @@
           </div>
         </div>
 
-        <!-- Submit Buttons -->
-        <div class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
-          <Link
-            :href="route('admin-keuangan.sales-orders.index')"
-            class="inline-flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-          >
-            Batal
-          </Link>
-          <button
-            type="submit"
-            :disabled="form.processing"
-            class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <svg
-              v-if="form.processing"
-              class="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span v-if="form.processing">Menyimpan...</span>
-            <span v-else>Simpan Sales Order</span>
-          </button>
+              <!-- Submit Buttons -->
+              <div class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
+                <Link
+                  :href="route('admin-keuangan.sales-orders.index')"
+                  class="inline-flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Batal
+                </Link>
+                <button
+                  type="submit"
+                  :disabled="form.processing"
+                  class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg
+                    v-if="form.processing"
+                    class="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span v-if="form.processing">Menyimpan...</span>
+                  <span v-else>Simpan Sales Order</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
 
     <!-- Alert Dialog -->
@@ -913,6 +922,7 @@ import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import { Plus, ArrowLeft, LoaderCircle, CheckCircle } from 'lucide-vue-next';
 
 const props = defineProps({
   customers: Array,

@@ -23,12 +23,24 @@ class InvoiceController extends Controller
                               ->orderBy('created_at', 'desc')
                               ->paginate(10);
 
-            // Simple processing for combined invoices
+            // Processing for each invoice to determine available types
             foreach ($invoices as $invoice) {
                 if ($invoice->invoice_type === 'combined') {
                     $invoice->invoice_types = ['main', 'reimbursement'];
                 } else {
                     $invoice->invoice_types = [$invoice->invoice_type ?? 'main'];
+                }
+
+                // Get all invoices for the same sales order to show related invoice types
+                if ($invoice->sales_order_id) {
+                    $relatedInvoices = Invoice::where('sales_order_id', $invoice->sales_order_id)
+                                            ->pluck('invoice_type')
+                                            ->unique()
+                                            ->values()
+                                            ->toArray();
+                    $invoice->related_invoice_types = $relatedInvoices;
+                } else {
+                    $invoice->related_invoice_types = [$invoice->invoice_type ?? 'main'];
                 }
             }
 
@@ -69,7 +81,8 @@ class InvoiceController extends Controller
     {
         // Check if coming from Sales Order detail page
         if ($request->has('sales_order_id') && $request->has('invoice_type')) {
-            $salesOrder = SalesOrder::findOrFail($request->sales_order_id);
+            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy'])
+                ->findOrFail($request->sales_order_id);
 
             // Verify SO is eligible for invoice creation - must be approved by finance
             if ($salesOrder->status !== 'approved' || !$salesOrder->released_at || !$salesOrder->approved_at) {
@@ -91,12 +104,14 @@ class InvoiceController extends Controller
                 'salesOrders' => collect([$salesOrder]),
                 'preselectedSalesOrder' => $salesOrder->id,
                 'preselectedInvoiceType' => $request->invoice_type,
+                'preselectedVendorBreakdown' => $salesOrder->vendor_breakdown,
                 'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get()
             ]);
         }
 
         // Get only approved SOs (already released and approved by finance)
-        $allSalesOrders = SalesOrder::with('invoices')
+        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy'])
+            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'measurement', 'qty', 'shipment_type', 'container_no'])
             ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
             ->whereNotNull('approved_at')  // Must be approved by finance
@@ -172,15 +187,10 @@ class InvoiceController extends Controller
         $invoiceDate = Carbon::parse($validated['invoice_date']);
         $dueDate = $invoiceDate->copy()->addDays($validated['term_days']);
 
-        // Auto-populate items from SO vendor breakdown if no items provided
-        if (empty($validated['items']) && $salesOrder->hasVendorBreakdownForInvoice()) {
-            $validated['items'] = $salesOrder->getInvoiceItemsFromVendorBreakdown();
-        }
-
-        // Validate that we have items either from input or auto-generated
+        // Validate that we have items
         if (empty($validated['items'])) {
             return back()->withErrors([
-                'items' => 'Invoice items are required. Either provide items manually or ensure the Sales Order has vendor breakdown with selling amounts.'
+                'items' => 'Invoice items are required. Please add at least one invoice item.'
             ]);
         }
 

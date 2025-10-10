@@ -260,7 +260,7 @@
             <div class="company-address">
                 Alamat Perusahaan<br>
                 Kota, Kode Pos<br>
-                Telp: (021) 1234-5678 | Email: info@company.com
+                Telp: (021) 2309-5467 | Email: info@company.com
             </div>
         </div>
         <div class="document-info">

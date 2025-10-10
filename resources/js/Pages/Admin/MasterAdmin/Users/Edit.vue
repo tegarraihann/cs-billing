@@ -337,7 +337,8 @@
                   id="role"
                   v-model="form.role"
                   required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  :disabled="user?.role === 'masteradmin'"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   :class="{ 'border-red-300': errors.role }"
                 >
                   <option value="">Select Role</option>
@@ -347,6 +348,12 @@
                 </select>
                 <div v-if="errors.role" class="mt-1 text-sm text-red-600">
                   {{ errors.role[0] }}
+                </div>
+                <div v-if="user?.role === 'masteradmin'" class="mt-1 text-sm text-red-600">
+                  <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  Role Master Admin tidak dapat diubah untuk menjaga keamanan sistem
                 </div>
               </div>
 
@@ -362,7 +369,8 @@
                   id="status"
                   v-model="form.status"
                   required
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  :disabled="user?.role === 'masteradmin'"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   :class="{ 'border-red-300': errors.status }"
                 >
                   <option value="">Select Status</option>
@@ -371,6 +379,12 @@
                 </select>
                 <div v-if="errors.status" class="mt-1 text-sm text-red-600">
                   {{ errors.status[0] }}
+                </div>
+                <div v-if="user?.role === 'masteradmin'" class="mt-1 text-sm text-red-600">
+                  <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  Status Master Admin tidak dapat diubah untuk menjaga keamanan sistem
                 </div>
               </div>
             </div>
@@ -477,6 +491,14 @@ const flashError = computed(() => {
   return window.$page?.props?.flash?.error || null;
 });
 
+const isEditingSelf = computed(() => {
+  return authUser.value?.id === props.user?.id;
+});
+
+const isMasterAdminEditingSelf = computed(() => {
+  return authUser.value?.id === props.user?.id && props.user?.role === 'masteradmin';
+});
+
 // Routes
 const dashboardRoute = "/master-admin/dashboard";
 const usersIndexRoute = "/master-admin/users";
@@ -538,8 +560,10 @@ const submitForm = async () => {
     formData.append("name", form.name);
     formData.append("email", form.email);
     formData.append("phone", form.phone || "");
-    formData.append("role", form.role);
-    formData.append("status", form.status);
+    // Protect master admin role from being changed
+    formData.append("role", props.user.role === 'masteradmin' ? props.user.role : form.role);
+    // Protect master admin status from being changed
+    formData.append("status", props.user.role === 'masteradmin' ? props.user.status : form.status);
 
     if (form.password) {
       formData.append("password", form.password);

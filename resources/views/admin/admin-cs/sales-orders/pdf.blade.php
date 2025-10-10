@@ -227,7 +227,7 @@
             <div class="company-address">
                 Ruko Aerohub Citra 8 No.C7-10<br>
                 Pegadungan, Kec.Kalideres, Jakarta Barat 11830<br>
-                Telp: (021) 538-1234 | Email: info@eshakawijaya.com
+                Telp: (021) 2309-5467 | Email: esahakawijayalogistics@ewilog.com
             </div>
         </div>
         <div class="document-info">

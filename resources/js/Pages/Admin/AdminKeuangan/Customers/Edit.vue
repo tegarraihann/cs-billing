@@ -1,98 +1,63 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div class="flex items-center">
-            <div
-              class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4"
-            >
-              <svg
-                class="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
+                <Edit class="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 class="text-2xl font-semibold text-gray-900">Edit Pelanggan: {{ customer.customer_code || customer.no }}</h1>
+                <p class="mt-1 text-sm text-gray-600">Perbarui informasi pelanggan</p>
+              </div>
             </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">
-                Edit Pelanggan: {{ customer.customer_code || customer.no }}
-              </h2>
-              <p class="text-sage-600">
-                Perbarui informasi pelanggan
-              </p>
-            </div>
-          </div>
-          <div class="mt-4 sm:mt-0">
-            <Link
-              :href="route('admin-keuangan.customers.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+              <Link
+                :href="route('admin-keuangan.customers.show', customer.id)"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              Kembali
-            </Link>
+                <Eye class="mr-2 h-4 w-4" />
+                Lihat Detail
+              </Link>
+              <Link
+                :href="route('admin-keuangan.customers.index')"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
+              >
+                <ArrowLeft class="mr-2 h-4 w-4" />
+                Kembali
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Form Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-      >
-        <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-          <h3 class="text-lg font-semibold text-sage-800">
-            Form Edit Pelanggan
-          </h3>
-          <p class="text-sm text-sage-600 mt-1">
-            Perbarui informasi pelanggan dengan benar
-          </p>
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Form Edit Pelanggan</h3>
+          <p class="mt-1 text-sm text-gray-600">Perbarui informasi pelanggan dengan benar</p>
         </div>
 
         <div class="p-6">
           <form @submit.prevent="submit" class="space-y-8">
             <!-- Company Information Section -->
-            <div class="border border-sage-200 rounded-lg">
+            <div class="border border-gray-200 rounded-lg">
               <button
                 type="button"
                 @click="toggleCompanyInfo"
-                class="w-full flex items-center justify-between p-4 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+                class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors rounded-t-lg"
               >
-                <h4 class="text-lg font-semibold text-sage-800">
-                  🏢 Informasi Perusahaan/Perorangan
+                <h4 class="text-lg font-semibold text-gray-900 flex items-center">
+                  <Building class="mr-2 h-5 w-5" />
+                  Informasi Perusahaan/Perorangan
                 </h4>
-                <svg
+                <ChevronDown
                   :class="{'rotate-180': isCompanyInfoOpen}"
-                  class="w-5 h-5 text-sage-600 transition-transform duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
+                  class="w-5 h-5 text-gray-600 transition-transform duration-200"
+                />
               </button>
               <div v-show="isCompanyInfoOpen" class="p-4 space-y-4">
                 <!-- Customer Code -->
@@ -243,6 +208,7 @@
 import { ref } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
+import { Edit, Eye, ArrowLeft, Building, ChevronDown } from "lucide-vue-next";
 
 const props = defineProps({
   customer: Object,
@@ -287,48 +253,20 @@ const submit = () => {
 </script>
 
 <style scoped>
-/* Custom Sage Colors (same as Create.vue) */
-.text-sage-600 {
-  color: #8db580;
-}
-
-.text-sage-700 {
-  color: #7ba169;
-}
-
-.text-sage-800 {
-  color: #6b8f5e;
-}
-
-.bg-sage-50 {
-  background-color: #f4f6f3;
-}
-
+/* Custom Sage Colors */
 .bg-sage-600 {
-  background-color: #8db580;
+  background-color: #7ba169;
 }
 
 .bg-sage-700 {
-  background-color: #7ba169;
-}
-
-.border-sage-200 {
-  border-color: #d4ddd0;
-}
-
-.border-sage-300 {
-  border-color: #c0cdb8;
+  background-color: #6b8f5e;
 }
 
 .hover\:bg-sage-700:hover {
-  background-color: #7ba169;
+  background-color: #6b8f5e;
 }
 
 .focus\:ring-sage-500:focus {
   --tw-ring-color: #8db580;
-}
-
-.focus\:border-sage-500:focus {
-  border-color: #8db580;
 }
 </style>

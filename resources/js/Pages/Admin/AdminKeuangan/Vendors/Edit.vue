@@ -1,100 +1,44 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div class="flex items-center">
-            <div
-              class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4"
-            >
-              <svg
-                class="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                <Edit class="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 class="text-2xl font-semibold text-gray-900">Edit Vendor: {{ vendor.nama_vendor }}</h1>
+                <p class="mt-1 text-sm text-gray-600">Perbarui informasi vendor</p>
+              </div>
             </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">
-                Edit Vendor: {{ vendor.nama_vendor }}
-              </h2>
-              <p class="text-sage-600">
-                Perbarui informasi vendor
-              </p>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+              <Link
+                :href="route('admin-keuangan.vendors.show', vendor.id)"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                <Eye class="mr-2 h-4 w-4" />
+                Lihat Detail
+              </Link>
+              <Link
+                :href="route('admin-keuangan.vendors.index')"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                <ArrowLeft class="mr-2 h-4 w-4" />
+                Kembali
+              </Link>
             </div>
-          </div>
-          <div class="flex space-x-2 mt-4 sm:mt-0">
-            <Link
-              :href="route('admin-keuangan.vendors.show', vendor.id)"
-              class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-              Lihat Detail
-            </Link>
-            <Link
-              :href="route('admin-keuangan.vendors.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              Kembali
-            </Link>
           </div>
         </div>
       </div>
 
       <!-- Form Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-      >
-        <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-          <h3 class="text-lg font-semibold text-sage-800">
-            Form Edit Vendor
-          </h3>
-          <p class="text-sm text-sage-600 mt-1">
-            Perbarui informasi vendor dengan benar
-          </p>
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Form Edit Vendor</h3>
+          <p class="mt-1 text-sm text-gray-600">Perbarui informasi vendor dengan benar</p>
         </div>
 
         <div class="p-6">
@@ -337,65 +281,27 @@
             </div>
 
             <!-- Submit & Cancel Buttons -->
-            <div class="flex justify-end space-x-3 pt-4 border-t border-sage-200">
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <Link
                 :href="route('admin-keuangan.vendors.show', vendor.id)"
-                class="inline-flex items-center px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
-                <svg
-                  class="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X class="w-4 h-4 mr-2" />
                 Batal
               </Link>
               <button
                 type="submit"
                 :disabled="form.processing"
-                class="inline-flex items-center px-6 py-3 bg-sage-600 text-white rounded-lg hover:bg-sage-700 focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg
+                <LoaderCircle
                   v-if="form.processing"
                   class="w-4 h-4 mr-2 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <svg
+                />
+                <CheckCircle
                   v-else
                   class="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                />
                 {{ form.processing ? "Menyimpan..." : "Simpan Perubahan" }}
               </button>
             </div>
@@ -409,6 +315,7 @@
 <script setup>
 import { Link, useForm } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
+import { Edit, Eye, ArrowLeft, X, LoaderCircle, CheckCircle } from "lucide-vue-next";
 
 const props = defineProps({
   vendor: Object,
@@ -493,11 +400,11 @@ const submit = () => {
 }
 
 .bg-sage-600 {
-  background-color: #8db580;
+  background-color: #7ba169;
 }
 
 .bg-sage-700 {
-  background-color: #7ba169;
+  background-color: #6b8f5e;
 }
 
 .border-sage-200 {
@@ -509,7 +416,7 @@ const submit = () => {
 }
 
 .hover\:bg-sage-700:hover {
-  background-color: #7ba169;
+  background-color: #6b8f5e;
 }
 
 .focus\:ring-sage-500:focus {

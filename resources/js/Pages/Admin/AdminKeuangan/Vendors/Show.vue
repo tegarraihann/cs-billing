@@ -1,99 +1,43 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div class="flex items-center">
-            <div
-              class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4"
-            >
-              <svg
-                class="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                <Users class="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 class="text-2xl font-semibold text-gray-900">{{ vendor.nama_vendor }}</h1>
+                <p class="mt-1 text-sm text-gray-600">Detail informasi vendor</p>
+              </div>
             </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">
-                {{ vendor.nama_vendor }}
-              </h2>
-              <p class="text-sage-600">
-                Detail informasi vendor
-              </p>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+              <a
+                :href="route('admin-keuangan.vendors.pdf', vendor.id)"
+                target="_blank"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                <FileText class="mr-2 h-4 w-4" />
+                Export PDF
+              </a>
+              <Link
+                :href="route('admin-keuangan.vendors.edit', vendor.id)"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
+              >
+                <Edit class="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+              <Link
+                :href="route('admin-keuangan.vendors.index')"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                <ArrowLeft class="mr-2 h-4 w-4" />
+                Kembali
+              </Link>
             </div>
-          </div>
-          <div class="flex space-x-2 mt-4 sm:mt-0">
-            <a
-              :href="route('admin-keuangan.vendors.pdf', vendor.id)"
-              target="_blank"
-              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                />
-              </svg>
-              Export PDF
-            </a>
-            <Link
-              :href="route('admin-keuangan.vendors.edit', vendor.id)"
-              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              Edit
-            </Link>
-            <Link
-              :href="route('admin-keuangan.vendors.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              Kembali
-            </Link>
           </div>
         </div>
       </div>
@@ -101,28 +45,22 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Vendor Information -->
         <div class="lg:col-span-1">
-          <div
-            class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">
-                Informasi Vendor
-              </h3>
+          <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-medium text-gray-900">Informasi Vendor</h3>
             </div>
 
             <div class="p-6">
               <div class="space-y-6">
                 <!-- ID Vendor -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
-                    ID Vendor
-                  </label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">ID Vendor</label>
                   <p class="text-gray-900 font-medium">#{{ vendor.id }}</p>
                 </div>
 
                 <!-- Nama Vendor -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nama Vendor
                   </label>
                   <p class="text-gray-900">{{ vendor.nama_vendor }}</p>
@@ -130,7 +68,7 @@
 
                 <!-- PIC -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     PIC (Person In Charge)
                   </label>
                   <p class="text-gray-900">{{ vendor.pic || '-' }}</p>
@@ -138,7 +76,7 @@
 
                 <!-- No HP -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     No HP
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.no_hp || '-' }}</p>
@@ -146,7 +84,7 @@
 
                 <!-- Email -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
                   <p class="text-gray-900">{{ vendor.email || '-' }}</p>
@@ -154,7 +92,7 @@
 
                 <!-- No Kantor -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     No Kantor
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.no_kantor || '-' }}</p>
@@ -162,7 +100,7 @@
 
                 <!-- Nomor Rekening -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nomor Rekening
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.nomor_rekening }}</p>
@@ -170,7 +108,7 @@
 
                 <!-- Nama Rekening -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nama Rekening
                   </label>
                   <p class="text-gray-900">{{ vendor.nama_rekening }}</p>
@@ -178,7 +116,7 @@
 
                 <!-- NIB -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     NIB (Nomor Induk Berusaha)
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.nib || '-' }}</p>
@@ -186,7 +124,7 @@
 
                 <!-- Foto Vendor -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Foto Vendor
                   </label>
                   <div v-if="vendor.photo_path">
@@ -201,7 +139,7 @@
 
                 <!-- Dokumen Legal -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Dokumen Legal
                   </label>
                   <div v-if="vendor.legal_document_path">
@@ -225,20 +163,16 @@
 
         <!-- System Information -->
         <div class="lg:col-span-1">
-          <div
-            class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">
-                Informasi Sistem
-              </h3>
+          <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-medium text-gray-900">Informasi Sistem</h3>
             </div>
 
             <div class="p-6">
               <div class="space-y-6">
                 <!-- Tanggal Dibuat -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Tanggal Dibuat
                   </label>
                   <p class="text-gray-900">{{ formatDateTime(vendor.created_at) }}</p>
@@ -246,7 +180,7 @@
 
                 <!-- Terakhir Diperbarui -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Terakhir Diperbarui
                   </label>
                   <p class="text-gray-900">{{ formatDateTime(vendor.updated_at) }}</p>
@@ -254,7 +188,7 @@
 
                 <!-- Status -->
                 <div>
-                  <label class="block text-sm font-medium text-sage-700 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
                     Status
                   </label>
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -270,13 +204,9 @@
 
           <!-- Action Buttons -->
           <div class="mt-6">
-            <div
-              class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-            >
-              <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-                <h3 class="text-lg font-semibold text-sage-800">
-                  Aksi
-                </h3>
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Aksi</h3>
               </div>
 
               <div class="p-6">
@@ -284,61 +214,25 @@
                   <a
                     :href="route('admin-keuangan.vendors.pdf', vendor.id)"
                     target="_blank"
-                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                   >
-                    <svg
-                      class="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                      />
-                    </svg>
+                    <FileText class="w-4 h-4 mr-2" />
                     Export PDF
                   </a>
 
                   <Link
                     :href="route('admin-keuangan.vendors.edit', vendor.id)"
-                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                   >
-                    <svg
-                      class="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
+                    <Edit class="w-4 h-4 mr-2" />
                     Edit Vendor
                   </Link>
 
                   <button
                     @click="deleteVendor"
-                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
-                    <svg
-                      class="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    <Trash2 class="w-4 h-4 mr-2" />
                     Hapus Vendor
                   </button>
                 </div>
@@ -354,6 +248,7 @@
 <script setup>
 import { Link, router } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
+import { Users, FileText, Edit, ArrowLeft, Trash2 } from "lucide-vue-next";
 
 const props = defineProps({
   vendor: Object,
@@ -396,39 +291,19 @@ const deleteVendor = () => {
 
 <style scoped>
 /* Custom Sage Colors */
-.text-sage-600 {
-  color: #8db580;
-}
-
-.text-sage-700 {
-  color: #7ba169;
-}
-
-.text-sage-800 {
-  color: #6b8f5e;
-}
-
-.text-sage-500 {
-  color: #9fb894;
-}
-
-.bg-sage-50 {
-  background-color: #f4f6f3;
-}
-
 .bg-sage-600 {
-  background-color: #8db580;
+  background-color: #7ba169;
 }
 
 .bg-sage-700 {
-  background-color: #7ba169;
-}
-
-.border-sage-200 {
-  border-color: #d4ddd0;
+  background-color: #6b8f5e;
 }
 
 .hover\:bg-sage-700:hover {
-  background-color: #7ba169;
+  background-color: #6b8f5e;
+}
+
+.focus\:ring-sage-500:focus {
+  --tw-ring-color: #8db580;
 }
 </style>

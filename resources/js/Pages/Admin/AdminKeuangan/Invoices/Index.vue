@@ -1,324 +1,245 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">Invoice Management</h2>
-              <p class="text-sage-600">Kelola invoice untuk sales order yang telah disetujui</p>
-            </div>
+    <Head title="Invoice Management" />
+
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Invoice Management</h1>
+            <p class="mt-1 text-sm text-gray-600">Kelola invoice untuk sales order yang telah disetujui</p>
           </div>
-          <div class="mt-4 sm:mt-0 flex gap-3">
+          <div class="flex gap-3">
             <Link
               :href="route('admin-keuangan.invoices.payment-history')"
-              class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
             >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m-4-3.5c0-1.55 1.88-2.75 4-2.75s4 1.2 4 2.75" />
-              </svg>
+              <DollarSign class="w-4 h-4 mr-2" />
               Payment History
             </Link>
             <Link
               :href="route('admin-keuangan.invoices.create')"
-              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+              class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
             >
-              <svg
-                class="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
+              <Plus class="w-4 h-4 mr-2" />
               Buat Invoice
             </Link>
           </div>
         </div>
-      </div>
 
-      <!-- Statistics Section -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-          <div class="flex items-center">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Total Invoice</p>
-              <p class="text-2xl font-bold text-gray-900">{{ stats?.total_invoices || 0 }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <FileText class="h-6 w-6 text-gray-400" />
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Total Invoice</dt>
+                    <dd class="text-lg font-medium text-gray-900">{{ stats?.total_invoices || 0 }}</dd>
+                  </dl>
+                </div>
+              </div>
             </div>
-            <div class="p-3 bg-blue-100 rounded-full">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <CheckCircle class="h-6 w-6 text-green-400" />
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Invoice Lunas</dt>
+                    <dd class="text-lg font-medium text-gray-900">{{ stats?.paid_invoices || 0 }}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <Clock class="h-6 w-6 text-red-400" />
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Invoice Overdue</dt>
+                    <dd class="text-lg font-medium text-gray-900">{{ stats?.overdue_invoices || 0 }}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <DollarSign class="h-6 w-6 text-amber-400" />
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Outstanding Amount</dt>
+                    <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(stats?.outstanding_amount || 0) }}</dd>
+                  </dl>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-          <div class="flex items-center">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Invoice Lunas</p>
-              <p class="text-2xl font-bold text-green-600">{{ stats?.paid_invoices || 0 }}</p>
+        <!-- Search & Filter Section -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+              <div class="flex-1">
+                <input
+                  v-model="form.search"
+                  @input="search"
+                  type="text"
+                  placeholder="Cari berdasarkan nomor invoice, customer, atau sales order..."
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+              </div>
+              <div class="w-48">
+                <select
+                  v-model="form.status"
+                  @change="search"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                >
+                  <option value="">Semua Status</option>
+                  <option value="draft">Draft</option>
+                  <option value="sent">Terkirim</option>
+                  <option value="paid">Dibayar</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="cancelled">Dibatalkan</option>
+                </select>
+              </div>
+              <div class="w-48">
+                <select
+                  v-model="form.invoice_type"
+                  @change="search"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                >
+                  <option value="">Semua Tipe</option>
+                  <option value="main">Main Invoice</option>
+                  <option value="reimbursement">Reimbursement</option>
+                </select>
+              </div>
             </div>
-            <div class="p-3 bg-green-100 rounded-full">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          </div>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Invoice Number
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Sales Order
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Invoice Date
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Due Date
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="invoice in invoices.data" :key="invoice.id" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        {{ invoice.invoice_number }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ invoice.customer_name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ invoice.sales_order?.order_number }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ formatDate(invoice.invoice_date) }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ formatDate(invoice.due_date) }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ formatCurrency(invoice.total_amount) }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="type in (invoice.related_invoice_types || [invoice.invoice_type])" :key="type"
+                              :class="getInvoiceTypeClass(type)"
+                              class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                          {{ getInvoiceTypeText(type) }}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span :class="getStatusClass(invoice.status)" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                        {{ getStatusText(invoice.status) }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                      <div class="flex justify-center gap-2">
+                        <Link
+                          :href="route('admin-keuangan.invoices.show', invoice.id)"
+                          class="text-blue-600 hover:text-blue-900"
+                        >
+                          View
+                        </Link>
+                        <Link
+                          :href="route('admin-keuangan.invoices.edit', invoice.id)"
+                          class="text-sage-600 hover:text-sage-900"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div v-if="invoices.data.length === 0" class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.713-3.714M14 40v-4c0-1.313.253-2.566.713-3.714m0 0A10.003 10.003 0 0124 26c4.21 0 7.813 2.602 9.288 6.286M30 14a6 6 0 11-12 0 6 6 0 0112 0zm12 6a4 4 0 11-8 0 4 4 0 018 0zm-28 0a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="text-gray-500">Belum ada invoice yang dibuat</p>
+              </div>
+
+              <!-- Pagination -->
+              <div v-if="invoices.data.length > 0" class="px-6 py-4 border-t border-gray-200">
+                <Pagination :data="invoices" />
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-          <div class="flex items-center">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Invoice Overdue</p>
-              <p class="text-2xl font-bold text-red-600">{{ stats?.overdue_invoices || 0 }}</p>
-            </div>
-            <div class="p-3 bg-red-100 rounded-full">
-              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-          <div class="flex items-center">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Outstanding Amount</p>
-              <p class="text-2xl font-bold text-amber-600">{{ formatCurrency(stats?.outstanding_amount || 0) }}</p>
-            </div>
-            <div class="p-3 bg-amber-100 rounded-full">
-              <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m-4-3.5c0-1.55 1.88-2.75 4-2.75s4 1.2 4 2.75" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Search & Filter Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <input
-              v-model="form.search"
-              @input="search"
-              type="text"
-              placeholder="Cari berdasarkan nomor invoice, customer, atau sales order..."
-              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            />
-          </div>
-          <div class="w-48">
-            <select
-              v-model="form.status"
-              @change="search"
-              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="draft">Draft</option>
-              <option value="sent">Terkirim</option>
-              <option value="paid">Dibayar</option>
-              <option value="overdue">Overdue</option>
-              <option value="cancelled">Dibatalkan</option>
-            </select>
-          </div>
-          <div class="w-48">
-            <select
-              v-model="form.invoice_type"
-              @change="search"
-              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            >
-              <option value="">Semua Tipe</option>
-              <option value="main">Main Invoice</option>
-              <option value="reimbursement">Reimbursement</option>
-            </select>
-          </div>
-          <div class="w-48">
-            <input
-              v-model="form.date_from"
-              @change="search"
-              type="date"
-              placeholder="Dari Tanggal"
-              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            />
-          </div>
-          <div class="w-48">
-            <input
-              v-model="form.date_to"
-              @change="search"
-              type="date"
-              placeholder="Sampai Tanggal"
-              class="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Table Section -->
-      <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-          <h3 class="text-lg font-semibold text-sage-800">Daftar Invoice</h3>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-sage-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Invoice Number
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Sales Order
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Invoice Date
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Due Date
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Profit Margin
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Payment Status
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-sage-200">
-              <tr v-for="invoice in invoices.data" :key="invoice.id" class="hover:bg-sage-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">
-                    {{ invoice.invoice_number }}
-                  </div>
-                  <div class="mt-1 flex flex-wrap gap-1">
-                    <span
-                      v-for="type in (invoice.invoice_types || [invoice.invoice_type])"
-                      :key="type"
-                      :class="[
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-                        type === 'main'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-orange-100 text-orange-800'
-                      ]"
-                    >
-                      {{ type === 'main' ? 'Main' : 'Reimbursement' }}
-                    </span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ invoice.customer?.consignee_shipper || invoice.customer?.company_name || invoice.sales_order?.customer || invoice.sales_order?.customer_name || '-' }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ invoice.sales_order?.order_number || '-' }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ formatDate(invoice.invoice_date) }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ formatDate(invoice.due_date) }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
-                    {{ formatCurrency(invoice.total) }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium"
-                    :class="getProfitMarginClass(calculateProfitMargin(invoice))"
-                  >
-                    {{ calculateProfitMargin(invoice).toFixed(1) }}%
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusColor(invoice.status)"
-                  >
-                    {{ getStatusLabel(invoice.status) }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getPaymentStatusColor(invoice)"
-                  >
-                    {{ getPaymentStatusLabel(invoice) }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
-                  <div class="flex items-center justify-center space-x-2">
-                    <Link
-                      :href="route('admin-keuangan.invoices.show', invoice.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
-                      title="Lihat Detail"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </Link>
-                    <Link
-                      :href="route('admin-keuangan.invoices.edit', invoice.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-full transition-colors"
-                      title="Edit"
-                      v-if="invoice.status === 'draft'"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Link>
-                    <a
-                      :href="route('admin-keuangan.invoices.export-pdf', invoice.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full transition-colors"
-                      title="Export to PDF"
-                      target="_blank"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                      </svg>
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Empty State -->
-        <div v-if="invoices.data.length === 0" class="text-center py-12">
-          <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p class="text-gray-500">Belum ada invoice yang dibuat</p>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="invoices.data.length > 0" class="px-6 py-4 border-t border-sage-200">
-          <Pagination :data="invoices" />
         </div>
       </div>
     </div>
@@ -326,9 +247,10 @@
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link, Head } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
+import { Plus, DollarSign, FileText, CheckCircle, Clock } from 'lucide-vue-next';
 
 import { reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
@@ -346,18 +268,17 @@ const route = window.route || function(name, params) {
     'admin-keuangan.invoices.create': '/admin-keuangan/invoices/create',
     'admin-keuangan.invoices.show': (id) => `/admin-keuangan/invoices/${id}`,
     'admin-keuangan.invoices.edit': (id) => `/admin-keuangan/invoices/${id}/edit`,
-    'admin-keuangan.invoices.pdf': (id) => `/admin-keuangan/invoices/${id}/pdf`,
     'admin-keuangan.invoices.payment-history': '/admin-keuangan/invoices/payment-history',
   };
-  return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#';
+  return routes[name] ? (typeof routes[name] === 'function' ? routes[name](params) : routes[name]) : '#';
 };
 
 const form = reactive({
-  search: props.filters.search || '',
-  status: props.filters.status || '',
-  invoice_type: props.filters.invoice_type || '',
-  date_from: props.filters.date_from || '',
-  date_to: props.filters.date_to || '',
+  search: props.filters?.search || '',
+  status: props.filters?.status || '',
+  invoice_type: props.filters?.invoice_type || '',
+  date_from: props.filters?.date_from || '',
+  date_to: props.filters?.date_to || ''
 });
 
 const search = debounce(() => {
@@ -366,151 +287,94 @@ const search = debounce(() => {
     status: form.status,
     invoice_type: form.invoice_type,
     date_from: form.date_from,
-    date_to: form.date_to,
+    date_to: form.date_to
   }, {
     preserveState: true,
-    replace: true,
+    replace: true
   });
 }, 300);
 
-const formatDate = (dateString) => {
-  if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString('id-ID');
-};
-
-const formatCurrency = (amount, currency = 'IDR') => {
+const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: currency,
+    currency: 'IDR',
     minimumFractionDigits: 0,
-  }).format(amount);
+    maximumFractionDigits: 0
+  }).format(amount || 0);
 };
 
-const getStatusLabel = (status) => {
-  const labels = {
-    draft: 'Draft',
-    sent: 'Terkirim',
-    paid: 'Dibayar',
-    overdue: 'Overdue',
-    cancelled: 'Dibatalkan'
+const formatDate = (date) => {
+  if (!date) return '-';
+  return new Date(date).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+const getStatusClass = (status) => {
+  const statusClasses = {
+    'draft': 'bg-gray-100 text-gray-800',
+    'sent': 'bg-blue-100 text-blue-800',
+    'paid': 'bg-green-100 text-green-800',
+    'partial': 'bg-yellow-100 text-yellow-800',
+    'overdue': 'bg-red-100 text-red-800',
+    'cancelled': 'bg-red-100 text-red-800'
   };
-  return labels[status] || status;
+  return statusClasses[status] || 'bg-gray-100 text-gray-800';
 };
 
-const getStatusColor = (status) => {
-  const colors = {
-    draft: 'bg-gray-100 text-gray-800',
-    sent: 'bg-blue-100 text-blue-800',
-    paid: 'bg-green-100 text-green-800',
-    overdue: 'bg-red-100 text-red-800',
-    cancelled: 'bg-red-100 text-red-800'
+const getStatusText = (status) => {
+  const statusTexts = {
+    'draft': 'Draft',
+    'sent': 'Terkirim',
+    'paid': 'Dibayar',
+    'partial': 'Sebagian',
+    'overdue': 'Terlambat',
+    'cancelled': 'Dibatalkan'
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return statusTexts[status] || status;
 };
 
-const getPaymentStatusLabel = (invoice) => {
-  if (invoice.status === 'paid') {
-    return 'Lunas';
-  }
-  
-  const dueDate = new Date(invoice.due_date);
-  const today = new Date();
-  
-  if (invoice.status !== 'paid' && dueDate < today) {
-    return 'Overdue';
-  }
-  
-  return 'Belum Dibayar';
-};
-
-const getPaymentStatusColor = (invoice) => {
-  const status = getPaymentStatusLabel(invoice);
-  const colors = {
-    'Lunas': 'bg-green-100 text-green-800',
-    'Overdue': 'bg-red-100 text-red-800',
-    'Belum Dibayar': 'bg-yellow-100 text-yellow-800'
+const getInvoiceTypeClass = (type) => {
+  const typeClasses = {
+    'main': 'bg-blue-100 text-blue-800',
+    'reimbursement': 'bg-green-100 text-green-800',
+    'combined': 'bg-purple-100 text-purple-800'
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return typeClasses[type] || 'bg-gray-100 text-gray-800';
 };
 
-const calculateProfitMargin = (invoice) => {
-  if (!invoice.items || invoice.items.length === 0) return 0;
-
-  const grossRevenue = invoice.items
-    .filter(item => (item.item_type || 'billable') !== 'operational_cost')
-    .filter(item => item.include_in_customer_invoice !== false)
-    .filter(item => !item.is_hidden_from_customer)
-    .reduce((sum, item) => sum + (item.amount || 0), 0);
-
-  const operationalCosts = invoice.items
-    .filter(item => (item.item_type || 'billable') === 'operational_cost')
-    .reduce((sum, item) => sum + (item.amount || 0), 0);
-
-  const netProfit = grossRevenue - operationalCosts;
-  return grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
-};
-
-const getProfitMarginClass = (margin) => {
-  if (margin >= 20) return "bg-green-100 text-green-800";
-  if (margin >= 10) return "bg-yellow-100 text-yellow-800";
-  return "bg-red-100 text-red-800";
+const getInvoiceTypeText = (type) => {
+  const typeTexts = {
+    'main': 'Main',
+    'reimbursement': 'Reimbursement',
+    'combined': 'Combined'
+  };
+  return typeTexts[type] || type;
 };
 </script>
 
 <style scoped>
-/* Custom Sage Colors */
-.text-sage-500 {
-  color: #9fb894;
-}
-.text-sage-600 {
-  color: #8db580;
-}
-.text-sage-700 {
-  color: #7ba169;
-}
-.text-sage-800 {
-  color: #6b8f5e;
-}
-.text-sage-900 {
-  color: #5a7a4f;
-}
 .bg-sage-50 {
   background-color: #f4f6f3;
-}
-.bg-sage-100 {
-  background-color: #e8ece5;
 }
 .bg-sage-600 {
   background-color: #8db580;
 }
-.bg-sage-700 {
-  background-color: #7ba169;
-}
-.border-sage-200 {
-  border-color: #d4ddd0;
-}
-.border-sage-300 {
-  border-color: #c0cdb8;
-}
-.divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #d4ddd0;
-}
-.hover\:bg-sage-50:hover {
-  background-color: #f4f6f3;
-}
-.hover\:bg-sage-100:hover {
-  background-color: #e8ece5;
-}
 .hover\:bg-sage-700:hover {
   background-color: #7ba169;
-}
-.hover\:text-sage-900:hover {
-  color: #5a7a4f;
 }
 .focus\:ring-sage-500:focus {
   --tw-ring-color: #8db580;
 }
 .focus\:border-sage-500:focus {
   border-color: #8db580;
+}
+.text-sage-600 {
+  color: #8db580;
+}
+.hover\:text-sage-900:hover {
+  color: #5a7a4f;
 }
 </style>

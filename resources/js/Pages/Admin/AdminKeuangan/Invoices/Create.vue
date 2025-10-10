@@ -339,16 +339,30 @@
           <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-sage-800">Item Invoice Utama</h3>
-              <button
-                type="button"
-                @click="addItem"
-                class="inline-flex items-center px-3 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-              >
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Tambah Item
-              </button>
+              <div class="flex space-x-2">
+                <!-- Button Load dari SO -->
+                <button
+                  v-if="form.sales_order_id"
+                  type="button"
+                  @click="reloadFromSalesOrder"
+                  class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Load dari SO
+                </button>
+                <button
+                  type="button"
+                  @click="addItem"
+                  class="inline-flex items-center px-3 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Tambah Item
+                </button>
+              </div>
             </div>
 
             <div v-if="mainItems.length === 0" class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
@@ -428,6 +442,33 @@
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Bottom Add Button for Main Items -->
+            <div v-if="mainItems.length > 0" class="flex justify-center mt-6 pt-4 border-t border-gray-200">
+              <div class="flex space-x-2">
+                <button
+                  v-if="form.sales_order_id"
+                  type="button"
+                  @click="reloadFromSalesOrder"
+                  class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Load dari SO
+                </button>
+                <button
+                  type="button"
+                  @click="addItem"
+                  class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Tambah Item Lagi
+                </button>
               </div>
             </div>
           </div>
@@ -547,6 +588,20 @@
                 </div>
               </div>
             </div>
+
+            <!-- Bottom Add Button for Reimbursement Items -->
+            <div v-if="reimbursementItems.length > 0" class="flex justify-center mt-6 pt-4 border-t border-orange-200">
+              <button
+                type="button"
+                @click="addReimbursementItem"
+                class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Tambah Item Reimbursement Lagi
+              </button>
+            </div>
           </div>
 
           <!-- Operational Costs (Internal Only) -->
@@ -655,6 +710,20 @@
                 <span class="font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal()) }}</span>
               </div>
             </div>
+
+            <!-- Bottom Add Button for Operational Costs -->
+            <div v-if="operationalCosts.length > 0" class="flex justify-center mt-6 pt-4 border-t border-red-200">
+              <button
+                type="button"
+                @click="addOperationalCost"
+                class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Tambah Biaya Operasional Lagi
+              </button>
+            </div>
           </div>
         </div>
 
@@ -724,6 +793,7 @@ const props = defineProps({
   errors: Object,
   preselectedSalesOrder: [String, Number],
   preselectedInvoiceType: String,
+  preselectedVendorBreakdown: Array,
   pettyCashCategories: {
     type: Array,
     default: () => []
@@ -810,6 +880,51 @@ const loadSalesOrderData = () => {
 
     // Remarks - keep empty, don't auto-populate from sales order
     // form.remarks remains empty for manual input
+
+    // Auto-populate items from vendor_breakdown
+    populateItemsFromVendorBreakdown(selectedOrder.vendor_breakdown);
+  }
+};
+
+// Function to auto-populate items from vendor breakdown
+const populateItemsFromVendorBreakdown = (vendorBreakdown) => {
+  if (!vendorBreakdown || !Array.isArray(vendorBreakdown)) return;
+
+  // Clear existing items
+  mainItems.value = [];
+  reimbursementItems.value = [];
+
+  vendorBreakdown.forEach((vendor, index) => {
+    if (vendor.selling_amount && vendor.selling_amount > 0) {
+      // Add to main items with selling amount as rate
+      mainItems.value.push({
+        description: vendor.description || `Service ${index + 1}`,
+        quantity: 1,
+        unit: 'SET',
+        rate: parseFloat(vendor.selling_amount),
+        currency: 'IDR',
+        amount: parseFloat(vendor.selling_amount),
+        item_ref: `vendor_${vendor.vendor_id || index}`,
+        type: 'main'
+      });
+    }
+  });
+
+  // If no main items populated, add one empty item
+  if (mainItems.value.length === 0) {
+    addItem();
+  }
+};
+
+// Function to reload data from Sales Order
+const reloadFromSalesOrder = () => {
+  const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
+  if (selectedOrder && selectedOrder.vendor_breakdown) {
+    if (confirm('Ini akan mengganti semua item yang sudah ada dengan data dari Sales Order. Lanjutkan?')) {
+      populateItemsFromVendorBreakdown(selectedOrder.vendor_breakdown);
+    }
+  } else {
+    alert('Sales Order ini tidak memiliki vendor breakdown untuk di-load.');
   }
 };
 
@@ -863,7 +978,7 @@ const calculateReimbursementAmount = (index) => {
 const addOperationalCost = () => {
   operationalCosts.value.push({
     description: '',
-    quantity: 1,
+    quantity: 1.0, // Use decimal 1.0 to match validation
     unit: 'pcs',
     rate: 0,
     currency: 'IDR',
@@ -903,7 +1018,7 @@ const onCategoryChange = (index) => {
 
 const calculateOperationalAmount = (index) => {
   const cost = operationalCosts.value[index];
-  cost.quantity = 1; // Always 1 for operational costs
+  cost.quantity = 1.0; // Always 1.0 for operational costs (decimal to match validation)
   cost.amount = parseFloat(cost.rate || 0);
 };
 
@@ -1035,12 +1150,9 @@ const submit = () => {
 if (props.preselectedSalesOrder) {
   loadSalesOrderData();
 
-  // If it's reimbursement type, add one reimbursement item
-  if (props.preselectedInvoiceType === 'reimbursement') {
+  // Auto-populate will handle main items, only add reimbursement if needed
+  if (props.preselectedInvoiceType === 'reimbursement' && reimbursementItems.value.length === 0) {
     addReimbursementItem();
-  } else {
-    // Default: add one main item
-    addItem();
   }
 } else {
   // Default: add one main item for regular access

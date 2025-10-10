@@ -22,7 +22,8 @@ class UserController extends Controller
 
         return Inertia::render('Admin/MasterAdmin/Users/Index', [
             'users' => $users,
-            'filters' => request()->only(['search', 'role', 'status'])
+            'filters' => request()->only(['search', 'role', 'status']),
+            'authUser' => auth()->user()->only(['id', 'name', 'email', 'role'])
         ]);
     }
 
@@ -106,6 +107,32 @@ class UserController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
+        // Prevent changing status of any master admin for security
+        if ($user->role === 'masteradmin' && $validated['status'] !== $user->status) {
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status Master Admin tidak dapat diubah untuk menjaga keamanan sistem.'
+                ], 403);
+            }
+
+            return redirect()->route('masteradmin.users.index')
+                ->with('error', 'Status Master Admin tidak dapat diubah untuk menjaga keamanan sistem.');
+        }
+
+        // Prevent changing role of any master admin for security
+        if ($user->role === 'masteradmin' && $validated['role'] !== 'masteradmin') {
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role Master Admin tidak dapat diubah untuk menjaga keamanan sistem.'
+                ], 403);
+            }
+
+            return redirect()->route('masteradmin.users.index')
+                ->with('error', 'Role Master Admin tidak dapat diubah untuk menjaga keamanan sistem.');
+        }
+
         $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -173,6 +200,19 @@ class UserController extends Controller
      */
     public function toggleStatus(User $user)
     {
+        // Prevent master admin from deactivating themselves only
+        if ($user->role === 'masteradmin' && $user->id === auth()->id() && $user->status === 'active') {
+            if (request()->wantsJson() || request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Master Admin tidak dapat menonaktifkan akun sendiri.'
+                ], 403);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Master Admin tidak dapat menonaktifkan akun sendiri.');
+        }
+
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
 
         $user->update([

@@ -375,14 +375,21 @@
 
                       <button
                         @click="toggleUserStatus(user)"
-                        class="p-1 rounded transition-colors"
+                        :disabled="user.role === 'masteradmin' && user.id === currentAuthUser?.id && user.status === 'active'"
+                        class="p-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:bg-gray-100"
                         :class="
-                          user.status === 'active'
-                            ? 'text-orange-600 hover:text-orange-800'
-                            : 'text-green-600 hover:text-green-800'
+                          user.role === 'masteradmin' && user.id === currentAuthUser?.id && user.status === 'active'
+                            ? 'text-gray-400'
+                            : user.status === 'active'
+                              ? 'text-orange-600 hover:text-orange-800'
+                              : 'text-green-600 hover:text-green-800'
                         "
                         :title="
-                          user.status === 'active' ? 'Deactivate' : 'Activate'
+                          user.role === 'masteradmin' && user.id === currentAuthUser?.id && user.status === 'active'
+                            ? 'Master Admin tidak dapat menonaktifkan akun sendiri'
+                            : user.status === 'active'
+                              ? 'Deactivate'
+                              : 'Activate'
                         "
                       >
                         <svg
@@ -417,9 +424,18 @@
 
                       <button
                         @click="confirmDelete(user)"
-                        class="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
-                        title="Delete"
-                        :disabled="user.id === authUser?.id"
+                        :disabled="user.role === 'masteradmin' && user.id === currentAuthUser?.id"
+                        class="p-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:bg-gray-100"
+                        :class="
+                          user.role === 'masteradmin' && user.id === currentAuthUser?.id
+                            ? 'text-gray-400'
+                            : 'text-red-600 hover:text-red-800'
+                        "
+                        :title="
+                          user.role === 'masteradmin' && user.id === currentAuthUser?.id
+                            ? 'Master Admin tidak dapat menghapus akun sendiri'
+                            : 'Delete'
+                        "
                       >
                         <svg
                           class="w-4 h-4"
@@ -516,11 +532,12 @@ import SidebarNavigation from "@/Pages/Admin/MasterAdmin/Components/SidebarNavig
 const props = defineProps({
   users: Object,
   filters: Object,
+  authUser: Object,
 });
 
 // Computed properties untuk akses data
-const authUser = computed(() => {
-  return window.$page?.props?.auth?.user || null;
+const currentAuthUser = computed(() => {
+  return props.authUser || null;
 });
 
 const flashSuccess = computed(() => {
@@ -625,6 +642,12 @@ const debounceSearch = () => {
 };
 
 const confirmDelete = (user) => {
+  // Prevent master admin from deleting themselves only
+  if (user.role === 'masteradmin' && user.id === currentAuthUser.value?.id) {
+    alert('Master Admin tidak dapat menghapus akun sendiri.');
+    return;
+  }
+
   userToDelete.value = user;
   showDeleteModal.value = true;
 };
@@ -660,7 +683,18 @@ const deleteUser = () => {
   }
 };
 
+const isCurrentUser = (user) => {
+  const currentUserId = currentAuthUser.value?.id;
+  return currentUserId === user.id;
+};
+
 const toggleUserStatus = (user) => {
+  // Prevent master admin from deactivating themselves only
+  if (user.role === 'masteradmin' && user.id === currentAuthUser.value?.id && user.status === 'active') {
+    alert('Master Admin tidak dapat menonaktifkan akun sendiri.');
+    return;
+  }
+
   // Create form and submit
   const form = document.createElement("form");
   form.method = "POST";

@@ -1,272 +1,172 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
+    <Head title="Manajemen Data Pelanggan" />
+
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-6">
           <div>
-            <h2 class="text-2xl font-bold text-sage-800 mb-2">
-              Manajemen Data Pelanggan
-            </h2>
-            <p class="text-sage-600">
-              Kelola data pelanggan dan informasi kontak
-            </p>
+            <h1 class="text-2xl font-bold text-gray-900">Manajemen Data Pelanggan</h1>
+            <p class="mt-1 text-sm text-gray-600">Kelola data pelanggan dan informasi kontak</p>
           </div>
-          <div class="mt-4 sm:mt-0 flex space-x-2">
+          <div class="flex space-x-2">
             <a
               :href="exportPdfUrl"
               target="_blank"
-              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
             >
-              <svg
-                class="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                />
-              </svg>
+              <FileDown class="w-4 h-4 mr-2" />
               Export PDF
             </a>
             <Link
               :href="route('admin-keuangan.customers.create')"
-              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+              class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
             >
-              <svg
-                class="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Tambah Data Pelanggan
+              <Plus class="w-4 h-4 mr-2" />
+              Tambah Pelanggan
             </Link>
           </div>
         </div>
-      </div>
 
-      <!-- Search Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Search Input -->
-          <div>
-            <label class="block text-sm font-medium text-sage-700 mb-2"
-              >Cari Data</label
-            >
-            <input
-              v-model="form.search"
-              type="text"
-              placeholder="Cari nama perusahaan, PIC, email, marketing..."
-              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            />
-          </div>
-
-          <!-- Search Button -->
-          <div class="flex items-end">
-            <button
-              @click="search"
-              class="w-full px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-            >
-              Cari
-            </button>
+        <!-- Search Section -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="md:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cari Data</label>
+                <input
+                  v-model="form.search"
+                  type="text"
+                  placeholder="Cari nama perusahaan, PIC, email, marketing..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+              </div>
+              <div class="flex items-end">
+                <button
+                  @click="search"
+                  class="w-full px-4 py-2 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors"
+                >
+                  Cari
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Customers Table -->
-      <div
-        class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-      >
-        <div class="px-6 py-4 border-b border-sage-200">
-          <h3 class="text-lg font-semibold text-sage-800">Daftar Data Pelanggan</h3>
-          <p class="text-sm text-sage-600 mt-1">
-            Total: {{ customers?.total || 0 }} data
-          </p>
-        </div>
+        <!-- Customers Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="sm:flex sm:items-center sm:justify-between mb-4">
+              <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Data Pelanggan</h3>
+                <p class="mt-1 text-sm text-gray-600">Total: {{ customers?.total || 0 }} data</p>
+              </div>
+            </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-sage-50">
-              <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Customer Code
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Nama Perusahaan
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Jenis Usaha
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  PIC Name
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  PIC Email
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Marketing
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Handler
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-sage-200">
-              <tr
-                v-for="customer in customers.data"
-                :key="customer.id"
-                class="hover:bg-sage-50 transition-colors"
-              >
-                <!-- Customer Code -->
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  {{ customer.customer_code || '-' }}
-                </td>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer Code
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nama Perusahaan
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Jenis Usaha
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      PIC Name
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      PIC Email
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Marketing
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Handler
+                    </th>
+                    <th scope="col" class="relative px-6 py-3">
+                      <span class="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ customer.customer_code || '-' }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ customer.company_name }}</div>
+                      <div class="text-sm text-gray-500">{{ customer.company_type }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ customer.company_type }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ customer.pic_name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ customer.pic_email }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ customer.marketing_name || '-' }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ customer.handler?.name || '-' }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <Link
+                          :href="route('admin-keuangan.customers.show', customer.id)"
+                          class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
+                          title="Lihat Detail"
+                        >
+                          <Eye class="w-4 h-4" />
+                        </Link>
+                        <Link
+                          :href="route('admin-keuangan.customers.edit', customer.id)"
+                          class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
+                          title="Edit"
+                        >
+                          <Edit class="w-4 h-4" />
+                        </Link>
+                        <a
+                          :href="`/admin-keuangan/customers/${customer.id}/pdf`"
+                          class="text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50"
+                          title="Cetak PDF"
+                          target="_blank"
+                        >
+                          <FileText class="w-4 h-4" />
+                        </a>
+                        <button
+                          @click="deleteCustomer(customer)"
+                          class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
+                          title="Hapus"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                <!-- Company Name -->
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  {{ customer.company_name }}
-                </td>
+            <div v-if="!customers.data || customers.data.length === 0" class="text-center py-12">
+              <Users class="mx-auto h-12 w-12 text-gray-400" />
+              <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada data pelanggan</h3>
+              <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan pelanggan pertama</p>
+            </div>
 
-                <!-- Company Type -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.company_type }}
-                </td>
-
-                <!-- PIC Name -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.pic_name }}
-                </td>
-
-                <!-- PIC Email -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.pic_email }}
-                </td>
-
-                <!-- Marketing -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.marketing_name || '-' }}
-                </td>
-
-                <!-- Handler -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ customer.handler?.name || '-' }}
-                </td>
-
-                <!-- Actions -->
-                <td class="px-6 py-4 text-sm font-medium">
-                  <div class="flex items-center space-x-2">
-                    <Link
-                      :href="route('admin-keuangan.customers.show', customer.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
-                      title="Lihat Detail"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </Link>
-                    <Link
-                      :href="route('admin-keuangan.customers.edit', customer.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-full transition-colors"
-                      title="Edit"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Link>
-                    <a
-                      :href="`/admin-keuangan/customers/${customer.id}/pdf`"
-                      class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
-                      title="Cetak PDF"
-                      target="_blank"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                      </svg>
-                    </a>
-                    <button
-                      @click="deleteCustomer(customer)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                      title="Hapus"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Empty State -->
-              <tr v-if="!customers.data || customers.data.length === 0">
-                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                  <div class="flex flex-col items-center">
-                    <svg
-                      class="w-12 h-12 text-gray-300 mb-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                    <p class="text-lg font-medium mb-2">Tidak ada data</p>
-                    <p class="text-sm text-gray-400">
-                      Belum ada data pelanggan yang tersedia
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div
-          v-if="customers.last_page > 1"
-          class="px-6 py-4 border-t border-sage-200"
-        >
-          <Pagination :data="customers" />
+            <div v-if="customers.links" class="mt-6">
+              <Pagination :data="customers" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -288,10 +188,11 @@
 
 <script setup>
 import { reactive, watch, ref, computed } from "vue";
-import { router, Link } from "@inertiajs/vue3";
+import { router, Link, Head } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import { Plus, FileDown, Eye, Edit, FileText, Trash2, Users } from 'lucide-vue-next';
 
 const props = defineProps({
   customers: Object,
@@ -320,11 +221,11 @@ const form = reactive({
 const exportPdfUrl = computed(() => {
   const baseUrl = route('admin-keuangan.customers.export.pdf');
   const params = new URLSearchParams();
-  
+
   if (form.search) {
     params.append('search', form.search);
   }
-  
+
   return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
 });
 
@@ -386,64 +287,11 @@ watch(
 </script>
 
 <style scoped>
-/* Custom Sage Colors */
-.text-sage-600 {
-  color: #8db580;
-}
-
-.text-sage-700 {
-  color: #7ba169;
-}
-
-.text-sage-800 {
-  color: #6b8f5e;
-}
-
-.text-sage-500 {
-  color: #9fb894;
-}
-
-.bg-sage-50 {
-  background-color: #f4f6f3;
-}
-
-.bg-sage-600 {
-  background-color: #8db580;
-}
-
-.bg-sage-700 {
-  background-color: #7ba169;
-}
-
-.border-sage-200 {
-  border-color: #d4ddd0;
-}
-
-.border-sage-300 {
-  border-color: #c0cdb8;
-}
-
-.hover\:bg-sage-50:hover {
-  background-color: #f4f6f3;
-}
-
-.hover\:bg-sage-700:hover {
-  background-color: #7ba169;
-}
-
-.hover\:text-sage-900:hover {
-  color: #5a7a4f;
-}
-
+/* Custom Sage Colors untuk focus ring */
 .focus\:ring-sage-500:focus {
   --tw-ring-color: #8db580;
 }
-
 .focus\:border-sage-500:focus {
   border-color: #8db580;
-}
-
-.divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #d4ddd0;
 }
 </style>
