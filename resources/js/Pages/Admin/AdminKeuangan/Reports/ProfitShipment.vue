@@ -1,74 +1,80 @@
 <template>
-    <AdminKeuanganLayout title="Total Profit Shipment Report">
-        <div class="max-w-7xl mx-auto">
-            <!-- Header Section -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h1 class="text-2xl font-bold text-gray-900">Total Profit Shipment Report</h1>
+    <AdminKeuanganLayout>
+        <Head title="Total Profit Shipment Report" />
+
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Total Profit Shipment Report</h1>
+                        <p class="mt-1 text-sm text-gray-600">Laporan profit per shipment dengan detail breakdown</p>
+                    </div>
                     <button
                         @click="exportPdf"
                         :disabled="isExporting"
                         :class="[
-                            'px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2 transition-colors',
+                            'inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest transition ease-in-out duration-150',
                             isExporting
-                                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                                : 'bg-red-600 text-white hover:bg-red-700'
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-red-600 hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
                         ]"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
+                        <Download class="w-4 h-4 mr-2" />
                         <span>{{ isExporting ? 'Exporting...' : 'Export PDF' }}</span>
                     </button>
                 </div>
 
                 <!-- Filters -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                        <input
-                            v-model="searchForm.date_from"
-                            type="date"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                        <input
-                            v-model="searchForm.date_to"
-                            type="date"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-                        <select
-                            v-model="searchForm.customer_id"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        >
-                            <option value="">Semua Customer</option>
-                            <option
-                                v-for="customer in customers"
-                                :key="customer.id"
-                                :value="customer.id"
-                            >
-                                {{ customer.company_name }}
-                            </option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button
-                            @click="resetFilters"
-                            class="w-full bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-                        >
-                            Reset Filters
-                        </button>
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Laporan</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <input
+                                    v-model="searchForm.date_from"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <input
+                                    v-model="searchForm.date_to"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                                <select
+                                    v-model="searchForm.customer_id"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                >
+                                    <option value="">Semua Customer</option>
+                                    <option
+                                        v-for="customer in customers"
+                                        :key="customer.id"
+                                        :value="customer.id"
+                                    >
+                                        {{ customer.company_name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button
+                                    @click="resetFilters"
+                                    class="w-full bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                                >
+                                    Reset Filters
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -216,12 +222,14 @@
                 </div>
             </div>
         </div>
+    </div>
     </AdminKeuanganLayout>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
+import { Download } from 'lucide-vue-next'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 const props = defineProps({

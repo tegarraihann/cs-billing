@@ -632,74 +632,27 @@
             </thead>
             <tbody>
                 @php
-                // Try different possible relationship names and filter out operational costs
-                $allItems = null;
-                if (isset($invoice->invoiceItems) && $invoice->invoiceItems->count() > 0) {
-                    $allItems = $invoice->invoiceItems;
-                } elseif (isset($invoice->items) && $invoice->items->count() > 0) {
-                    $allItems = $invoice->items;
-                } elseif (isset($invoice->invoice_items) && $invoice->invoice_items->count() > 0) {
-                    $allItems = $invoice->invoice_items;
-                }
-
-                // Filter out operational costs - only show customer-visible items
-                $items = $allItems ? $allItems->filter(function($item) {
-                    // Hide operational costs from customer invoice
-                    return ($item->item_type ?? 'billable') !== 'operational_cost' &&
-                           ($item->include_in_customer_invoice ?? true) &&
-                           !($item->is_hidden_from_customer ?? false);
-                }) : collect();
+                // Use the filtered items already passed from controller
+                $items = $invoice->items ?? collect();
                 @endphp
 
                 @if($items && $items->count() > 0)
                 @foreach($items as $item)
                 <tr>
-                    <td class="desc-col">{{ strtoupper($item->description ?? $item->item_description ?? 'SERVICE') }}</td>
-                    <td class="qty-col">{{ $item->quantity ?? $item->qty ?? 1 }}</td>
-                    <td class="unit-col">{{ strtoupper($item->unit ?? $item->unit_type ?? 'SET') }}</td>
-                    <td class="rate-col">{{ number_format($item->unit_price ?? $item->rate ?? $item->price ?? 0, 2) }}</td>
+                    <td class="desc-col">{{ strtoupper($item->description ?? 'SERVICE') }}</td>
+                    <td class="qty-col">{{ $item->quantity ?? 1 }}</td>
+                    <td class="unit-col">{{ strtoupper($item->unit ?? 'SET') }}</td>
+                    <td class="rate-col">{{ number_format($item->rate ?? 0, 2) }}</td>
                     <td class="cur-col">{{ $item->currency ?? 'IDR' }}</td>
-                    <td class="amount-col">
-                        @php
-                        $amount = $item->total_price ?? $item->amount ?? $item->total ?? ($item->quantity ?? 1) * ($item->unit_price ?? $item->rate ?? $item->price ?? 0);
-                        @endphp
-                        {{ $amount > 0 ? number_format($amount, 2) : '-' }}
-                    </td>
+                    <td class="amount-col">{{ number_format($item->amount ?? 0, 2) }}</td>
                 </tr>
                 @endforeach
                 @else
-                {{-- Default items if no items exist --}}
+                {{-- No items message instead of dummy data --}}
                 <tr>
-                    <td class="desc-col">DO CHARGES</td>
-                    <td class="qty-col">1</td>
-                    <td class="unit-col">SET</td>
-                    <td class="rate-col">0,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">-</td>
-                </tr>
-                <tr>
-                    <td class="desc-col">LOLO</td>
-                    <td class="qty-col">1</td>
-                    <td class="unit-col">SET</td>
-                    <td class="rate-col">1.398.600,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">1.398.600,00</td>
-                </tr>
-                <tr>
-                    <td class="desc-col">STORAGE</td>
-                    <td class="qty-col">1</td>
-                    <td class="unit-col">SET</td>
-                    <td class="rate-col">771.228,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">771.228,00</td>
-                </tr>
-                <tr>
-                    <td class="desc-col">BONGKAR</td>
-                    <td class="qty-col">3</td>
-                    <td class="unit-col">20GP</td>
-                    <td class="rate-col">40.000,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">120.000,00</td>
+                    <td colspan="6" class="desc-col" style="text-align: center; font-style: italic; color: #666;">
+                        No items found for this invoice
+                    </td>
                 </tr>
                 @endif
             </tbody>
@@ -712,13 +665,7 @@
                 <td class="bank-value-col">: Mandiri</td>
                 <td class="total-label-col total-bold">SUB TOTAL</td>
                 <td class="total-value-col total-bold">
-                    @php
-                    // Calculate customer-visible subtotal (excluding operational costs)
-                    $customerSubtotal = $items->sum(function($item) {
-                        return $item->total_price ?? $item->amount ?? $item->total ?? (($item->quantity ?? 1) * ($item->unit_price ?? $item->rate ?? $item->price ?? 0));
-                    });
-                    @endphp
-                    {{ number_format($customerSubtotal, 2) }}
+                    {{ number_format($calculatedSubtotal ?? $invoice->subtotal ?? 0, 2) }}
                 </td>
             </tr>
             <tr>
@@ -743,11 +690,7 @@
                 <td class="bank-value-col">: BMRIIDJA</td>
                 <td class="total-label-col total-bold">TOTAL</td>
                 <td class="total-value-col total-bold">
-                    @php
-                    // Calculate customer-visible total (subtotal minus down payment)
-                    $customerTotal = $customerSubtotal - ($invoice->down_payment_amount ?? 0);
-                    @endphp
-                    {{ number_format($customerTotal, 2) }}
+                    {{ number_format($calculatedTotal ?? $invoice->total ?? 0, 2) }}
                 </td>
             </tr>
             <tr>

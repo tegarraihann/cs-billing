@@ -1,19 +1,22 @@
 <template>
-    <AdminKeuanganLayout title="Detail Hutang">
-        <div class="max-w-4xl mx-auto">
-            <!-- Header -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <div class="flex justify-between items-center mb-4">
+    <AdminKeuanganLayout>
+        <Head title="Detail Hutang" />
+
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center space-x-3">
                         <button
                             @click="goBack"
                             class="text-gray-400 hover:text-gray-600"
                         >
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                            </svg>
+                            <ArrowLeft class="w-6 h-6" />
                         </button>
-                        <h1 class="text-2xl font-bold text-gray-900">Detail Hutang</h1>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Detail Hutang</h1>
+                            <p class="mt-1 text-sm text-gray-600">Vendor {{ payable.vendor?.nama_vendor }}</p>
+                        </div>
                     </div>
                     
                     <div class="flex items-center space-x-3">
@@ -30,24 +33,26 @@
                         <button
                             v-if="payable.status !== 'paid'"
                             @click="openPaymentModal"
-                            class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700"
+                            class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
+                            <CreditCard class="w-4 h-4 mr-2" />
                             Mark Payment
                         </button>
-                        
+
                         <button
                             @click="openEditModal"
-                            class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
+                            <Edit class="w-4 h-4 mr-2" />
                             Edit Details
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Vendor Information -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Informasi Vendor</h2>
+                <!-- Vendor Information -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Informasi Vendor</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <div class="space-y-3">
@@ -325,13 +330,16 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
     </AdminKeuanganLayout>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import { ArrowLeft, CreditCard, Edit } from 'lucide-vue-next'
 
 const props = defineProps({
     payable: Object

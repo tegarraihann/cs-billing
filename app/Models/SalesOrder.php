@@ -47,7 +47,8 @@ class SalesOrder extends Model
         'invoice_date',
         'top',
         'vendors',
-        
+        'other_costs',
+
         // Legacy fields for backward compatibility (now nullable)
         'so_number',
         'so_date',
@@ -117,6 +118,7 @@ class SalesOrder extends Model
         'total_revenue' => 'decimal:2',
         'vendors' => 'array',
         'container_no' => 'array',
+        'other_costs' => 'array',
     ];
 
     // Relationships
@@ -192,6 +194,11 @@ class SalesOrder extends Model
         return $this->hasMany(AccountPayable::class);
     }
 
+    public function reimbursementItems(): HasMany
+    {
+        return $this->hasMany(ReimbursementItem::class);
+    }
+
     // Helper methods for breakdown calculations
     public function calculateTotalBuying(): float
     {
@@ -226,6 +233,57 @@ class SalesOrder extends Model
     public function calculateTotalRevenue(): float
     {
         return $this->calculateTotalSelling() - $this->calculateTotalBuying();
+    }
+
+    // Helper methods for other costs
+    public function calculateOtherCosts(): float
+    {
+        if ($this->other_costs && is_array($this->other_costs)) {
+            return collect($this->other_costs)->sum('amount');
+        }
+        return 0;
+    }
+
+    public function calculateTotalBuyingWithOtherCosts(): float
+    {
+        return $this->calculateTotalBuying() + $this->calculateOtherCosts();
+    }
+
+    public function calculateTotalRevenueWithOtherCosts(): float
+    {
+        return $this->calculateTotalSelling() - $this->calculateTotalBuyingWithOtherCosts();
+    }
+
+    // Helper methods for reimbursement items
+    public function calculateTotalReimbursement(): float
+    {
+        return $this->reimbursementItems()->sum('amount');
+    }
+
+    public function calculatePendingReimbursement(): float
+    {
+        return $this->reimbursementItems()->where('status', 'pending')->sum('amount');
+    }
+
+    public function calculateLinkedReimbursement(): float
+    {
+        return $this->reimbursementItems()->where('status', 'linked')->sum('amount');
+    }
+
+    public function calculateInvoicedReimbursement(): float
+    {
+        return $this->reimbursementItems()->where('status', 'invoiced')->sum('amount');
+    }
+
+    public function hasPendingReimbursements(): bool
+    {
+        return $this->reimbursementItems()->where('status', 'pending')->exists();
+    }
+
+    public function canCreateInvoice(): bool
+    {
+        // SO can create invoice if approved and no pending reimbursements
+        return $this->approved_at && !$this->hasPendingReimbursements();
     }
 
     // Auto-update totals when breakdown changes

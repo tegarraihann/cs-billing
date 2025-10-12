@@ -1,128 +1,164 @@
 <template>
-    <AdminKeuanganLayout title="Manajemen Hutang">
-        <div class="max-w-7xl mx-auto">
-            <!-- Header Section -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h1 class="text-2xl font-bold text-gray-900">Manajemen Hutang</h1>
+    <AdminKeuanganLayout>
+        <Head title="Manajemen Hutang" />
+
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Manajemen Hutang</h1>
+                        <p class="mt-1 text-sm text-gray-600">Kelola hutang dan pembayaran vendor</p>
+                    </div>
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-                        <div class="text-sm font-medium text-red-600">Total Outstanding</div>
-                        <div class="text-2xl font-bold text-red-900">
-                            Rp {{ formatNumber(summary.total_outstanding) }}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <CreditCard class="h-6 w-6 text-red-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Outstanding</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_outstanding) }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                        <div class="text-sm font-medium text-orange-600">Total Overdue</div>
-                        <div class="text-2xl font-bold text-orange-900">
-                            Rp {{ formatNumber(summary.total_overdue) }}
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <AlertTriangle class="h-6 w-6 text-orange-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Overdue</dt>
+                                        <dd class="text-lg font-medium text-orange-600">{{ formatCurrency(summary.total_overdue) }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div class="text-sm font-medium text-yellow-600">Jumlah Overdue</div>
-                        <div class="text-2xl font-bold text-yellow-900">
-                            {{ summary.count_overdue }} vendor
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <Users class="h-6 w-6 text-yellow-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Jumlah Overdue</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ summary.count_overdue }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <div class="text-sm font-medium text-blue-600">Unpaid Active</div>
-                        <div class="text-2xl font-bold text-blue-900">
-                            {{ summary.count_unpaid }} vendor
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <Building2 class="h-6 w-6 text-blue-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Unpaid Active</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ summary.count_unpaid }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Filters -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                        <input
-                            v-model="searchForm.search"
-                            type="text"
-                            placeholder="Cari vendor atau service..."
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @input="debounceSearch"
-                        />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select
-                            v-model="searchForm.status"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="unpaid">Unpaid</option>
-                            <option value="partial">Partial</option>
-                            <option value="paid">Paid</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
-                        <select
-                            v-model="searchForm.vendor_id"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        >
-                            <option value="">Semua Vendor</option>
-                            <option
-                                v-for="vendor in vendors"
-                                :key="vendor.id"
-                                :value="vendor.id"
-                            >
-                                {{ vendor.nama_vendor }}
-                            </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                        <input
-                            v-model="searchForm.date_from"
-                            type="date"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                        <input
-                            v-model="searchForm.date_to"
-                            type="date"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        />
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                                <input
+                                    v-model="searchForm.search"
+                                    type="text"
+                                    placeholder="Cari vendor atau service..."
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @input="debounceSearch"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    v-model="searchForm.status"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                >
+                                    <option value="">Semua Status</option>
+                                    <option value="unpaid">Unpaid</option>
+                                    <option value="partial">Partial</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+                                <select
+                                    v-model="searchForm.vendor_id"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                >
+                                    <option value="">Semua Vendor</option>
+                                    <option
+                                        v-for="vendor in vendors"
+                                        :key="vendor.id"
+                                        :value="vendor.id"
+                                    >
+                                        {{ vendor.nama_vendor }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <input
+                                    v-model="searchForm.date_from"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <input
+                                    v-model="searchForm.date_to"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Vendor Summary Section -->
-            <div v-if="vendorSummary && vendorSummary.length > 0" class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan per Vendor</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Vendor
-                                </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total Amount
-                                </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total Paid
-                                </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total Outstanding
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Jumlah Invoice
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Overdue
-                                </th>
+                <!-- Vendor Summary Section -->
+                <div v-if="vendorSummary && vendorSummary.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ringkasan per Vendor</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Outstanding</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Invoice</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -369,13 +405,16 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
     </AdminKeuanganLayout>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import { CreditCard, AlertTriangle, Users, Building2 } from 'lucide-vue-next'
 
 const props = defineProps({
     payables: Object,
@@ -421,6 +460,15 @@ const applyFilters = () => {
 
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
+}
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount || 0)
 }
 
 const formatDate = (date) => {

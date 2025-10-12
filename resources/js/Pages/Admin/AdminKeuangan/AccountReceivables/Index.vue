@@ -1,133 +1,181 @@
 <template>
-    <AdminKeuanganLayout title="Manajemen Piutang">
-        <div class="max-w-7xl mx-auto">
-            <!-- Header Section -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h1 class="text-2xl font-bold text-gray-900">Manajemen Piutang</h1>
+    <AdminKeuanganLayout>
+        <Head title="Manajemen Piutang" />
+
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Manajemen Piutang</h1>
+                        <p class="mt-1 text-sm text-gray-600">Kelola piutang dan pembayaran customer</p>
+                    </div>
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <div class="text-sm font-medium text-blue-600">Total Outstanding</div>
-                        <div class="text-2xl font-bold text-blue-900">
-                            Rp {{ formatNumber(summary.total_outstanding) }}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <DollarSign class="h-6 w-6 text-blue-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Outstanding</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_outstanding) }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-                        <div class="text-sm font-medium text-red-600">Total Overdue</div>
-                        <div class="text-2xl font-bold text-red-900">
-                            Rp {{ formatNumber(summary.total_overdue) }}
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <AlertTriangle class="h-6 w-6 text-red-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Overdue</dt>
+                                        <dd class="text-lg font-medium text-red-600">{{ formatCurrency(summary.total_overdue) }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div class="text-sm font-medium text-yellow-600">Jumlah Overdue</div>
-                        <div class="text-2xl font-bold text-yellow-900">
-                            {{ summary.count_overdue }} invoice
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <FileText class="h-6 w-6 text-yellow-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Jumlah Overdue</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ summary.count_overdue }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <div class="text-sm font-medium text-green-600">Outstanding Active</div>
-                        <div class="text-2xl font-bold text-green-900">
-                            {{ summary.count_outstanding }} invoice
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <CheckCircle class="h-6 w-6 text-green-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Outstanding Active</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ summary.count_outstanding }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Filters -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                        <input
-                            v-model="searchForm.search"
-                            type="text"
-                            placeholder="Cari invoice atau customer..."
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @input="debounceSearch"
-                        />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select
-                            v-model="searchForm.status"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="outstanding">Outstanding</option>
-                            <option value="partial">Partial</option>
-                            <option value="overdue">Overdue</option>
-                            <option value="paid">Paid</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-                        <select
-                            v-model="searchForm.customer_id"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        >
-                            <option value="">Semua Customer</option>
-                            <option
-                                v-for="customer in customers"
-                                :key="customer.id"
-                                :value="customer.id"
-                            >
-                                {{ customer.company_name }}
-                            </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                        <input
-                            v-model="searchForm.date_from"
-                            type="date"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                        <input
-                            v-model="searchForm.date_to"
-                            type="date"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            @change="applyFilters"
-                        />
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                                <input
+                                    v-model="searchForm.search"
+                                    type="text"
+                                    placeholder="Cari invoice atau customer..."
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @input="debounceSearch"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    v-model="searchForm.status"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                >
+                                    <option value="">Semua Status</option>
+                                    <option value="outstanding">Outstanding</option>
+                                    <option value="partial">Partial</option>
+                                    <option value="overdue">Overdue</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                                <select
+                                    v-model="searchForm.customer_id"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                >
+                                    <option value="">Semua Customer</option>
+                                    <option
+                                        v-for="customer in customers"
+                                        :key="customer.id"
+                                        :value="customer.id"
+                                    >
+                                        {{ customer.company_name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <input
+                                    v-model="searchForm.date_from"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <input
+                                    v-model="searchForm.date_to"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                    @change="applyFilters"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <!-- Customer Summary Section (only show if there are results) -->
-            <div v-if="customerSummary && customerSummary.length > 0" class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Per Customer</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="text-left py-2 text-sm font-medium text-gray-500">Customer</th>
-                                <th class="text-right py-2 text-sm font-medium text-gray-500">Total Invoice</th>
-                                <th class="text-right py-2 text-sm font-medium text-gray-500">Total Paid</th>
-                                <th class="text-right py-2 text-sm font-medium text-gray-500">Outstanding</th>
-                                <th class="text-center py-2 text-sm font-medium text-gray-500">Jumlah Invoice</th>
-                                <th class="text-center py-2 text-sm font-medium text-gray-500">Overdue</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="customer in customerSummary" :key="customer.customer_id" class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-2 text-sm font-medium text-gray-900">{{ customer.customer_name }}</td>
-                                <td class="py-2 text-sm text-right text-gray-900">Rp {{ formatNumber(customer.total_amount) }}</td>
-                                <td class="py-2 text-sm text-right text-gray-900">Rp {{ formatNumber(customer.total_paid) }}</td>
-                                <td class="py-2 text-sm text-right font-semibold" :class="customer.total_outstanding > 0 ? 'text-red-600' : 'text-green-600'">
-                                    Rp {{ formatNumber(customer.total_outstanding) }}
-                                </td>
-                                <td class="py-2 text-sm text-center text-gray-900">{{ customer.count_invoices }}</td>
-                                <td class="py-2 text-sm text-center" :class="customer.count_overdue > 0 ? 'text-red-600 font-semibold' : 'text-gray-900'">
-                                    {{ customer.count_overdue }}
-                                </td>
-                            </tr>
-                        </tbody>
+            <div v-if="customerSummary && customerSummary.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ringkasan Per Customer</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Invoice</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Invoice</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr v-for="customer in customerSummary" :key="customer.customer_id" class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ customer.customer_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ formatCurrency(customer.total_amount) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ formatCurrency(customer.total_paid) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold" :class="customer.total_outstanding > 0 ? 'text-red-600' : 'text-green-600'">
+                                        {{ formatCurrency(customer.total_outstanding) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ customer.count_invoices }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center" :class="customer.count_overdue > 0 ? 'text-red-600 font-semibold' : 'text-gray-900'">
+                                        {{ customer.count_overdue }}
+                                    </td>
+                                </tr>
+                            </tbody>
                         <tfoot class="bg-gray-50 font-semibold">
                             <tr>
                                 <td class="py-2 text-sm text-gray-900">Total</td>
@@ -149,12 +197,14 @@
                             </tr>
                         </tfoot>
                     </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Table Section -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
+            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -372,13 +422,16 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
     </AdminKeuanganLayout>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import { DollarSign, AlertTriangle, FileText, CheckCircle } from 'lucide-vue-next'
 
 const props = defineProps({
     receivables: Object,
@@ -462,6 +515,15 @@ const applyFilters = () => {
 
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
+}
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount || 0)
 }
 
 const formatDate = (date) => {

@@ -563,6 +563,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{invoice}/mark-sent', 'markSent')->name('mark-sent');
         Route::post('/{invoice}/post-to-profit-loss', 'postToProfitLoss')->name('post-to-profit-loss');
         Route::delete('/{invoice}/unpost-from-profit-loss', 'unpostFromProfitLoss')->name('unpost-from-profit-loss');
+        Route::post('/{invoice}/fix-operational-costs', 'fixOperationalCosts')->name('fix-operational-costs');
         Route::get('/profit-loss-periods', 'getProfitLossPeriods')->name('profit-loss-periods');
     });
 

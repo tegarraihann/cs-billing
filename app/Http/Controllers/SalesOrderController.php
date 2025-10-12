@@ -6,6 +6,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\Voucher;
 use App\Models\ShipmentType;
+use App\Models\ReimbursementItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -106,6 +107,12 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
+
+            // Other costs validation
+            'other_costs' => 'nullable|array',
+            'other_costs.*.description' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.category' => 'nullable|string|max:100',
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -147,6 +154,13 @@ class SalesOrderController extends Controller
             'receipt_vouchers.*.authorized_by' => 'nullable|string|max:255',
             'receipt_vouchers.*.finance_by' => 'nullable|string|max:255',
             'receipt_vouchers.*.receipt_by' => 'nullable|string|max:255',
+
+            // Reimbursement items validation
+            'reimbursement_items' => 'nullable|array',
+            'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
+            'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.category' => 'nullable|string|max:100',
+            'reimbursement_items.*.notes' => 'nullable|string|max:500',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -191,10 +205,11 @@ class SalesOrderController extends Controller
             $validated['order_number'] = SalesOrder::generateOrderNumber();
         }
 
-        // Remove voucher data from sales order data
+        // Remove voucher data and reimbursement items from sales order data
         $paymentVouchers = $validated['payment_vouchers'] ?? [];
         $receiptVouchers = $validated['receipt_vouchers'] ?? [];
-        unset($validated['payment_vouchers'], $validated['receipt_vouchers']);
+        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        unset($validated['payment_vouchers'], $validated['receipt_vouchers'], $validated['reimbursement_items']);
 
 
         $salesOrder = SalesOrder::create($validated);
@@ -203,6 +218,9 @@ class SalesOrderController extends Controller
         // Create vouchers
         $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
         $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
+
+        // Create reimbursement items
+        $this->createReimbursementItems($salesOrder, $reimbursementItems);
 
 
         return redirect()
@@ -294,6 +312,12 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
+
+            // Other costs validation
+            'other_costs' => 'nullable|array',
+            'other_costs.*.description' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.category' => 'nullable|string|max:100',
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -550,6 +574,26 @@ class SalesOrderController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Voucher berhasil disetujui.');
+    }
+
+    /**
+     * Create reimbursement items for sales order
+     */
+    private function createReimbursementItems(SalesOrder $salesOrder, array $reimbursementItems)
+    {
+        foreach ($reimbursementItems as $item) {
+            if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
+                ReimbursementItem::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'description' => $item['description'],
+                    'amount' => $item['amount'],
+                    'category' => $item['category'] ?? 'general',
+                    'notes' => $item['notes'] ?? null,
+                    'status' => 'pending',
+                    'created_by' => Auth::id(),
+                ]);
+            }
+        }
     }
 
 }

@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\SalesOrder;
 use App\Models\Customer;
+use App\Models\ReimbursementItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -280,6 +281,48 @@ class InvoiceController extends Controller
             ]);
         }
 
+        // Auto-generate operational cost items from Sales Order vendor breakdown
+        if ($salesOrder->vendor_breakdown && is_array($salesOrder->vendor_breakdown)) {
+            foreach ($salesOrder->vendor_breakdown as $vendor) {
+                if (isset($vendor['buying_amount']) && $vendor['buying_amount'] > 0) {
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Buying Cost - ' . ($vendor['description'] ?? 'Service'),
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $vendor['buying_amount'],
+                        'currency' => 'IDR',
+                        'amount' => $vendor['buying_amount'],
+                        'item_ref' => 'vendor_' . ($vendor['vendor_id'] ?? 'unknown'),
+                        'item_type' => 'operational_cost',
+                        'include_in_customer_invoice' => false,
+                        'is_hidden_from_customer' => true
+                    ]);
+                }
+            }
+        }
+
+        // Auto-generate operational cost items from Sales Order other costs
+        if ($salesOrder->other_costs && is_array($salesOrder->other_costs)) {
+            foreach ($salesOrder->other_costs as $index => $otherCost) {
+                if (isset($otherCost['amount']) && $otherCost['amount'] > 0) {
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Other Cost - ' . ($otherCost['description'] ?? 'Additional Cost'),
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $otherCost['amount'],
+                        'currency' => 'IDR',
+                        'amount' => $otherCost['amount'],
+                        'item_ref' => 'other_cost_' . $index,
+                        'item_type' => 'operational_cost',
+                        'include_in_customer_invoice' => false,
+                        'is_hidden_from_customer' => true
+                    ]);
+                }
+            }
+        }
+
         $invoice->calculateTotals();
 
         // Auto-generate petty cash transactions from operational costs
@@ -499,21 +542,133 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice berhasil dihapus.');
     }
 
+    /**
+     * Fix existing invoice by adding missing operational cost items from Sales Order
+     */
+    public function fixOperationalCosts(Invoice $invoice)
+    {
+        if (!$invoice->salesOrder || !$invoice->salesOrder->vendor_breakdown) {
+            return back()->withErrors(['error' => 'Sales Order atau vendor breakdown tidak ditemukan.']);
+        }
+
+        // Check if operational costs already exist
+        $existingOperationalCosts = $invoice->items()->where('item_type', 'operational_cost')->count();
+        if ($existingOperationalCosts > 0) {
+            return back()->withErrors(['error' => 'Operational cost sudah ada untuk invoice ini.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            // Auto-generate operational cost items from vendor breakdown
+            foreach ($invoice->salesOrder->vendor_breakdown as $vendor) {
+                if (isset($vendor['buying_amount']) && $vendor['buying_amount'] > 0) {
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Buying Cost - ' . ($vendor['description'] ?? 'Service'),
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $vendor['buying_amount'],
+                        'currency' => 'IDR',
+                        'amount' => $vendor['buying_amount'],
+                        'item_ref' => 'vendor_' . ($vendor['vendor_id'] ?? 'unknown'),
+                        'item_type' => 'operational_cost',
+                        'include_in_customer_invoice' => false,
+                        'is_hidden_from_customer' => true
+                    ]);
+                }
+            }
+
+            // Auto-generate operational cost items from other costs
+            if ($invoice->salesOrder->other_costs && is_array($invoice->salesOrder->other_costs)) {
+                foreach ($invoice->salesOrder->other_costs as $index => $otherCost) {
+                    if (isset($otherCost['amount']) && $otherCost['amount'] > 0) {
+                        InvoiceItem::create([
+                            'invoice_id' => $invoice->id,
+                            'description' => 'Other Cost - ' . ($otherCost['description'] ?? 'Additional Cost'),
+                            'quantity' => 1,
+                            'unit' => 'SET',
+                            'rate' => $otherCost['amount'],
+                            'currency' => 'IDR',
+                            'amount' => $otherCost['amount'],
+                            'item_ref' => 'other_cost_' . $index,
+                            'item_type' => 'operational_cost',
+                            'include_in_customer_invoice' => false,
+                            'is_hidden_from_customer' => true
+                        ]);
+                    }
+                }
+            }
+
+            // Auto-transfer reimbursement items to invoice as reimbursement items
+            $reimbursementItems = $invoice->salesOrder->reimbursementItems()->where('status', 'pending')->get();
+            foreach ($reimbursementItems as $reimbursementItem) {
+                $invoiceItem = InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'description' => 'Reimbursement - ' . $reimbursementItem->description,
+                    'quantity' => 1,
+                    'unit' => 'SET',
+                    'rate' => $reimbursementItem->amount,
+                    'currency' => 'IDR',
+                    'amount' => $reimbursementItem->amount,
+                    'item_ref' => 'reimbursement_' . $reimbursementItem->id,
+                    'item_type' => 'reimbursement',
+                    'include_in_customer_invoice' => true,
+                    'is_hidden_from_customer' => false
+                ]);
+
+                // Mark reimbursement item as invoiced
+                $reimbursementItem->markAsInvoiced($invoice->id);
+            }
+
+            // Recalculate totals
+            $invoice->calculateTotals();
+
+            \DB::commit();
+
+            return back()->with('success', 'Operational cost berhasil ditambahkan dari Sales Order.');
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+
+            \Log::error('Fix Operational Cost Error', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->withErrors(['error' => 'Gagal menambahkan operational cost: ' . $e->getMessage()]);
+        }
+    }
+
     public function generatePdf(Invoice $invoice)
     {
         // Load relationships
         $invoice->load(['salesOrder', 'customer', 'items']);
 
-        // Filter only main items (where item_ref is null or 'main')
-        $mainItems = $invoice->items->whereIn('item_ref', [null, 'main']);
+        // Filter customer-visible items (exclude operational costs and hidden items)
+        $customerVisibleItems = $invoice->items->filter(function($item) {
+            // Show only items that are:
+            // 1. Not operational costs
+            // 2. Included in customer invoice
+            // 3. Not hidden from customer
+            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                                  strpos($itemRef, 'reimbur') !== false;
 
-        // Calculate totals for main items only
-        $subtotal = $mainItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
+            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+                   ($item->include_in_customer_invoice ?? true) &&
+                   !($item->is_hidden_from_customer ?? false) &&
+                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+        });
 
-        // Create a copy of invoice with only main items
+        // Calculate totals for customer-visible items only
+        $subtotal = $customerVisibleItems->sum('amount');
+        $total = $subtotal - ($invoice->down_payment_amount ?? 0);
+
+        // Create a copy of invoice with only customer-visible items
         $mainInvoice = $invoice->replicate();
-        $mainInvoice->setRelation('items', $mainItems);
+        $mainInvoice->setRelation('items', $customerVisibleItems);
         $mainInvoice->setRelation('salesOrder', $invoice->salesOrder);
         $mainInvoice->setRelation('customer', $invoice->customer);
 
@@ -525,7 +680,12 @@ class InvoiceController extends Controller
         $generatedAt = \Carbon\Carbon::now();
 
         // Generate PDF using main invoice template
-        $pdf = PDF::loadView('invoices.main-pdf', ['invoice' => $mainInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView('invoices.main-pdf', [
+            'invoice' => $mainInvoice,
+            'generatedAt' => $generatedAt,
+            'calculatedSubtotal' => $subtotal,
+            'calculatedTotal' => $total
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // Main invoice filename - only invoice number
@@ -577,16 +737,30 @@ class InvoiceController extends Controller
         // Load relationships
         $invoice->load(['salesOrder', 'customer', 'items']);
 
-        // Filter only main items (where item_ref is null or 'main')
-        $mainItems = $invoice->items->whereIn('item_ref', [null, 'main']);
+        // Filter customer-visible items (exclude operational costs and hidden items)
+        $customerVisibleItems = $invoice->items->filter(function($item) {
+            // Show only items that are:
+            // 1. Not operational costs
+            // 2. Included in customer invoice
+            // 3. Not hidden from customer
+            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                                  strpos($itemRef, 'reimbur') !== false;
 
-        // Calculate totals for main items only
-        $subtotal = $mainItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
+            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+                   ($item->include_in_customer_invoice ?? true) &&
+                   !($item->is_hidden_from_customer ?? false) &&
+                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+        });
 
-        // Create a copy of invoice with only main items
+        // Calculate totals for customer-visible items only
+        $subtotal = $customerVisibleItems->sum('amount');
+        $total = $subtotal - ($invoice->down_payment_amount ?? 0);
+
+        // Create a copy of invoice with only customer-visible items
         $mainInvoice = $invoice->replicate();
-        $mainInvoice->setRelation('items', $mainItems);
+        $mainInvoice->setRelation('items', $customerVisibleItems);
         $mainInvoice->setRelation('salesOrder', $invoice->salesOrder);
         $mainInvoice->setRelation('customer', $invoice->customer);
 
@@ -601,7 +775,12 @@ class InvoiceController extends Controller
         $templatePath = resource_path('views/invoices/main-pdf.blade.php');
         $template = file_exists($templatePath) ? 'invoices.main-pdf' : 'invoices.pdf';
 
-        $pdf = PDF::loadView($template, ['invoice' => $mainInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView($template, [
+            'invoice' => $mainInvoice,
+            'generatedAt' => $generatedAt,
+            'calculatedSubtotal' => $subtotal,
+            'calculatedTotal' => $total
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download

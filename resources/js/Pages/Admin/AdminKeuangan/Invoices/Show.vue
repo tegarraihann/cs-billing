@@ -49,6 +49,16 @@
               Konfirmasi Pembayaran
             </button>
             <button
+              @click="fixOperationalCosts"
+              class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              v-if="shouldShowFixOperationalCostsButton"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Fix Operational Costs
+            </button>
+            <button
               @click="openProfitLossModal"
               class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               v-if="shouldShowProfitLossButton"
@@ -1054,6 +1064,15 @@ const getProfitMargin = computed(() => {
   return ((getNetProfit.value / getGrossRevenue.value) * 100).toFixed(2);
 });
 
+// Computed property untuk menampilkan tombol Fix Operational Costs
+const shouldShowFixOperationalCostsButton = computed(() => {
+  // Show if invoice has sales order with vendor breakdown but no operational costs
+  return props.invoice.sales_order_id &&
+         getOperationalCostsTotal.value === 0 &&
+         props.invoice.status !== 'paid' &&
+         !props.invoice.posted_to_profit_loss;
+});
+
 // Computed property untuk menampilkan tombol Post ke Laba Rugi
 const shouldShowProfitLossButton = computed(() => {
   return props.invoice.status === 'sent' &&
@@ -1099,6 +1118,25 @@ const unpostFromProfitLoss = () => {
       },
       onError: () => {
         processing.value = false;
+      }
+    });
+  }
+};
+
+// Method untuk fix operational costs
+const fixOperationalCosts = () => {
+  if (confirm('Menambahkan operational cost dari Sales Order vendor breakdown. Lanjutkan?')) {
+    processing.value = true;
+
+    router.post(route('admin-keuangan.invoices.fix-operational-costs', props.invoice.id), {}, {
+      onSuccess: (page) => {
+        processing.value = false;
+        // Refresh the page to show updated data
+        window.location.reload();
+      },
+      onError: (errors) => {
+        processing.value = false;
+        console.error('Error fixing operational costs:', errors);
       }
     });
   }
