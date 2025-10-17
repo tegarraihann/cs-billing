@@ -58,6 +58,11 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        $operationalCostCategories = \App\Models\OperationalCostCategory::active()
+            ->select('id', 'name', 'description')
+            ->orderBy('name')
+            ->get();
+
         // Generate order number automatically
         $orderNumber = SalesOrder::generateOrderNumber();
 
@@ -65,6 +70,7 @@ class SalesOrderController extends Controller
             'customers' => $customers,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
+            'operationalCostCategories' => $operationalCostCategories,
             'orderNumber' => $orderNumber
         ]);
     }
@@ -269,10 +275,16 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        $operationalCostCategories = \App\Models\OperationalCostCategory::active()
+            ->select('id', 'name', 'description')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
             'vendors' => $vendors,
-            'shipmentTypes' => $shipmentTypes
+            'shipmentTypes' => $shipmentTypes,
+            'operationalCostCategories' => $operationalCostCategories
         ]);
     }
 

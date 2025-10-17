@@ -150,6 +150,7 @@ class AccountReceivable extends Model
             'due_date' => $dueDate,
             'invoice_amount' => $invoice->total,
             'outstanding_amount' => $invoice->total,
+            'status' => 'outstanding',
             'payment_terms_days' => $invoice->term_days,
             'created_by' => auth()->id()
         ]);

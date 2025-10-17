@@ -682,6 +682,7 @@ const props = defineProps({
   salesOrder: Object,
   vendors: Array,
   shipmentTypes: Array,
+  operationalCostCategories: Array,
 });
 
 // Alert Dialog State

@@ -98,6 +98,11 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class)->operationalCost();
     }
 
+    public function reimbursementItems()
+    {
+        return $this->hasMany(InvoiceItem::class)->reimbursement();
+    }
+
     public function customerVisibleItems()
     {
         return $this->hasMany(InvoiceItem::class)->customerVisible();
@@ -199,7 +204,14 @@ class Invoice extends Model
     // New profit calculation methods for operational costs
     public function calculateGrossRevenue(): float
     {
+        // Only calculate revenue from billable items (excludes reimbursement which is cost-neutral)
         return (float) $this->billableItems()->sum('amount');
+    }
+
+    public function calculateReimbursementTotal(): float
+    {
+        // Reimbursement items are cost-neutral (tidak ada profit/loss)
+        return (float) $this->reimbursementItems()->sum('amount');
     }
 
     public function calculateOperationalCosts(): float
@@ -240,6 +252,10 @@ class Invoice extends Model
     public function getNetProfitAttribute(): float
     {
         return $this->calculateNetProfit();
+    }
+    public function getReimbursementTotalAttribute(): float
+    {
+        return $this->calculateReimbursementTotal();
     }
 
     public function getCustomerTotalAttribute(): float

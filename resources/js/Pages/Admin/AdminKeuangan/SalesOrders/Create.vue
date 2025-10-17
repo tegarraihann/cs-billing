@@ -473,26 +473,53 @@
                   <p class="text-lg font-bold text-green-800">{{ formatCurrency(totalSelling) }}</p>
                 </div>
                 <div class="p-3 rounded-lg" :class="totalRevenue >= 0 ? 'bg-purple-100' : 'bg-red-100'">
-                  <p class="text-xs font-medium" :class="totalRevenue >= 0 ? 'text-purple-700' : 'text-red-700'">Total Revenue</p>
+                  <p class="text-xs font-medium" :class="totalRevenue >= 0 ? 'text-purple-700' : 'text-red-700'">Net Profit</p>
+                  <p class="text-xs text-gray-500 mb-1">(Sudah dikurangi semua biaya)</p>
                   <p class="text-lg font-bold" :class="totalRevenue >= 0 ? 'text-purple-800' : 'text-red-800'">{{ formatCurrency(totalRevenue) }}</p>
                 </div>
+              </div>
+
+              <!-- Bottom Add Button for Vendor Breakdown -->
+              <div v-if="form.vendor_breakdown.length > 0" class="flex justify-center mt-6 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  @click="addVendorItem"
+                  class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Tambah Vendor Lagi
+                </button>
               </div>
             </div>
 
             <!-- Revenue Summary -->
             <div class="bg-blue-50 rounded-lg p-4">
-              <h4 class="text-md font-semibold text-blue-800 mb-3">Ringkasan Revenue</h4>
+              <h4 class="text-md font-semibold text-blue-800 mb-3">Ringkasan Revenue & Profit</h4>
               <div class="space-y-2">
                 <div class="flex justify-between">
                   <span>Total Pemasukan (Selling):</span>
-                  <span class="font-medium">{{ formatCurrency(totalSelling) }}</span>
+                  <span class="font-medium text-green-700">{{ formatCurrency(totalSelling) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Total Pengeluaran (Buying):</span>
-                  <span class="font-medium">{{ formatCurrency(totalBuying) }}</span>
+                  <span class="font-medium text-red-700">{{ formatCurrency(totalBuying) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Biaya Operasional:</span>
+                  <span class="font-medium text-orange-700">{{ formatCurrency(totalOtherCosts) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Total Reimbursement:</span>
+                  <span class="font-medium text-purple-700">{{ formatCurrency(totalReimbursement) }}</span>
+                </div>
+                <div class="flex justify-between border-t border-blue-200 pt-2 mt-1">
+                  <span class="text-sm font-medium text-gray-700">Total Pengeluaran Keseluruhan:</span>
+                  <span class="text-sm font-bold text-red-800">{{ formatCurrency(totalBuying + totalOtherCosts + totalReimbursement) }}</span>
                 </div>
                 <div class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
-                  <span>Revenue:</span>
+                  <span>Net Profit:</span>
                   <span :class="totalRevenue >= 0 ? 'text-green-600' : 'text-red-600'">
                     {{ formatCurrency(totalRevenue) }}
                   </span>
@@ -519,6 +546,248 @@
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
               ></textarea>
               <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{ form.errors.note }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other Costs Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div
+            @click="toggleSection('other_costs')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Biaya Beban Lain (Operational)</h3>
+            <svg
+              :class="{'rotate-180': !sections.other_costs}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.other_costs" class="p-6">
+            <div class="bg-orange-50 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-orange-800">Biaya Beban Lain (Operational)</h4>
+                <button
+                  type="button"
+                  @click="addOtherCost"
+                  class="text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors"
+                >
+                  + Tambah Biaya
+                </button>
+              </div>
+
+              <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
+                <div v-for="(cost, index) in form.other_costs" :key="index" class="border border-orange-200 rounded-lg p-3 bg-white">
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-5">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Deskripsi Biaya</label>
+                      <input
+                        v-model="cost.description"
+                        type="text"
+                        placeholder="Contoh: Biaya handling, dokumen, dll"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Jumlah Biaya</label>
+                      <input
+                        v-model="cost.amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
+                      <select
+                        v-model="cost.category"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      >
+                        <option value="">Pilih kategori</option>
+                        <option
+                          v-for="category in operationalCostCategories"
+                          :key="category.id"
+                          :value="category.name"
+                          :title="category.description"
+                        >
+                          {{ category.name }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-span-1 flex items-end">
+                      <button
+                        type="button"
+                        @click="removeOtherCost(index)"
+                        class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                        :disabled="form.other_costs.length <= 1"
+                      >
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Other Costs -->
+                <div class="pt-3 border-t border-orange-300">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-orange-700">Total Biaya Beban Lain:</span>
+                    <span class="text-lg font-bold text-orange-800">{{ formatCurrency(totalOtherCosts) }}</span>
+                  </div>
+                </div>
+
+                <!-- Bottom Add Button for Other Costs -->
+                <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
+                  <button
+                    type="button"
+                    @click="addOtherCost"
+                    class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Tambah Biaya Lagi
+                  </button>
+                </div>
+              </div>
+
+              <div v-else class="text-center py-4 text-orange-600">
+                <p class="text-sm">Belum ada biaya beban lain</p>
+                <p class="text-xs text-orange-500">Klik tombol "Tambah Biaya" untuk menambahkan</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reimbursement Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div
+            @click="toggleSection('reimbursement')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Items Reimbursement</h3>
+            <svg
+              :class="{'rotate-180': !sections.reimbursement}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.reimbursement" class="p-6">
+            <div class="bg-purple-50 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-purple-800">Items Reimbursement</h4>
+                <button
+                  type="button"
+                  @click="addReimbursementItem"
+                  class="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
+                >
+                  + Tambah Reimbursement
+                </button>
+              </div>
+
+              <div v-if="reimbursementItems && reimbursementItems.length > 0" class="space-y-3">
+                <div v-for="(item, index) in reimbursementItems" :key="index" class="border border-purple-200 rounded-lg p-3 bg-white">
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-4">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Deskripsi</label>
+                      <input
+                        v-model="item.description"
+                        type="text"
+                        placeholder="Contoh: Transport, Akomodasi, dll"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Jumlah</label>
+                      <input
+                        v-model="item.amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
+                      <select
+                        v-model="item.category"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        <option value="">Pilih kategori</option>
+                        <option value="transport">Transport</option>
+                        <option value="accommodation">Akomodasi</option>
+                        <option value="meal">Makan</option>
+                        <option value="fuel">BBM</option>
+                        <option value="parking">Parkir</option>
+                        <option value="toll">Tol</option>
+                        <option value="admin">Admin</option>
+                        <option value="communication">Komunikasi</option>
+                        <option value="equipment">Peralatan</option>
+                        <option value="general">Umum</option>
+                      </select>
+                    </div>
+                    <div class="col-span-1 flex items-end">
+                      <button
+                        type="button"
+                        @click="removeReimbursementItem(index)"
+                        class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                      >
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <label class="block text-xs font-medium text-purple-700 mb-1">Catatan (opsional)</label>
+                    <textarea
+                      v-model="item.notes"
+                      rows="2"
+                      placeholder="Catatan tambahan untuk item reimbursement ini"
+                      class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Total Reimbursement -->
+                <div class="pt-3 border-t border-purple-300">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-purple-700">Total Reimbursement:</span>
+                    <span class="text-lg font-bold text-purple-800">{{ formatCurrency(totalReimbursement) }}</span>
+                  </div>
+                </div>
+
+                <!-- Bottom Add Button for Reimbursement -->
+                <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
+                  <button
+                    type="button"
+                    @click="addReimbursementItem"
+                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Tambah Reimbursement Lagi
+                  </button>
+                </div>
+              </div>
+
+              <div v-else class="text-center py-4 text-purple-600">
+                <p class="text-sm">Belum ada item reimbursement</p>
+                <p class="text-xs text-purple-500">Klik tombol "Tambah Reimbursement" untuk menambahkan</p>
+              </div>
             </div>
           </div>
         </div>
@@ -617,6 +886,20 @@
                 </button>
               </div>
               <div v-if="form.errors.container_no" class="mt-2 text-sm text-red-600">{{ form.errors.container_no }}</div>
+
+              <!-- Bottom Add Button for Container Numbers -->
+              <div v-if="form.container_no.length > 0" class="flex justify-center mt-4 pt-4 border-t border-sage-200">
+                <button
+                  type="button"
+                  @click="addContainerNo"
+                  class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Tambah Container Lagi
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -776,6 +1059,20 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Bottom Add Button for Payment Vouchers -->
+              <div v-if="paymentVouchers.length > 0" class="flex justify-center mt-6 pt-4 border-t border-blue-200">
+                <button
+                  type="button"
+                  @click="addPaymentVoucher"
+                  class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Payment Lagi
+                </button>
+              </div>
             </div>
 
             <!-- Receipt Vouchers -->
@@ -865,6 +1162,20 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Bottom Add Button for Receipt Vouchers -->
+              <div v-if="receiptVouchers.length > 0" class="flex justify-center mt-6 pt-4 border-t border-green-200">
+                <button
+                  type="button"
+                  @click="addReceiptVoucher"
+                  class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Receipt Lagi
+                </button>
+              </div>
             </div>
 
           </div>
@@ -928,6 +1239,7 @@ const props = defineProps({
   customers: Array,
   vendors: Array,
   shipmentTypes: Array,
+  operationalCostCategories: Array,
   orderNumber: String,
 });
 
@@ -949,12 +1261,15 @@ const selectedCustomerId = ref('');
 // Voucher data
 const paymentVouchers = ref([]);
 const receiptVouchers = ref([]);
+const reimbursementItems = ref([]);
 
 // Collapseable sections state
 const sections = ref({
   basic: true,
   shipping: false,
   pricing: false,
+  other_costs: false,
+  reimbursement: false,
   goods: false,
   invoice: false,
   voucher: false,
@@ -982,6 +1297,7 @@ const form = useForm({
   prepared_by: "",
   exchange_rate: "",
   vendor_breakdown: [{ vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
+  other_costs: [],
   remarks: "",
   note: "",
   commodity: "",
@@ -1069,6 +1385,35 @@ const removeReceiptVoucher = (index) => {
   receiptVouchers.value.splice(index, 1);
 };
 
+// Other costs management methods
+const addOtherCost = () => {
+  form.other_costs.push({
+    description: '',
+    amount: 0,
+    category: ''
+  });
+};
+
+const removeOtherCost = (index) => {
+  if (form.other_costs.length > 1) {
+    form.other_costs.splice(index, 1);
+  }
+};
+
+// Reimbursement management methods
+const addReimbursementItem = () => {
+  reimbursementItems.value.push({
+    description: '',
+    amount: 0,
+    category: '',
+    notes: ''
+  });
+};
+
+const removeReimbursementItem = (index) => {
+  reimbursementItems.value.splice(index, 1);
+};
+
 // Container management methods
 const addContainerNo = () => {
   form.container_no.push("");
@@ -1124,8 +1469,16 @@ const totalSelling = computed(() => {
   return form.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.selling_amount) || 0), 0);
 });
 
+const totalOtherCosts = computed(() => {
+  return form.other_costs.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+const totalReimbursement = computed(() => {
+  return reimbursementItems.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
 const totalRevenue = computed(() => {
-  return totalSelling.value - totalBuying.value;
+  return totalSelling.value - (totalBuying.value + totalOtherCosts.value + totalReimbursement.value);
 });
 
 // Get profit for individual vendor item
@@ -1141,6 +1494,8 @@ const calculateTotals = () => {
   return {
     totalBuying: totalBuying.value,
     totalSelling: totalSelling.value,
+    totalOtherCosts: totalOtherCosts.value,
+    totalReimbursement: totalReimbursement.value,
     totalRevenue: totalRevenue.value
   };
 };
@@ -1173,11 +1528,12 @@ const closeAlert = () => {
 };
 
 const submit = () => {
-  // Add voucher data to form
+  // Add voucher data and reimbursement items to form
   const formData = {
     ...form.data(),
     payment_vouchers: paymentVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-    receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount)
+    receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
+    reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0)
   };
 
   form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"), {

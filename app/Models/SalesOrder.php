@@ -158,6 +158,11 @@ class SalesOrder extends Model
         return $this->hasMany(Voucher::class)->where('type', Voucher::TYPE_RECEIPT);
     }
 
+    public function reimbursementItems(): HasMany
+    {
+        return $this->hasMany(ReimbursementItem::class);
+    }
+
     // Helper methods for vouchers
     public function getTotalPaymentVouchers(): float
     {
@@ -192,11 +197,6 @@ class SalesOrder extends Model
     public function accountPayables(): HasMany
     {
         return $this->hasMany(AccountPayable::class);
-    }
-
-    public function reimbursementItems(): HasMany
-    {
-        return $this->hasMany(ReimbursementItem::class);
     }
 
     // Helper methods for breakdown calculations

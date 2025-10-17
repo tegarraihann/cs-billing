@@ -178,6 +178,18 @@
               <span class="text-gray-600">Destination:</span>
               <span class="font-medium">{{ invoice.destination || '-' }}</span>
             </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Gross Weight:</span>
+              <span class="font-medium">{{ invoice.gross_weight || '-' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Volume:</span>
+              <span class="font-medium">{{ invoice.volume || '-' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">No. of Packages:</span>
+              <span class="font-medium">{{ invoice.no_of_packages || '-' }} BAG</span>
+            </div>
           </div>
         </div>
 
@@ -975,15 +987,30 @@ const markAsSent = () => {
 // Computed properties untuk memisahkan items berdasarkan item_ref
 const getMainItems = computed(() => {
   if (props.invoice.invoice_type === 'combined') {
-    // Untuk invoice combined, pisahkan items berdasarkan item_ref
+    // Untuk invoice combined, pisahkan items berdasarkan item_type dan item_ref
     return (props.invoice.items || []).filter(item => {
-      const ref = (item.item_ref || '').toLowerCase().trim();
-      // Items masuk ke Main jika: kosong, 'main', 'm', '1', atau mengandung 'main'
-      return !ref ||
-             ref === 'main' ||
-             ref === 'm' ||
-             ref === '1' ||
-             ref.includes('main');
+      // Primary filter: item_type harus billable (main items)
+      if (item.item_type === 'billable') {
+        return true;
+      }
+
+      // Exclude specific item types yang bukan main items
+      if (item.item_type === 'reimbursement' || item.item_type === 'operational_cost') {
+        return false;
+      }
+
+      // Fallback filter untuk legacy data tanpa item_type
+      if (!item.item_type || item.item_type === null) {
+        const ref = (item.item_ref || '').toLowerCase().trim();
+        // Items masuk ke Main jika: kosong, 'main', 'm', '1', atau mengandung 'main'
+        return !ref ||
+               ref === 'main' ||
+               ref === 'm' ||
+               ref === '1' ||
+               ref.includes('main');
+      }
+
+      return false;
     });
   }
 
@@ -1002,14 +1029,24 @@ const getMainItems = computed(() => {
 
 const getReimbursementItems = computed(() => {
   if (props.invoice.invoice_type === 'combined') {
-    // Untuk invoice combined, pisahkan items berdasarkan item_ref
+    // Untuk invoice combined, pisahkan items berdasarkan item_type dan item_ref
     return (props.invoice.items || []).filter(item => {
-      const ref = (item.item_ref || '').toLowerCase().trim();
-      // Items masuk ke Reimbursement jika: 'reimbursement', 'r', '2', atau mengandung 'reimbur'
-      return ref === 'reimbursement' ||
-             ref === 'r' ||
-             ref === '2' ||
-             ref.includes('reimbur');
+      // Primary filter: item_type harus reimbursement
+      if (item.item_type === 'reimbursement') {
+        return true;
+      }
+
+      // Fallback filter untuk legacy data tanpa item_type
+      if (!item.item_type || item.item_type === null) {
+        const ref = (item.item_ref || '').toLowerCase().trim();
+        // Items masuk ke Reimbursement jika: 'reimbursement', 'r', '2', atau mengandung 'reimbur'
+        return ref === 'reimbursement' ||
+               ref === 'r' ||
+               ref === '2' ||
+               ref.includes('reimbur');
+      }
+
+      return false;
     });
   }
 
@@ -1044,7 +1081,7 @@ const getOperationalCostsTotal = computed(() => {
   return getOperationalCosts.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
 });
 
-// Computed untuk profit calculation
+// Computed untuk profit calculation - hanya main items (billable) yang dihitung sebagai revenue
 const getBillableItems = computed(() => {
   return (props.invoice.items || []).filter(item => item.item_type === 'billable' || item.item_type === null);
 });

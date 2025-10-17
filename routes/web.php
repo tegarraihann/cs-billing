@@ -686,6 +686,17 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{shipmentType}', 'update')->name('update');
         Route::delete('/{shipmentType}', 'destroy')->name('destroy');
     });
+
+    // Operational Cost Category Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\OperationalCostCategoryController::class)->prefix('operational-cost-categories')->name('operational-cost-categories.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{operationalCostCategory}', 'show')->name('show');
+        Route::get('/{operationalCostCategory}/edit', 'edit')->name('edit');
+        Route::put('/{operationalCostCategory}', 'update')->name('update');
+        Route::delete('/{operationalCostCategory}', 'destroy')->name('destroy');
+    });
 });
 
 // SHARED ROUTES (All authenticated users)

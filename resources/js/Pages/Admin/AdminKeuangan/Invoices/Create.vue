@@ -42,6 +42,15 @@
               <div v-if="errors.sales_order_id" class="text-red-500 text-sm mt-1">
                 {{ errors.sales_order_id }}
               </div>
+              <!-- Auto-load notification -->
+              <div v-if="form.sales_order_id" class="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
+                <p class="text-xs text-green-700">
+                  ✓ Data otomatis di-load dari Sales Order:
+                  {{ mainItems.length }} item utama,
+                  {{ reimbursementItems.length }} reimbursement,
+                  {{ operationalCosts.length }} biaya operational
+                </p>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Invoice</label>
@@ -610,6 +619,18 @@
               <div>
                 <h3 class="text-lg font-semibold text-red-800">Biaya Operasional (Internal)</h3>
                 <p class="text-sm text-red-600">Biaya ini tidak akan ditampilkan di invoice customer dan akan mengurangi profit</p>
+                <!-- Auto-populated info -->
+                <div v-if="operationalCosts.some(cost => cost.auto_generated)" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div class="flex items-start space-x-2">
+                    <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div class="text-xs text-blue-800">
+                      <strong>Info:</strong> Biaya dengan label <span class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Auto dari SO</span>
+                      telah dimuat otomatis dari Sales Order. Anda bisa mengedit nilai atau deskripsi sesuai kebutuhan.
+                    </div>
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
@@ -634,13 +655,45 @@
             </div>
 
             <div class="space-y-4">
-              <div v-for="(cost, index) in operationalCosts" :key="'opex-' + index" class="border border-red-200 rounded-lg p-4 bg-red-50">
+              <div v-for="(cost, index) in operationalCosts" :key="'opex-' + index"
+                   :class="[
+                     'border rounded-lg p-4',
+                     cost.auto_generated
+                       ? 'border-blue-200 bg-blue-50'
+                       : 'border-red-200 bg-red-50'
+                   ]">
                 <div class="flex items-center justify-between mb-4">
-                  <h4 class="font-medium text-red-800">Biaya Operasional {{ index + 1 }}</h4>
+                  <div class="flex items-center space-x-2">
+                    <h4 :class="[
+                      'font-medium',
+                      cost.auto_generated ? 'text-blue-800' : 'text-red-800'
+                    ]">
+                      Biaya Operasional {{ index + 1 }}
+                    </h4>
+                    <!-- Auto-generated indicator -->
+                    <span v-if="cost.auto_generated"
+                          class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Auto dari SO
+                    </span>
+                    <!-- Manual input indicator -->
+                    <span v-else
+                          class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Manual
+                    </span>
+                  </div>
                   <button
                     type="button"
                     @click="removeOperationalCost(index)"
-                    class="text-red-600 hover:text-red-800"
+                    :class="[
+                      'hover:text-red-800',
+                      cost.auto_generated ? 'text-blue-600' : 'text-red-600'
+                    ]"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -650,13 +703,21 @@
 
                 <!-- Category Selection -->
                 <div class="mb-4">
-                  <label class="block text-sm font-medium text-red-700 mb-2">
+                  <label :class="[
+                    'block text-sm font-medium mb-2',
+                    cost.auto_generated ? 'text-blue-700' : 'text-red-700'
+                  ]">
                     Kategori Biaya
                   </label>
                   <select
                     v-model="cost.category_id"
                     @change="onCategoryChange(index)"
-                    class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    :class="[
+                      'w-full px-3 py-2 border rounded-lg focus:ring-2',
+                      cost.auto_generated
+                        ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
+                        : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    ]"
                     required
                   >
                     <option value="">-- Pilih Kategori Biaya --</option>
@@ -730,11 +791,16 @@
         <!-- Profit Summary (if operational costs exist) -->
         <div v-if="operationalCosts.length > 0" class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 border border-blue-200">
           <h3 class="text-lg font-semibold text-blue-800 mb-4">Ringkasan Profit</h3>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
             <div class="bg-white rounded-lg p-4 border border-blue-200">
               <div class="text-blue-600 font-medium">Gross Revenue</div>
               <div class="text-xl font-bold text-blue-800">{{ formatCurrency(calculateGrossRevenue()) }}</div>
-              <div class="text-xs text-blue-500">Customer invoice total</div>
+              <div class="text-xs text-blue-500">Billable items only</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-orange-200">
+              <div class="text-orange-600 font-medium">Reimbursement</div>
+              <div class="text-xl font-bold text-orange-800">{{ formatCurrency(calculateReimbursementTotal()) }}</div>
+              <div class="text-xs text-orange-500">Cost-neutral</div>
             </div>
             <div class="bg-white rounded-lg p-4 border border-red-200">
               <div class="text-red-600 font-medium">Operational Costs</div>
@@ -844,6 +910,15 @@ const form = useForm({
 const loadSalesOrderData = () => {
   const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
   if (selectedOrder) {
+    console.log('Loading Sales Order data:', {
+      id: selectedOrder.id,
+      hasVendorBreakdown: selectedOrder.vendor_breakdown ? selectedOrder.vendor_breakdown.length : 0,
+      hasReimbursementItems: selectedOrder.reimbursement_items ? selectedOrder.reimbursement_items.length : 0,
+      hasOtherCosts: selectedOrder.other_costs ? selectedOrder.other_costs.length : 0,
+      reimbursementData: selectedOrder.reimbursement_items,
+      otherCostsData: selectedOrder.other_costs,
+      fullOrderData: selectedOrder
+    });
     // Basic shipping info
     form.consignee = selectedOrder.customer || selectedOrder.customer_name || '';
     form.shipper = selectedOrder.shipper || '';
@@ -881,50 +956,135 @@ const loadSalesOrderData = () => {
     // Remarks - keep empty, don't auto-populate from sales order
     // form.remarks remains empty for manual input
 
-    // Auto-populate items from vendor_breakdown
-    populateItemsFromVendorBreakdown(selectedOrder.vendor_breakdown);
+    // Auto-populate items from sales order data
+    populateItemsFromSalesOrder(selectedOrder);
   }
 };
 
-// Function to auto-populate items from vendor breakdown
-const populateItemsFromVendorBreakdown = (vendorBreakdown) => {
-  if (!vendorBreakdown || !Array.isArray(vendorBreakdown)) return;
+// Function to auto-populate items from sales order
+const populateItemsFromSalesOrder = (salesOrder) => {
+  if (!salesOrder) return;
 
   // Clear existing items
   mainItems.value = [];
   reimbursementItems.value = [];
+  operationalCosts.value = [];
 
-  vendorBreakdown.forEach((vendor, index) => {
-    if (vendor.selling_amount && vendor.selling_amount > 0) {
-      // Add to main items with selling amount as rate
-      mainItems.value.push({
-        description: vendor.description || `Service ${index + 1}`,
-        quantity: 1,
-        unit: 'SET',
-        rate: parseFloat(vendor.selling_amount),
-        currency: 'IDR',
-        amount: parseFloat(vendor.selling_amount),
-        item_ref: `vendor_${vendor.vendor_id || index}`,
-        type: 'main'
-      });
-    }
-  });
+  // 1. Populate main items from vendor_breakdown
+  if (salesOrder.vendor_breakdown && Array.isArray(salesOrder.vendor_breakdown)) {
+    salesOrder.vendor_breakdown.forEach((vendor, index) => {
+      if (vendor.selling_amount && vendor.selling_amount > 0) {
+        // Add to main items with selling amount as rate
+        mainItems.value.push({
+          description: vendor.description || `Service ${index + 1}`,
+          quantity: 1,
+          unit: 'SET',
+          rate: parseFloat(vendor.selling_amount),
+          currency: 'IDR',
+          amount: parseFloat(vendor.selling_amount),
+          item_ref: `vendor_${vendor.vendor_id || index}`,
+          type: 'main'
+        });
+      }
+    });
+  }
+
+  // 2. Populate reimbursement items from reimbursementItems relationship
+  if (salesOrder.reimbursement_items && Array.isArray(salesOrder.reimbursement_items)) {
+    console.log('Populating reimbursement items from relationship:', salesOrder.reimbursement_items);
+    salesOrder.reimbursement_items.forEach((item, index) => {
+      if (item.amount && item.amount > 0) {
+        reimbursementItems.value.push({
+          description: item.description || `Reimbursement ${index + 1}`,
+          quantity: 1,
+          unit: 'SET',
+          rate: parseFloat(item.amount),
+          currency: 'IDR',
+          amount: parseFloat(item.amount),
+          item_ref: `reimb_${item.id || index}`,
+          type: 'reimbursement'
+        });
+      }
+    });
+  }
+
+  // 3. Populate operational costs from other_costs (with auto-generated flag)
+  if (salesOrder.other_costs && Array.isArray(salesOrder.other_costs)) {
+    console.log('Populating operational costs:', salesOrder.other_costs);
+    salesOrder.other_costs.forEach((cost, index) => {
+      if (cost.amount && cost.amount > 0) {
+        operationalCosts.value.push({
+          description: cost.description || `Operational Cost ${index + 1}`,
+          quantity: 1.0,
+          unit: 'pcs',
+          rate: parseFloat(cost.amount),
+          currency: 'IDR',
+          amount: parseFloat(cost.amount),
+          item_type: 'operational_cost',
+          include_in_customer_invoice: false,
+          is_hidden_from_customer: true,
+          category_id: cost.category_id || '',
+          auto_generated: true,
+          source: 'sales_order_other_costs',
+          item_ref: `other_cost_${index}`
+        });
+      }
+    });
+  }
+
+  // 4. Populate operational costs from vendor_breakdown buying amounts (with auto-generated flag)
+  if (salesOrder.vendor_breakdown && Array.isArray(salesOrder.vendor_breakdown)) {
+    salesOrder.vendor_breakdown.forEach((vendor, index) => {
+      if (vendor.buying_amount && vendor.buying_amount > 0) {
+        operationalCosts.value.push({
+          description: `Buying Cost - ${vendor.description || 'Service'}`,
+          quantity: 1.0,
+          unit: 'SET',
+          rate: parseFloat(vendor.buying_amount),
+          currency: 'IDR',
+          amount: parseFloat(vendor.buying_amount),
+          item_type: 'operational_cost',
+          include_in_customer_invoice: false,
+          is_hidden_from_customer: true,
+          auto_generated: true,
+          source: 'sales_order_vendor_breakdown',
+          item_ref: `vendor_${vendor.vendor_id || index}`
+        });
+      }
+    });
+  }
 
   // If no main items populated, add one empty item
   if (mainItems.value.length === 0) {
     addItem();
   }
+
+  // Log the final populated data
+  console.log('Data populated successfully:', {
+    mainItemsCount: mainItems.value.length,
+    reimbursementItemsCount: reimbursementItems.value.length,
+    operationalCostsCount: operationalCosts.value.length,
+    mainItems: mainItems.value,
+    reimbursementItems: reimbursementItems.value,
+    operationalCosts: operationalCosts.value
+  });
 };
 
 // Function to reload data from Sales Order
 const reloadFromSalesOrder = () => {
   const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
-  if (selectedOrder && selectedOrder.vendor_breakdown) {
-    if (confirm('Ini akan mengganti semua item yang sudah ada dengan data dari Sales Order. Lanjutkan?')) {
-      populateItemsFromVendorBreakdown(selectedOrder.vendor_breakdown);
+  if (selectedOrder) {
+    const hasData = (selectedOrder.vendor_breakdown && selectedOrder.vendor_breakdown.length > 0) ||
+                   (selectedOrder.reimbursement_items && selectedOrder.reimbursement_items.length > 0) ||
+                   (selectedOrder.other_costs && selectedOrder.other_costs.length > 0);
+
+    if (hasData) {
+      if (confirm('Ini akan mengganti semua item yang sudah ada dengan data dari Sales Order. Lanjutkan?')) {
+        populateItemsFromSalesOrder(selectedOrder);
+      }
+    } else {
+      alert('Sales Order ini tidak memiliki data vendor breakdown, reimbursement, atau biaya operational untuk di-load.');
     }
-  } else {
-    alert('Sales Order ini tidak memiliki vendor breakdown untuk di-load.');
   }
 };
 
@@ -986,7 +1146,10 @@ const addOperationalCost = () => {
     item_type: 'operational_cost',
     include_in_customer_invoice: false,
     is_hidden_from_customer: true,
-    category_id: ''
+    category_id: '',
+    auto_generated: false,
+    source: 'manual_input',
+    item_ref: `manual_${Date.now()}`
   });
 };
 
@@ -1030,15 +1193,20 @@ const calculateOperationalTotal = () => {
 
 // Profit calculation methods
 const calculateGrossRevenue = () => {
+  // Only calculate revenue from main billable items (exclude reimbursement)
   const mainTotal = mainItems.value.reduce((total, item) => {
     return total + (parseFloat(item.amount || 0));
   }, 0);
 
-  const reimbursementTotal = reimbursementItems.value.reduce((total, item) => {
+  // Reimbursement is cost-neutral, tidak dihitung sebagai revenue
+  return mainTotal;
+};
+
+const calculateReimbursementTotal = () => {
+  // Reimbursement items untuk informasi saja (cost-neutral)
+  return reimbursementItems.value.reduce((total, item) => {
     return total + (parseFloat(item.amount || 0));
   }, 0);
-
-  return mainTotal + reimbursementTotal;
 };
 
 const calculateNetProfit = () => {
@@ -1117,7 +1285,7 @@ const submit = () => {
       ...item,
       type: 'reimbursement',
       item_ref: item.item_ref || 'reimbursement',
-      item_type: 'billable',
+      item_type: 'reimbursement',
       include_in_customer_invoice: true,
       is_hidden_from_customer: false
     })),

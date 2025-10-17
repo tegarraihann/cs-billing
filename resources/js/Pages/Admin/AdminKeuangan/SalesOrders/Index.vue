@@ -67,71 +67,101 @@
                       Customer
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dirilis Oleh
+                      Shipper
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tanggal Rilis
+                      Shipment Type
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Revenue
+                      Commodity
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Vouchers
+                      QTY
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Container No
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th scope="col" class="relative px-6 py-3">
-                      <span class="sr-only">Actions</span>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Aksi
                     </th>
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                   <tr v-for="salesOrder in salesOrders.data" :key="salesOrder.id" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">
-                    {{ salesOrder.order_number }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ salesOrder.customer }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ salesOrder.released_by?.name || 'N/A' }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ formatDateTime(salesOrder.released_at) }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
-                    {{ salesOrder.revenue ? formatCurrency(salesOrder.revenue) : '-' }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
-                    <div v-if="salesOrder.vouchers && salesOrder.vouchers.length > 0" class="flex flex-wrap gap-1">
-                      <span v-for="voucher in salesOrder.vouchers" :key="voucher.id" 
-                            class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
-                            :class="getVoucherTypeColor(voucher.type)">
-                        {{ voucher.voucher_no }}
+                    <!-- Order Number -->
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                      {{ salesOrder.order_number || salesOrder.so_number }}
+                    </td>
+
+                    <!-- Customer -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <div>
+                        <div class="font-medium">{{ salesOrder.customer || salesOrder.customer_name }}</div>
+                        <div class="text-gray-500" v-if="salesOrder.customer_code">
+                          {{ salesOrder.customer_code }}
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Shipper -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ salesOrder.shipper || salesOrder.consignee_shipper || '-' }}
+                    </td>
+
+                    <!-- Shipment Type -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ salesOrder.shipment_type || '-' }}
                       </span>
-                    </div>
-                    <span v-else class="text-gray-400">-</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusColor(salesOrder.status)"
-                  >
-                    {{ getStatusLabel(salesOrder.status) }}
-                  </span>
-                </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div class="flex space-x-2">
+                    </td>
+
+                    <!-- Commodity -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <div class="max-w-32 truncate" :title="salesOrder.commodity">
+                        {{ salesOrder.commodity || salesOrder.goods || '-' }}
+                      </div>
+                    </td>
+
+                    <!-- QTY -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ salesOrder.qty || '-' }}
+                    </td>
+
+                    <!-- Container No -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <div v-if="salesOrder.container_no && Array.isArray(salesOrder.container_no)" class="space-y-1">
+                        <span v-for="(container, index) in salesOrder.container_no.slice(0, 2)" :key="index" class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1">
+                          {{ container }}
+                        </span>
+                        <div v-if="salesOrder.container_no.length > 2" class="text-xs text-gray-500">
+                          +{{ salesOrder.container_no.length - 2 }} lainnya
+                        </div>
+                      </div>
+                      <span v-else-if="salesOrder.container_no" class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        {{ salesOrder.container_no }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-6 py-4 text-sm">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="getStatusColor(salesOrder.status)"
+                      >
+                        {{ getStatusLabel(salesOrder.status) }}
+                      </span>
+                    </td>
+
+                    <!-- Aksi -->
+                    <td class="px-6 py-4 text-sm font-medium">
+                      <div class="flex items-center space-x-2">
                         <Link
                           :href="route('admin-keuangan.sales-orders.show', salesOrder.id)"
-                          class="text-sage-800 p-2 rounded-md"
+                          class="text-sage-800 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
                           title="Lihat Detail"
                         >
                           <Eye class="w-4 h-4" />

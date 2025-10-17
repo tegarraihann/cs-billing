@@ -191,10 +191,13 @@
                             <form @submit.prevent="recordPayment">
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                                    <input v-model="paymentForm.amount" type="number" step="0.01"
-                                        :max="receivable.outstanding_amount" required
+                                    <input v-model="paymentForm.amount" type="text"
+                                        @input="formatAmountInput"
+                                        @blur="validateAmount"
+                                        required
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="Enter payment amount" />
+                                        placeholder="Enter payment amount (e.g., 2500 or 2.500)" />
+                                    <p v-if="amountError" class="mt-1 text-sm text-red-600">{{ amountError }}</p>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
@@ -238,6 +241,7 @@ const props = defineProps({
 
 const showPaymentModal = ref(false)
 const processing = ref(false)
+const amountError = ref('')
 
 const paymentForm = reactive({
     amount: '',
@@ -304,14 +308,86 @@ const goBack = () => {
 const openPaymentModal = () => {
     paymentForm.amount = ''
     paymentForm.notes = ''
+    amountError.value = ''
     showPaymentModal.value = true
 }
 
 const closePaymentModal = () => {
     showPaymentModal.value = false
+    amountError.value = ''
+}
+
+// Format amount input to handle Indonesian number format
+const formatAmountInput = (event) => {
+    amountError.value = ''
+    let value = event.target.value
+
+    // Remove any non-numeric characters except dots and commas
+    value = value.replace(/[^\d.,]/g, '')
+
+    // Handle Indonesian format (2.500,50) or standard format (2500.50)
+    // Allow both formats during typing
+    paymentForm.amount = value
+}
+
+// Validate and normalize amount when user leaves input
+const validateAmount = () => {
+    let value = paymentForm.amount.toString().trim()
+
+    if (!value) {
+        amountError.value = 'Amount is required'
+        return
+    }
+
+    // Convert Indonesian format to standard format
+    // Indonesian: 2.500,50 -> Standard: 2500.50
+    // Indonesian: 2.500 -> Standard: 2500
+    let normalizedValue = value
+
+    // Check if it's Indonesian format (contains dots as thousand separator)
+    if (value.includes('.') && value.includes(',')) {
+        // Format: 2.500,50 (dot = thousand separator, comma = decimal)
+        normalizedValue = value.replace(/\./g, '').replace(',', '.')
+    } else if (value.includes('.') && !value.includes(',')) {
+        // Could be: 2.500 (thousand) or 2500.50 (decimal)
+        const parts = value.split('.')
+        if (parts.length === 2 && parts[1].length <= 2) {
+            // Likely decimal: 2500.50
+            normalizedValue = value
+        } else {
+            // Likely thousand separator: 2.500
+            normalizedValue = value.replace(/\./g, '')
+        }
+    } else if (value.includes(',')) {
+        // Format: 2500,50 (comma as decimal)
+        normalizedValue = value.replace(',', '.')
+    }
+
+    const numericValue = parseFloat(normalizedValue)
+
+    if (isNaN(numericValue) || numericValue <= 0) {
+        amountError.value = 'Please enter a valid amount'
+        return
+    }
+
+    if (numericValue > props.receivable.outstanding_amount) {
+        amountError.value = `Amount cannot exceed outstanding balance (Rp ${formatNumber(props.receivable.outstanding_amount)})`
+        return
+    }
+
+    // Update the form with normalized value for submission
+    paymentForm.amount = normalizedValue
+    amountError.value = ''
 }
 
 const recordPayment = () => {
+    // Validate amount before submission
+    validateAmount()
+
+    if (amountError.value) {
+        return // Don't submit if there's an error
+    }
+
     processing.value = true
 
     router.post(

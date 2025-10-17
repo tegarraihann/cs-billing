@@ -47,6 +47,11 @@ class InvoiceItem extends Model
         return $query->where('item_type', 'operational_cost');
     }
 
+    public function scopeReimbursement($query)
+    {
+        return $query->where('item_type', 'reimbursement');
+    }
+
     public function scopeCustomerVisible($query)
     {
         return $query->where('include_in_customer_invoice', true)
@@ -70,6 +75,11 @@ class InvoiceItem extends Model
     public function isOperationalCost(): bool
     {
         return $this->item_type === 'operational_cost';
+    }
+
+    public function isReimbursement(): bool
+    {
+        return $this->item_type === 'reimbursement';
     }
 
     public function isVisibleToCustomer(): bool

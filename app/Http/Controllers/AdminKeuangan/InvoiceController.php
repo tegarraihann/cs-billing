@@ -82,7 +82,7 @@ class InvoiceController extends Controller
     {
         // Check if coming from Sales Order detail page
         if ($request->has('sales_order_id') && $request->has('invoice_type')) {
-            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy'])
+            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy', 'reimbursementItems'])
                 ->findOrFail($request->sales_order_id);
 
             // Verify SO is eligible for invoice creation - must be approved by finance
@@ -111,8 +111,8 @@ class InvoiceController extends Controller
         }
 
         // Get only approved SOs (already released and approved by finance)
-        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy'])
-            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'measurement', 'qty', 'shipment_type', 'container_no'])
+        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems'])
+            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'measurement', 'qty', 'shipment_type', 'container_no'])
             ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
             ->whereNotNull('approved_at')  // Must be approved by finance
@@ -281,47 +281,16 @@ class InvoiceController extends Controller
             ]);
         }
 
-        // Auto-generate operational cost items from Sales Order vendor breakdown
-        if ($salesOrder->vendor_breakdown && is_array($salesOrder->vendor_breakdown)) {
-            foreach ($salesOrder->vendor_breakdown as $vendor) {
-                if (isset($vendor['buying_amount']) && $vendor['buying_amount'] > 0) {
-                    InvoiceItem::create([
-                        'invoice_id' => $invoice->id,
-                        'description' => 'Buying Cost - ' . ($vendor['description'] ?? 'Service'),
-                        'quantity' => 1,
-                        'unit' => 'SET',
-                        'rate' => $vendor['buying_amount'],
-                        'currency' => 'IDR',
-                        'amount' => $vendor['buying_amount'],
-                        'item_ref' => 'vendor_' . ($vendor['vendor_id'] ?? 'unknown'),
-                        'item_type' => 'operational_cost',
-                        'include_in_customer_invoice' => false,
-                        'is_hidden_from_customer' => true
-                    ]);
-                }
-            }
-        }
-
-        // Auto-generate operational cost items from Sales Order other costs
-        if ($salesOrder->other_costs && is_array($salesOrder->other_costs)) {
-            foreach ($salesOrder->other_costs as $index => $otherCost) {
-                if (isset($otherCost['amount']) && $otherCost['amount'] > 0) {
-                    InvoiceItem::create([
-                        'invoice_id' => $invoice->id,
-                        'description' => 'Other Cost - ' . ($otherCost['description'] ?? 'Additional Cost'),
-                        'quantity' => 1,
-                        'unit' => 'SET',
-                        'rate' => $otherCost['amount'],
-                        'currency' => 'IDR',
-                        'amount' => $otherCost['amount'],
-                        'item_ref' => 'other_cost_' . $index,
-                        'item_type' => 'operational_cost',
-                        'include_in_customer_invoice' => false,
-                        'is_hidden_from_customer' => true
-                    ]);
-                }
-            }
-        }
+        // NOTE: Auto-generation of operational costs has been moved to frontend
+        // to prevent double data issues. Frontend now handles auto-population
+        // from both vendor_breakdown and other_costs with proper visual indicators.
+        //
+        // Previously auto-generated operational costs are now handled in:
+        // - Frontend: Invoice Create form auto-populates from SO data
+        // - User can review, edit, and approve before submission
+        // - Prevents duplicate entries and gives Finance full control
+        //
+        // Auto-generation moved to frontend for better UX and data control.
 
         $invoice->calculateTotals();
 
@@ -845,10 +814,25 @@ class InvoiceController extends Controller
 
     public function markSent(Invoice $invoice)
     {
-        $invoice->update(['status' => 'sent']);
+        try {
+            $invoice->update(['status' => 'sent']);
 
-        return redirect()->route('admin-keuangan.invoices.show', $invoice)
-            ->with('success', 'Invoice berhasil ditandai sebagai terkirim.');
+            // Auto-generate or sync Account Receivable when marking as sent
+            \App\Models\AccountReceivable::syncFromInvoice($invoice);
+
+            return redirect()->route('admin-keuangan.invoices.show', $invoice)
+                ->with('success', 'Invoice berhasil ditandai sebagai terkirim dan piutang telah dibuat.');
+        } catch (\Exception $e) {
+            \Log::error('Mark Invoice as Sent Error', [
+                'invoice_id' => $invoice->id,
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'user_id' => auth()->id()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menandai invoice sebagai terkirim.');
+        }
     }
 
     public function paymentHistory(Request $request)
