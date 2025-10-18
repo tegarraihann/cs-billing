@@ -26,6 +26,7 @@ class Invoice extends Model
         'gross_weight',
         'volume',
         'no_of_packages',
+        'package_unit',
         'vessel',
         'flight_voy',
         'pol_pod',
@@ -96,6 +97,11 @@ class Invoice extends Model
     public function operationalCosts()
     {
         return $this->hasMany(InvoiceItem::class)->operationalCost();
+    }
+
+    public function packageUnit()
+    {
+        return $this->belongsTo(MasterPackageUnit::class, 'package_unit', 'code');
     }
 
     public function reimbursementItems()
@@ -425,7 +431,7 @@ class Invoice extends Model
             }
 
             // Create operational cost entries (per item)
-            foreach ($this->operationalCosts as $cost) {
+            foreach ($this->operationalCosts()->get() as $cost) {
                 $costEntry = \App\Models\ProfitLossEntry::create([
                     'period_id' => $periodId,
                     'account_id' => $expenseAccount->id,

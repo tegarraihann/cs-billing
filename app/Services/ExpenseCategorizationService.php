@@ -151,7 +151,8 @@ class ExpenseCategorizationService
         $generatedTransactions = [];
         $errors = [];
 
-        if (!$invoice->operationalCosts || $invoice->operationalCosts->isEmpty()) {
+        $operationalCosts = $invoice->operationalCosts();
+        if (!$operationalCosts->exists()) {
             return [
                 'success' => true,
                 'message' => 'No operational costs to generate petty cash transactions',
@@ -160,7 +161,7 @@ class ExpenseCategorizationService
             ];
         }
 
-        foreach ($invoice->operationalCosts as $cost) {
+        foreach ($operationalCosts->get() as $cost) {
             try {
                 // Process the operational cost
                 $processedData = $this->processOperationalCost([

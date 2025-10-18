@@ -530,6 +530,18 @@
                 <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{ form.errors.net_weight }}</div>
               </div>
               <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">GROSS WEIGHT (KG)</label>
+                <input
+                  v-model="form.gross_weight"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Masukkan berat kotor dalam kg"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.gross_weight" class="mt-2 text-sm text-red-600">{{ form.errors.gross_weight }}</div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">MEAS (M³)</label>
                 <input
                   v-model="form.measurement"
@@ -624,6 +636,195 @@
           </div>
         </div>
 
+        <!-- Other Costs Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div
+            @click="toggleSection('other_costs')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Biaya Operasional</h3>
+            <svg
+              :class="{'rotate-180': !sections.other_costs}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.other_costs" class="p-6 space-y-4">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-md font-semibold text-sage-800">Daftar Biaya Operasional</h4>
+              <button
+                type="button"
+                @click="addOtherCost"
+                class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+              >
+                + Tambah Biaya
+              </button>
+            </div>
+
+            <div v-for="(cost, index) in form.other_costs" :key="'cost-' + index" class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
+              <div class="grid grid-cols-12 gap-3">
+                <div class="col-span-3">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Deskripsi</label>
+                  <input
+                    v-model="cost.description"
+                    type="text"
+                    placeholder="Deskripsi biaya"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Jumlah</label>
+                  <input
+                    v-model="cost.amount"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Kategori</label>
+                  <select
+                    v-model="cost.category"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  >
+                    <option value="">Pilih Kategori</option>
+                    <option v-for="category in operationalCostCategories" :key="category.id" :value="category.name">
+                      {{ category.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-span-4">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Catatan</label>
+                  <input
+                    v-model="cost.notes"
+                    type="text"
+                    placeholder="Catatan tambahan"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-1">
+                  <label class="block text-xs font-medium text-transparent mb-1">Del</label>
+                  <button
+                    type="button"
+                    @click="removeOtherCost(index)"
+                    v-if="form.other_costs.length > 1"
+                    class="w-full h-10 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Other Costs -->
+            <div class="mt-4 pt-4 border-t border-gray-300 text-right">
+              <div class="p-3 bg-orange-100 rounded-lg inline-block">
+                <p class="text-xs font-medium text-orange-700">Total Biaya Operasional</p>
+                <p class="text-lg font-bold text-orange-800">{{ formatCurrency(totalOtherCosts) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reimbursement Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div
+            @click="toggleSection('reimbursement')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Reimbursement</h3>
+            <svg
+              :class="{'rotate-180': !sections.reimbursement}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.reimbursement" class="p-6 space-y-4">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-md font-semibold text-sage-800">Daftar Reimbursement</h4>
+              <button
+                type="button"
+                @click="addReimbursementItem"
+                class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+              >
+                + Tambah Reimbursement
+              </button>
+            </div>
+
+            <div v-for="(item, index) in reimbursementItems" :key="'reimburse-' + index" class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
+              <div class="grid grid-cols-12 gap-3">
+                <div class="col-span-3">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Deskripsi</label>
+                  <input
+                    v-model="item.description"
+                    type="text"
+                    placeholder="Deskripsi reimbursement"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Jumlah</label>
+                  <input
+                    v-model="item.amount"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Kategori</label>
+                  <input
+                    v-model="item.category"
+                    type="text"
+                    placeholder="Kategori reimbursement"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-4">
+                  <label class="block text-xs font-medium text-sage-700 mb-1">Catatan</label>
+                  <input
+                    v-model="item.notes"
+                    type="text"
+                    placeholder="Catatan tambahan"
+                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                </div>
+                <div class="col-span-1">
+                  <label class="block text-xs font-medium text-transparent mb-1">Del</label>
+                  <button
+                    type="button"
+                    @click="removeReimbursementItem(index)"
+                    v-if="reimbursementItems.length > 1"
+                    class="w-full h-10 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Reimbursement -->
+            <div class="mt-4 pt-4 border-t border-gray-300 text-right">
+              <div class="p-3 bg-purple-100 rounded-lg inline-block">
+                <p class="text-xs font-medium text-purple-700">Total Reimbursement</p>
+                <p class="text-lg font-bold text-purple-800">{{ formatCurrency(totalReimbursement) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Submit Buttons -->
         <div class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
           <Link
@@ -672,7 +873,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
@@ -683,7 +884,28 @@ const props = defineProps({
   vendors: Array,
   shipmentTypes: Array,
   operationalCostCategories: Array,
+  packageUnits: {
+    type: Array,
+    default: () => []
+  },
 });
+
+// Initialize other_costs from salesOrder data
+const initializeOtherCosts = () => {
+  if (props.salesOrder.other_costs && Array.isArray(props.salesOrder.other_costs)) {
+    return props.salesOrder.other_costs.length > 0
+      ? props.salesOrder.other_costs
+      : [{ description: "", amount: 0, category: "", notes: "" }];
+  }
+  return [{ description: "", amount: 0, category: "", notes: "" }];
+};
+
+// Initialize reimbursement items from salesOrder data
+const reimbursementItems = ref(
+  props.salesOrder.reimbursement_items && props.salesOrder.reimbursement_items.length > 0
+    ? props.salesOrder.reimbursement_items
+    : [{ description: "", amount: 0, category: "", notes: "" }]
+);
 
 // Alert Dialog State
 const alertDialog = ref({
@@ -703,6 +925,8 @@ const sections = ref({
   pricing: false,
   goods: false,
   invoice: false,
+  other_costs: false,
+  reimbursement: false,
 });
 
 // Initialize form with existing data
@@ -760,11 +984,13 @@ const form = useForm({
   commodity: props.salesOrder.commodity || "",
   qty: props.salesOrder.qty || "",
   net_weight: props.salesOrder.net_weight || "",
+  gross_weight: props.salesOrder.gross_weight || "",
   measurement: props.salesOrder.measurement || "",
   container_no: Array.isArray(props.salesOrder.container_no) ? props.salesOrder.container_no : (props.salesOrder.container_no ? [props.salesOrder.container_no] : [""]),
   invoice_number: props.salesOrder.invoice_number || "",
   invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : "",
-  top: props.salesOrder.top || ""
+  top: props.salesOrder.top || "",
+  other_costs: initializeOtherCosts()
 });
 
 const toggleSection = (section) => {
@@ -821,6 +1047,28 @@ const removeContainerNo = (index) => {
   }
 };
 
+// Other costs management methods
+const addOtherCost = () => {
+  form.other_costs.push({ description: "", amount: 0, category: "", notes: "" });
+};
+
+const removeOtherCost = (index) => {
+  if (form.other_costs.length > 1) {
+    form.other_costs.splice(index, 1);
+  }
+};
+
+// Reimbursement management methods
+const addReimbursementItem = () => {
+  reimbursementItems.value.push({ description: "", amount: 0, category: "", notes: "" });
+};
+
+const removeReimbursementItem = (index) => {
+  if (reimbursementItems.value.length > 1) {
+    reimbursementItems.value.splice(index, 1);
+  }
+};
+
 // Format number with dots as thousand separators
 const formatNumber = (item, field) => {
   const value = item[field];
@@ -844,6 +1092,16 @@ const formatCurrency = (amount) => {
     maximumFractionDigits: 0
   }).format(numAmount);
 };
+
+// Calculate total other costs
+const totalOtherCosts = computed(() => {
+  return form.other_costs.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+// Calculate total reimbursement
+const totalReimbursement = computed(() => {
+  return reimbursementItems.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
 
 // Computed properties for totals
 const totalBuying = computed(() => {
@@ -916,7 +1174,9 @@ const submit = () => {
       ...item,
       buying_amount: parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0,
       selling_amount: parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0
-    }))
+    })),
+    reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0),
+    other_costs: form.other_costs.filter(c => c.description && c.amount && c.amount > 0)
   };
 
   form.transform(() => cleanedData).put(route("admin-keuangan.sales-orders.update", props.salesOrder.id), {

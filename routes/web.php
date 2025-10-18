@@ -687,6 +687,21 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::delete('/{shipmentType}', 'destroy')->name('destroy');
     });
 
+    // Master Package Units Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\MasterPackageUnitController::class)->prefix('master-package-units')->name('master-package-units.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{masterPackageUnit}', 'show')->name('show');
+        Route::get('/{masterPackageUnit}/edit', 'edit')->name('edit');
+        Route::put('/{masterPackageUnit}', 'update')->name('update');
+        Route::delete('/{masterPackageUnit}', 'destroy')->name('destroy');
+        Route::patch('/{masterPackageUnit}/toggle-status', 'toggleStatus')->name('toggle-status');
+    });
+
+    // API route for getting active package units
+    Route::get('/api/package-units/active', [\App\Http\Controllers\AdminKeuangan\MasterPackageUnitController::class, 'getActiveUnits'])->name('api.package-units.active');
+
     // Operational Cost Category Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\OperationalCostCategoryController::class)->prefix('operational-cost-categories')->name('operational-cost-categories.')->group(function () {
         Route::get('/', 'index')->name('index');

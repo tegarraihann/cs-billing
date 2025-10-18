@@ -188,7 +188,10 @@
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">No. of Packages:</span>
-              <span class="font-medium">{{ invoice.no_of_packages || '-' }} BAG</span>
+              <span class="font-medium">
+                {{ invoice.no_of_packages || '-' }}
+                {{ invoice.package_unit || 'BAG' }}
+              </span>
             </div>
           </div>
         </div>

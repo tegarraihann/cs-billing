@@ -211,7 +211,7 @@
 
 
                         <div v-if="salaries && salaries.links && salaries.last_page > 1" class="mt-6">
-                            <Pagination :links="salaries.links" />
+                            <Pagination :data="salaries" />
                         </div>
                     </div>
                 </div>

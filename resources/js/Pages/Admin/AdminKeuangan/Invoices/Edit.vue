@@ -188,13 +188,27 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
               />
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">No. of Packages</label>
-              <input
-                type="number"
-                v-model="form.no_of_packages"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              />
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">No. of Packages</label>
+                <input
+                  type="number"
+                  v-model="form.no_of_packages"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Package Unit</label>
+                <select
+                  v-model="form.package_unit"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
+                    {{ unit.name }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Container No.</label>
@@ -690,6 +704,10 @@ const props = defineProps({
   invoice: Object,
   salesOrders: Array,
   errors: Object,
+  packageUnits: {
+    type: Array,
+    default: () => []
+  },
 })
 
 const route = window.route || function(name, params) {
@@ -732,6 +750,7 @@ const form = useForm({
   gross_weight: props.invoice.gross_weight || '',
   volume: props.invoice.volume || '',
   no_of_packages: props.invoice.no_of_packages || '',
+  package_unit: props.invoice.package_unit || 'BAG',
   container_no: props.invoice.container_no || '',
   container_size: props.invoice.container_size || '',
   remarks: props.invoice.remarks || '',

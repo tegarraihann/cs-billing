@@ -38,7 +38,7 @@
           <div class="p-6">
             <form @submit.prevent="submit" class="space-y-6">
               <!-- Customer Selection -->
-              <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div class="bg-white shadow overflow-visible sm:rounded-lg">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                   <h3 class="text-lg font-medium text-gray-900">Pilih Metode Input</h3>
                 </div>
@@ -72,16 +72,17 @@
 
             <div v-if="inputMethod === 'customer'" class="mt-4">
               <label class="block text-sm font-medium text-sage-700 mb-2">Pilih Pelanggan</label>
-              <select
+              <SearchableSelect
                 v-model="selectedCustomerId"
-                @change="onCustomerSelect"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              >
-                <option value="">-- Pilih Pelanggan --</option>
-                <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                  {{ customer.company_name }} - {{ customer.pic_name }}
-                </option>
-              </select>
+                :options="customerOptions"
+                placeholder="Cari pelanggan... (contoh: CI)"
+                label-field="label"
+                sub-label-field="subLabel"
+                value-field="value"
+                :search-fields="['label', 'subLabel', 'company_name', 'pic_name']"
+                input-class="w-full px-3 py-2 pr-10 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                @select="onCustomerSelect"
+              />
             </div>
           </div>
         </div>
@@ -845,6 +846,18 @@
                 <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{ form.errors.net_weight }}</div>
               </div>
               <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">GROSS WEIGHT (KG)</label>
+                <input
+                  v-model="form.gross_weight"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Masukkan berat kotor dalam kg"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.gross_weight" class="mt-2 text-sm text-red-600">{{ form.errors.gross_weight }}</div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">MEAS (M³)</label>
                 <input
                   v-model="form.measurement"
@@ -1233,6 +1246,7 @@ import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import SearchableSelect from "@/Components/SearchableSelect.vue";
 import { Plus, ArrowLeft, LoaderCircle, CheckCircle } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -1240,6 +1254,10 @@ const props = defineProps({
   vendors: Array,
   shipmentTypes: Array,
   operationalCostCategories: Array,
+  packageUnits: {
+    type: Array,
+    default: () => []
+  },
   orderNumber: String,
 });
 
@@ -1257,6 +1275,17 @@ const alertDialog = ref({
 // Input method and customer selection
 const inputMethod = ref('manual');
 const selectedCustomerId = ref('');
+
+// Transform customers for SearchableSelect component
+const customerOptions = computed(() => {
+  return props.customers.map(customer => ({
+    value: customer.id,
+    label: customer.company_name,
+    subLabel: customer.pic_name,
+    company_name: customer.company_name,
+    pic_name: customer.pic_name
+  }));
+});
 
 // Voucher data
 const paymentVouchers = ref([]);
@@ -1303,6 +1332,7 @@ const form = useForm({
   commodity: "",
   qty: "",
   net_weight: "",
+  gross_weight: "",
   measurement: "",
   container_no: [""],
   invoice_number: "",
@@ -1314,18 +1344,15 @@ const toggleSection = (section) => {
   sections.value[section] = !sections.value[section];
 };
 
-const onCustomerSelect = () => {
-  if (selectedCustomerId.value) {
-    const customer = props.customers.find(c => c.id == selectedCustomerId.value);
-    if (customer) {
-      // Auto-fill fields that are available from customer data
-      form.customer = customer.company_name || "";
-      // Clear shipping fields since they're no longer available
-      form.bl_awb = "";
-      form.pol = "";
-      form.pod = "";
-      form.eta = "";
-    }
+const onCustomerSelect = (selectedCustomer) => {
+  if (selectedCustomer) {
+    // Auto-fill fields that are available from customer data
+    form.customer = selectedCustomer.company_name || "";
+    // Clear shipping fields since they're no longer available
+    form.bl_awb = "";
+    form.pol = "";
+    form.pod = "";
+    form.eta = "";
   } else {
     // Clear auto-filled data
     if (inputMethod.value === 'customer') {
@@ -1533,7 +1560,8 @@ const submit = () => {
     ...form.data(),
     payment_vouchers: paymentVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
     receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-    reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0)
+    reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0),
+    other_costs: form.other_costs.filter(c => c.description && c.amount && c.amount > 0)
   };
 
   form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"), {

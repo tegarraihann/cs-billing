@@ -112,7 +112,7 @@ class InvoiceController extends Controller
 
         // Get only approved SOs (already released and approved by finance)
         $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems'])
-            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'measurement', 'qty', 'shipment_type', 'container_no'])
+            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'gross_weight', 'measurement', 'qty', 'package_unit', 'shipment_type', 'container_no'])
             ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
             ->whereNotNull('approved_at')  // Must be approved by finance
@@ -127,12 +127,17 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
             'salesOrders' => $salesOrders,
-            'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get()
+            'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get(),
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
         ]);
     }
 
     public function store(Request $request)
     {
+        \Log::info('Invoice Store Request Started', [
+            'request_data' => $request->all(),
+            'user_id' => auth()->id()
+        ]);
         try {
             $validated = $request->validate([
             'sales_order_id' => 'required|exists:sales_orders,id',
@@ -146,6 +151,7 @@ class InvoiceController extends Controller
             'gross_weight' => 'nullable|numeric',
             'volume' => 'nullable|string|max:255',
             'no_of_packages' => 'nullable|integer',
+            'package_unit' => 'nullable|exists:master_package_units,code',
             'vessel' => 'nullable|string|max:255',
             'flight_voy' => 'nullable|string|max:255',
             'pol_pod' => 'nullable|string|max:255',
@@ -164,7 +170,7 @@ class InvoiceController extends Controller
             'items.*.currency' => 'required_with:items|string|max:3',
             'items.*.item_ref' => 'nullable|string|max:255',
             'items.*.type' => 'nullable|string|in:main,reimbursement,operational',
-            'items.*.item_type' => 'nullable|string|in:billable,operational_cost',
+            'items.*.item_type' => 'nullable|string|in:billable,operational_cost,reimbursement',
             'items.*.include_in_customer_invoice' => 'nullable|boolean',
             'items.*.is_hidden_from_customer' => 'nullable|boolean',
             'down_payment_amount' => 'nullable|numeric|min:0',
@@ -232,9 +238,10 @@ class InvoiceController extends Controller
             'consignee' => $validated['consignee'] ?? $salesOrder->customer,
             'awb_bl_no' => $validated['awb_bl_no'] ?? $salesOrder->bl_awb,
             'mawb_obl_no' => $validated['mawb_obl_no'],
-            'gross_weight' => $validated['gross_weight'] ?? $salesOrder->net_weight,
+            'gross_weight' => $validated['gross_weight'] ?? $salesOrder->gross_weight ?? $salesOrder->net_weight,
             'volume' => $validated['volume'] ?? $salesOrder->measurement,
             'no_of_packages' => $validated['no_of_packages'] ?? $salesOrder->qty,
+            'package_unit' => $validated['package_unit'] ?? $salesOrder->package_unit ?? 'BAG',
             'vessel' => $validated['vessel'] ?? $salesOrder->vessel,
             'flight_voy' => $validated['flight_voy'],
             'pol_pod' => $validated['pol_pod'] ?? (($salesOrder->pol && $salesOrder->pod) ? $salesOrder->pol . '/' . $salesOrder->pod : null),
@@ -408,7 +415,8 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Edit', [
             'invoice' => $invoice,
-            'salesOrders' => $salesOrders
+            'salesOrders' => $salesOrders,
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
         ]);
     }
 
@@ -424,6 +432,7 @@ class InvoiceController extends Controller
             'gross_weight' => 'nullable|numeric',
             'volume' => 'nullable|string|max:255',
             'no_of_packages' => 'nullable|integer',
+            'package_unit' => 'nullable|exists:master_package_units,code',
             'vessel' => 'nullable|string|max:255',
             'flight_voy' => 'nullable|string|max:255',
             'pol_pod' => 'nullable|string|max:255',

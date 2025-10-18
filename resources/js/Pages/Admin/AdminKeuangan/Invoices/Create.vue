@@ -248,18 +248,36 @@
                 placeholder="e.g., 10.5 M³"
               />
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">No of Packages</label>
-              <input
-                type="number"
-                v-model="form.no_of_packages"
-                min="0"
-                :readonly="form.sales_order_id"
-                :class="[
-                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                ]"
-              />
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">No of Packages</label>
+                <input
+                  type="number"
+                  v-model="form.no_of_packages"
+                  min="0"
+                  :readonly="form.sales_order_id"
+                  :class="[
+                    'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                    form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                  ]"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Package Unit</label>
+                <select
+                  v-model="form.package_unit"
+                  :disabled="form.sales_order_id"
+                  :class="[
+                    'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                    form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                  ]"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
+                    {{ unit.name }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">20'/40'/45'</label>
@@ -864,6 +882,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  packageUnits: {
+    type: Array,
+    default: () => []
+  },
 });
 
 const route = window.route || function(name, params) {
@@ -891,6 +913,7 @@ const form = useForm({
   gross_weight: '',
   volume: '',
   no_of_packages: '',
+  package_unit: 'BAG',
   vessel: '',
   flight_voy: '',
   pol_pod: '',
@@ -941,9 +964,10 @@ const loadSalesOrderData = () => {
     }
 
     // Cargo details - auto-populate from Sales Order
-    form.gross_weight = selectedOrder.net_weight || '';
+    form.gross_weight = selectedOrder.gross_weight || selectedOrder.net_weight || '';
     form.volume = selectedOrder.measurement || '';
     form.no_of_packages = selectedOrder.qty || '';
+    form.package_unit = selectedOrder.package_unit || 'BAG';
     form.container_size = selectedOrder.shipment_type || '';
 
     // Container info
@@ -1302,6 +1326,9 @@ const submit = () => {
   // Set the combined items to form
   form.items = allItems;
 
+  console.log('DEBUG: Submitting invoice with items:', allItems);
+  console.log('DEBUG: Form data:', form.data());
+
   // Determine the invoice type based on what items exist
   if (mainItems.value.length > 0 && reimbursementItems.value.length > 0) {
     form.invoice_type = 'combined';
@@ -1311,7 +1338,21 @@ const submit = () => {
     form.invoice_type = 'main';
   }
 
-  form.post(route('admin-keuangan.invoices.store'));
+  form.post(route('admin-keuangan.invoices.store'), {
+    onSuccess: (page) => {
+      console.log('Invoice created successfully:', page);
+      // Let the backend handle redirect (it redirects to show page)
+      // Don't override the backend redirect
+    },
+    onError: (errors) => {
+      console.error('Invoice creation failed:', errors);
+      console.error('Form data:', form.data());
+      alert('Error creating invoice: ' + JSON.stringify(errors));
+    },
+    onFinish: () => {
+      console.log('Invoice creation finished');
+    }
+  });
 };
 
 // Auto-load data if coming from Sales Order detail page

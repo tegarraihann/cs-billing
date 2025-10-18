@@ -32,7 +32,7 @@
       <!-- Form Section -->
       <form @submit.prevent="submit" class="space-y-6">
         <!-- Customer Selection -->
-        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-visible">
           <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
             <h3 class="text-lg font-semibold text-sage-800">Pilih Metode Input</h3>
           </div>
@@ -66,16 +66,17 @@
 
             <div v-if="inputMethod === 'customer'" class="mt-4">
               <label class="block text-sm font-medium text-sage-700 mb-2">Pilih Pelanggan</label>
-              <select
+              <SearchableSelect
                 v-model="selectedCustomerId"
-                @change="onCustomerSelect"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-              >
-                <option value="">-- Pilih Pelanggan --</option>
-                <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                  {{ customer.company_name }} - {{ customer.pic_name }}
-                </option>
-              </select>
+                :options="customerOptions"
+                placeholder="Cari pelanggan... (contoh: CI)"
+                label-field="label"
+                sub-label-field="subLabel"
+                value-field="value"
+                :search-fields="['label', 'subLabel', 'company_name', 'pic_name']"
+                input-class="w-full px-3 py-2 pr-10 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                @select="onCustomerSelect"
+              />
             </div>
           </div>
         </div>
@@ -767,16 +768,31 @@
               <div v-if="form.errors.commodity" class="mt-2 text-sm text-red-600">{{ form.errors.commodity }}</div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
-                <input
-                  v-model="form.qty"
-                  type="number"
-                  min="0"
-                  placeholder="Masukkan quantity"
-                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                />
-                <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{ form.errors.qty }}</div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
+                  <input
+                    v-model="form.qty"
+                    type="number"
+                    min="0"
+                    placeholder="Masukkan quantity"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                  <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{ form.errors.qty }}</div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Package Unit</label>
+                  <select
+                    v-model="form.package_unit"
+                    class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                  >
+                    <option value="">Select Unit</option>
+                    <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
+                      {{ unit.name }}
+                    </option>
+                  </select>
+                  <div v-if="form.errors.package_unit" class="mt-2 text-sm text-red-600">{{ form.errors.package_unit }}</div>
+                </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">NET WEIGHT (KG)</label>
@@ -789,6 +805,18 @@
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 />
                 <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{ form.errors.net_weight }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">GROSS WEIGHT (KG)</label>
+                <input
+                  v-model="form.gross_weight"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Masukkan berat kotor dalam kg"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.gross_weight" class="mt-2 text-sm text-red-600">{{ form.errors.gross_weight }}</div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">MEAS (M³)</label>
@@ -1177,12 +1205,17 @@ import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import SearchableSelect from "@/Components/SearchableSelect.vue";
 
 const props = defineProps({
   customers: Array,
   vendors: Array,
   shipmentTypes: Array,
   operationalCostCategories: Array,
+  packageUnits: {
+    type: Array,
+    default: () => []
+  },
   orderNumber: String,
 });
 
@@ -1200,6 +1233,17 @@ const alertDialog = ref({
 // Input method and customer selection
 const inputMethod = ref('manual');
 const selectedCustomerId = ref('');
+
+// Transform customers for SearchableSelect component
+const customerOptions = computed(() => {
+  return props.customers.map(customer => ({
+    value: customer.id,
+    label: customer.company_name,
+    subLabel: customer.pic_name,
+    company_name: customer.company_name,
+    pic_name: customer.pic_name
+  }));
+});
 
 // Voucher data
 const paymentVouchers = ref([]);
@@ -1245,7 +1289,9 @@ const form = useForm({
   note: "",
   commodity: "",
   qty: "",
+  package_unit: "BAG",
   net_weight: "",
+  gross_weight: "",
   measurement: "",
   container_no: [""],
   invoice_number: "",
@@ -1257,18 +1303,15 @@ const toggleSection = (section) => {
   sections.value[section] = !sections.value[section];
 };
 
-const onCustomerSelect = () => {
-  if (selectedCustomerId.value) {
-    const customer = props.customers.find(c => c.id == selectedCustomerId.value);
-    if (customer) {
-      // Auto-fill fields that are available from customer data
-      form.customer = customer.company_name || "";
-      // Clear shipping fields since they're no longer available
-      form.bl_awb = "";
-      form.pol = "";
-      form.pod = "";
-      form.eta = "";
-    }
+const onCustomerSelect = (selectedCustomer) => {
+  if (selectedCustomer) {
+    // Auto-fill fields that are available from customer data
+    form.customer = selectedCustomer.company_name || "";
+    // Clear shipping fields since they're no longer available
+    form.bl_awb = "";
+    form.pol = "";
+    form.pod = "";
+    form.eta = "";
   } else {
     // Clear auto-filled data
     if (inputMethod.value === 'customer') {
@@ -1478,13 +1521,21 @@ const closeAlert = () => {
 };
 
 const submit = () => {
+  // Debug order number value
+  console.log('Order number from props:', props.orderNumber);
+  console.log('Order number in form:', form.order_number);
+  console.log('Form data before submit:', form.data());
+
   // Add voucher data and reimbursement items to form
   const formData = {
     ...form.data(),
     payment_vouchers: paymentVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
     receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-    reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0)
+    reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0),
+    other_costs: form.other_costs.filter(c => c.description && c.amount && c.amount > 0)
   };
+
+  console.log('Final form data to submit:', formData);
 
   form.transform(() => formData).post(route("admin-cs.sales-orders.store"), {
     onSuccess: (page) => {

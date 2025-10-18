@@ -40,7 +40,9 @@ class SalesOrder extends Model
         'note',
         'commodity',
         'qty',
+        'package_unit',
         'net_weight',
+        'gross_weight',
         'measurement',
         'container_no',
         'invoice_number',
@@ -156,6 +158,11 @@ class SalesOrder extends Model
     public function receiptVouchers(): HasMany
     {
         return $this->hasMany(Voucher::class)->where('type', Voucher::TYPE_RECEIPT);
+    }
+
+    public function packageUnit()
+    {
+        return $this->belongsTo(MasterPackageUnit::class, 'package_unit', 'code');
     }
 
     public function reimbursementItems(): HasMany

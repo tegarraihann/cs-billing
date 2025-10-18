@@ -513,6 +513,18 @@
                 <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{ form.errors.net_weight }}</div>
               </div>
               <div>
+                <label class="block text-sm font-medium text-sage-700 mb-2">GROSS WEIGHT (KG)</label>
+                <input
+                  v-model="form.gross_weight"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Masukkan berat kotor dalam kg"
+                  class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+                <div v-if="form.errors.gross_weight" class="mt-2 text-sm text-red-600">{{ form.errors.gross_weight }}</div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">MEAS (M³)</label>
                 <input
                   v-model="form.measurement"
@@ -607,6 +619,249 @@
           </div>
         </div>
 
+        <!-- Biaya Beban Lain Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div
+            @click="toggleSection('other_costs')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Biaya Beban Lain (Operational)</h3>
+            <svg
+              :class="{'rotate-180': !sections.other_costs}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.other_costs" class="p-6">
+            <!-- Biaya Beban Lain Section -->
+            <div class="bg-orange-50 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-orange-800">Biaya Beban Lain (Operational)</h4>
+                <button
+                  type="button"
+                  @click="addOtherCost"
+                  class="text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors"
+                >
+                  + Tambah Biaya
+                </button>
+              </div>
+
+              <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
+                <div v-for="(cost, index) in form.other_costs" :key="index" class="border border-orange-200 rounded-lg p-3 bg-white">
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-5">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Deskripsi Biaya</label>
+                      <input
+                        v-model="cost.description"
+                        type="text"
+                        placeholder="Contoh: Biaya handling, dokumen, dll"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Jumlah Biaya</label>
+                      <input
+                        v-model="cost.amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
+                      <select
+                        v-model="cost.category"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      >
+                        <option value="">Pilih kategori</option>
+                        <option
+                          v-for="category in operationalCostCategories"
+                          :key="category.id"
+                          :value="category.name"
+                          :title="category.description"
+                        >
+                          {{ category.name }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-span-1 flex items-end">
+                      <button
+                        type="button"
+                        @click="removeOtherCost(index)"
+                        class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                        :disabled="form.other_costs.length <= 1"
+                      >
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Other Costs -->
+                <div class="pt-3 border-t border-orange-300">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-orange-700">Total Biaya Beban Lain:</span>
+                    <span class="text-lg font-bold text-orange-800">{{ formatCurrency(totalOtherCosts) }}</span>
+                  </div>
+                </div>
+
+                <!-- Bottom Add Button for Other Costs -->
+                <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
+                  <button
+                    type="button"
+                    @click="addOtherCost"
+                    class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Tambah Biaya Lagi
+                  </button>
+                </div>
+              </div>
+
+              <div v-else class="text-center py-4 text-orange-600">
+                <p class="text-sm">Belum ada biaya beban lain</p>
+                <p class="text-xs text-orange-500">Klik tombol "Tambah Biaya" untuk menambahkan</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reimbursement Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+          <div
+            @click="toggleSection('reimbursement')"
+            class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
+          >
+            <h3 class="text-lg font-semibold text-sage-800">Items Reimbursement</h3>
+            <svg
+              :class="{'rotate-180': !sections.reimbursement}"
+              class="w-5 h-5 text-sage-600 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div v-show="sections.reimbursement" class="p-6">
+            <!-- Reimbursement Section -->
+            <div class="bg-purple-50 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-purple-800">Items Reimbursement</h4>
+                <button
+                  type="button"
+                  @click="addReimbursementItem"
+                  class="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
+                >
+                  + Tambah Reimbursement
+                </button>
+              </div>
+
+              <div v-if="reimbursementItems && reimbursementItems.length > 0" class="space-y-3">
+                <div v-for="(item, index) in reimbursementItems" :key="index" class="border border-purple-200 rounded-lg p-3 bg-white">
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-4">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Deskripsi</label>
+                      <input
+                        v-model="item.description"
+                        type="text"
+                        placeholder="Contoh: Transport ke pelabuhan"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div class="col-span-2">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Jumlah</label>
+                      <input
+                        v-model="item.amount"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
+                      <select
+                        v-model="item.category"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        <option value="">Pilih Kategori</option>
+                        <option value="transport">Transportasi</option>
+                        <option value="accommodation">Akomodasi</option>
+                        <option value="meal">Makan & Minum</option>
+                        <option value="fuel">BBM</option>
+                        <option value="parking">Parkir</option>
+                        <option value="toll">Tol</option>
+                        <option value="admin">Administrasi</option>
+                        <option value="communication">Komunikasi</option>
+                        <option value="equipment">Peralatan</option>
+                        <option value="general">Lain-lain</option>
+                      </select>
+                    </div>
+                    <div class="col-span-2">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Catatan</label>
+                      <input
+                        v-model="item.notes"
+                        type="text"
+                        placeholder="Opsional"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div class="col-span-1 flex items-end">
+                      <button
+                        type="button"
+                        @click="removeReimbursementItem(index)"
+                        class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                      >
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Reimbursement -->
+                <div class="pt-3 border-t border-purple-300">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-purple-700">Total Reimbursement:</span>
+                    <span class="text-lg font-bold text-purple-800">{{ formatCurrency(totalReimbursement) }}</span>
+                  </div>
+                </div>
+
+                <!-- Bottom Add Button for Reimbursement -->
+                <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
+                  <button
+                    type="button"
+                    @click="addReimbursementItem"
+                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Tambah Reimbursement Lagi
+                  </button>
+                </div>
+              </div>
+
+              <div v-else class="text-center py-4 text-purple-600">
+                <p class="text-sm">Belum ada item reimbursement</p>
+                <p class="text-xs text-purple-500">Klik tombol "Tambah Reimbursement" untuk menambahkan</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Submit Buttons -->
         <div class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
           <Link
@@ -682,6 +937,8 @@ const sections = ref({
   pricing: false,
   goods: false,
   invoice: false,
+  other_costs: false,
+  reimbursement: false,
 });
 
 // Initialize form with existing data
@@ -738,12 +995,22 @@ const form = useForm({
   commodity: props.salesOrder.commodity || "",
   qty: props.salesOrder.qty || "",
   net_weight: props.salesOrder.net_weight || "",
+  gross_weight: props.salesOrder.gross_weight || "",
   measurement: props.salesOrder.measurement || "",
   container_no: Array.isArray(props.salesOrder.container_no) ? props.salesOrder.container_no : (props.salesOrder.container_no ? [props.salesOrder.container_no] : [""]),
   invoice_number: props.salesOrder.invoice_number || "",
   invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : "",
-  top: props.salesOrder.top || ""
+  top: props.salesOrder.top || "",
+  package_unit: props.salesOrder.package_unit || "",
+  other_costs: props.salesOrder.other_costs || [{ description: "", amount: 0, category: "" }]
 });
+
+// Initialize reimbursement items from props
+const reimbursementItems = ref(
+  props.salesOrder.reimbursement_items && props.salesOrder.reimbursement_items.length > 0
+    ? props.salesOrder.reimbursement_items
+    : [{ description: "", amount: 0, category: "", notes: "" }]
+);
 
 const toggleSection = (section) => {
   sections.value[section] = !sections.value[section];
@@ -799,6 +1066,37 @@ const removeContainerNo = (index) => {
   }
 };
 
+// Other costs management methods
+const addOtherCost = () => {
+  form.other_costs.push({
+    description: "",
+    amount: 0,
+    category: ""
+  });
+};
+
+const removeOtherCost = (index) => {
+  if (form.other_costs.length > 0) {
+    form.other_costs.splice(index, 1);
+  }
+};
+
+// Reimbursement items management methods
+const addReimbursementItem = () => {
+  reimbursementItems.value.push({
+    description: "",
+    amount: 0,
+    category: "",
+    notes: ""
+  });
+};
+
+const removeReimbursementItem = (index) => {
+  if (reimbursementItems.value.length > 1) {
+    reimbursementItems.value.splice(index, 1);
+  }
+};
+
 // Format number with dots as thousand separators
 const formatNumber = (item, field) => {
   const value = item[field];
@@ -848,6 +1146,16 @@ const getProfit = (vendorItem) => {
   const selling = parseFloat(vendorItem.selling_amount.toString().replace(/\./g, '')) || 0;
   return selling - buying;
 };
+
+// Calculate total other costs
+const totalOtherCosts = computed(() => {
+  return form.other_costs.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
+
+// Calculate total reimbursement
+const totalReimbursement = computed(() => {
+  return reimbursementItems.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+});
 
 const calculateTotals = () => {
   // This function is called to trigger reactivity if needed

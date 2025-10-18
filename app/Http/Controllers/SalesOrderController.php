@@ -71,6 +71,7 @@ class SalesOrderController extends Controller
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
             'operationalCostCategories' => $operationalCostCategories,
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
             'orderNumber' => $orderNumber
         ]);
     }
@@ -80,11 +81,17 @@ class SalesOrderController extends Controller
      */
     public function store(Request $request)
     {
+        // Debug request data
+        \Log::info('CS Sales Order Store Request:', [
+            'order_number' => $request->input('order_number'),
+            'order_number_length' => strlen($request->input('order_number') ?? ''),
+            'all_data' => $request->all()
+        ]);
 
         try {
             $validated = $request->validate([
             // Required fields based on requirements only
-            'order_number' => 'required|string|regex:/^EWILOG\d{10}$/|unique:sales_orders,order_number',
+            'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number',
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
             'customer' => 'required|string|max:255',
@@ -123,6 +130,7 @@ class SalesOrderController extends Controller
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
+            'package_unit' => 'nullable|exists:master_package_units,code',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable',
@@ -284,7 +292,8 @@ class SalesOrderController extends Controller
             'salesOrder' => $salesOrder,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
-            'operationalCostCategories' => $operationalCostCategories
+            'operationalCostCategories' => $operationalCostCategories,
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
         ]);
     }
 
@@ -295,7 +304,7 @@ class SalesOrderController extends Controller
     {
         $validated = $request->validate([
             // Required fields based on requirements only
-            'order_number' => 'required|string|regex:/^EWILOG\d{10}$/|unique:sales_orders,order_number,' . $salesOrder->id,
+            'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number,' . $salesOrder->id,
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
             'customer' => 'required|string|max:255',
@@ -334,6 +343,7 @@ class SalesOrderController extends Controller
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
+            'package_unit' => 'nullable|exists:master_package_units,code',
             'net_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable',

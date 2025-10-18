@@ -290,6 +290,7 @@ class SalesOrderController extends Controller
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
             'operationalCostCategories' => $operationalCostCategories,
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
             'orderNumber' => $orderNumber
         ]);
     }
@@ -493,7 +494,8 @@ class SalesOrderController extends Controller
             'salesOrder' => $salesOrder,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
-            'operationalCostCategories' => $operationalCostCategories
+            'operationalCostCategories' => $operationalCostCategories,
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
         ]);
     }
 
