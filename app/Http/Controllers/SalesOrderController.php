@@ -89,6 +89,9 @@ class SalesOrderController extends Controller
         ]);
 
         try {
+            // Normalize Indonesian number format before validation
+            $this->normalizeNumericFields($request);
+
             $validated = $request->validate([
             // Required fields based on requirements only
             'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number',
@@ -302,6 +305,9 @@ class SalesOrderController extends Controller
      */
     public function update(Request $request, SalesOrder $salesOrder)
     {
+        // Normalize Indonesian number format before validation
+        $this->normalizeNumericFields($request);
+
         $validated = $request->validate([
             // Required fields based on requirements only
             'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number,' . $salesOrder->id,
@@ -616,6 +622,109 @@ class SalesOrderController extends Controller
                 ]);
             }
         }
+    }
+
+    /**
+     * Normalize Indonesian number format in request data
+     */
+    private function normalizeNumericFields(Request $request)
+    {
+        // Normalize vendor breakdown amounts
+        $vendorBreakdown = $request->input('vendor_breakdown', []);
+        foreach ($vendorBreakdown as $index => $vendor) {
+            if (isset($vendor['buying_amount'])) {
+                $vendorBreakdown[$index]['buying_amount'] = $this->normalizeIndonesianNumber($vendor['buying_amount']);
+            }
+            if (isset($vendor['selling_amount'])) {
+                $vendorBreakdown[$index]['selling_amount'] = $this->normalizeIndonesianNumber($vendor['selling_amount']);
+            }
+        }
+        $request->merge(['vendor_breakdown' => $vendorBreakdown]);
+
+        // Normalize other costs amounts
+        $otherCosts = $request->input('other_costs', []);
+        foreach ($otherCosts as $index => $cost) {
+            if (isset($cost['amount'])) {
+                $otherCosts[$index]['amount'] = $this->normalizeIndonesianNumber($cost['amount']);
+            }
+        }
+        $request->merge(['other_costs' => $otherCosts]);
+
+        // Normalize reimbursement items amounts
+        $reimbursementItems = $request->input('reimbursement_items', []);
+        foreach ($reimbursementItems as $index => $item) {
+            if (isset($item['amount'])) {
+                $reimbursementItems[$index]['amount'] = $this->normalizeIndonesianNumber($item['amount']);
+            }
+        }
+        $request->merge(['reimbursement_items' => $reimbursementItems]);
+
+        // Normalize payment vouchers amounts
+        $paymentVouchers = $request->input('payment_vouchers', []);
+        foreach ($paymentVouchers as $index => $voucher) {
+            if (isset($voucher['amount'])) {
+                $paymentVouchers[$index]['amount'] = $this->normalizeIndonesianNumber($voucher['amount']);
+            }
+        }
+        $request->merge(['payment_vouchers' => $paymentVouchers]);
+
+        // Normalize receipt vouchers amounts
+        $receiptVouchers = $request->input('receipt_vouchers', []);
+        foreach ($receiptVouchers as $index => $voucher) {
+            if (isset($voucher['amount'])) {
+                $receiptVouchers[$index]['amount'] = $this->normalizeIndonesianNumber($voucher['amount']);
+            }
+        }
+        $request->merge(['receipt_vouchers' => $receiptVouchers]);
+
+        // Normalize other numeric fields
+        $numericFields = ['exchange_rate', 'qty', 'net_weight', 'measurement'];
+        foreach ($numericFields as $field) {
+            $value = $request->input($field);
+            if ($value) {
+                $request->merge([$field => $this->normalizeIndonesianNumber($value)]);
+            }
+        }
+    }
+
+    /**
+     * Normalize Indonesian number format to standard format
+     * Examples: 2.500 -> 2500, 2.500,50 -> 2500.50, 2500,50 -> 2500.50
+     */
+    private function normalizeIndonesianNumber($value)
+    {
+        if (!$value) {
+            return $value;
+        }
+
+        $value = trim($value);
+
+        // Handle Indonesian format
+        if (strpos($value, '.') !== false && strpos($value, ',') !== false) {
+            // Format: 2.500,50 (dot = thousand separator, comma = decimal)
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        } elseif (strpos($value, '.') !== false && strpos($value, ',') === false) {
+            // Could be: 2.500 (thousand) or 2500.50 (decimal)
+            $parts = explode('.', $value);
+            if (count($parts) === 2) {
+                $decimalPart = $parts[1];
+                // If decimal part has 3+ digits or is > 99, treat as thousand separator
+                if (strlen($decimalPart) >= 3 || intval($decimalPart) >= 100 || strlen($parts[0]) >= 2) {
+                    // Likely thousand separator: 2.500 or 12.500
+                    $value = str_replace('.', '', $value);
+                }
+                // Otherwise keep as decimal: 25.50
+            } else {
+                // Multiple dots, treat as thousand separators: 1.000.500
+                $value = str_replace('.', '', $value);
+            }
+        } elseif (strpos($value, ',') !== false) {
+            // Format: 2500,50 (comma as decimal)
+            $value = str_replace(',', '.', $value);
+        }
+
+        return $value;
     }
 
 }
