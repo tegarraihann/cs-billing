@@ -351,11 +351,18 @@ const validateAmount = () => {
     } else if (value.includes('.') && !value.includes(',')) {
         // Could be: 2.500 (thousand) or 2500.50 (decimal)
         const parts = value.split('.')
-        if (parts.length === 2 && parts[1].length <= 2) {
-            // Likely decimal: 2500.50
-            normalizedValue = value
+        if (parts.length === 2) {
+            // Check decimal part length and value
+            const decimalPart = parts[1]
+            if (decimalPart.length <= 2 && parseInt(decimalPart) < 100 && parts[0].length <= 4) {
+                // Likely decimal: 2500.50 or 25.50
+                normalizedValue = value
+            } else {
+                // Likely thousand separator: 2.500 or 12.500
+                normalizedValue = value.replace(/\./g, '')
+            }
         } else {
-            // Likely thousand separator: 2.500
+            // Multiple dots, treat as thousand separators: 1.000.500
             normalizedValue = value.replace(/\./g, '')
         }
     } else if (value.includes(',')) {

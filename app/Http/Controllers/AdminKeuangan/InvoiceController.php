@@ -139,6 +139,25 @@ class InvoiceController extends Controller
             'user_id' => auth()->id()
         ]);
         try {
+            // Normalize Indonesian number format before validation
+            $downPaymentAmount = $request->input('down_payment_amount');
+            if ($downPaymentAmount) {
+                $downPaymentAmount = $this->normalizeIndonesianNumber($downPaymentAmount);
+                $request->merge(['down_payment_amount' => $downPaymentAmount]);
+            }
+
+            // Normalize items rate and quantity (if needed)
+            $items = $request->input('items', []);
+            foreach ($items as $index => $item) {
+                if (isset($item['rate'])) {
+                    $items[$index]['rate'] = $this->normalizeIndonesianNumber($item['rate']);
+                }
+                if (isset($item['quantity'])) {
+                    $items[$index]['quantity'] = $this->normalizeIndonesianNumber($item['quantity']);
+                }
+            }
+            $request->merge(['items' => $items]);
+
             $validated = $request->validate([
             'sales_order_id' => 'required|exists:sales_orders,id',
             'invoice_type' => 'required|in:main,reimbursement,combined',
@@ -803,6 +822,13 @@ class InvoiceController extends Controller
 
     public function confirmPayment(Request $request, Invoice $invoice)
     {
+        // Normalize Indonesian number format before validation
+        $paidAmount = $request->input('paid_amount');
+        if ($paidAmount) {
+            $paidAmount = $this->normalizeIndonesianNumber($paidAmount);
+            $request->merge(['paid_amount' => $paidAmount]);
+        }
+
         $validated = $request->validate([
             'paid_amount' => 'required|numeric|min:0',
             'paid_date' => 'required|date|before_or_equal:today',
@@ -1166,5 +1192,45 @@ class InvoiceController extends Controller
 
         // Return inline view instead of download
         return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * Normalize Indonesian number format to standard format
+     * Examples: 2.500 -> 2500, 2.500,50 -> 2500.50, 2500,50 -> 2500.50
+     */
+    private function normalizeIndonesianNumber($value)
+    {
+        if (!$value) {
+            return $value;
+        }
+
+        $value = trim($value);
+
+        // Handle Indonesian format
+        if (strpos($value, '.') !== false && strpos($value, ',') !== false) {
+            // Format: 2.500,50 (dot = thousand separator, comma = decimal)
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        } elseif (strpos($value, '.') !== false && strpos($value, ',') === false) {
+            // Could be: 2.500 (thousand) or 2500.50 (decimal)
+            $parts = explode('.', $value);
+            if (count($parts) === 2) {
+                $decimalPart = $parts[1];
+                // If decimal part has 3+ digits or is > 99, treat as thousand separator
+                if (strlen($decimalPart) >= 3 || intval($decimalPart) >= 100 || strlen($parts[0]) >= 2) {
+                    // Likely thousand separator: 2.500 or 12.500
+                    $value = str_replace('.', '', $value);
+                }
+                // Otherwise keep as decimal: 25.50
+            } else {
+                // Multiple dots, treat as thousand separators: 1.000.500
+                $value = str_replace('.', '', $value);
+            }
+        } elseif (strpos($value, ',') !== false) {
+            // Format: 2500,50 (comma as decimal)
+            $value = str_replace(',', '.', $value);
+        }
+
+        return $value;
     }
 }
