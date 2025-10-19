@@ -406,10 +406,9 @@
                     <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Cost)</label>
                     <input
                       v-model="item.buying_amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      @input="calculateTotals"
+                      type="text"
+                      placeholder="0 (contoh: 25.000 atau 25000)"
+                      @input="formatVendorAmount(item, 'buying_amount', $event); calculateTotals()"
                       class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -417,10 +416,9 @@
                     <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Revenue)</label>
                     <input
                       v-model="item.selling_amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      @input="calculateTotals"
+                      type="text"
+                      placeholder="0 (contoh: 30.000 atau 30000)"
+                      @input="formatVendorAmount(item, 'selling_amount', $event); calculateTotals()"
                       class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
@@ -542,10 +540,9 @@
                       <label class="block text-xs font-medium text-orange-700 mb-1">Jumlah Biaya</label>
                       <input
                         v-model="cost.amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0"
+                        type="text"
+                        placeholder="0 (contoh: 2.500 atau 2500)"
+                        @input="formatCostAmount(cost, $event)"
                         class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
                       />
                     </div>
@@ -1419,6 +1416,61 @@ const removeOtherCost = (index) => {
   }
 };
 
+// Format cost amount input to handle Indonesian number format
+const formatCostAmount = (cost, event) => {
+  let value = event.target.value;
+
+  // Remove any non-numeric characters except dots and commas
+  value = value.replace(/[^\d.,]/g, '');
+
+  // Store the raw input for backend processing
+  cost.amount = value;
+};
+
+// Format vendor amount input to handle Indonesian number format
+const formatVendorAmount = (item, field, event) => {
+  let value = event.target.value;
+
+  // Remove any non-numeric characters except dots and commas
+  value = value.replace(/[^\d.,]/g, '');
+
+  // Store the raw input for backend processing
+  item[field] = value;
+};
+
+// Helper function to normalize Indonesian number format for calculation
+const normalizeNumber = (value) => {
+  if (!value) return 0;
+
+  let normalized = value.toString().trim();
+
+  // Handle Indonesian format
+  if (normalized.includes('.') && normalized.includes(',')) {
+    // Format: 2.500,50 (dot = thousand separator, comma = decimal)
+    normalized = normalized.replace(/\./g, '').replace(',', '.');
+  } else if (normalized.includes('.') && !normalized.includes(',')) {
+    // Could be: 2.500 (thousand) or 2500.50 (decimal)
+    const parts = normalized.split('.');
+    if (parts.length === 2) {
+      const decimalPart = parts[1];
+      // If decimal part has 3+ digits or is > 99, treat as thousand separator
+      if (decimalPart.length >= 3 || parseInt(decimalPart) >= 100 || parts[0].length >= 2) {
+        // Likely thousand separator: 2.500 or 12.500
+        normalized = normalized.replace(/\./g, '');
+      }
+      // Otherwise keep as decimal: 25.50
+    } else {
+      // Multiple dots, treat as thousand separators: 1.000.500
+      normalized = normalized.replace(/\./g, '');
+    }
+  } else if (normalized.includes(',')) {
+    // Format: 2500,50 (comma as decimal)
+    normalized = normalized.replace(',', '.');
+  }
+
+  return parseFloat(normalized) || 0;
+};
+
 // Reimbursement items management
 const reimbursementItems = ref([]);
 
@@ -1453,11 +1505,11 @@ const formatNumber = (amount) => {
 
 // Computed properties for totals
 const totalBuying = computed(() => {
-  return form.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.buying_amount) || 0), 0);
+  return form.vendor_breakdown.reduce((sum, item) => sum + normalizeNumber(item.buying_amount), 0);
 });
 
 const totalSelling = computed(() => {
-  return form.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.selling_amount) || 0), 0);
+  return form.vendor_breakdown.reduce((sum, item) => sum + normalizeNumber(item.selling_amount), 0);
 });
 
 const totalRevenue = computed(() => {
@@ -1465,17 +1517,17 @@ const totalRevenue = computed(() => {
 });
 
 const totalOtherCosts = computed(() => {
-  return form.other_costs.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  return form.other_costs.reduce((sum, item) => sum + normalizeNumber(item.amount), 0);
 });
 
 const totalReimbursement = computed(() => {
-  return reimbursementItems.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  return reimbursementItems.value.reduce((sum, item) => sum + normalizeNumber(item.amount), 0);
 });
 
 // Get profit for individual vendor item
 const getProfit = (vendorItem) => {
-  const buying = parseFloat(vendorItem.buying_amount) || 0;
-  const selling = parseFloat(vendorItem.selling_amount) || 0;
+  const buying = normalizeNumber(vendorItem.buying_amount);
+  const selling = normalizeNumber(vendorItem.selling_amount);
   return selling - buying;
 };
 
