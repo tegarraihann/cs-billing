@@ -450,11 +450,10 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Rate</label>
                     <input
-                      type="number"
+                      type="text"
                       v-model="item.rate"
-                      @input="calculateMainAmount(index)"
-                      step="0.01"
-                      min="0"
+                      @input="formatMainItemRate(item, index, $event)"
+                      placeholder="0 (contoh: 2.500 atau 2500)"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                       required
                     />
@@ -594,12 +593,10 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Unit Rate</label>
                     <input
                       v-model="item.rate"
-                      @input="calculateReimbursementAmount(index)"
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      @input="formatReimbursementRate(item, index, $event)"
+                      type="text"
+                      placeholder="0 (contoh: 500.000 atau 500000)"
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                      placeholder="500000"
                       required
                     />
                   </div>
@@ -759,13 +756,11 @@
                   <div>
                     <label class="block text-sm font-medium text-red-700 mb-2">Biaya</label>
                     <input
-                      type="number"
+                      type="text"
                       v-model="cost.rate"
-                      @input="calculateOperationalAmount(index)"
-                      step="1000"
-                      min="0"
+                      @input="formatOperationalRate(cost, index, $event)"
+                      placeholder="0 (contoh: 50.000 atau 50000)"
                       class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="50000"
                       required
                     />
                   </div>
@@ -1003,9 +998,9 @@ const populateItemsFromSalesOrder = (salesOrder) => {
           description: vendor.description || `Service ${index + 1}`,
           quantity: 1,
           unit: 'SET',
-          rate: parseFloat(vendor.selling_amount),
+          rate: normalizeNumber(vendor.selling_amount),
           currency: 'IDR',
-          amount: parseFloat(vendor.selling_amount),
+          amount: normalizeNumber(vendor.selling_amount),
           item_ref: `vendor_${vendor.vendor_id || index}`,
           type: 'main'
         });
@@ -1022,9 +1017,9 @@ const populateItemsFromSalesOrder = (salesOrder) => {
           description: item.description || `Reimbursement ${index + 1}`,
           quantity: 1,
           unit: 'SET',
-          rate: parseFloat(item.amount),
+          rate: normalizeNumber(item.amount),
           currency: 'IDR',
-          amount: parseFloat(item.amount),
+          amount: normalizeNumber(item.amount),
           item_ref: `reimb_${item.id || index}`,
           type: 'reimbursement'
         });
@@ -1041,9 +1036,9 @@ const populateItemsFromSalesOrder = (salesOrder) => {
           description: cost.description || `Operational Cost ${index + 1}`,
           quantity: 1.0,
           unit: 'pcs',
-          rate: parseFloat(cost.amount),
+          rate: normalizeNumber(cost.amount),
           currency: 'IDR',
-          amount: parseFloat(cost.amount),
+          amount: normalizeNumber(cost.amount),
           item_type: 'operational_cost',
           include_in_customer_invoice: false,
           is_hidden_from_customer: true,
@@ -1064,9 +1059,9 @@ const populateItemsFromSalesOrder = (salesOrder) => {
           description: `Buying Cost - ${vendor.description || 'Service'}`,
           quantity: 1.0,
           unit: 'SET',
-          rate: parseFloat(vendor.buying_amount),
+          rate: normalizeNumber(vendor.buying_amount),
           currency: 'IDR',
-          amount: parseFloat(vendor.buying_amount),
+          amount: normalizeNumber(vendor.buying_amount),
           item_type: 'operational_cost',
           include_in_customer_invoice: false,
           is_hidden_from_customer: true,
@@ -1132,7 +1127,54 @@ const removeMainItem = (index) => {
 
 const calculateMainAmount = (index) => {
   const item = mainItems.value[index];
-  item.amount = parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
+  item.amount = normalizeNumber(item.quantity || 0) * normalizeNumber(item.rate || 0);
+};
+
+// Helper function to normalize Indonesian number format for calculation
+const normalizeNumber = (value) => {
+  if (!value) return 0;
+
+  let normalized = value.toString().trim();
+
+  // Handle Indonesian format
+  if (normalized.includes('.') && normalized.includes(',')) {
+    // Format: 2.500,50 (dot = thousand separator, comma = decimal)
+    normalized = normalized.replace(/\./g, '').replace(',', '.');
+  } else if (normalized.includes('.') && !normalized.includes(',')) {
+    // Could be: 2.500 (thousand) or 2500.50 (decimal)
+    const parts = normalized.split('.');
+    if (parts.length === 2) {
+      const decimalPart = parts[1];
+      // If decimal part has 3+ digits or is > 99, treat as thousand separator
+      if (decimalPart.length >= 3 || parseInt(decimalPart) >= 100 || parts[0].length >= 2) {
+        // Likely thousand separator: 2.500 or 12.500
+        normalized = normalized.replace(/\./g, '');
+      }
+      // Otherwise keep as decimal: 25.50
+    } else {
+      // Multiple dots, treat as thousand separators: 1.000.500
+      normalized = normalized.replace(/\./g, '');
+    }
+  } else if (normalized.includes(',')) {
+    // Format: 2500,50 (comma as decimal)
+    normalized = normalized.replace(',', '.');
+  }
+
+  return parseFloat(normalized) || 0;
+};
+
+// Format main item rate input to handle Indonesian number format
+const formatMainItemRate = (item, index, event) => {
+  let value = event.target.value;
+
+  // Remove any non-numeric characters except dots and commas
+  value = value.replace(/[^\d.,]/g, '');
+
+  // Store the raw input for backend processing
+  item.rate = value;
+
+  // Recalculate amount
+  calculateMainAmount(index);
 };
 
 // Reimbursement item functions
@@ -1155,7 +1197,21 @@ const removeReimbursementItem = (index) => {
 
 const calculateReimbursementAmount = (index) => {
   const item = reimbursementItems.value[index];
-  item.amount = parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
+  item.amount = normalizeNumber(item.quantity || 0) * normalizeNumber(item.rate || 0);
+};
+
+// Format reimbursement rate input to handle Indonesian number format
+const formatReimbursementRate = (item, index, event) => {
+  let value = event.target.value;
+
+  // Remove any non-numeric characters except dots and commas
+  value = value.replace(/[^\d.,]/g, '');
+
+  // Store the raw input for backend processing
+  item.rate = value;
+
+  // Recalculate amount
+  calculateReimbursementAmount(index);
 };
 
 // Operational costs functions
@@ -1206,12 +1262,26 @@ const onCategoryChange = (index) => {
 const calculateOperationalAmount = (index) => {
   const cost = operationalCosts.value[index];
   cost.quantity = 1.0; // Always 1.0 for operational costs (decimal to match validation)
-  cost.amount = parseFloat(cost.rate || 0);
+  cost.amount = normalizeNumber(cost.rate || 0);
+};
+
+// Format operational rate input to handle Indonesian number format
+const formatOperationalRate = (cost, index, event) => {
+  let value = event.target.value;
+
+  // Remove any non-numeric characters except dots and commas
+  value = value.replace(/[^\d.,]/g, '');
+
+  // Store the raw input for backend processing
+  cost.rate = value;
+
+  // Recalculate amount
+  calculateOperationalAmount(index);
 };
 
 const calculateOperationalTotal = () => {
   return operationalCosts.value.reduce((total, cost) => {
-    return total + (parseFloat(cost.amount || 0));
+    return total + normalizeNumber(cost.amount || 0);
   }, 0);
 };
 
@@ -1219,7 +1289,7 @@ const calculateOperationalTotal = () => {
 const calculateGrossRevenue = () => {
   // Only calculate revenue from main billable items (exclude reimbursement)
   const mainTotal = mainItems.value.reduce((total, item) => {
-    return total + (parseFloat(item.amount || 0));
+    return total + normalizeNumber(item.amount || 0);
   }, 0);
 
   // Reimbursement is cost-neutral, tidak dihitung sebagai revenue
@@ -1229,7 +1299,7 @@ const calculateGrossRevenue = () => {
 const calculateReimbursementTotal = () => {
   // Reimbursement items untuk informasi saja (cost-neutral)
   return reimbursementItems.value.reduce((total, item) => {
-    return total + (parseFloat(item.amount || 0));
+    return total + normalizeNumber(item.amount || 0);
   }, 0);
 };
 
@@ -1245,11 +1315,11 @@ const calculateProfitMargin = () => {
 
 const calculateTotal = () => {
   const mainTotal = mainItems.value.reduce((total, item) => {
-    return total + (parseFloat(item.amount || 0));
+    return total + normalizeNumber(item.amount || 0);
   }, 0);
 
   const reimbursementTotal = reimbursementItems.value.reduce((total, item) => {
-    return total + (parseFloat(item.amount || 0));
+    return total + normalizeNumber(item.amount || 0);
   }, 0);
 
   return mainTotal + reimbursementTotal;
