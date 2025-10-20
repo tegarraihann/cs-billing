@@ -322,16 +322,8 @@ class InvoiceController extends Controller
 
         $invoice->calculateTotals();
 
-        // Auto-generate petty cash transactions from operational costs
-        try {
-            $categorizationService = new ExpenseCategorizationService();
-            $categorizationService->autoGeneratePettyCashFromInvoice($invoice);
-        } catch (\Exception $e) {
-            \Log::warning('Failed to auto-generate petty cash from invoice', [
-                'invoice_id' => $invoice->id,
-                'error' => $e->getMessage()
-            ]);
-        }
+        // Auto-generate operational debt to divisional operational
+        $this->autoGenerateOperationalDebt($invoice);
 
         // Auto-generate Account Receivable
         \App\Models\AccountReceivable::createFromInvoice($invoice);
@@ -1316,5 +1308,55 @@ class InvoiceController extends Controller
         }
 
         return $value;
+    }
+
+    /**
+     * Auto-generate operational debt to divisional operational from invoice operational costs
+     */
+    private function autoGenerateOperationalDebt(Invoice $invoice)
+    {
+        try {
+            // Get operational costs from invoice items
+            $operationalCosts = $invoice->items()
+                ->where('item_type', 'operational_cost')
+                ->get();
+
+            if ($operationalCosts->isEmpty()) {
+                return;
+            }
+
+            // Calculate total operational costs
+            $totalOperationalCosts = $operationalCosts->sum('amount');
+
+            // Create account payable to "Divisi Operational"
+            \App\Models\AccountPayable::create([
+                'sales_order_id' => $invoice->sales_order_id,
+                'vendor_id' => null, // Internal division, no vendor
+                'vendor_name' => 'Divisi Operational',
+                'vendor_invoice_number' => 'OP-' . $invoice->invoice_number,
+                'vendor_invoice_date' => $invoice->invoice_date,
+                'service_description' => 'Biaya Operational untuk Shipment ' . ($invoice->salesOrder->order_number ?? ''),
+                'service_remarks' => 'Auto-generated from operational costs in invoice',
+                'amount' => $totalOperationalCosts,
+                'paid_amount' => 0,
+                'outstanding_amount' => $totalOperationalCosts,
+                'status' => 'unpaid',
+                'payment_due_date' => $invoice->invoice_date->addDays(30), // 30 days payment term
+                'created_by' => auth()->id(),
+            ]);
+
+            \Log::info('Operational debt created', [
+                'invoice_id' => $invoice->id,
+                'amount' => $totalOperationalCosts,
+                'sales_order' => $invoice->salesOrder->order_number ?? null
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to create operational debt', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage()
+            ]);
+            // Don't throw exception to prevent blocking invoice creation
+        }
     }
 }

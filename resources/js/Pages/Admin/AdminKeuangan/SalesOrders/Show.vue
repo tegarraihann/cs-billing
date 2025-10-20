@@ -247,6 +247,97 @@
                                         </div>
                                     </div>
 
+                                    <!-- Biaya Beban Lain (Operational Costs) -->
+                                    <div v-if="salesOrder.other_costs && salesOrder.other_costs.length > 0" class="mb-6">
+                                        <h5 class="text-sm font-semibold text-gray-800 mb-3">Biaya Beban Lain (Operational)</h5>
+                                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                            <div class="overflow-x-auto">
+                                                <table class="min-w-full divide-y divide-gray-200">
+                                                    <thead class="bg-red-50">
+                                                        <tr>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase tracking-wider">Description</th>
+                                                            <th class="px-6 py-3 text-right text-xs font-medium text-red-700 uppercase tracking-wider">Amount</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase tracking-wider">Category</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase tracking-wider">Notes</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="bg-white divide-y divide-gray-200">
+                                                        <tr v-for="(cost, index) in salesOrder.other_costs" :key="index" class="hover:bg-gray-50">
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                {{ cost.description || '-' }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
+                                                                {{ formatCurrency(cost.amount || 0) }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                                {{ cost.category || '-' }}
+                                                            </td>
+                                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                                {{ cost.notes || '-' }}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot class="bg-red-50">
+                                                        <tr>
+                                                            <td class="px-6 py-3 text-sm font-semibold text-red-800 uppercase">Total</td>
+                                                            <td class="px-6 py-3 text-right text-sm font-mono font-semibold text-red-900">
+                                                                {{ formatCurrency(salesOrder.other_costs.reduce((total, cost) => total + (parseFloat(cost.amount) || 0), 0)) }}
+                                                            </td>
+                                                            <td colspan="2" class="px-6 py-3"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Items Reimbursement -->
+                                    <div v-if="salesOrder.reimbursement_items && salesOrder.reimbursement_items.length > 0" class="mb-6">
+                                        <h5 class="text-sm font-semibold text-gray-800 mb-3">Items Reimbursement</h5>
+                                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                            <div class="overflow-x-auto">
+                                                <table class="min-w-full divide-y divide-gray-200">
+                                                    <thead class="bg-orange-50">
+                                                        <tr>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">Description</th>
+                                                            <th class="px-6 py-3 text-right text-xs font-medium text-orange-700 uppercase tracking-wider">Amount</th>
+                                                            <th class="px-6 py-3 text-center text-xs font-medium text-orange-700 uppercase tracking-wider">Status</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">Notes</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="bg-white divide-y divide-gray-200">
+                                                        <tr v-for="(item, index) in salesOrder.reimbursement_items" :key="index" class="hover:bg-gray-50">
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                {{ item.description || '-' }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
+                                                                {{ formatCurrency(item.amount || 0) }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                                    :class="getReimbursementStatusColor(item.status)">
+                                                                    {{ getReimbursementStatusText(item.status) }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                                {{ item.notes || '-' }}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot class="bg-orange-50">
+                                                        <tr>
+                                                            <td class="px-6 py-3 text-sm font-semibold text-orange-800 uppercase">Total</td>
+                                                            <td class="px-6 py-3 text-right text-sm font-mono font-semibold text-orange-900">
+                                                                {{ formatCurrency(salesOrder.reimbursement_items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0)) }}
+                                                            </td>
+                                                            <td colspan="2" class="px-6 py-3"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Additional Information -->
                                     <div
                                         class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200">
@@ -1086,6 +1177,27 @@ const createInvoice = () => {
         sales_order_id: props.salesOrder.id,
         invoice_type: selectedInvoiceType.value
     });
+};
+
+// Reimbursement status functions
+const getReimbursementStatusText = (status) => {
+    const labels = {
+        pending: 'Pending',
+        linked: 'Linked to Invoice',
+        invoiced: 'Invoiced',
+        cancelled: 'Cancelled'
+    };
+    return labels[status] || status || 'Pending';
+};
+
+const getReimbursementStatusColor = (status) => {
+    const colors = {
+        pending: 'bg-yellow-100 text-yellow-800',
+        linked: 'bg-blue-100 text-blue-800',
+        invoiced: 'bg-green-100 text-green-800',
+        cancelled: 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
 };
 </script>
 

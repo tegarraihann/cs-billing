@@ -721,6 +721,19 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{operationalCostCategory}', 'update')->name('update');
         Route::delete('/{operationalCostCategory}', 'destroy')->name('destroy');
     });
+
+    // General Expenses Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\GeneralExpenseController::class)->prefix('general-expenses')->name('general-expenses.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/export', 'export')->name('export');
+        Route::get('/{generalExpense}', 'show')->name('show');
+        Route::get('/{generalExpense}/edit', 'edit')->name('edit');
+        Route::put('/{generalExpense}', 'update')->name('update');
+        Route::delete('/{generalExpense}', 'destroy')->name('destroy');
+        Route::post('/{generalExpense}/approve', 'approve')->name('approve');
+    });
 });
 
 // SHARED ROUTES (All authenticated users)

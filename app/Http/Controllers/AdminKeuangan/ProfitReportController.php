@@ -359,34 +359,19 @@ class ProfitReportController extends Controller
     }
 
     /**
-     * Calculate comprehensive total costs for a sales order
-     * Including account payables, operational costs from invoices, other costs, and reimbursements
+     * Calculate operational costs for a sales order
+     * Only includes operational costs from invoices (like Internal Analysis)
      */
     private function calculateTotalCosts(SalesOrder $salesOrder): float
     {
-        $totalCosts = 0;
-
-        // 1. Account Payables (vendor buying costs)
-        $accountPayableCosts = $salesOrder->accountPayables->sum('amount');
-        $totalCosts += $accountPayableCosts;
-
-        // 2. Other Costs from Sales Order (additional operational costs)
-        $otherCosts = $salesOrder->calculateOtherCosts();
-        $totalCosts += $otherCosts;
-
-        // 3. Operational Costs from related invoices (auto-generated operational costs)
+        // Only Operational Costs from related invoices (consistent with Internal Analysis)
         $operationalCosts = 0;
         foreach ($salesOrder->invoices as $invoice) {
             $operationalCosts += $invoice->items()
                 ->where('item_type', 'operational_cost')
                 ->sum('amount');
         }
-        $totalCosts += $operationalCosts;
 
-        // 4. Reimbursement Items (company expenses that need to be reimbursed)
-        $reimbursementCosts = $salesOrder->reimbursementItems()->sum('amount');
-        $totalCosts += $reimbursementCosts;
-
-        return $totalCosts;
+        return $operationalCosts;
     }
 }
