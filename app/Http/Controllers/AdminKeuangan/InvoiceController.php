@@ -168,6 +168,7 @@ class InvoiceController extends Controller
             'awb_bl_no' => 'nullable|string|max:255',
             'mawb_obl_no' => 'nullable|string|max:255',
             'gross_weight' => 'nullable|numeric',
+            'net_weight' => 'nullable|numeric',
             'volume' => 'nullable|string|max:255',
             'no_of_packages' => 'nullable|integer',
             'package_unit' => 'nullable|exists:master_package_units,code',
@@ -258,6 +259,7 @@ class InvoiceController extends Controller
             'awb_bl_no' => $validated['awb_bl_no'] ?? $salesOrder->bl_awb,
             'mawb_obl_no' => $validated['mawb_obl_no'],
             'gross_weight' => $validated['gross_weight'] ?? $salesOrder->gross_weight ?? $salesOrder->net_weight,
+            'net_weight' => $validated['net_weight'] ?? $salesOrder->net_weight,
             'volume' => $validated['volume'] ?? $salesOrder->measurement,
             'no_of_packages' => $validated['no_of_packages'] ?? $salesOrder->qty,
             'package_unit' => $validated['package_unit'] ?? $salesOrder->package_unit ?? 'BAG',
@@ -449,6 +451,7 @@ class InvoiceController extends Controller
             'awb_bl_no' => 'nullable|string|max:255',
             'mawb_obl_no' => 'nullable|string|max:255',
             'gross_weight' => 'nullable|numeric',
+            'net_weight' => 'nullable|numeric',
             'volume' => 'nullable|string|max:255',
             'no_of_packages' => 'nullable|integer',
             'package_unit' => 'nullable|exists:master_package_units,code',
@@ -486,6 +489,7 @@ class InvoiceController extends Controller
             'awb_bl_no' => $validated['awb_bl_no'],
             'mawb_obl_no' => $validated['mawb_obl_no'],
             'gross_weight' => $validated['gross_weight'],
+            'net_weight' => $validated['net_weight'],
             'volume' => $validated['volume'],
             'no_of_packages' => $validated['no_of_packages'],
             'vessel' => $validated['vessel'],
@@ -651,7 +655,8 @@ class InvoiceController extends Controller
             // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
             $itemRef = strtolower(trim($item->item_ref ?? ''));
             $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                                  strpos($itemRef, 'reimbur') !== false;
+                                  strpos($itemRef, 'reimbur') !== false ||
+                                  strpos($itemRef, 'reimb_') !== false;
 
             return ($item->item_type ?? 'billable') !== 'operational_cost' &&
                    ($item->include_in_customer_invoice ?? true) &&
@@ -697,7 +702,12 @@ class InvoiceController extends Controller
         $invoice->load(['salesOrder', 'customer', 'items']);
 
         // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+        $reimbursementItems = $invoice->items->filter(function($item) {
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                   strpos($itemRef, 'reimbur') !== false ||
+                   strpos($itemRef, 'reimb_') !== false;
+        });
 
         // Calculate totals for reimbursement items only
         $subtotal = $reimbursementItems->sum('amount');
@@ -719,12 +729,12 @@ class InvoiceController extends Controller
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
-        // Generate PDF using new NOTA template
-        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        // Generate PDF using old DEBIT NOTE template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
-        // NOTA reimbursement filename - invoice number already has -R suffix
-        $filename = 'NOTA-' . $reimbursementInvoice->invoice_number . '.pdf';
+        // DEBIT NOTE reimbursement filename - invoice number already has -R suffix
+        $filename = 'DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf';
 
         return $pdf->download($filename);
     }
@@ -743,7 +753,8 @@ class InvoiceController extends Controller
             // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
             $itemRef = strtolower(trim($item->item_ref ?? ''));
             $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                                  strpos($itemRef, 'reimbur') !== false;
+                                  strpos($itemRef, 'reimbur') !== false ||
+                                  strpos($itemRef, 'reimb_') !== false;
 
             return ($item->item_type ?? 'billable') !== 'operational_cost' &&
                    ($item->include_in_customer_invoice ?? true) &&
@@ -790,7 +801,12 @@ class InvoiceController extends Controller
         $invoice->load(['salesOrder', 'customer', 'items']);
 
         // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+        $reimbursementItems = $invoice->items->filter(function($item) {
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                   strpos($itemRef, 'reimbur') !== false ||
+                   strpos($itemRef, 'reimb_') !== false;
+        });
 
         // Calculate totals for reimbursement items only
         $subtotal = $reimbursementItems->sum('amount');
@@ -812,12 +828,12 @@ class InvoiceController extends Controller
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
-        // Generate PDF using new NOTA template
-        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        // Generate PDF using old DEBIT NOTE template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
-        return $pdf->stream('NOTA-' . $reimbursementInvoice->invoice_number . '.pdf');
+        return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
     }
 
     public function confirmPayment(Request $request, Invoice $invoice)
@@ -930,8 +946,32 @@ class InvoiceController extends Controller
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
 
+        // Filter customer-visible items (exclude operational costs and hidden items)
+        $customerVisibleItems = $invoice->items->filter(function($item) {
+            // Show only items that are:
+            // 1. Not operational costs
+            // 2. Included in customer invoice
+            // 3. Not hidden from customer
+            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                                  strpos($itemRef, 'reimbur') !== false ||
+                                  strpos($itemRef, 'reimb_') !== false;
+
+            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+                   ($item->include_in_customer_invoice ?? true) &&
+                   !($item->is_hidden_from_customer ?? false) &&
+                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+        });
+
+        // Create a copy of invoice with only customer-visible items
+        $filteredInvoice = $invoice->replicate();
+        $filteredInvoice->setRelation('items', $customerVisibleItems);
+        $filteredInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $filteredInvoice->setRelation('customer', $invoice->customer);
+
         return view('invoices.preview', [
-            'invoice' => $invoice
+            'invoice' => $filteredInvoice
         ]);
     }
 
@@ -939,11 +979,35 @@ class InvoiceController extends Controller
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
 
+        // Filter customer-visible items (exclude operational costs and hidden items)
+        $customerVisibleItems = $invoice->items->filter(function($item) {
+            // Show only items that are:
+            // 1. Not operational costs
+            // 2. Included in customer invoice
+            // 3. Not hidden from customer
+            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                                  strpos($itemRef, 'reimbur') !== false ||
+                                  strpos($itemRef, 'reimb_') !== false;
+
+            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+                   ($item->include_in_customer_invoice ?? true) &&
+                   !($item->is_hidden_from_customer ?? false) &&
+                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+        });
+
+        // Create a copy of invoice with only customer-visible items
+        $filteredInvoice = $invoice->replicate();
+        $filteredInvoice->setRelation('items', $customerVisibleItems);
+        $filteredInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $filteredInvoice->setRelation('customer', $invoice->customer);
+
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
         return view('invoices.print', [
-            'invoice' => $invoice,
+            'invoice' => $filteredInvoice,
             'generatedAt' => $generatedAt
         ]);
     }
@@ -1035,7 +1099,7 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Generate reimbursement PDF using new NOTA template
+     * Generate reimbursement PDF using old DEBIT NOTE template
      */
     public function generateReimbursementNotaPdf(Invoice $invoice)
     {
@@ -1043,7 +1107,12 @@ class InvoiceController extends Controller
         $invoice->load(['salesOrder', 'customer', 'items']);
 
         // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+        $reimbursementItems = $invoice->items->filter(function($item) {
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                   strpos($itemRef, 'reimbur') !== false ||
+                   strpos($itemRef, 'reimb_') !== false;
+        });
 
         // Calculate totals for reimbursement items only
         $subtotal = $reimbursementItems->sum('amount');
@@ -1065,18 +1134,18 @@ class InvoiceController extends Controller
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
-        // Generate PDF using new NOTA template
-        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        // Generate PDF using old DEBIT NOTE template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
-        // NOTA filename - invoice number already has -R suffix
-        $filename = 'NOTA-' . $reimbursementInvoice->invoice_number . '.pdf';
+        // DEBIT NOTE filename - invoice number already has -R suffix
+        $filename = 'DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf';
 
         return $pdf->download($filename);
     }
 
     /**
-     * Preview reimbursement PDF using new NOTA template
+     * Preview reimbursement PDF using old DEBIT NOTE template
      */
     public function previewReimbursementNotaPdf(Invoice $invoice)
     {
@@ -1084,7 +1153,12 @@ class InvoiceController extends Controller
         $invoice->load(['salesOrder', 'customer', 'items']);
 
         // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+        $reimbursementItems = $invoice->items->filter(function($item) {
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                   strpos($itemRef, 'reimbur') !== false ||
+                   strpos($itemRef, 'reimb_') !== false;
+        });
 
         // Calculate totals for reimbursement items only
         $subtotal = $reimbursementItems->sum('amount');
@@ -1106,16 +1180,16 @@ class InvoiceController extends Controller
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
-        // Generate PDF using new NOTA template
-        $pdf = PDF::loadView('invoices.reimbursement-nota-pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        // Generate PDF using old DEBIT NOTE template
+        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
         $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
-        return $pdf->stream('NOTA-' . $reimbursementInvoice->invoice_number . '.pdf');
+        return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
     }
 
     /**
-     * Generate reimbursement PDF using old DEBIT NOTE template (backup)
+     * Generate reimbursement PDF using old DEBIT NOTE template (alternative method)
      */
     public function generateReimbursementDebitNotePdf(Invoice $invoice)
     {
@@ -1123,7 +1197,12 @@ class InvoiceController extends Controller
         $invoice->load(['salesOrder', 'customer', 'items']);
 
         // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+        $reimbursementItems = $invoice->items->filter(function($item) {
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                   strpos($itemRef, 'reimbur') !== false ||
+                   strpos($itemRef, 'reimb_') !== false;
+        });
 
         // Calculate totals for reimbursement items only
         $subtotal = $reimbursementItems->sum('amount');
@@ -1164,7 +1243,12 @@ class InvoiceController extends Controller
         $invoice->load(['salesOrder', 'customer', 'items']);
 
         // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->where('item_ref', 'reimbursement');
+        $reimbursementItems = $invoice->items->filter(function($item) {
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                   strpos($itemRef, 'reimbur') !== false ||
+                   strpos($itemRef, 'reimb_') !== false;
+        });
 
         // Calculate totals for reimbursement items only
         $subtotal = $reimbursementItems->sum('amount');

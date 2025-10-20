@@ -273,9 +273,26 @@
         <div class="section-title">INFORMASI KEUANGAN TERKINI</div>
 
         <div class="item">
-            <span class="item-name">Saldo Bank/Kas</span>
+            <span class="item-name">Saldo Bank Mandiri</span>
+            <span class="item-amount">Rp {{ number_format($financialInfo['bank_mandiri_balance'] ?? 0, 0, ',', '.') }}</span>
+        </div>
+
+        <div class="item">
+            <span class="item-name">Saldo Bank BCA</span>
+            <span class="item-amount">Rp {{ number_format($financialInfo['bank_bca_balance'] ?? 0, 0, ',', '.') }}</span>
+        </div>
+
+        <div class="item" style="font-weight: bold; background-color: #f8f9fa;">
+            <span class="item-name">Total Saldo Bank</span>
+            <span class="item-amount">Rp {{ number_format($financialInfo['total_bank_balance'] ?? 0, 0, ',', '.') }}</span>
+        </div>
+
+        @if(isset($financialInfo['bank_balance']) && $financialInfo['bank_balance'] > 0)
+        <div class="item">
+            <span class="item-name">Kas Kecil</span>
             <span class="item-amount">Rp {{ number_format($financialInfo['bank_balance'] ?? 0, 0, ',', '.') }}</span>
         </div>
+        @endif
 
         <div class="item">
             <span class="item-name">Total Piutang</span>

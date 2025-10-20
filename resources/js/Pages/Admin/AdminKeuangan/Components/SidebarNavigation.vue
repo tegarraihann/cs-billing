@@ -330,6 +330,32 @@
         <span class="font-medium">Laporan Laba Rugi</span>
       </a>
 
+      <!-- Bank Balance -->
+      <a
+        :href="route('admin-keuangan.bank-balance.index')"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.bank-balance')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+          />
+        </svg>
+        <span class="font-medium">Saldo Bank</span>
+      </a>
+
       <!-- Employee Salary -->
       <a
         :href="route('admin-keuangan.employee-salary.index')"
@@ -578,6 +604,8 @@ const route = window.route || function(name, params) {
     'admin-keuangan.profit-reports.index': '/admin-keuangan/profit-reports',
     'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
     'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
+    'admin-keuangan.bank-balance.index': '/admin-keuangan/bank-balance',
+    'admin-keuangan.bank-balance.create': '/admin-keuangan/bank-balance/create',
     'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
     'admin-keuangan.shipment-types.index': '/admin-keuangan/shipment-types',
     'admin-keuangan.shipment-types.create': '/admin-keuangan/shipment-types/create',
@@ -626,6 +654,7 @@ const isActive = (routePattern) => {
     'admin-keuangan.profit-reports': '/admin-keuangan/profit-reports',
     'admin-keuangan.petty-cash': '/admin-keuangan/petty-cash',
     'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
+    'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
     'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',
     'admin-keuangan.expense-templates': '/admin-keuangan/expense-templates',
     'admin-keuangan.operational-cost-categories': '/admin-keuangan/operational-cost-categories',

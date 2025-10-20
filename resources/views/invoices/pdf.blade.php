@@ -499,7 +499,13 @@
             <tr>
                 <td class="inv-label">AJU No.</td>
                 <td class="inv-colon">:</td>
-                <td class="inv-value">{{ $invoice->salesOrder->aju ?? '0173' }}</td>
+                <td class="inv-value">
+                    @php
+                    $aju = $invoice->salesOrder->aju ?? '-';
+                    if (stripos($aju, 'lorem') !== false) $aju = '-';
+                    @endphp
+                    {{ $aju }}
+                </td>
             </tr>
         </table>
 
@@ -528,7 +534,17 @@
                     <td class="ship-value">{{ $invoice->awb_bl_no ?? $invoice->salesOrder->bl_awb ?? '-' }}</td>
                     <td class="ship-label-right">POL / POD</td>
                     <td class="ship-colon-right">:</td>
-                    <td class="ship-value-right">{{ strtoupper(($invoice->salesOrder->pol ?? '-') . ' / ' . ($invoice->salesOrder->pod ?? '-')) }}</td>
+                    <td class="ship-value-right">
+                        @php
+                        $pol = $invoice->salesOrder->pol ?? '-';
+                        $pod = $invoice->salesOrder->pod ?? '-';
+
+                        // Filter out Lorem Ipsum dummy data
+                        if (stripos($pol, 'lorem') !== false) $pol = '-';
+                        if (stripos($pod, 'lorem') !== false) $pod = '-';
+                        @endphp
+                        {{ strtoupper($pol . ' / ' . $pod) }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="ship-label">MAWB/OBL No.</td>
@@ -536,7 +552,13 @@
                     <td class="ship-value">{{ $invoice->mawb_obl_no ?? '-' }}</td>
                     <td class="ship-label-right">ORIGIN</td>
                     <td class="ship-colon-right">:</td>
-                    <td class="ship-value-right">{{ strtoupper($invoice->salesOrder->pol ?? '-') }}</td>
+                    <td class="ship-value-right">
+                        @php
+                        $origin = $invoice->salesOrder->pol ?? '-';
+                        if (stripos($origin, 'lorem') !== false) $origin = '-';
+                        @endphp
+                        {{ strtoupper($origin) }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="ship-label">GROSS WT</td>
@@ -544,7 +566,13 @@
                     <td class="ship-value">{{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}</td>
                     <td class="ship-label-right">DEST</td>
                     <td class="ship-colon-right">:</td>
-                    <td class="ship-value-right">{{ strtoupper($invoice->salesOrder->pod ?? '-') }}</td>
+                    <td class="ship-value-right">
+                        @php
+                        $dest = $invoice->salesOrder->pod ?? '-';
+                        if (stripos($dest, 'lorem') !== false) $dest = '-';
+                        @endphp
+                        {{ strtoupper($dest) }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="ship-label">NETT WT</td>
@@ -552,7 +580,13 @@
                     <td class="ship-value">{{ $invoice->salesOrder->net_weight ? number_format($invoice->salesOrder->net_weight, 2) . ' KG' : '-' }}</td>
                     <td class="ship-label-right">COMMODITY</td>
                     <td class="ship-colon-right">:</td>
-                    <td class="ship-value-right">{{ strtoupper($invoice->salesOrder->commodity ?? '-') }}</td>
+                    <td class="ship-value-right">
+                        @php
+                        $commodity = $invoice->salesOrder->commodity ?? '-';
+                        if (stripos($commodity, 'lorem') !== false) $commodity = '-';
+                        @endphp
+                        {{ strtoupper($commodity) }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="ship-label">VOLUME</td>
@@ -590,7 +624,7 @@
                 <tr>
                     <td class="ship-label">No. OF PKGS</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . ($invoice->package_type ?? 'PCS') : '-' }}</td>
+                    <td class="ship-value">{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . strtoupper($invoice->package_unit ?? $invoice->salesOrder->package_unit ?? 'PCS') : '-' }}</td>
                     <td class="ship-label-right">CONTAINER</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
@@ -669,38 +703,11 @@
                 </tr>
                 @endforeach
                 @else
-                {{-- Default items if no items exist --}}
+                {{-- No items message instead of dummy data --}}
                 <tr>
-                    <td class="desc-col">DO CHARGES</td>
-                    <td class="qty-col">1</td>
-                    <td class="unit-col">SET</td>
-                    <td class="rate-col">0,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">-</td>
-                </tr>
-                <tr>
-                    <td class="desc-col">LOLO</td>
-                    <td class="qty-col">1</td>
-                    <td class="unit-col">SET</td>
-                    <td class="rate-col">1.398.600,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">1.398.600,00</td>
-                </tr>
-                <tr>
-                    <td class="desc-col">STORAGE</td>
-                    <td class="qty-col">1</td>
-                    <td class="unit-col">SET</td>
-                    <td class="rate-col">771.228,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">771.228,00</td>
-                </tr>
-                <tr>
-                    <td class="desc-col">BONGKAR</td>
-                    <td class="qty-col">3</td>
-                    <td class="unit-col">20GP</td>
-                    <td class="rate-col">40.000,00</td>
-                    <td class="cur-col">IDR</td>
-                    <td class="amount-col">120.000,00</td>
+                    <td colspan="6" class="desc-col" style="text-align: center; font-style: italic; color: #666;">
+                        No items found for this invoice
+                    </td>
                 </tr>
                 @endif
             </tbody>
@@ -710,7 +717,7 @@
         <table class="bank-totals-table">
             <tr>
                 <td class="bank-label-col">BANK NAME</td>
-                <td class="bank-value-col">: Mandiri</td>
+                <td class="bank-value-col">: {{ $invoice->bank_name ?? 'Mandiri' }}</td>
                 <td class="total-label-col total-bold">SUB TOTAL</td>
                 <td class="total-value-col total-bold">
                     @php
@@ -724,13 +731,13 @@
             </tr>
             <tr>
                 <td class="bank-label-col">BANK NUMBER</td>
-                <td class="bank-value-col">: 122-00-12330539</td>
+                <td class="bank-value-col">: {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
                 <td class="bank-label-col">ACCOUNT NAME</td>
-                <td class="bank-value-col">: Eshaka Wijaya Logistics</td>
+                <td class="bank-value-col">: {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
                 @if($invoice->hasDownPayment())
                 <td class="total-label-col">DOWN PAYMENT (-)</td>
                 <td class="total-value-col">{{ number_format($invoice->down_payment_amount, 2) }}</td>
@@ -741,7 +748,7 @@
             </tr>
             <tr>
                 <td class="bank-label-col">SWIFT CODE</td>
-                <td class="bank-value-col">: BMRIIDJA</td>
+                <td class="bank-value-col">: {{ $invoice->swift_code ?? 'BMRIIDJA' }}</td>
                 <td class="total-label-col total-bold">TOTAL</td>
                 <td class="total-value-col total-bold">
                     @php
@@ -759,25 +766,25 @@
             </tr>
             <tr>
                 <td class="bank-label-col">BANK NAME</td>
-                <td class="bank-value-col">: BCA</td>
+                <td class="bank-value-col">: {{ $invoice->bank_name_bca ?? 'BCA' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
                 <td class="bank-label-col">BANK NUMBER</td>
-                <td class="bank-value-col">: 5445-974 975</td>
+                <td class="bank-value-col">: {{ $invoice->bank_number_bca ?? '5445-974 975' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
                 <td class="bank-label-col">ACCOUNT NAME</td>
-                <td class="bank-value-col">: Eshaka Wijaya Logistics</td>
+                <td class="bank-value-col">: {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
                 <td class="bank-label-col">SWIFT CODE</td>
-                <td class="bank-value-col">: CENAIDJAXXX</td>
+                <td class="bank-value-col">: {{ $invoice->swift_code_bca ?? 'CENAIDJAXXX' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>

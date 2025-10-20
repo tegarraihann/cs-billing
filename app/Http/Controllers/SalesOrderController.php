@@ -263,7 +263,7 @@ class SalesOrderController extends Controller
      */
     public function show(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['creator', 'vouchers']);
+        $salesOrder->load(['creator', 'vouchers', 'reimbursementItems']);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Show', [
             'salesOrder' => $salesOrder,
@@ -290,6 +290,9 @@ class SalesOrderController extends Controller
             ->select('id', 'name', 'description')
             ->orderBy('name')
             ->get();
+
+        // Load reimbursement items for editing
+        $salesOrder->load(['reimbursementItems']);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
@@ -366,6 +369,13 @@ class SalesOrderController extends Controller
             'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
+
+            // Reimbursement items validation
+            'reimbursement_items' => 'nullable|array',
+            'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
+            'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.category' => 'nullable|string|max:100',
+            'reimbursement_items.*.notes' => 'nullable|string|max:500',
         ]);
 
         // Convert container_no string to array if needed
@@ -403,7 +413,14 @@ class SalesOrderController extends Controller
         $validated['total_amount'] = $totalSelling;
         $validated['status'] = 'draft';
 
+        // Extract reimbursement items before updating sales order
+        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        unset($validated['reimbursement_items']);
+
         $salesOrder->update($validated);
+
+        // Update reimbursement items
+        $this->updateReimbursementItems($salesOrder, $reimbursementItems);
 
         return redirect()
             ->route('admin-cs.sales-orders.index')
@@ -609,6 +626,32 @@ class SalesOrderController extends Controller
      */
     private function createReimbursementItems(SalesOrder $salesOrder, array $reimbursementItems)
     {
+        foreach ($reimbursementItems as $item) {
+            if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
+                ReimbursementItem::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'description' => $item['description'],
+                    'amount' => $item['amount'],
+                    'category' => $item['category'] ?? 'general',
+                    'notes' => $item['notes'] ?? null,
+                    'status' => 'pending',
+                    'created_by' => Auth::id(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Update reimbursement items for sales order
+     */
+    private function updateReimbursementItems(SalesOrder $salesOrder, array $reimbursementItems)
+    {
+        // Delete existing reimbursement items that are still pending (not yet processed)
+        $salesOrder->reimbursementItems()
+            ->where('status', 'pending')
+            ->delete();
+
+        // Create new reimbursement items
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
                 ReimbursementItem::create([

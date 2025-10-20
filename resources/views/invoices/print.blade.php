@@ -389,10 +389,13 @@
                     <span class="field-label">GROSS WT</span> :{{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '69276,0000KGS' }}
                 </div>
                 <div class="shipment-row">
+                    <span class="field-label">NETT WT</span> :{{ $invoice->net_weight ? number_format($invoice->net_weight, 4) . 'KGS' : ($invoice->salesOrder->net_weight ? number_format($invoice->salesOrder->net_weight, 4) . 'KGS' : '-') }}
+                </div>
+                <div class="shipment-row">
                     <span class="field-label">VOLUME</span> :{{ $invoice->volume ?? '-' }}
                 </div>
                 <div class="shipment-row">
-                    <span class="field-label">No. OF PKGS</span> :{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' BAG' : '2760 BAG' }}
+                    <span class="field-label">No. OF PKGS</span> :{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . strtoupper($invoice->package_unit ?? $invoice->salesOrder->package_unit ?? 'BAG') : '2760 BAG' }}
                 </div>
                 <div class="shipment-row">
                     <span class="field-label">20'/40'/45'</span> :{{ $invoice->container_size ?? '3X20' }}

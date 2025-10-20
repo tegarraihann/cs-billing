@@ -403,7 +403,15 @@ class ProfitLossController extends Controller
 
     private function getFinancialInfo(): array
     {
-        // Get latest petty cash balance
+        // Get bank balances breakdown
+        $mandiriBank = \App\Models\BankAccount::getMandiri();
+        $bcaBank = \App\Models\BankAccount::getBCA();
+
+        $mandiriBalance = $mandiriBank ? $mandiriBank->getCurrentBalance() : 0;
+        $bcaBalance = $bcaBank ? $bcaBank->getCurrentBalance() : 0;
+        $totalBankBalance = $mandiriBalance + $bcaBalance;
+
+        // Get latest petty cash balance (keep for backward compatibility)
         $latestPettyCashBalance = \App\Models\PettyCashBalance::latest('balance_date')->first();
 
         // Get total outstanding receivables
@@ -415,7 +423,15 @@ class ProfitLossController extends Controller
                                                    ->sum('outstanding_amount');
 
         return [
+            // Legacy field for backward compatibility
             'bank_balance' => $latestPettyCashBalance?->closing_balance ?? 0,
+
+            // New bank balance breakdown
+            'bank_mandiri_balance' => $mandiriBalance,
+            'bank_bca_balance' => $bcaBalance,
+            'total_bank_balance' => $totalBankBalance,
+
+            // Existing fields
             'total_receivables' => $totalReceivables ?? 0,
             'total_payables' => $totalPayables ?? 0,
         ];

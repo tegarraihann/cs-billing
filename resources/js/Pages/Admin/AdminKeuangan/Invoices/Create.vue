@@ -236,6 +236,19 @@
               />
             </div>
             <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Net Weight (KG)</label>
+              <input
+                type="number"
+                v-model="form.net_weight"
+                step="0.0001"
+                :readonly="form.sales_order_id"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
+                  form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
+                ]"
+              />
+            </div>
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Volume</label>
               <input
                 type="text"
@@ -906,6 +919,7 @@ const form = useForm({
   awb_bl_no: '',
   mawb_obl_no: '',
   gross_weight: '',
+  net_weight: '',
   volume: '',
   no_of_packages: '',
   package_unit: 'BAG',
@@ -960,6 +974,7 @@ const loadSalesOrderData = () => {
 
     // Cargo details - auto-populate from Sales Order
     form.gross_weight = selectedOrder.gross_weight || selectedOrder.net_weight || '';
+    form.net_weight = selectedOrder.net_weight || '';
     form.volume = selectedOrder.measurement || '';
     form.no_of_packages = selectedOrder.qty || '';
     form.package_unit = selectedOrder.package_unit || 'BAG';

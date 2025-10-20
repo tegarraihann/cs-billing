@@ -235,6 +235,28 @@
                             />
                         </div>
                         <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
+                            <input
+                                v-model="paymentForm.payment_date"
+                                type="date"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account *</label>
+                            <select
+                                v-model="paymentForm.bank_account_id"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            >
+                                <option value="">Select Bank Account</option>
+                                <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                                    {{ bank.bank_name }} - {{ bank.account_number }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
                             <select
                                 v-model="paymentForm.payment_method"
@@ -342,7 +364,11 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, CreditCard, Edit } from 'lucide-vue-next'
 
 const props = defineProps({
-    payable: Object
+    payable: Object,
+    bankAccounts: {
+        type: Array,
+        default: () => []
+    }
 })
 
 const showPaymentModal = ref(false)
@@ -351,6 +377,8 @@ const processing = ref(false)
 
 const paymentForm = reactive({
     amount: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    bank_account_id: '',
     payment_method: '',
     notes: ''
 })
@@ -407,6 +435,7 @@ const goBack = () => {
 
 const openPaymentModal = () => {
     paymentForm.amount = ''
+    paymentForm.bank_account_id = ''
     paymentForm.payment_method = ''
     paymentForm.notes = ''
     showPaymentModal.value = true

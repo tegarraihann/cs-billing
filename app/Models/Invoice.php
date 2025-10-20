@@ -24,6 +24,7 @@ class Invoice extends Model
         'awb_bl_no',
         'mawb_obl_no',
         'gross_weight',
+        'net_weight',
         'volume',
         'no_of_packages',
         'package_unit',
@@ -52,7 +53,13 @@ class Invoice extends Model
         'posted_to_profit_loss',
         'posted_to_profit_loss_at',
         'posted_by',
-        'profit_loss_entries'
+        'profit_loss_entries',
+        'bank_account_name',
+        'bank_account_name_bca',
+        'bank_name_bca',
+        'bank_number_bca',
+        'swift_code',
+        'swift_code_bca'
     ];
 
     protected $casts = [

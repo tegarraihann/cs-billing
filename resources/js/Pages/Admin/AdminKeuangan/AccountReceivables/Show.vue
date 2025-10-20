@@ -205,6 +205,16 @@
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                                 </div>
                                 <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account *</label>
+                                    <select v-model="paymentForm.bank_account_id" required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Select Bank Account</option>
+                                        <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                                            {{ bank.bank_name }} - {{ bank.account_number }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                     <textarea v-model="paymentForm.notes" rows="3"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -236,7 +246,11 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, CreditCard, FileText } from 'lucide-vue-next'
 
 const props = defineProps({
-    receivable: Object
+    receivable: Object,
+    bankAccounts: {
+        type: Array,
+        default: () => []
+    }
 })
 
 const showPaymentModal = ref(false)
@@ -246,6 +260,7 @@ const amountError = ref('')
 const paymentForm = reactive({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
+    bank_account_id: '',
     notes: ''
 })
 
@@ -307,6 +322,7 @@ const goBack = () => {
 
 const openPaymentModal = () => {
     paymentForm.amount = ''
+    paymentForm.bank_account_id = ''
     paymentForm.notes = ''
     amountError.value = ''
     showPaymentModal.value = true

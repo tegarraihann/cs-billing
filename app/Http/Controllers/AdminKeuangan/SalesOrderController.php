@@ -41,7 +41,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         // Fresh query to ensure we have the latest data from database
-        $salesOrder = $salesOrder->fresh(['creator', 'releasedBy', 'vouchers', 'invoices']);
+        $salesOrder = $salesOrder->fresh(['creator', 'releasedBy', 'vouchers', 'invoices', 'reimbursementItems']);
         
         // EMERGENCY DEBUG: Print raw data for troubleshooting
         if (request()->has('debug')) {

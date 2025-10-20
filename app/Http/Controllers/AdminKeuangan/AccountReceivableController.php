@@ -95,9 +95,11 @@ class AccountReceivableController extends Controller
     public function show(AccountReceivable $accountReceivable)
     {
         $accountReceivable->load(['customer', 'invoice', 'salesOrder', 'creator']);
-        
+        $bankAccounts = \App\Models\BankAccount::all();
+
         return Inertia::render('Admin/AdminKeuangan/AccountReceivables/Show', [
-            'receivable' => $accountReceivable
+            'receivable' => $accountReceivable,
+            'bankAccounts' => $bankAccounts
         ]);
     }
 
@@ -116,6 +118,7 @@ class AccountReceivableController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:' . $accountReceivable->outstanding_amount,
             'payment_date' => 'required|date',
+            'bank_account_id' => 'required|exists:bank_accounts,id',
             'notes' => 'nullable|string|max:500'
         ]);
 
@@ -128,6 +131,15 @@ class AccountReceivableController extends Controller
             if (!$success) {
                 throw new \Exception('Failed to record payment');
             }
+
+            // Record bank transaction (Customer Payment = Credit to bank)
+            \App\Models\BankTransaction::recordCustomerPayment(
+                $validated['bank_account_id'],
+                $validated['amount'],
+                "Customer payment for Invoice {$accountReceivable->invoice_number} from {$accountReceivable->customer->company_name}",
+                $accountReceivable->id,
+                $validated['payment_date']
+            );
 
             // Update related invoice status if fully paid
             if ($accountReceivable->status === 'paid') {

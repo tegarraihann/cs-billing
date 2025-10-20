@@ -25,7 +25,7 @@ class ProfitReportController extends Controller
         
         // Base query for sales orders
         $query = SalesOrder::query()
-            ->with(['customer', 'invoices', 'accountReceivables', 'accountPayables'])
+            ->with(['customer', 'invoices.items', 'accountReceivables', 'accountPayables', 'reimbursementItems'])
             ->whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', 'approved');
 
@@ -38,7 +38,10 @@ class ProfitReportController extends Controller
         // Calculate profit for each sales order
         $profitData = $salesOrders->map(function ($salesOrder) {
             $revenue = $salesOrder->total_selling ?? 0;
-            $costs = $salesOrder->accountPayables->sum('amount');
+
+            // Calculate comprehensive costs including all expense categories
+            $costs = $this->calculateTotalCosts($salesOrder);
+
             $profit = $revenue - $costs;
             $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
             
@@ -97,7 +100,7 @@ class ProfitReportController extends Controller
         
         // Get the same data as index
         $query = SalesOrder::query()
-            ->with(['customer', 'invoices', 'accountReceivables', 'accountPayables'])
+            ->with(['customer', 'invoices.items', 'accountReceivables', 'accountPayables', 'reimbursementItems'])
             ->whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', 'approved');
 
@@ -109,7 +112,7 @@ class ProfitReportController extends Controller
 
         $profitData = $salesOrders->map(function ($salesOrder) {
             $revenue = $salesOrder->total_selling ?? 0;
-            $costs = $salesOrder->accountPayables->sum('amount');
+            $costs = $this->calculateTotalCosts($salesOrder);
             $profit = $revenue - $costs;
             $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
             
@@ -165,7 +168,7 @@ class ProfitReportController extends Controller
 
         // Calculate detailed breakdown
         $revenue = $salesOrder->total_selling ?? 0;
-        $costs = $salesOrder->accountPayables->sum('amount');
+        $costs = $this->calculateTotalCosts($salesOrder);
         $profit = $revenue - $costs;
         $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
 
@@ -266,14 +269,14 @@ class ProfitReportController extends Controller
     private function getPeriodProfitData($dateFrom, $dateTo)
     {
         $salesOrders = SalesOrder::query()
-            ->with(['accountPayables', 'accountReceivables'])
+            ->with(['accountPayables', 'accountReceivables', 'invoices.items', 'reimbursementItems'])
             ->whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', 'approved')
             ->get();
 
         $totalRevenue = $salesOrders->sum('total_selling');
         $totalCosts = $salesOrders->sum(function ($so) {
-            return $so->accountPayables->sum('amount');
+            return $this->calculateTotalCosts($so);
         });
         $totalProfit = $totalRevenue - $totalCosts;
         $averageMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
@@ -286,7 +289,7 @@ class ProfitReportController extends Controller
             'shipment_count' => $salesOrders->count(),
             'profitable_count' => $salesOrders->filter(function ($so) {
                 $revenue = $so->total_selling ?? 0;
-                $costs = $so->accountPayables->sum('amount');
+                $costs = $this->calculateTotalCosts($so);
                 return ($revenue - $costs) > 0;
             })->count()
         ];
@@ -306,9 +309,15 @@ class ProfitReportController extends Controller
             ->limit($limit)
             ->get()
             ->map(function ($item) {
-                $costs = AccountPayable::whereHas('salesOrder', function ($query) use ($item) {
-                    $query->where('customer_id', $item->customer_id);
-                })->sum('amount');
+                // Calculate comprehensive costs for all sales orders of this customer
+                $customerSalesOrders = SalesOrder::with(['invoices.items', 'accountPayables', 'reimbursementItems'])
+                    ->where('customer_id', $item->customer_id)
+                    ->where('status', 'approved')
+                    ->get();
+
+                $costs = $customerSalesOrders->sum(function ($so) {
+                    return $this->calculateTotalCosts($so);
+                });
                 
                 $profit = $item->total_revenue - $costs;
                 $margin = $item->total_revenue > 0 ? ($profit / $item->total_revenue) * 100 : 0;
@@ -347,5 +356,37 @@ class ProfitReportController extends Controller
         }
         
         return $data;
+    }
+
+    /**
+     * Calculate comprehensive total costs for a sales order
+     * Including account payables, operational costs from invoices, other costs, and reimbursements
+     */
+    private function calculateTotalCosts(SalesOrder $salesOrder): float
+    {
+        $totalCosts = 0;
+
+        // 1. Account Payables (vendor buying costs)
+        $accountPayableCosts = $salesOrder->accountPayables->sum('amount');
+        $totalCosts += $accountPayableCosts;
+
+        // 2. Other Costs from Sales Order (additional operational costs)
+        $otherCosts = $salesOrder->calculateOtherCosts();
+        $totalCosts += $otherCosts;
+
+        // 3. Operational Costs from related invoices (auto-generated operational costs)
+        $operationalCosts = 0;
+        foreach ($salesOrder->invoices as $invoice) {
+            $operationalCosts += $invoice->items()
+                ->where('item_type', 'operational_cost')
+                ->sum('amount');
+        }
+        $totalCosts += $operationalCosts;
+
+        // 4. Reimbursement Items (company expenses that need to be reimbursed)
+        $reimbursementCosts = $salesOrder->reimbursementItems()->sum('amount');
+        $totalCosts += $reimbursementCosts;
+
+        return $totalCosts;
     }
 }

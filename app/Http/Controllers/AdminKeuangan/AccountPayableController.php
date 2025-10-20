@@ -99,9 +99,11 @@ class AccountPayableController extends Controller
     public function show(AccountPayable $accountPayable)
     {
         $accountPayable->load(['vendor', 'salesOrder', 'creator', 'paidByUser']);
-        
+        $bankAccounts = \App\Models\BankAccount::all();
+
         return Inertia::render('Admin/AdminKeuangan/AccountPayables/Show', [
-            'payable' => $accountPayable
+            'payable' => $accountPayable,
+            'bankAccounts' => $bankAccounts
         ]);
     }
 
@@ -113,6 +115,8 @@ class AccountPayableController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:' . $accountPayable->outstanding_amount,
             'payment_method' => 'required|string|max:100',
+            'bank_account_id' => 'required|exists:bank_accounts,id',
+            'payment_date' => 'required|date',
             'notes' => 'nullable|string|max:500'
         ]);
 
@@ -126,6 +130,15 @@ class AccountPayableController extends Controller
             if (!$success) {
                 throw new \Exception('Failed to mark payment');
             }
+
+            // Record bank transaction (Vendor Payment = Debit from bank)
+            \App\Models\BankTransaction::recordVendorPayment(
+                $validated['bank_account_id'],
+                $validated['amount'],
+                "Vendor payment for {$accountPayable->service_description} to {$accountPayable->vendor_name}",
+                $accountPayable->id,
+                $validated['payment_date']
+            );
         });
 
         return redirect()->back()->with('success', 'Payment marked successfully');
