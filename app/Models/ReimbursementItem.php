@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class ReimbursementItem extends Model
 {
@@ -86,18 +87,89 @@ class ReimbursementItem extends Model
     public function markAsInvoiced($invoiceId): void
     {
         $this->update([
-            'status' => 'invoiced',
+            'status' => $this->status === 'paid' ? 'paid' : 'invoiced',
             'invoice_id' => $invoiceId,
             'invoiced_at' => now(),
         ]);
     }
 
-    public function markAsPaid(): void
+    public function markAsPaid(?string $vendorName = null, $paidAt = null, ?string $notes = null, ?array $extraInfo = []): void
     {
-        $this->update([
-            'status' => 'paid',
-            'paid_at' => now(),
+        $paidTimestamp = $paidAt ? Carbon::parse($paidAt) : now();
+
+        $this->updatePaymentStatus('paid', [
+            'vendor_name' => $vendorName,
+            'paid_at' => $paidTimestamp,
+            'notes' => $notes,
+            'extra_info' => $extraInfo,
         ]);
+    }
+
+    public function markAsUnpaid(): void
+    {
+        $this->updatePaymentStatus('invoiced');
+    }
+
+    public function updatePaymentStatus(string $status, array $options = []): void
+    {
+        $allowedStatuses = ['pending', 'linked', 'invoiced', 'paid'];
+        if (!in_array($status, $allowedStatuses, true)) {
+            throw new \InvalidArgumentException('Invalid reimbursement status.');
+        }
+
+        $updateData = [
+            'status' => $status,
+        ];
+
+        if ($status === 'paid') {
+            $paidAt = $options['paid_at'] ?? now();
+            $updateData['paid_at'] = $paidAt instanceof Carbon ? $paidAt : Carbon::parse($paidAt);
+        } else {
+            $updateData['paid_at'] = null;
+        }
+
+        if (array_key_exists('notes', $options)) {
+            $updateData['notes'] = $options['notes'];
+        }
+
+        $receiptInfo = $this->receipt_info ?? [];
+        if (!is_array($receiptInfo)) {
+            $receiptInfo = json_decode($receiptInfo, true) ?: [];
+        }
+
+        $actingUser = auth()->user()?->only(['id', 'name']);
+
+        $history = $receiptInfo['payment_history'] ?? [];
+        if (!is_array($history)) {
+            $history = [];
+        }
+
+        $history[] = [
+            'status' => $status,
+            'vendor_name' => $options['vendor_name'] ?? ($status === 'paid' ? ($receiptInfo['vendor_name'] ?? null) : null),
+            'notes' => $options['notes'] ?? null,
+            'timestamp' => now()->toDateTimeString(),
+            'user' => $actingUser,
+        ];
+
+        $receiptInfo['payment_history'] = $history;
+
+        if ($status === 'paid') {
+            if (!empty($options['vendor_name'])) {
+                $receiptInfo['vendor_name'] = $options['vendor_name'];
+            }
+            $receiptInfo['marked_paid_by'] = $actingUser;
+            $receiptInfo['marked_paid_at'] = now()->toDateTimeString();
+            if (!empty($options['extra_info']) && is_array($options['extra_info'])) {
+                $receiptInfo = array_merge($receiptInfo, $options['extra_info']);
+            }
+        } else {
+            unset($receiptInfo['marked_paid_by'], $receiptInfo['marked_paid_at']);
+        }
+
+        $updateData['receipt_info'] = empty($receiptInfo) ? null : $receiptInfo;
+
+        $this->update($updateData);
     }
 
     public function canBeEdited(): bool

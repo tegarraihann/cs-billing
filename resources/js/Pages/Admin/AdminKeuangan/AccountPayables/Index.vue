@@ -342,69 +342,25 @@
             </div>
         </div>
 
-        <!-- Payment Modal -->
-        <div v-if="showPaymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div class="mt-3">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Mark Payment</h3>
-                    <div class="mb-4">
-                        <p class="text-sm text-gray-600">Vendor: {{ selectedPayable?.vendor?.nama_vendor || selectedPayable?.vendor_name }}</p>
-                        <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(selectedPayable?.outstanding_amount) }}</p>
-                    </div>
-                    <form @submit.prevent="markPayment">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                            <input
-                                v-model="paymentForm.amount"
-                                type="number"
-                                step="0.01"
-                                :max="selectedPayable?.outstanding_amount"
-                                required
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                            <select
-                                v-model="paymentForm.payment_method"
-                                required
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            >
-                                <option value="">Select Payment Method</option>
-                                <option value="Transfer Bank">Transfer Bank</option>
-                                <option value="Cash">Cash</option>
-                                <option value="Check">Check</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea
-                                v-model="paymentForm.notes"
-                                rows="3"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            ></textarea>
-                        </div>
-                        <div class="flex justify-end space-x-3">
-                            <button
-                                type="button"
-                                @click="closePaymentModal"
-                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                :disabled="processing"
-                                class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-                            >
-                                {{ processing ? 'Processing...' : 'Mark Payment' }}
-                            </button>
-                        </div>
-                    </form>
+        <ReimbursementPaymentModal
+            :visible="showPaymentModal"
+            :processing="processing"
+            :form="paymentForm"
+            :bank-accounts="props.bankAccounts"
+            :reimbursement-items="reimbursementItems"
+            :max-amount="selectedPayable ? Number(selectedPayable.outstanding_amount || 0) : 0"
+            title="Mark Payment"
+            submit-label="Mark Payment"
+            @close="closePaymentModal"
+            @submit="markPayment"
+        >
+            <template #summary>
+                <div class="mb-4 bg-gray-50 p-3 rounded-md">
+                    <p class="text-sm text-gray-600">Vendor: {{ selectedPayable?.vendor?.nama_vendor || selectedPayable?.vendor_name }}</p>
+                    <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(selectedPayable?.outstanding_amount) }}</p>
                 </div>
-            </div>
-        </div>
+            </template>
+        </ReimbursementPaymentModal>
             </div>
         </div>
     </AdminKeuanganLayout>
@@ -414,6 +370,7 @@
 import { ref, reactive } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import ReimbursementPaymentModal from '@/Components/ReimbursementPaymentModal.vue'
 import { CreditCard, AlertTriangle, Users, Building2 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -421,7 +378,8 @@ const props = defineProps({
     summary: Object,
     vendorSummary: Array,
     vendors: Array,
-    filters: Object
+    filters: Object,
+    bankAccounts: Array
 })
 
 const searchForm = reactive({
@@ -435,11 +393,18 @@ const searchForm = reactive({
 const showPaymentModal = ref(false)
 const selectedPayable = ref(null)
 const processing = ref(false)
+const reimbursementItems = ref([])
 
 const paymentForm = reactive({
     amount: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    bank_account_id: '',
     payment_method: '',
-    notes: ''
+    notes: '',
+    reimbursement_items: [],
+    reimbursement_vendor_name: '',
+    reimbursement_paid_at: new Date().toISOString().split('T')[0],
+    reimbursement_notes: ''
 })
 
 let debounceTimer = null
@@ -501,17 +466,36 @@ const showPayable = (payable) => {
     router.visit(route('admin-keuangan.account-payables.show', payable.id))
 }
 
-const openPaymentModal = (payable) => {
+const openPaymentModal = async (payable) => {
     selectedPayable.value = payable
     paymentForm.amount = ''
+    paymentForm.bank_account_id = ''
     paymentForm.payment_method = ''
     paymentForm.notes = ''
+    paymentForm.reimbursement_vendor_name = payable.vendor?.nama_vendor || payable.vendor_name || 'Eshaka Wijaya Logistics'
+    paymentForm.reimbursement_paid_at = new Date().toISOString().split('T')[0]
+    paymentForm.reimbursement_notes = ''
+    reimbursementItems.value = []
+
+    try {
+        const response = await fetch(route('admin-keuangan.account-payables.reimbursement-items', payable.id))
+        if (response.ok) {
+            reimbursementItems.value = await response.json()
+            paymentForm.reimbursement_items = reimbursementItems.value
+                .filter(item => item.status !== 'paid')
+                .map(item => item.id)
+        }
+    } catch (error) {
+        console.error('Failed to fetch reimbursement items', error)
+    }
+
     showPaymentModal.value = true
 }
 
 const closePaymentModal = () => {
     showPaymentModal.value = false
     selectedPayable.value = null
+    reimbursementItems.value = []
 }
 
 const markPayment = () => {

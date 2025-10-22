@@ -653,63 +653,87 @@
             </table>
         </div>
 
+        @php
+            $hasReimbursementEntries = isset($reimbursementEntries) && count($reimbursementEntries) > 0;
+            $entriesCollection = $hasReimbursementEntries
+                ? collect($reimbursementEntries)->map(function ($entry) {
+                    if ($entry instanceof \Illuminate\Contracts\Support\Arrayable) {
+                        $entry = $entry->toArray();
+                    }
+
+                    return [
+                        'description' => $entry['description'] ?? 'Reimbursement Item',
+                        'quantity' => (float) ($entry['quantity'] ?? 1),
+                        'unit' => strtoupper($entry['unit'] ?? 'UNIT'),
+                        'rate' => (float) ($entry['rate'] ?? ($entry['amount'] ?? 0)),
+                        'currency' => $entry['currency'] ?? 'IDR',
+                        'amount' => (float) ($entry['amount'] ?? 0),
+                        'vendor_name' => $entry['vendor_name'] ?? 'Eshaka Wijaya Logistics',
+                        'status' => $entry['status'] ?? null,
+                        'paid_at' => $entry['paid_at'] ?? null,
+                    ];
+                })
+                : collect($invoice->items ?? [])->map(function ($item) {
+                    $quantity = $item->quantity ?? $item->qty ?? 1;
+                    $rate = $item->unit_price ?? $item->rate ?? $item->price ?? 0;
+                    $amount = $item->total_price ?? $item->amount ?? $item->total ?? ($quantity * $rate);
+
+                    return [
+                        'description' => $item->description ?? $item->item_description ?? 'SERVICE',
+                        'quantity' => (float) $quantity,
+                        'unit' => strtoupper($item->unit ?? $item->unit_type ?? 'SET'),
+                        'rate' => (float) $rate,
+                        'currency' => $item->currency ?? 'IDR',
+                        'amount' => (float) $amount,
+                        'vendor_name' => 'Eshaka Wijaya Logistics',
+                        'status' => null,
+                        'paid_at' => null,
+                    ];
+                })->filter(function ($item) {
+                    return ($item['amount'] ?? 0) >= 0;
+                })->values();
+
+            $entriesCurrency = $entriesCollection->first()['currency'] ?? 'IDR';
+            $entriesSubtotal = $entriesCollection->sum('amount');
+            $downPayment = $invoice->hasDownPayment() ? ($invoice->down_payment_amount ?? 0) : 0;
+            $entriesTotal = max($entriesSubtotal - $downPayment, 0);
+            $statusLabels = [
+                'pending' => 'Belum Diproses',
+                'linked' => 'Tertaut',
+                'invoiced' => 'Ditagihkan',
+                'paid' => 'Sudah Dibayar',
+            ];
+        @endphp
+
         <!-- Items Table -->
         <table class="items-table">
             <thead>
                 <tr>
-                    <th class="desc-col">DESCRIPTION</th>
-                    <th class="qty-col">QTY</th>
-                    <th class="unit-col">UNIT</th>
-                    <th class="rate-col">RATE</th>
-                    <th class="cur-col">CUR</th>
-                    <th class="amount-col">AMOUNT</th>
+                    <th class="desc-col" style="text-align:left;">DESCRIPTION</th>
+                    <th class="qty-col" style="text-align: center;">QTY</th>
+                    <th class="unit-col" style="text-align: center;">UNIT</th>
+                    <th class="rate-col" style="text-align: right;">RATE</th>
+                    <th class="cur-col" style="text-align: center;">CUR</th>
+                    <th class="amount-col" style="text-align: right;">AMOUNT</th>
                 </tr>
             </thead>
             <tbody>
-                @php
-                // Try different possible relationship names and filter out operational costs
-                $allItems = null;
-                if (isset($invoice->invoiceItems) && $invoice->invoiceItems->count() > 0) {
-                    $allItems = $invoice->invoiceItems;
-                } elseif (isset($invoice->items) && $invoice->items->count() > 0) {
-                    $allItems = $invoice->items;
-                } elseif (isset($invoice->invoice_items) && $invoice->invoice_items->count() > 0) {
-                    $allItems = $invoice->invoice_items;
-                }
-
-                // Filter out operational costs - only show customer-visible items
-                $items = $allItems ? $allItems->filter(function($item) {
-                    // Hide operational costs from customer invoice
-                    return ($item->item_type ?? 'billable') !== 'operational_cost' &&
-                           ($item->include_in_customer_invoice ?? true) &&
-                           !($item->is_hidden_from_customer ?? false);
-                }) : collect();
-                @endphp
-
-                @if($items && $items->count() > 0)
-                @foreach($items as $item)
+                @forelse($entriesCollection as $item)
                 <tr>
-                    <td class="desc-col">{{ strtoupper($item->description ?? $item->item_description ?? 'SERVICE') }}</td>
-                    <td class="qty-col">{{ $item->quantity ?? $item->qty ?? 1 }}</td>
-                    <td class="unit-col">{{ strtoupper($item->unit ?? $item->unit_type ?? 'SET') }}</td>
-                    <td class="rate-col">{{ number_format($item->unit_price ?? $item->rate ?? $item->price ?? 0, 2) }}</td>
-                    <td class="cur-col">{{ $item->currency ?? 'IDR' }}</td>
-                    <td class="amount-col">
-                        @php
-                        $amount = $item->total_price ?? $item->amount ?? $item->total ?? ($item->quantity ?? 1) * ($item->unit_price ?? $item->rate ?? $item->price ?? 0);
-                        @endphp
-                        {{ $amount > 0 ? number_format($amount, 2) : '-' }}
-                    </td>
+                    <td class="desc-col">{{ strtoupper($item['description'] ?? 'SERVICE') }}</td>
+                    <td class="qty-col">{{ number_format($item['quantity'] ?? 1, 2) }}</td>
+                    <td class="unit-col">{{ strtoupper($item['unit'] ?? 'UNIT') }}</td>
+                    <td class="rate-col">{{ number_format($item['rate'] ?? 0, 2) }}</td>
+                    <td class="cur-col">{{ $item['currency'] ?? $entriesCurrency }}</td>
+                    <td class="amount-col">{{ number_format($item['amount'] ?? 0, 2) }}</td>
                 </tr>
-                @endforeach
-                @else
-                {{-- No items message instead of dummy data --}}
+                @empty
                 <tr>
                     <td colspan="6" class="desc-col" style="text-align: center; font-style: italic; color: #666;">
                         No items found for this invoice
                     </td>
                 </tr>
-                @endif
+                @endforelse
             </tbody>
         </table>
 
@@ -720,13 +744,7 @@
                 <td class="bank-value-col">: {{ $invoice->bank_name ?? 'Mandiri' }}</td>
                 <td class="total-label-col total-bold">SUB TOTAL</td>
                 <td class="total-value-col total-bold">
-                    @php
-                    // Calculate customer-visible subtotal (excluding operational costs)
-                    $customerSubtotal = $items->sum(function($item) {
-                        return $item->total_price ?? $item->amount ?? $item->total ?? (($item->quantity ?? 1) * ($item->unit_price ?? $item->rate ?? $item->price ?? 0));
-                    });
-                    @endphp
-                    {{ number_format($customerSubtotal, 2) }}
+                    {{ number_format($entriesSubtotal, 2) }}
                 </td>
             </tr>
             <tr>
@@ -738,9 +756,9 @@
             <tr>
                 <td class="bank-label-col">ACCOUNT NAME</td>
                 <td class="bank-value-col">: {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
-                @if($invoice->hasDownPayment())
+                @if($invoice->hasDownPayment() && $downPayment > 0)
                 <td class="total-label-col">DOWN PAYMENT (-)</td>
-                <td class="total-value-col">{{ number_format($invoice->down_payment_amount, 2) }}</td>
+                <td class="total-value-col">{{ number_format($downPayment, 2) }}</td>
                 @else
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
@@ -751,11 +769,7 @@
                 <td class="bank-value-col">: {{ $invoice->swift_code ?? 'BMRIIDJA' }}</td>
                 <td class="total-label-col total-bold">TOTAL</td>
                 <td class="total-value-col total-bold">
-                    @php
-                    // Calculate customer-visible total (subtotal minus down payment)
-                    $customerTotal = $customerSubtotal - ($invoice->down_payment_amount ?? 0);
-                    @endphp
-                    {{ number_format($customerTotal, 2) }}
+                    {{ number_format($entriesTotal, 2) }}
                 </td>
             </tr>
             <tr>

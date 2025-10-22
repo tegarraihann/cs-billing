@@ -557,6 +557,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{invoice}/preview-nota-reimbursement', 'previewReimbursementNotaPdf')->name('preview-nota-reimbursement');
         Route::get('/{invoice}/export-debit-note-reimbursement', 'generateReimbursementDebitNotePdf')->name('export-debit-note-reimbursement');
         Route::get('/{invoice}/preview-debit-note-reimbursement', 'previewReimbursementDebitNotePdf')->name('preview-debit-note-reimbursement');
+        Route::post('/{invoice}/reimbursement-items/{reimbursementItem}/update-payment', 'updateReimbursementPayment')->name('reimbursement-items.update-payment');
         Route::get('/{invoice}/print', 'printView')->name('print');
         Route::get('/{invoice}/preview', 'preview')->name('preview');
         Route::post('/{invoice}/confirm-payment', 'confirmPayment')->name('confirm-payment');
@@ -594,6 +595,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
     Route::controller(\App\Http\Controllers\AdminKeuangan\AccountPayableController::class)->prefix('account-payables')->name('account-payables.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{accountPayable}', 'show')->name('show');
+        Route::get('/{accountPayable}/reimbursement-items', 'reimbursementItems')->name('reimbursement-items');
         Route::post('/{accountPayable}/mark-as-paid', 'markAsPaid')->name('mark-as-paid');
         Route::post('/{accountPayable}/update-due-date', 'updateDueDate')->name('update-due-date');
         Route::post('/{accountPayable}/update-vendor-invoice', 'updateVendorInvoice')->name('update-vendor-invoice');
@@ -878,5 +880,3 @@ Route::prefix('performance')->group(function () {
     Route::get('/pdf-test', [PerformanceExampleController::class, 'generatePdfExample'])->name('performance.pdf-test');
     Route::get('/invoice-test', [PerformanceExampleController::class, 'invoiceListExample'])->name('performance.invoice-test');
 });
-
-

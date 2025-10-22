@@ -317,6 +317,26 @@
               <tr v-for="item in getMainItems" :key="item.id" class="hover:bg-sage-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                  <div v-if="getReimbursementLatestHistory(item)" class="text-xs text-gray-500 mt-1 space-y-0.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span>Terakhir:</span>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                        {{ getReimbursementStatusLabel(getReimbursementLatestHistory(item).status) }}
+                      </span>
+                      <span v-if="getReimbursementLatestHistory(item).vendor_name">
+                        oleh {{ getReimbursementLatestHistory(item).vendor_name }}
+                      </span>
+                      <span v-if="getReimbursementLatestHistory(item).timestamp">
+                        ({{ formatDate(getReimbursementLatestHistory(item).timestamp) }})
+                      </span>
+                    </div>
+                    <div v-if="getReimbursementLatestHistory(item).notes">
+                      Catatan: {{ getReimbursementLatestHistory(item).notes }}
+                    </div>
+                    <div v-if="getReimbursementLatestHistory(item).user">
+                      Diproses oleh: {{ getReimbursementLatestHistory(item).user }}
+                    </div>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
@@ -391,7 +411,137 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div
+          v-if="hasReimbursementEntries"
+          class="px-6 py-3 bg-white border-b border-sage-200 flex flex-wrap items-center gap-2"
+        >
+          <span class="text-sm text-sage-600 mr-2">Filter Status:</span>
+          <button
+            type="button"
+            @click="reimbursementFilter = 'all'"
+            :class="reimbursementFilter === 'all'
+              ? 'bg-orange-600 text-white border border-orange-600 shadow-sm'
+              : 'bg-white text-sage-700 border border-sage-200 hover:border-orange-300'"
+            class="px-3 py-1.5 text-sm rounded-md transition-colors"
+          >
+            Semua
+          </button>
+          <button
+            type="button"
+            @click="reimbursementFilter = 'unpaid'"
+            :class="reimbursementFilter === 'unpaid'
+              ? 'bg-orange-600 text-white border border-orange-600 shadow-sm'
+              : 'bg-white text-sage-700 border border-sage-200 hover:border-orange-300'"
+            class="px-3 py-1.5 text-sm rounded-md transition-colors"
+          >
+            Belum Dibayar
+          </button>
+          <button
+            type="button"
+            @click="reimbursementFilter = 'paid'"
+            :class="reimbursementFilter === 'paid'
+              ? 'bg-orange-600 text-white border border-orange-600 shadow-sm'
+              : 'bg-white text-sage-700 border border-sage-200 hover:border-orange-300'"
+            class="px-3 py-1.5 text-sm rounded-md transition-colors"
+          >
+            Sudah Dibayar
+          </button>
+        </div>
+
+        <div class="overflow-x-auto" v-if="hasReimbursementEntries">
+          <table class="w-full">
+            <thead class="bg-sage-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Deskripsi
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Qty
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Unit
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Rate
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Currency
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Vendor
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
+                  Tanggal Bayar
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"></th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-sage-200">
+              <tr v-if="filteredReimbursementEntries.length === 0">
+                <td colspan="10" class="px-6 py-6 text-center text-sm text-gray-500">
+                  Tidak ada data reimbursement untuk filter ini.
+                </td>
+              </tr>
+              <tr v-for="item in filteredReimbursementEntries" :key="item.id" class="hover:bg-sage-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ formatCurrency(item.rate, item.currency || reimbursementCurrency) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.currency || reimbursementCurrency }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ formatCurrency(item.amount, item.currency || reimbursementCurrency) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ item.vendor_name }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="getReimbursementStatusColor(item.status)"
+                  >
+                    {{ getReimbursementStatusLabel(item.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ item.paid_at ? formatDate(item.paid_at) : '-' }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <button
+                    v-if="item.can_update"
+                    @click="openReimbursementPaymentModal(item)"
+                    class="px-3 py-1.5 text-sm rounded-md border border-orange-500 text-orange-600 hover:bg-orange-50 transition-colors"
+                  >
+                    {{ item.status === 'paid' ? 'Ubah Status' : 'Tandai Dibayar' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="overflow-x-auto" v-else>
           <table class="w-full">
             <thead class="bg-sage-50">
               <tr>
@@ -445,12 +595,22 @@
           <div class="flex justify-end">
             <div class="w-64 space-y-2">
               <div class="flex justify-between">
-                <span class="text-sm text-gray-600">Subtotal Reimbursement:</span>
-                <span class="text-sm font-medium">{{ formatCurrency(getReimbursementTotal) }}</span>
+                <span class="text-sm text-gray-600">{{ reimbursementSubtotalLabel }}</span>
+                <span class="text-sm font-medium">
+                  {{ formatCurrency(reimbursementFilteredSubtotal, reimbursementCurrency) }}
+                </span>
+              </div>
+              <div
+                v-if="hasReimbursementEntries && reimbursementFilter !== 'all'"
+                class="text-xs text-gray-500 text-right"
+              >
+                Menampilkan {{ filteredReimbursementEntries.length }} dari {{ normalizedReimbursementEntries.length }} item
               </div>
               <div class="flex justify-between pt-2 border-t border-orange-200">
                 <span class="text-lg font-semibold text-orange-800">Total Reimbursement:</span>
-                <span class="text-lg font-bold text-orange-800">{{ formatCurrency(getReimbursementTotal) }}</span>
+                <span class="text-lg font-bold text-orange-800">
+                  {{ formatCurrency(reimbursementOverallSubtotal, reimbursementCurrency) }}
+                </span>
               </div>
             </div>
           </div>
@@ -735,6 +895,82 @@
             Ya, Tandai Terkirim
           </button>
         </div>
+    </div>
+  </div>
+
+    <!-- Reimbursement Payment Modal -->
+    <div v-if="showReimbursementPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-orange-800 mb-4">Perbarui Status Reimbursement</h3>
+
+        <div v-if="selectedReimbursementEntry" class="mb-4 text-sm text-gray-600">
+          <div class="font-medium text-gray-800">{{ selectedReimbursementEntry.description }}</div>
+          <div>Nominal: {{ formatCurrency(selectedReimbursementEntry.amount, selectedReimbursementEntry.currency || 'IDR') }}</div>
+        </div>
+
+        <form @submit.prevent="submitReimbursementPayment">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <select
+                v-model="reimbursementPaymentForm.status"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="paid">Sudah Dibayar</option>
+                <option value="invoiced">Belum Dibayar</option>
+              </select>
+            </div>
+
+            <div v-if="reimbursementPaymentForm.status === 'paid'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Vendor / Pembayar</label>
+                <input
+                  type="text"
+                  v-model="reimbursementPaymentForm.vendor_name"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Eshaka Wijaya Logistics"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Bayar</label>
+                <input
+                  type="date"
+                  v-model="reimbursementPaymentForm.paid_at"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
+              <textarea
+                v-model="reimbursementPaymentForm.notes"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Contoh: Dibayar melalui rekening BCA perusahaan"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              @click="closeReimbursementPaymentModal"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              :disabled="reimbursementPaymentForm.processing"
+              class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
+            >
+              {{ reimbursementPaymentForm.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -838,11 +1074,11 @@
         </form>
       </div>
     </div>
-  </AdminKeuanganLayout>
+</AdminKeuanganLayout>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 
@@ -851,11 +1087,16 @@ const props = defineProps({
   mainInvoice: Object,
   reimbursementInvoice: Object,
   relatedInvoices: Array,
+  reimbursementEntries: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const showPaymentModal = ref(false);
 const showMarkSentModal = ref(false);
 const showProfitLossModal = ref(false);
+const showReimbursementPaymentModal = ref(false);
 const processing = ref(false);
 
 const paymentForm = reactive({
@@ -872,6 +1113,14 @@ const profitLossForm = reactive({
 
 const profitLossPeriods = ref([]);
 const profitLossAccounts = ref([]);
+const selectedReimbursementEntry = ref(null);
+
+const reimbursementPaymentForm = useForm({
+  status: 'paid',
+  vendor_name: '',
+  paid_at: '',
+  notes: ''
+});
 
 const route = window.route || function(name, params) {
   const routes = {
@@ -883,6 +1132,18 @@ const route = window.route || function(name, params) {
     'admin-keuangan.invoices.post-to-profit-loss': (id) => `/admin-keuangan/invoices/${id}/post-to-profit-loss`,
     'admin-keuangan.invoices.unpost-from-profit-loss': (id) => `/admin-keuangan/invoices/${id}/unpost-from-profit-loss`,
     'admin-keuangan.invoices.profit-loss-periods': '/admin-keuangan/invoices/profit-loss-periods',
+    'admin-keuangan.invoices.reimbursement-items.update-payment': (value) => {
+      if (Array.isArray(value)) {
+        const [invoiceId, itemId] = value;
+        return `/admin-keuangan/invoices/${invoiceId}/reimbursement-items/${itemId}/update-payment`;
+      }
+      if (typeof value === 'object' && value !== null) {
+        const invoiceId = value.invoice || value.id;
+        const itemId = value.reimbursementItem || value.item;
+        return `/admin-keuangan/invoices/${invoiceId}/reimbursement-items/${itemId}/update-payment`;
+      }
+      return '#';
+    },
   };
   return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#';
 };
@@ -911,6 +1172,72 @@ const formatDateTime = (dateString) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleString('id-ID');
 };
+
+const reimbursementFilter = ref('all');
+
+const hasReimbursementEntries = computed(() => Array.isArray(props.reimbursementEntries) && props.reimbursementEntries.length > 0);
+
+const normalizedReimbursementEntries = computed(() => {
+  if (!hasReimbursementEntries.value) {
+    return [];
+  }
+
+  return props.reimbursementEntries.map((entry, index) => {
+    const amount = parseFloat(entry.amount ?? entry.total ?? 0) || 0;
+    const rate = parseFloat(entry.rate ?? entry.unit_price ?? amount) || amount;
+    const quantity = parseFloat(entry.quantity ?? 1) || 1;
+
+    return {
+      id: entry.id ?? `reimbursement-entry-${index}`,
+      description: entry.description ?? 'Reimbursement',
+      quantity,
+      unit: entry.unit ?? 'UNIT',
+      rate,
+      currency: entry.currency ?? 'IDR',
+      amount,
+      status: entry.status ?? null,
+      vendor_name: entry.vendor_name ?? 'Eshaka Wijaya Logistics',
+      paid_at: entry.paid_at ?? entry.paid_at_date ?? null,
+      category: entry.category ?? null,
+      notes: entry.notes ?? null,
+      can_update: entry.can_update !== false,
+    };
+  });
+});
+
+const filteredReimbursementEntries = computed(() => {
+  if (!hasReimbursementEntries.value) {
+    return [];
+  }
+
+  return normalizedReimbursementEntries.value.filter((item) => {
+    const status = (item.status || '').toLowerCase();
+    if (reimbursementFilter.value === 'paid') {
+      return status === 'paid';
+    }
+    if (reimbursementFilter.value === 'unpaid') {
+      return status !== 'paid';
+    }
+    return true;
+  });
+});
+
+watch(
+  () => reimbursementPaymentForm.status,
+  (status) => {
+    if (status === 'paid') {
+      if (!reimbursementPaymentForm.vendor_name) {
+        reimbursementPaymentForm.vendor_name = 'Eshaka Wijaya Logistics';
+      }
+      if (!reimbursementPaymentForm.paid_at) {
+        reimbursementPaymentForm.paid_at = new Date().toISOString().split('T')[0];
+      }
+    } else {
+      reimbursementPaymentForm.vendor_name = '';
+      reimbursementPaymentForm.paid_at = '';
+    }
+  }
+);
 
 const getStatusLabel = (status) => {
   const labels = {
@@ -985,6 +1312,48 @@ const markAsSent = () => {
       processing.value = false;
     }
   });
+};
+
+const openReimbursementPaymentModal = (entry) => {
+  if (!entry?.id) {
+    return;
+  }
+
+  selectedReimbursementEntry.value = entry;
+  reimbursementPaymentForm.reset();
+  reimbursementPaymentForm.status = 'paid';
+  reimbursementPaymentForm.vendor_name = entry.vendor_name || 'Eshaka Wijaya Logistics';
+  reimbursementPaymentForm.paid_at = entry.paid_at ? entry.paid_at.split(' ')[0] : new Date().toISOString().split('T')[0];
+  reimbursementPaymentForm.notes = entry.notes || '';
+
+  showReimbursementPaymentModal.value = true;
+};
+
+const closeReimbursementPaymentModal = () => {
+  showReimbursementPaymentModal.value = false;
+  selectedReimbursementEntry.value = null;
+  reimbursementPaymentForm.reset();
+};
+
+const submitReimbursementPayment = () => {
+  if (!selectedReimbursementEntry.value) {
+    return;
+  }
+
+  if (reimbursementPaymentForm.status !== 'paid') {
+    reimbursementPaymentForm.vendor_name = '';
+    reimbursementPaymentForm.paid_at = '';
+  }
+
+  reimbursementPaymentForm.post(
+    route('admin-keuangan.invoices.reimbursement-items.update-payment', [props.invoice.id, selectedReimbursementEntry.value.id]),
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        closeReimbursementPaymentModal();
+      }
+    }
+  );
 };
 
 // Computed properties untuk memisahkan items berdasarkan item_ref
@@ -1074,6 +1443,84 @@ const getMainTotal = computed(() => {
 const getReimbursementTotal = computed(() => {
   return getReimbursementItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
 });
+
+const reimbursementCurrency = computed(() => {
+  if (hasReimbursementEntries.value && normalizedReimbursementEntries.value.length > 0) {
+    return normalizedReimbursementEntries.value[0].currency || 'IDR';
+  }
+
+  const fallbackItem = getReimbursementItems.value[0];
+  return fallbackItem?.currency || 'IDR';
+});
+
+const reimbursementFilteredSubtotal = computed(() => {
+  if (!hasReimbursementEntries.value) {
+    return getReimbursementTotal.value;
+  }
+
+  return filteredReimbursementEntries.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+const reimbursementOverallSubtotal = computed(() => {
+  if (!hasReimbursementEntries.value) {
+    return getReimbursementTotal.value;
+  }
+
+  return normalizedReimbursementEntries.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+const reimbursementSubtotalLabel = computed(() => {
+  if (!hasReimbursementEntries.value || reimbursementFilter.value === 'all') {
+    return 'Subtotal Reimbursement';
+  }
+
+  return 'Subtotal (Sesuai Filter)';
+});
+
+const getReimbursementStatusLabel = (status) => {
+  const labels = {
+    pending: 'Belum Diproses',
+    linked: 'Tertaut',
+    invoiced: 'Ditagihkan',
+    paid: 'Sudah Dibayar',
+  };
+
+  if (!status) {
+    return 'Tidak Diketahui';
+  }
+
+  return labels[status] || status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const getReimbursementStatusColor = (status) => {
+  const colors = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    linked: 'bg-blue-100 text-blue-800',
+    invoiced: 'bg-orange-100 text-orange-800',
+    paid: 'bg-green-100 text-green-800',
+  };
+
+  return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const getReimbursementLatestHistory = (entry) => {
+  if (!entry?.payment_history || entry.payment_history.length === 0) {
+    return null;
+  }
+
+  const latest = [...entry.payment_history].pop();
+  if (!latest) {
+    return null;
+  }
+
+  return {
+    status: latest.status,
+    vendor_name: latest.vendor_name,
+    notes: latest.notes,
+    user: latest.user?.name,
+    timestamp: latest.timestamp,
+  };
+};
 
 // Computed untuk operational costs
 const getOperationalCosts = computed(() => {

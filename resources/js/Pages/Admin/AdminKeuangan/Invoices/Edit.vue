@@ -723,6 +723,29 @@ const mainItems = ref([])
 const reimbursementItems = ref([])
 const operationalCosts = ref([])
 
+const splitItemsByType = () => {
+  mainItems.value = []
+  reimbursementItems.value = []
+  operationalCosts.value = []
+
+  if (props.invoice.items && props.invoice.items.length > 0) {
+    props.invoice.items.forEach(item => {
+      const itemType = item.item_type || 'billable'
+      if (itemType === 'operational_cost') {
+        operationalCosts.value.push({ ...item, item_type: 'operational_cost' })
+      } else if (itemType === 'reimbursement') {
+        reimbursementItems.value.push({
+          ...item,
+          item_ref: item.item_ref || `reimb_${item.id || Date.now()}`,
+          item_type: 'reimbursement'
+        })
+      } else {
+        mainItems.value.push({ ...item, item_type: 'billable' })
+      }
+    })
+  }
+}
+
 // Helper function to convert ISO date to YYYY-MM-DD format
 const formatDateForInput = (dateString) => {
   if (!dateString) return ''
@@ -770,7 +793,8 @@ const addItem = () => {
     currency: 'IDR',
     amount: 0,
     item_ref: 'main',
-    type: 'main'
+    type: 'main',
+    item_type: 'billable'
   })
 }
 
@@ -793,7 +817,8 @@ const addReimbursementItem = () => {
     currency: 'IDR',
     amount: 0,
     item_ref: 'reimbursement',
-    type: 'reimbursement'
+    type: 'reimbursement',
+    item_type: 'reimbursement'
   })
 }
 
@@ -905,7 +930,7 @@ const submit = () => {
       ...item,
       type: 'reimbursement',
       item_ref: item.item_ref || 'reimbursement',
-      item_type: 'billable',
+      item_type: 'reimbursement',
       include_in_customer_invoice: true,
       is_hidden_from_customer: false
     })),
@@ -936,30 +961,14 @@ const submit = () => {
 
 // Initialize items separation and amounts
 onMounted(() => {
-  if (props.invoice.items && props.invoice.items.length > 0) {
-    // Separate existing items based on item_type and item_ref
-    props.invoice.items.forEach(item => {
-      const ref = (item.item_ref || '').toLowerCase().trim()
-      const itemType = item.item_type || 'billable'
+  splitItemsByType()
 
-      if (itemType === 'operational_cost') {
-        // This is an operational cost
-        operationalCosts.value.push({ ...item })
-      } else {
-        // This is either main or reimbursement based on item_ref
-        const isReimbursement = ref === 'reimbursement' ||
-                               ref === 'r' ||
-                               ref === '2' ||
-                               ref.includes('reimbur') ||
-                               item.type === 'reimbursement'
-
-        if (isReimbursement) {
-          reimbursementItems.value.push({ ...item })
-        } else {
-          mainItems.value.push({ ...item })
-        }
-      }
-    })
+  if (mainItems.value.length > 0 && reimbursementItems.value.length > 0) {
+    form.invoice_type = 'combined'
+  } else if (reimbursementItems.value.length > 0) {
+    form.invoice_type = 'reimbursement'
+  } else {
+    form.invoice_type = 'main'
   }
 
   // Ensure at least one item in main if nothing exists

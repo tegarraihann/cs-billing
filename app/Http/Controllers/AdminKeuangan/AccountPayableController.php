@@ -5,6 +5,8 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\AccountPayable;
 use App\Models\Vendor;
+use App\Models\ReimbursementItem;
+use App\Models\BankAccount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +91,8 @@ class AccountPayableController extends Controller
             'summary' => $summary,
             'vendorSummary' => $vendorSummary,
             'vendors' => $vendors,
-            'filters' => $request->only(['search', 'status', 'vendor_id', 'date_from', 'date_to'])
+            'filters' => $request->only(['search', 'status', 'vendor_id', 'date_from', 'date_to']),
+            'bankAccounts' => BankAccount::all(),
         ]);
     }
 
@@ -99,12 +102,19 @@ class AccountPayableController extends Controller
     public function show(AccountPayable $accountPayable)
     {
         $accountPayable->load(['vendor', 'salesOrder', 'creator', 'paidByUser']);
-        $bankAccounts = \App\Models\BankAccount::all();
+        $bankAccounts = BankAccount::all();
+        $reimbursementItems = $this->mapReimbursementItems($accountPayable);
 
         return Inertia::render('Admin/AdminKeuangan/AccountPayables/Show', [
             'payable' => $accountPayable,
-            'bankAccounts' => $bankAccounts
+            'bankAccounts' => $bankAccounts,
+            'reimbursementItems' => $reimbursementItems
         ]);
+    }
+
+    public function reimbursementItems(AccountPayable $accountPayable)
+    {
+        return response()->json($this->mapReimbursementItems($accountPayable));
     }
 
     /**
@@ -117,7 +127,12 @@ class AccountPayableController extends Controller
             'payment_method' => 'required|string|max:100',
             'bank_account_id' => 'required|exists:bank_accounts,id',
             'payment_date' => 'required|date',
-            'notes' => 'nullable|string|max:500'
+            'notes' => 'nullable|string|max:500',
+            'reimbursement_items' => 'nullable|array',
+            'reimbursement_items.*' => 'integer|exists:reimbursement_items,id',
+            'reimbursement_vendor_name' => 'nullable|string|max:255',
+            'reimbursement_paid_at' => 'nullable|date',
+            'reimbursement_notes' => 'nullable|string|max:500'
         ]);
 
         DB::transaction(function () use ($accountPayable, $validated) {
@@ -139,6 +154,26 @@ class AccountPayableController extends Controller
                 $accountPayable->id,
                 $validated['payment_date']
             );
+
+            if (!empty($validated['reimbursement_items'])) {
+                $reimbursementVendor = $validated['reimbursement_vendor_name']
+                    ?? $accountPayable->vendor_name
+                    ?? 'Eshaka Wijaya Logistics';
+
+                $reimbursementPaidAt = $validated['reimbursement_paid_at'] ?? $validated['payment_date'];
+                $reimbursementNotes = $validated['reimbursement_notes'] ?? $validated['notes'] ?? null;
+
+                $reimbursementExtras = [
+                    'account_payable_id' => $accountPayable->id,
+                    'account_payable_vendor' => $accountPayable->vendor_name,
+                    'account_payable_invoice_number' => $accountPayable->vendor_invoice_number,
+                ];
+
+                $items = ReimbursementItem::whereIn('id', $validated['reimbursement_items'])->get();
+                foreach ($items as $item) {
+                    $item->markAsPaid($reimbursementVendor, $reimbursementPaidAt, $reimbursementNotes, $reimbursementExtras);
+                }
+            }
         });
 
         return redirect()->back()->with('success', 'Payment marked successfully');
@@ -214,6 +249,36 @@ class AccountPayableController extends Controller
         $accountPayable->update($validated);
 
         return redirect()->back()->with('success', 'Vendor invoice details updated');
+    }
+
+    private function mapReimbursementItems(AccountPayable $accountPayable)
+    {
+        return ReimbursementItem::query()
+            ->with(['invoice:id,invoice_number,invoice_type'])
+            ->when($accountPayable->sales_order_id, function ($query) use ($accountPayable) {
+                $query->where('sales_order_id', $accountPayable->sales_order_id);
+            })
+            ->whereNotNull('invoice_id')
+            ->whereHas('invoice', function ($query) {
+                $query->whereIn('invoice_type', ['reimbursement', 'combined']);
+            })
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (ReimbursementItem $item) {
+                $receiptInfo = $item->receipt_info ?? [];
+
+                return [
+                    'id' => $item->id,
+                    'description' => $item->description,
+                    'amount' => (float) $item->amount,
+                    'status' => $item->status,
+                    'paid_at' => optional($item->paid_at)->toDateTimeString(),
+                    'invoice_id' => $item->invoice_id,
+                    'invoice_number' => $item->invoice?->invoice_number,
+                    'invoice_type' => $item->invoice?->invoice_type,
+                    'vendor_name' => data_get($receiptInfo, 'vendor_name'),
+                ];
+            });
     }
 
     /**

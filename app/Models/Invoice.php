@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\ReimbursementItem;
 
 class Invoice extends Model
 {
@@ -114,6 +115,11 @@ class Invoice extends Model
     public function reimbursementItems()
     {
         return $this->hasMany(InvoiceItem::class)->reimbursement();
+    }
+
+    public function reimbursementRecords()
+    {
+        return $this->hasMany(ReimbursementItem::class);
     }
 
     public function customerVisibleItems()

@@ -656,12 +656,12 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th class="desc-col">DESCRIPTION</th>
+                    <th class="desc-col" style="text-align: left;">DESCRIPTION</th>
                     <th class="qty-col">QTY</th>
                     <th class="unit-col">UNIT</th>
-                    <th class="rate-col">RATE</th>
+                    <th class="rate-col" style="text-align: right;">RATE</th>
                     <th class="cur-col">CUR</th>
-                    <th class="amount-col">AMOUNT</th>
+                    <th class="amount-col" style="text-align: right;">AMOUNT</th>
                 </tr>
             </thead>
             <tbody>

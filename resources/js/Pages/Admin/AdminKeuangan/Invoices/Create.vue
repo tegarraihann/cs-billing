@@ -1017,7 +1017,8 @@ const populateItemsFromSalesOrder = (salesOrder) => {
           currency: 'IDR',
           amount: normalizeNumber(vendor.selling_amount),
           item_ref: `vendor_${vendor.vendor_id || index}`,
-          type: 'main'
+          type: 'main',
+          item_type: 'billable'
         });
       }
     });
@@ -1036,7 +1037,8 @@ const populateItemsFromSalesOrder = (salesOrder) => {
           currency: 'IDR',
           amount: normalizeNumber(item.amount),
           item_ref: `reimb_${item.id || index}`,
-          type: 'reimbursement'
+          type: 'reimbursement',
+          item_type: 'reimbursement'
         });
       }
     });
@@ -1132,7 +1134,8 @@ const addItem = () => {
     currency: 'IDR',
     amount: 0,
     item_ref: 'main',
-    type: 'main'
+    type: 'main',
+    item_type: 'billable'
   });
 };
 
@@ -1201,8 +1204,9 @@ const addReimbursementItem = () => {
     rate: 0,
     currency: 'IDR',
     amount: 0,
-    item_ref: 'reimbursement',
-    type: 'reimbursement'
+    item_ref: `reimb_${Date.now()}`,
+    type: 'reimbursement',
+    item_type: 'reimbursement'
   });
 };
 

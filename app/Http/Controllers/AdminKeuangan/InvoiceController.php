@@ -13,6 +13,8 @@ use Inertia\Inertia;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ExpenseCategorizationService;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 
 class InvoiceController extends Controller
 {
@@ -279,6 +281,8 @@ class InvoiceController extends Controller
             'status' => 'draft'
         ]);
 
+        $linkedReimbursementItemIds = [];
+
         // Create invoice items
         foreach ($validated['items'] as $item) {
             $amount = $item['quantity'] * $item['rate'];
@@ -307,6 +311,28 @@ class InvoiceController extends Controller
                 'include_in_customer_invoice' => $includeInCustomerInvoice,
                 'is_hidden_from_customer' => $isHiddenFromCustomer
             ]);
+
+            if ($itemType === 'reimbursement') {
+                $itemRef = strtolower(trim($item['item_ref'] ?? ''));
+                if ($itemRef) {
+                    if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
+                        $linkedReimbursementItemIds[] = (int) $matches[1];
+                    }
+                }
+            }
+        }
+
+        if (!empty($linkedReimbursementItemIds)) {
+            $reimbursementItemsToLink = ReimbursementItem::whereIn('id', array_unique($linkedReimbursementItemIds))
+                ->where(function ($query) use ($salesOrder) {
+                    $query->whereNull('sales_order_id')
+                          ->orWhere('sales_order_id', $salesOrder->id);
+                })
+                ->get();
+
+            foreach ($reimbursementItemsToLink as $reimbursementItem) {
+                $reimbursementItem->markAsInvoiced($invoice->id);
+            }
         }
 
         // NOTE: Auto-generation of operational costs has been moved to frontend
@@ -348,7 +374,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['salesOrder', 'customer', 'items']);
+        $invoice->load(['salesOrder', 'customer', 'items', 'reimbursementRecords']);
 
 
         // Get all invoices from the same Sales Order
@@ -403,6 +429,25 @@ class InvoiceController extends Controller
             ->get()
             ->groupBy('account_category');
 
+        $targetReimbursementInvoice = $reimbursementInvoice;
+        if (!$targetReimbursementInvoice && $invoice->invoice_type === 'reimbursement') {
+            $targetReimbursementInvoice = $invoice;
+        } elseif ($targetReimbursementInvoice && $targetReimbursementInvoice->id === $invoice->id) {
+            $targetReimbursementInvoice = $invoice;
+        }
+
+        $this->syncReimbursementRecordsFromInvoice($targetReimbursementInvoice ?? $invoice);
+        $invoice->load('reimbursementRecords');
+
+        $reimbursementEntries = $this->prepareReimbursementEntries($targetReimbursementInvoice ?? $invoice)
+            ->map(function (array $entry) {
+                return array_merge($entry, [
+                    'paid_at' => $entry['paid_at'] ?? ($entry['paid_at_date'] ?? null),
+                ]);
+            })
+            ->values()
+            ->toArray();
+
         return Inertia::render('Admin/AdminKeuangan/Invoices/Show', [
             'invoice' => $invoice,
             'mainInvoice' => $mainInvoice,
@@ -410,8 +455,38 @@ class InvoiceController extends Controller
             'relatedInvoices' => $relatedInvoices,
             'profitBreakdown' => $profitBreakdown,
             'profitLossPeriods' => $profitLossPeriods,
-            'accounts' => $accounts
+            'accounts' => $accounts,
+            'reimbursementEntries' => $reimbursementEntries,
         ]);
+    }
+
+    public function updateReimbursementPayment(Request $request, Invoice $invoice, ReimbursementItem $reimbursementItem)
+    {
+        if ($reimbursementItem->invoice_id !== $invoice->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['pending', 'linked', 'invoiced', 'paid'])],
+            'vendor_name' => ['nullable', 'string', 'max:255'],
+            'paid_at' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $options = [
+            'notes' => $validated['notes'] ?? null,
+        ];
+
+        if ($validated['status'] === 'paid') {
+            $options['vendor_name'] = $validated['vendor_name'] ?: 'Eshaka Wijaya Logistics';
+            $options['paid_at'] = $validated['paid_at'] ?: now()->toDateString();
+        }
+
+        $reimbursementItem->updatePaymentStatus($validated['status'], $options);
+
+        return redirect()
+            ->route('admin-keuangan.invoices.show', $invoice)
+            ->with('success', 'Status pembayaran reimbursement berhasil diperbarui.');
     }
 
     public function edit(Invoice $invoice)
@@ -499,6 +574,9 @@ class InvoiceController extends Controller
             'down_payment_notes' => $validated['down_payment_notes']
         ]);
 
+        $existingReimbursementIds = $invoice->reimbursementRecords()->pluck('id')->all();
+        $linkedReimbursementItemIds = [];
+
         // Delete existing items
         $invoice->items()->delete();
 
@@ -506,7 +584,7 @@ class InvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $amount = $item['quantity'] * $item['rate'];
 
-            InvoiceItem::create([
+            $createdItem = InvoiceItem::create([
                 'invoice_id' => $invoice->id,
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
@@ -516,6 +594,37 @@ class InvoiceController extends Controller
                 'amount' => $amount,
                 'item_ref' => $item['item_ref'] ?? null
             ]);
+
+            $itemRef = strtolower(trim($item['item_ref'] ?? ''));
+            if ($itemRef && preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
+                $linkedReimbursementItemIds[] = (int) $matches[1];
+            }
+        }
+
+        $linkedReimbursementItemIds = array_unique($linkedReimbursementItemIds);
+
+        if (!empty($linkedReimbursementItemIds)) {
+            $reimbursementItemsToLink = ReimbursementItem::whereIn('id', $linkedReimbursementItemIds)
+                ->where(function ($query) use ($invoice) {
+                    $query->whereNull('sales_order_id')
+                          ->orWhere('sales_order_id', $invoice->sales_order_id);
+                })
+                ->get();
+
+            foreach ($reimbursementItemsToLink as $reimbursementItem) {
+                $reimbursementItem->markAsInvoiced($invoice->id);
+            }
+        }
+
+        $reimbursementIdsToUnlink = array_diff($existingReimbursementIds, $linkedReimbursementItemIds);
+        if (!empty($reimbursementIdsToUnlink)) {
+            ReimbursementItem::whereIn('id', $reimbursementIdsToUnlink)->get()->each(function (ReimbursementItem $item) {
+                $item->updatePaymentStatus('linked');
+                $item->update([
+                    'invoice_id' => null,
+                    'invoiced_at' => null,
+                ]);
+            });
         }
 
         $invoice->calculateTotals();
@@ -690,39 +799,20 @@ class InvoiceController extends Controller
 
     public function generateReimbursementPdf(Invoice $invoice)
     {
-        // Load relationships
-        $invoice->load(['salesOrder', 'customer', 'items']);
+        $payload = $this->prepareReimbursementInvoicePayload($invoice);
 
-        // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->filter(function($item) {
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                   strpos($itemRef, 'reimbur') !== false ||
-                   strpos($itemRef, 'reimb_') !== false;
-        });
-
-        // Calculate totals for reimbursement items only
-        $subtotal = $reimbursementItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
-
-        // Create a copy of invoice with only reimbursement items
-        $reimbursementInvoice = $invoice->replicate();
-        $reimbursementInvoice->setRelation('items', $reimbursementItems);
-        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
-        $reimbursementInvoice->setRelation('customer', $invoice->customer);
-
-        // Override subtotal and total with calculated values
-        $reimbursementInvoice->subtotal = $subtotal;
-        $reimbursementInvoice->total = $total;
-
-        // Add -R suffix to invoice number for reimbursement
-        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+        $reimbursementInvoice = $payload['invoice'];
+        $reimbursementEntries = $payload['entries'];
 
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
         // Generate PDF using old DEBIT NOTE template
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView('invoices.pdf', [
+            'invoice' => $reimbursementInvoice,
+            'generatedAt' => $generatedAt,
+            'reimbursementEntries' => $reimbursementEntries
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // DEBIT NOTE reimbursement filename - invoice number already has -R suffix
@@ -1095,39 +1185,19 @@ class InvoiceController extends Controller
      */
     public function generateReimbursementNotaPdf(Invoice $invoice)
     {
-        // Load relationships
-        $invoice->load(['salesOrder', 'customer', 'items']);
-
-        // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->filter(function($item) {
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                   strpos($itemRef, 'reimbur') !== false ||
-                   strpos($itemRef, 'reimb_') !== false;
-        });
-
-        // Calculate totals for reimbursement items only
-        $subtotal = $reimbursementItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
-
-        // Create a copy of invoice with only reimbursement items
-        $reimbursementInvoice = $invoice->replicate();
-        $reimbursementInvoice->setRelation('items', $reimbursementItems);
-        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
-        $reimbursementInvoice->setRelation('customer', $invoice->customer);
-
-        // Override subtotal and total with calculated values
-        $reimbursementInvoice->subtotal = $subtotal;
-        $reimbursementInvoice->total = $total;
-
-        // Add -R suffix to invoice number for reimbursement
-        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+        $payload = $this->prepareReimbursementInvoicePayload($invoice);
+        $reimbursementInvoice = $payload['invoice'];
+        $reimbursementEntries = $payload['entries'];
 
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
         // Generate PDF using old DEBIT NOTE template
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView('invoices.pdf', [
+            'invoice' => $reimbursementInvoice,
+            'generatedAt' => $generatedAt,
+            'reimbursementEntries' => $reimbursementEntries
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // DEBIT NOTE filename - invoice number already has -R suffix
@@ -1141,39 +1211,19 @@ class InvoiceController extends Controller
      */
     public function previewReimbursementNotaPdf(Invoice $invoice)
     {
-        // Load relationships
-        $invoice->load(['salesOrder', 'customer', 'items']);
-
-        // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->filter(function($item) {
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                   strpos($itemRef, 'reimbur') !== false ||
-                   strpos($itemRef, 'reimb_') !== false;
-        });
-
-        // Calculate totals for reimbursement items only
-        $subtotal = $reimbursementItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
-
-        // Create a copy of invoice with only reimbursement items
-        $reimbursementInvoice = $invoice->replicate();
-        $reimbursementInvoice->setRelation('items', $reimbursementItems);
-        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
-        $reimbursementInvoice->setRelation('customer', $invoice->customer);
-
-        // Override subtotal and total with calculated values
-        $reimbursementInvoice->subtotal = $subtotal;
-        $reimbursementInvoice->total = $total;
-
-        // Add -R suffix to invoice number for reimbursement
-        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+        $payload = $this->prepareReimbursementInvoicePayload($invoice);
+        $reimbursementInvoice = $payload['invoice'];
+        $reimbursementEntries = $payload['entries'];
 
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
         // Generate PDF using old DEBIT NOTE template
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView('invoices.pdf', [
+            'invoice' => $reimbursementInvoice,
+            'generatedAt' => $generatedAt,
+            'reimbursementEntries' => $reimbursementEntries
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
@@ -1185,39 +1235,19 @@ class InvoiceController extends Controller
      */
     public function generateReimbursementDebitNotePdf(Invoice $invoice)
     {
-        // Load relationships
-        $invoice->load(['salesOrder', 'customer', 'items']);
-
-        // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->filter(function($item) {
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                   strpos($itemRef, 'reimbur') !== false ||
-                   strpos($itemRef, 'reimb_') !== false;
-        });
-
-        // Calculate totals for reimbursement items only
-        $subtotal = $reimbursementItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
-
-        // Create a copy of invoice with only reimbursement items
-        $reimbursementInvoice = $invoice->replicate();
-        $reimbursementInvoice->setRelation('items', $reimbursementItems);
-        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
-        $reimbursementInvoice->setRelation('customer', $invoice->customer);
-
-        // Override subtotal and total with calculated values
-        $reimbursementInvoice->subtotal = $subtotal;
-        $reimbursementInvoice->total = $total;
-
-        // Add -R suffix to invoice number for reimbursement
-        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+        $payload = $this->prepareReimbursementInvoicePayload($invoice);
+        $reimbursementInvoice = $payload['invoice'];
+        $reimbursementEntries = $payload['entries'];
 
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
         // Generate PDF using old DEBIT NOTE template
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView('invoices.pdf', [
+            'invoice' => $reimbursementInvoice,
+            'generatedAt' => $generatedAt,
+            'reimbursementEntries' => $reimbursementEntries
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // DEBIT NOTE filename - invoice number already has -R suffix
@@ -1231,43 +1261,187 @@ class InvoiceController extends Controller
      */
     public function previewReimbursementDebitNotePdf(Invoice $invoice)
     {
-        // Load relationships
-        $invoice->load(['salesOrder', 'customer', 'items']);
-
-        // Filter only reimbursement items
-        $reimbursementItems = $invoice->items->filter(function($item) {
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            return in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                   strpos($itemRef, 'reimbur') !== false ||
-                   strpos($itemRef, 'reimb_') !== false;
-        });
-
-        // Calculate totals for reimbursement items only
-        $subtotal = $reimbursementItems->sum('amount');
-        $total = $subtotal; // Assuming no additional charges
-
-        // Create a copy of invoice with only reimbursement items
-        $reimbursementInvoice = $invoice->replicate();
-        $reimbursementInvoice->setRelation('items', $reimbursementItems);
-        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
-        $reimbursementInvoice->setRelation('customer', $invoice->customer);
-
-        // Override subtotal and total with calculated values
-        $reimbursementInvoice->subtotal = $subtotal;
-        $reimbursementInvoice->total = $total;
-
-        // Add -R suffix to invoice number for reimbursement
-        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+        $payload = $this->prepareReimbursementInvoicePayload($invoice);
+        $reimbursementInvoice = $payload['invoice'];
+        $reimbursementEntries = $payload['entries'];
 
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
 
         // Generate PDF using old DEBIT NOTE template
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
+        $pdf = PDF::loadView('invoices.pdf', [
+            'invoice' => $reimbursementInvoice,
+            'generatedAt' => $generatedAt,
+            'reimbursementEntries' => $reimbursementEntries
+        ]);
         $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
         return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
+    }
+
+    private function filterReimbursementInvoiceItems(Invoice $invoice): Collection
+    {
+        $invoice->loadMissing(['items']);
+
+        return $invoice->items
+            ->filter(function ($item) {
+                $itemRef = strtolower(trim($item->item_ref ?? ''));
+                $isReimbursementRef = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+                    str_contains($itemRef, 'reimbur') ||
+                    str_contains($itemRef, 'reimb_');
+
+                return $isReimbursementRef || ($item->item_type === 'reimbursement');
+            })
+            ->values();
+    }
+
+    private function prepareReimbursementEntries(Invoice $invoice): Collection
+    {
+        $this->syncReimbursementRecordsFromInvoice($invoice);
+        $invoice->loadMissing(['reimbursementRecords']);
+
+        $records = $invoice->reimbursementRecords()
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (ReimbursementItem $item) {
+                $receiptInfo = $item->receipt_info ?? [];
+
+                $currency = data_get($receiptInfo, 'currency') ?? 'IDR';
+                $quantity = data_get($receiptInfo, 'quantity') ?? 1;
+                $unit = data_get($receiptInfo, 'unit') ?? 'UNIT';
+                $rate = data_get($receiptInfo, 'unit_price') ?? (float) $item->amount;
+                $vendorName = data_get($receiptInfo, 'vendor_name')
+                    ?? data_get($receiptInfo, 'vendor')
+                    ?? data_get($receiptInfo, 'paid_to')
+                    ?? 'Eshaka Wijaya Logistics';
+
+                return [
+                    'id' => $item->id,
+                    'description' => $item->description,
+                    'quantity' => (float) $quantity,
+                    'unit' => $unit,
+                    'rate' => (float) $rate,
+                    'currency' => $currency,
+                    'amount' => (float) $item->amount,
+                    'status' => $item->status,
+                    'category' => $item->category,
+                    'notes' => $item->notes,
+                    'paid_at' => optional($item->paid_at)->toDateTimeString(),
+                    'paid_at_date' => optional($item->paid_at)->toDateString(),
+                    'vendor_name' => $vendorName,
+                    'payment_history' => data_get($receiptInfo, 'payment_history', []),
+                    'can_update' => true,
+                ];
+            })
+            ->values();
+
+        if ($records->isNotEmpty()) {
+            return $records;
+        }
+
+        return $this->filterReimbursementInvoiceItems($invoice)
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'description' => $item->description,
+                    'quantity' => (float) ($item->quantity ?? 1),
+                    'unit' => $item->unit ?? 'SET',
+                    'rate' => (float) ($item->rate ?? 0),
+                    'currency' => $item->currency ?? 'IDR',
+                    'amount' => (float) ($item->amount ?? 0),
+                    'status' => null,
+                    'category' => $item->item_type,
+                    'notes' => $item->item_ref,
+                    'paid_at' => null,
+                    'paid_at_date' => null,
+                    'vendor_name' => 'Eshaka Wijaya Logistics',
+                    'can_update' => false,
+                ];
+            })
+            ->values();
+    }
+
+    private function prepareReimbursementInvoicePayload(Invoice $invoice): array
+    {
+        $this->syncReimbursementRecordsFromInvoice($invoice);
+        $invoice->load(['salesOrder', 'customer', 'items']);
+
+        $reimbursementItems = $this->filterReimbursementInvoiceItems($invoice);
+        $reimbursementEntries = $this->prepareReimbursementEntries($invoice);
+
+        $subtotal = $reimbursementEntries->sum('amount');
+        if ($subtotal <= 0) {
+            $subtotal = $reimbursementItems->sum('amount');
+        }
+
+        $reimbursementInvoice = $invoice->replicate();
+        $reimbursementInvoice->setRelation('items', $reimbursementItems);
+        $reimbursementInvoice->setRelation('salesOrder', $invoice->salesOrder);
+        $reimbursementInvoice->setRelation('customer', $invoice->customer);
+
+        $reimbursementInvoice->subtotal = $subtotal;
+        $reimbursementInvoice->total = $subtotal;
+        $reimbursementInvoice->invoice_number = $invoice->invoice_number . '-R';
+
+        return [
+            'invoice' => $reimbursementInvoice,
+            'entries' => $reimbursementEntries,
+            'subtotal' => $subtotal,
+            'total' => $subtotal,
+        ];
+    }
+
+    private function syncReimbursementRecordsFromInvoice(?Invoice $invoice): void
+    {
+        if (!$invoice) {
+            return;
+        }
+
+        $invoice->loadMissing(['items', 'salesOrder']);
+
+        $defaultUserId = auth()->id()
+            ?? optional($invoice->salesOrder)->created_by
+            ?? optional($invoice->salesOrder?->creator)->id
+            ?? 1;
+
+        foreach ($invoice->items ?? [] as $item) {
+            if (($item->item_type ?? 'billable') !== 'reimbursement') {
+                continue;
+            }
+
+            $reimbursement = null;
+            $itemRef = strtolower(trim($item->item_ref ?? ''));
+
+            if ($itemRef && preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
+                $reimbursement = ReimbursementItem::find((int) $matches[1]);
+            }
+
+            if (!$reimbursement) {
+                $reimbursement = ReimbursementItem::firstOrNew([
+                    'invoice_id' => $invoice->id,
+                    'description' => $item->description,
+                    'amount' => $item->amount,
+                    'sales_order_id' => $invoice->sales_order_id,
+                ]);
+            }
+
+            if (!$reimbursement->exists) {
+                $reimbursement->fill([
+                    'category' => $reimbursement->category ?? 'general',
+                    'created_by' => $reimbursement->created_by ?? $defaultUserId,
+                ]);
+            }
+
+            $reimbursement->sales_order_id = $invoice->sales_order_id;
+            $reimbursement->invoice_id = $invoice->id;
+            $reimbursement->linked_at = $reimbursement->linked_at ?? now();
+            if ($reimbursement->status !== 'paid') {
+                $reimbursement->status = 'invoiced';
+                $reimbursement->invoiced_at = now();
+            }
+            $reimbursement->save();
+        }
     }
 
     /**
