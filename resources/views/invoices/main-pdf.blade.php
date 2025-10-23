@@ -477,10 +477,10 @@
                 <td class="inv-colon">:</td>
                 <td class="inv-value">
                     @php
-                    $invoiceDate = $invoice->invoice_date;
-                    if (is_string($invoiceDate)) {
-                    $invoiceDate = \Carbon\Carbon::parse($invoiceDate);
-                    }
+                        $invoiceDate = $invoice->invoice_date;
+                        if (is_string($invoiceDate)) {
+                            $invoiceDate = \Carbon\Carbon::parse($invoiceDate);
+                        }
                     @endphp
                     {{ $invoiceDate->format('d-m-Y') }}
                 </td>
@@ -500,8 +500,9 @@
                 <td class="inv-colon">:</td>
                 <td class="inv-value">
                     @php
-                    $aju = $invoice->salesOrder->aju ?? '-';
-                    if (stripos($aju, 'lorem') !== false) $aju = '-';
+                        $aju = $invoice->salesOrder->aju ?? '-';
+                        if (stripos($aju, 'lorem') !== false)
+                            $aju = '-';
                     @endphp
                     {{ $aju }}
                 </td>
@@ -514,15 +515,19 @@
                 <tr>
                     <td class="ship-label">SHIPPER</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ strtoupper($invoice->shipper ?? $invoice->salesOrder->shipper ?? '-') }}</td>
+                    <td class="ship-value">{{ strtoupper($invoice->shipper ?? $invoice->salesOrder->shipper ?? '-') }}
+                    </td>
                     <td class="ship-label-right">VESSEL</td>
                     <td class="ship-colon-right">:</td>
-                    <td class="ship-value-right">{{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? '-') }}</td>
+                    <td class="ship-value-right">
+                        {{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? '-') }}</td>
                 </tr>
                 <tr>
                     <td class="ship-label">CONSIGNEE</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ strtoupper($invoice->consignee ?? $invoice->customer->company_name ?? $invoice->salesOrder->customer ?? '-') }}</td>
+                    <td class="ship-value">
+                        {{ strtoupper($invoice->consignee ?? $invoice->customer->company_name ?? $invoice->salesOrder->customer ?? '-') }}
+                    </td>
                     <td class="ship-label-right">FLIGHT/VOY</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">{{ $invoice->flight_voy ?? '-' }}</td>
@@ -535,12 +540,14 @@
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         @php
-                        $pol = $invoice->salesOrder->pol ?? '-';
-                        $pod = $invoice->salesOrder->pod ?? '-';
+                            $pol = $invoice->salesOrder->pol ?? '-';
+                            $pod = $invoice->salesOrder->pod ?? '-';
 
-                        // Filter out Lorem Ipsum dummy data
-                        if (stripos($pol, 'lorem') !== false) $pol = '-';
-                        if (stripos($pod, 'lorem') !== false) $pod = '-';
+                            // Filter out Lorem Ipsum dummy data
+                            if (stripos($pol, 'lorem') !== false)
+                                $pol = '-';
+                            if (stripos($pod, 'lorem') !== false)
+                                $pod = '-';
                         @endphp
                         {{ strtoupper($pol . ' / ' . $pod) }}
                     </td>
@@ -553,8 +560,9 @@
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         @php
-                        $origin = $invoice->salesOrder->pol ?? '-';
-                        if (stripos($origin, 'lorem') !== false) $origin = '-';
+                            $origin = $invoice->salesOrder->pol ?? '-';
+                            if (stripos($origin, 'lorem') !== false)
+                                $origin = '-';
                         @endphp
                         {{ strtoupper($origin) }}
                     </td>
@@ -562,13 +570,15 @@
                 <tr>
                     <td class="ship-label">GROSS WT</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}</td>
+                    <td class="ship-value">
+                        {{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}</td>
                     <td class="ship-label-right">DEST</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         @php
-                        $dest = $invoice->salesOrder->pod ?? '-';
-                        if (stripos($dest, 'lorem') !== false) $dest = '-';
+                            $dest = $invoice->salesOrder->pod ?? '-';
+                            if (stripos($dest, 'lorem') !== false)
+                                $dest = '-';
                         @endphp
                         {{ strtoupper($dest) }}
                     </td>
@@ -576,13 +586,16 @@
                 <tr>
                     <td class="ship-label">NETT WT</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ $invoice->salesOrder->net_weight ? number_format($invoice->salesOrder->net_weight, 2) . ' KG' : '-' }}</td>
+                    <td class="ship-value">
+                        {{ $invoice->salesOrder->net_weight ? number_format($invoice->salesOrder->net_weight, 2) . ' KG' : '-' }}
+                    </td>
                     <td class="ship-label-right">COMMODITY</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         @php
-                        $commodity = $invoice->salesOrder->commodity ?? '-';
-                        if (stripos($commodity, 'lorem') !== false) $commodity = '-';
+                            $commodity = $invoice->salesOrder->commodity ?? '-';
+                            if (stripos($commodity, 'lorem') !== false)
+                                $commodity = '-';
                         @endphp
                         {{ strtoupper($commodity) }}
                     </td>
@@ -595,27 +608,27 @@
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         @php
-                        $etd = $invoice->etd ?? $invoice->salesOrder->etd ?? null;
-                        $eta = $invoice->eta ?? $invoice->salesOrder->eta ?? null;
+                            $etd = $invoice->etd ?? $invoice->salesOrder->etd ?? null;
+                            $eta = $invoice->eta ?? $invoice->salesOrder->eta ?? null;
 
-                        $etdFormatted = '-';
-                        $etaFormatted = '-';
+                            $etdFormatted = '-';
+                            $etaFormatted = '-';
 
-                        if ($etd) {
-                        try {
-                        $etdFormatted = is_string($etd) ? \Carbon\Carbon::parse($etd)->format('d-m-y') : $etd->format('d-m-y');
-                        } catch (Exception $e) {
-                        $etdFormatted = '-';
-                        }
-                        }
+                            if ($etd) {
+                                try {
+                                    $etdFormatted = is_string($etd) ? \Carbon\Carbon::parse($etd)->format('d-m-y') : $etd->format('d-m-y');
+                                } catch (Exception $e) {
+                                    $etdFormatted = '-';
+                                }
+                            }
 
-                        if ($eta) {
-                        try {
-                        $etaFormatted = is_string($eta) ? \Carbon\Carbon::parse($eta)->format('d-m-y') : $eta->format('d-m-y');
-                        } catch (Exception $e) {
-                        $etaFormatted = '-';
-                        }
-                        }
+                            if ($eta) {
+                                try {
+                                    $etaFormatted = is_string($eta) ? \Carbon\Carbon::parse($eta)->format('d-m-y') : $eta->format('d-m-y');
+                                } catch (Exception $e) {
+                                    $etaFormatted = '-';
+                                }
+                            }
                         @endphp
                         {{ $etdFormatted }} / {{ $etaFormatted }}
                     </td>
@@ -623,17 +636,19 @@
                 <tr>
                     <td class="ship-label">No. OF PKGS</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . strtoupper($invoice->package_unit ?? $invoice->salesOrder->package_unit ?? 'PCS') : '-' }}</td>
+                    <td class="ship-value">
+                        {{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . strtoupper($invoice->package_unit ?? $invoice->salesOrder->package_unit ?? 'PCS') : '-' }}
+                    </td>
                     <td class="ship-label-right">CONTAINER</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         <div class="container-list">
                             @if($invoice->container_no)
-                            {{ $invoice->container_no }}
+                                {{ $invoice->container_no }}
                             @elseif($invoice->salesOrder && $invoice->salesOrder->containers && $invoice->salesOrder->containers->count() > 0)
-                            {{ $invoice->salesOrder->containers->pluck('container_number')->join(', ') }}
+                                {{ $invoice->salesOrder->containers->pluck('container_number')->join(', ') }}
                             @else
-                            -
+                                -
                             @endif
                         </div>
                     </td>
@@ -666,28 +681,28 @@
             </thead>
             <tbody>
                 @php
-                // Use the filtered items already passed from controller
-                $items = $invoice->items ?? collect();
+                    // Use the filtered items already passed from controller
+                    $items = $invoice->items ?? collect();
                 @endphp
 
                 @if($items && $items->count() > 0)
-                @foreach($items as $item)
-                <tr>
-                    <td class="desc-col">{{ strtoupper($item->description ?? 'SERVICE') }}</td>
-                    <td class="qty-col">{{ $item->quantity ?? 1 }}</td>
-                    <td class="unit-col">{{ strtoupper($item->unit ?? 'SET') }}</td>
-                    <td class="rate-col">{{ number_format($item->rate ?? 0, 2) }}</td>
-                    <td class="cur-col">{{ $item->currency ?? 'IDR' }}</td>
-                    <td class="amount-col">{{ number_format($item->amount ?? 0, 2) }}</td>
-                </tr>
-                @endforeach
+                    @foreach($items as $item)
+                        <tr>
+                            <td class="desc-col">{{ strtoupper($item->description ?? 'SERVICE') }}</td>
+                            <td class="qty-col">{{ $item->quantity ?? 1 }}</td>
+                            <td class="unit-col">{{ strtoupper($item->unit ?? 'SET') }}</td>
+                            <td class="rate-col">{{ number_format($item->rate ?? 0, 2) }}</td>
+                            <td class="cur-col">{{ $item->currency ?? 'IDR' }}</td>
+                            <td class="amount-col">{{ number_format($item->amount ?? 0, 2) }}</td>
+                        </tr>
+                    @endforeach
                 @else
-                {{-- No items message instead of dummy data --}}
-                <tr>
-                    <td colspan="6" class="desc-col" style="text-align: center; font-style: italic; color: #666;">
-                        No items found for this invoice
-                    </td>
-                </tr>
+                    {{-- No items message instead of dummy data --}}
+                    <tr>
+                        <td colspan="6" class="desc-col" style="text-align: center; font-style: italic; color: #666;">
+                            No items found for this invoice
+                        </td>
+                    </tr>
                 @endif
             </tbody>
         </table>
@@ -704,7 +719,8 @@
             </tr>
             <tr>
                 <td class="bank-label-col">BANK NUMBER</td>
-                <td class="bank-value-col">: {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}</td>
+                <td class="bank-value-col">: {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
+                </td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
@@ -712,11 +728,11 @@
                 <td class="bank-label-col">ACCOUNT NAME</td>
                 <td class="bank-value-col">: {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
                 @if($invoice->hasDownPayment())
-                <td class="total-label-col">DOWN PAYMENT (-)</td>
-                <td class="total-value-col">{{ number_format($invoice->down_payment_amount, 2) }}</td>
+                    <td class="total-label-col">DOWN PAYMENT (-)</td>
+                    <td class="total-value-col">{{ number_format($invoice->down_payment_amount, 2) }}</td>
                 @else
-                <td class="total-label-col"></td>
-                <td class="total-value-col"></td>
+                    <td class="total-label-col"></td>
+                    <td class="total-value-col"></td>
                 @endif
             </tr>
             <tr>

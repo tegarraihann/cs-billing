@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
+use App\Models\OperationalCostCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -108,7 +109,7 @@ class InvoiceController extends Controller
                 'preselectedSalesOrder' => $salesOrder->id,
                 'preselectedInvoiceType' => $request->invoice_type,
                 'preselectedVendorBreakdown' => $salesOrder->vendor_breakdown,
-                'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get()
+                'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get()
             ]);
         }
 
@@ -129,7 +130,7 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
             'salesOrders' => $salesOrders,
-            'pettyCashCategories' => \App\Models\PettyCashCategory::active()->ordered()->get(),
+            'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get(),
             'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
         ]);
     }
@@ -649,8 +650,15 @@ class InvoiceController extends Controller
      */
     public function fixOperationalCosts(Invoice $invoice)
     {
-        if (!$invoice->salesOrder || !$invoice->salesOrder->vendor_breakdown) {
-            return back()->withErrors(['error' => 'Sales Order atau vendor breakdown tidak ditemukan.']);
+        if (!$invoice->salesOrder) {
+            return back()->withErrors(['error' => 'Sales Order tidak ditemukan.']);
+        }
+
+        $hasOperationalSources = is_array($invoice->salesOrder->other_costs) && count($invoice->salesOrder->other_costs) > 0;
+        $hasReimbursementItems = $invoice->salesOrder->reimbursementItems()->where('status', 'pending')->exists();
+
+        if (!$hasOperationalSources && !$hasReimbursementItems) {
+            return back()->withErrors(['error' => 'Tidak ada data operational cost atau reimbursement yang bisa ditambahkan.']);
         }
 
         // Check if operational costs already exist
@@ -662,26 +670,7 @@ class InvoiceController extends Controller
         try {
             \DB::beginTransaction();
 
-            // Auto-generate operational cost items from vendor breakdown
-            foreach ($invoice->salesOrder->vendor_breakdown as $vendor) {
-                if (isset($vendor['buying_amount']) && $vendor['buying_amount'] > 0) {
-                    InvoiceItem::create([
-                        'invoice_id' => $invoice->id,
-                        'description' => 'Buying Cost - ' . ($vendor['description'] ?? 'Service'),
-                        'quantity' => 1,
-                        'unit' => 'SET',
-                        'rate' => $vendor['buying_amount'],
-                        'currency' => 'IDR',
-                        'amount' => $vendor['buying_amount'],
-                        'item_ref' => 'vendor_' . ($vendor['vendor_id'] ?? 'unknown'),
-                        'item_type' => 'operational_cost',
-                        'include_in_customer_invoice' => false,
-                        'is_hidden_from_customer' => true
-                    ]);
-                }
-            }
-
-            // Auto-generate operational cost items from other costs
+            // Auto-generate operational cost items only from other costs
             if ($invoice->salesOrder->other_costs && is_array($invoice->salesOrder->other_costs)) {
                 foreach ($invoice->salesOrder->other_costs as $index => $otherCost) {
                     if (isset($otherCost['amount']) && $otherCost['amount'] > 0) {

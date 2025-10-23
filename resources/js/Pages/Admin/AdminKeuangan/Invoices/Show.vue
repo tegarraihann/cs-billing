@@ -1356,44 +1356,57 @@ const submitReimbursementPayment = () => {
   );
 };
 
+const isMainInvoiceItem = (item) => {
+  if (!item) {
+    return false;
+  }
+
+  const itemType = (item.item_type || '').toLowerCase();
+  const includeInInvoice = item.include_in_customer_invoice ?? true;
+  const hiddenFromCustomer = item.is_hidden_from_customer ?? false;
+
+  if (!includeInInvoice || hiddenFromCustomer) {
+    return false;
+  }
+
+  if (itemType === 'operational_cost' || itemType === 'reimbursement') {
+    return false;
+  }
+
+  if (itemType === 'billable' || itemType === '') {
+    return true;
+  }
+
+  const ref = (item.item_ref || '').toLowerCase().trim();
+  return !ref ||
+         ref === 'main' ||
+         ref === 'm' ||
+         ref === '1' ||
+         ref.includes('main');
+};
+
+const filterMainInvoiceItems = (items = []) => {
+  return (items || []).filter(isMainInvoiceItem);
+};
+
 // Computed properties untuk memisahkan items berdasarkan item_ref
 const getMainItems = computed(() => {
   if (props.invoice.invoice_type === 'combined') {
     // Untuk invoice combined, pisahkan items berdasarkan item_type dan item_ref
-    return (props.invoice.items || []).filter(item => {
-      // Primary filter: item_type harus billable (main items)
-      if (item.item_type === 'billable') {
-        return true;
-      }
-
-      // Exclude specific item types yang bukan main items
-      if (item.item_type === 'reimbursement' || item.item_type === 'operational_cost') {
-        return false;
-      }
-
-      // Fallback filter untuk legacy data tanpa item_type
-      if (!item.item_type || item.item_type === null) {
-        const ref = (item.item_ref || '').toLowerCase().trim();
-        // Items masuk ke Main jika: kosong, 'main', 'm', '1', atau mengandung 'main'
-        return !ref ||
-               ref === 'main' ||
-               ref === 'm' ||
-               ref === '1' ||
-               ref.includes('main');
-      }
-
-      return false;
-    });
+    if (props.mainInvoice?.items) {
+      return filterMainInvoiceItems(props.mainInvoice.items);
+    }
+    return filterMainInvoiceItems(props.invoice.items);
   }
 
   // Untuk invoice type main atau jika ada mainInvoice
   if (props.mainInvoice) {
-    return props.mainInvoice.items || [];
+    return filterMainInvoiceItems(props.mainInvoice.items);
   }
 
   // Fallback untuk invoice type main
   if (props.invoice.invoice_type === 'main') {
-    return props.invoice.items || [];
+    return filterMainInvoiceItems(props.invoice.items);
   }
 
   return [];
@@ -1533,7 +1546,7 @@ const getOperationalCostsTotal = computed(() => {
 
 // Computed untuk profit calculation - hanya main items (billable) yang dihitung sebagai revenue
 const getBillableItems = computed(() => {
-  return (props.invoice.items || []).filter(item => item.item_type === 'billable' || item.item_type === null);
+  return filterMainInvoiceItems(props.invoice.items);
 });
 
 const getGrossRevenue = computed(() => {
