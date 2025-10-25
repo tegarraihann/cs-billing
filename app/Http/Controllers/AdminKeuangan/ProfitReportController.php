@@ -37,9 +37,8 @@ class ProfitReportController extends Controller
 
         // Calculate profit for each sales order
         $profitData = $salesOrders->map(function ($salesOrder) {
-            $revenue = $salesOrder->total_selling ?? 0;
-
-            // Calculate comprehensive costs including all expense categories
+            // Use invoice data for accurate profit calculation
+            $revenue = $this->calculateTotalRevenue($salesOrder);
             $costs = $this->calculateTotalCosts($salesOrder);
 
             $profit = $revenue - $costs;
@@ -111,7 +110,7 @@ class ProfitReportController extends Controller
         $salesOrders = $query->get();
 
         $profitData = $salesOrders->map(function ($salesOrder) {
-            $revenue = $salesOrder->total_selling ?? 0;
+            $revenue = $this->calculateTotalRevenue($salesOrder);
             $costs = $this->calculateTotalCosts($salesOrder);
             $profit = $revenue - $costs;
             $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
@@ -166,8 +165,8 @@ class ProfitReportController extends Controller
             'accountPayables.vendor'
         ]);
 
-        // Calculate detailed breakdown
-        $revenue = $salesOrder->total_selling ?? 0;
+        // Calculate detailed breakdown using invoice data
+        $revenue = $this->calculateTotalRevenue($salesOrder);
         $costs = $this->calculateTotalCosts($salesOrder);
         $profit = $revenue - $costs;
         $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
@@ -189,14 +188,15 @@ class ProfitReportController extends Controller
             ];
         })->values();
 
-        // Revenue breakdown
+        // Revenue breakdown - only billable items
         $revenueBreakdown = $salesOrder->invoices->map(function ($invoice) {
             return [
                 'invoice_number' => $invoice->invoice_number,
+                'gross_revenue' => $invoice->calculateGrossRevenue(),
                 'total' => $invoice->total,
                 'paid_amount' => $invoice->paid_amount ?? 0,
                 'status' => $invoice->status,
-                'items' => $invoice->items->map(function ($item) {
+                'items' => $invoice->items->where('item_type', 'billable')->map(function ($item) {
                     return [
                         'description' => $item->description,
                         'quantity' => $item->quantity,
@@ -359,19 +359,28 @@ class ProfitReportController extends Controller
     }
 
     /**
+     * Calculate total revenue from invoices (billable items only)
+     * This matches the Invoice Show calculation: gross revenue from billable items
+     */
+    private function calculateTotalRevenue(SalesOrder $salesOrder): float
+    {
+        $totalRevenue = 0;
+        foreach ($salesOrder->invoices as $invoice) {
+            $totalRevenue += $invoice->calculateGrossRevenue();
+        }
+        return $totalRevenue;
+    }
+
+    /**
      * Calculate operational costs for a sales order
-     * Only includes operational costs from invoices (like Internal Analysis)
+     * Only includes operational costs from invoices (consistent with Invoice Show)
      */
     private function calculateTotalCosts(SalesOrder $salesOrder): float
     {
-        // Only Operational Costs from related invoices (consistent with Internal Analysis)
-        $operationalCosts = 0;
+        $totalCosts = 0;
         foreach ($salesOrder->invoices as $invoice) {
-            $operationalCosts += $invoice->items()
-                ->where('item_type', 'operational_cost')
-                ->sum('amount');
+            $totalCosts += $invoice->calculateOperationalCosts();
         }
-
-        return $operationalCosts;
+        return $totalCosts;
     }
 }

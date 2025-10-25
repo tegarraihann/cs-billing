@@ -6,6 +6,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
+/**
+ * Petty Cash Transaction Model
+ *
+ * IMPORTANT CONCEPT:
+ * Petty Cash is ONLY for daily cash expenses that are NOT related to any Sales Order or shipment.
+ *
+ * Use Petty Cash for:
+ * - Office supplies (stationery, paper, etc.)
+ * - Daily office needs (water, snacks, cleaning supplies)
+ * - Small courier fees for documents (not shipment-related)
+ * - Office utilities paid in cash
+ * - Transportation for office errands
+ *
+ * DO NOT use Petty Cash for:
+ * - Operational costs tied to specific SOs (trucking, customs, etc.)
+ * - Vendor payments for shipments
+ * - Reimbursements for customer shipments
+ * - Large payments via bank transfer
+ *
+ * For shipment-related costs, use:
+ * - Invoice operational_cost items
+ * - Account Payables
+ * - Profit/Loss tracking
+ */
 class PettyCashTransaction extends Model
 {
     use HasFactory;
@@ -59,11 +83,30 @@ class PettyCashTransaction extends Model
         return $this->belongsTo(ExpenseTemplate::class, 'template_id');
     }
 
+    /**
+     * DEPRECATED: Petty Cash should NOT be linked to invoices
+     *
+     * This relationship exists for backward compatibility only.
+     * New petty cash transactions should not have invoice_id.
+     *
+     * Petty Cash is for daily cash expenses NOT related to any SO/shipment.
+     * Operational costs from invoices should be tracked through Account Payables.
+     *
+     * @deprecated
+     */
     public function invoice()
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
+    /**
+     * DEPRECATED: Petty Cash should NOT be linked to invoice items
+     *
+     * This relationship exists for backward compatibility only.
+     * New petty cash transactions should not have invoice_item_id.
+     *
+     * @deprecated
+     */
     public function invoiceItem()
     {
         return $this->belongsTo(InvoiceItem::class, 'invoice_item_id');

@@ -109,7 +109,8 @@ class InvoiceController extends Controller
                 'preselectedSalesOrder' => $salesOrder->id,
                 'preselectedInvoiceType' => $request->invoice_type,
                 'preselectedVendorBreakdown' => $salesOrder->vendor_breakdown,
-                'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get()
+                'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get(),
+                'vendors' => \App\Models\Vendor::orderBy('nama_vendor')->get(['id', 'nama_vendor', 'nomor_rekening'])
             ]);
         }
 
@@ -131,7 +132,8 @@ class InvoiceController extends Controller
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
             'salesOrders' => $salesOrders,
             'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get(),
-            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
+            'vendors' => \App\Models\Vendor::orderBy('nama_vendor')->get(['id', 'nama_vendor', 'nomor_rekening'])
         ]);
     }
 
@@ -1474,52 +1476,126 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Auto-generate operational debt to divisional operational from invoice operational costs
+     * Auto-generate operational debt per vendor from invoice operational costs and reimbursement
      */
     private function autoGenerateOperationalDebt(Invoice $invoice)
     {
         try {
-            // Get operational costs from invoice items
-            $operationalCosts = $invoice->items()
-                ->where('item_type', 'operational_cost')
+            // Get operational costs and reimbursement items from invoice
+            $allItems = $invoice->items()
+                ->whereIn('item_type', ['operational_cost', 'reimbursement'])
+                ->with('vendor')
                 ->get();
 
-            if ($operationalCosts->isEmpty()) {
+            // If no items, return
+            if ($allItems->isEmpty()) {
                 return;
             }
 
-            // Calculate total operational costs
-            $totalOperationalCosts = $operationalCosts->sum('amount');
+            // Group items by vendor_id (null = Divisi Operational / Internal)
+            $groupedByVendor = $allItems->groupBy('vendor_id');
 
-            // Create account payable to "Divisi Operational"
-            \App\Models\AccountPayable::create([
-                'sales_order_id' => $invoice->sales_order_id,
-                'vendor_id' => null, // Internal division, no vendor
-                'vendor_name' => 'Divisi Operational',
-                'vendor_invoice_number' => 'OP-' . $invoice->invoice_number,
-                'vendor_invoice_date' => $invoice->invoice_date,
-                'service_description' => 'Biaya Operational untuk Shipment ' . ($invoice->salesOrder->order_number ?? ''),
-                'service_remarks' => 'Auto-generated from operational costs in invoice',
-                'amount' => $totalOperationalCosts,
-                'paid_amount' => 0,
-                'outstanding_amount' => $totalOperationalCosts,
-                'status' => 'unpaid',
-                'payment_due_date' => $invoice->invoice_date->addDays(30), // 30 days payment term
-                'created_by' => auth()->id(),
-            ]);
+            foreach ($groupedByVendor as $vendorId => $items) {
+                $totalAmount = (float) $items->sum('amount');
 
-            \Log::info('Operational debt created', [
-                'invoice_id' => $invoice->id,
-                'amount' => $totalOperationalCosts,
-                'sales_order' => $invoice->salesOrder->order_number ?? null
-            ]);
+                if ($totalAmount <= 0) {
+                    continue;
+                }
+
+                // Get vendor info
+                $vendor = $vendorId ? \App\Models\Vendor::find($vendorId) : null;
+                $vendorName = $vendor ? $vendor->nama_vendor : 'Divisi Operational';
+
+                // Check if account payable already exists for this SO and vendor
+                $existingPayable = \App\Models\AccountPayable::where('sales_order_id', $invoice->sales_order_id)
+                    ->where(function ($q) use ($vendorId, $vendorName) {
+                        if ($vendorId) {
+                            $q->where('vendor_id', $vendorId);
+                        } else {
+                            $q->where('vendor_name', $vendorName)
+                              ->whereNull('vendor_id');
+                        }
+                    })
+                    ->first();
+
+                if ($existingPayable) {
+                    // Update existing payable
+                    $existingPayable->update([
+                        'amount' => $totalAmount,
+                        'outstanding_amount' => $totalAmount - $existingPayable->paid_amount,
+                        'service_description' => $this->buildServiceDescription($items, $invoice),
+                    ]);
+
+                    // Sync components to split operational and reimbursement
+                    $existingPayable->syncComponents();
+
+                    \Log::info('Payable updated with components', [
+                        'account_payable_id' => $existingPayable->id,
+                        'invoice_id' => $invoice->id,
+                        'vendor' => $vendorName,
+                        'amount' => $totalAmount,
+                    ]);
+                } else {
+                    // Create new account payable
+                    $payable = \App\Models\AccountPayable::create([
+                        'sales_order_id' => $invoice->sales_order_id,
+                        'vendor_id' => $vendorId,
+                        'vendor_name' => $vendorName,
+                        'vendor_invoice_number' => ($vendor ? 'V-' : 'OP-') . $invoice->invoice_number,
+                        'vendor_invoice_date' => $invoice->invoice_date,
+                        'service_description' => $this->buildServiceDescription($items, $invoice),
+                        'service_remarks' => 'Auto-generated from invoice items',
+                        'amount' => $totalAmount,
+                        'paid_amount' => 0,
+                        'outstanding_amount' => $totalAmount,
+                        'status' => 'unpaid',
+                        'payment_due_date' => $invoice->invoice_date->addDays(30),
+                        'vendor_bank_account' => $vendor?->nomor_rekening,
+                        'vendor_account_name' => $vendor?->nama_rekening,
+                        'created_by' => auth()->id(),
+                    ]);
+
+                    // Sync components to split operational and reimbursement
+                    $payable->syncComponents();
+
+                    \Log::info('Payable created with components', [
+                        'account_payable_id' => $payable->id,
+                        'invoice_id' => $invoice->id,
+                        'vendor' => $vendorName,
+                        'amount' => $totalAmount,
+                        'sales_order' => $invoice->salesOrder->order_number ?? null
+                    ]);
+                }
+            }
 
         } catch (\Exception $e) {
             \Log::error('Failed to create operational debt', [
                 'invoice_id' => $invoice->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             // Don't throw exception to prevent blocking invoice creation
         }
+    }
+
+    /**
+     * Build service description from items
+     */
+    private function buildServiceDescription($items, $invoice): string
+    {
+        $types = $items->pluck('item_type')->unique();
+        $labels = [];
+
+        if ($types->contains('operational_cost')) {
+            $labels[] = 'Biaya Operational';
+        }
+        if ($types->contains('reimbursement')) {
+            $labels[] = 'Reimbursement';
+        }
+
+        $description = implode(' & ', $labels);
+        $soNumber = $invoice->salesOrder->order_number ?? '';
+
+        return "{$description} untuk Shipment {$soNumber}";
     }
 }

@@ -98,9 +98,26 @@ class ProfitLossPeriod extends Model
     public function getReportData(): array
     {
         $entries = $this->entries()->with('account')->get()->groupBy('account.account_type');
-        
+
         $revenue_entries = $entries->get('revenue', collect())->groupBy('account.account_category');
         $expense_entries = $entries->get('expense', collect())->groupBy('account.account_category');
+
+        // Separate other income by category for detailed reporting
+        $other_income_entries = $revenue_entries->get('revenue_other', collect());
+        $other_income_breakdown = [
+            'bunga_mandiri' => $other_income_entries->filter(function($entry) {
+                return isset($entry->additional_data['category']) &&
+                       $entry->additional_data['category'] === 'Bunga Bank Mandiri';
+            }),
+            'bunga_bca' => $other_income_entries->filter(function($entry) {
+                return isset($entry->additional_data['category']) &&
+                       $entry->additional_data['category'] === 'Bunga Bank BCA';
+            }),
+            'lainnya' => $other_income_entries->filter(function($entry) {
+                return isset($entry->additional_data['category']) &&
+                       $entry->additional_data['category'] === 'Lainnya';
+            }),
+        ];
 
         $summary = $this->summary_data ?? [];
 
@@ -108,7 +125,21 @@ class ProfitLossPeriod extends Model
             'period' => $this,
             'revenues' => [
                 'main' => $revenue_entries->get('revenue_main', collect()),
-                'other' => $revenue_entries->get('revenue_other', collect()),
+                'other' => $other_income_entries,
+                'other_income_breakdown' => [
+                    'bunga_mandiri' => [
+                        'entries' => $other_income_breakdown['bunga_mandiri'],
+                        'total' => $other_income_breakdown['bunga_mandiri']->sum('amount')
+                    ],
+                    'bunga_bca' => [
+                        'entries' => $other_income_breakdown['bunga_bca'],
+                        'total' => $other_income_breakdown['bunga_bca']->sum('amount')
+                    ],
+                    'lainnya' => [
+                        'entries' => $other_income_breakdown['lainnya'],
+                        'total' => $other_income_breakdown['lainnya']->sum('amount')
+                    ],
+                ],
                 'total' => $this->total_revenue
             ],
             'expenses' => [

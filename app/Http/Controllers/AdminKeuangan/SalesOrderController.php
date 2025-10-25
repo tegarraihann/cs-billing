@@ -42,7 +42,7 @@ class SalesOrderController extends Controller
     {
         // Fresh query to ensure we have the latest data from database
         $salesOrder = $salesOrder->fresh(['creator', 'releasedBy', 'vouchers', 'invoices', 'reimbursementItems']);
-        
+
         // EMERGENCY DEBUG: Print raw data for troubleshooting
         if (request()->has('debug')) {
             dd([
@@ -57,7 +57,7 @@ class SalesOrderController extends Controller
                 'raw_attributes' => $salesOrder->getRawOriginal('status'),
             ]);
         }
-        
+
         // Debug: Log detailed status information
         \Log::debug('AdminKeuangan Sales Order Show Method Debug', [
             'sales_order_id' => $salesOrder->id,
@@ -70,7 +70,7 @@ class SalesOrderController extends Controller
             'released_at' => $salesOrder->released_at,
             'user_id' => auth()->id(),
         ]);
-        
+
         // More permissive check for status - handle potential whitespace/encoding issues
         $cleanStatus = trim(strtolower($salesOrder->status));
         if (!in_array($cleanStatus, ['released', 'approved', 'rejected']) && $salesOrder->released_at === null) {
@@ -83,7 +83,7 @@ class SalesOrderController extends Controller
                 'released_at' => $salesOrder->released_at,
                 'user_id' => auth()->id(),
             ]);
-            
+
             return redirect()->route('admin-keuangan.sales-orders.index')
                 ->withErrors(['error' => 'Sales order belum dirilis oleh CS.']);
         }
@@ -97,7 +97,7 @@ class SalesOrderController extends Controller
     {
         // Fresh query to ensure we have the latest data from database
         $salesOrder = $salesOrder->fresh(['creator', 'releasedBy']);
-        
+
         // Log current status for debugging
         \Log::info('AdminKeuangan Sales Order Approval Attempt', [
             'sales_order_id' => $salesOrder->id,
@@ -115,7 +115,7 @@ class SalesOrderController extends Controller
         if ($cleanStatus === 'approved') {
             return redirect()->back()->withErrors(['error' => 'Sales order sudah disetujui sebelumnya.']);
         }
-        
+
         if ($cleanStatus !== 'released' || $salesOrder->released_at === null) {
             $errorMessage = "Sales order tidak dapat disetujui. Status saat ini: '{$salesOrder->status}' (cleaned: '{$cleanStatus}')";
 
@@ -147,10 +147,10 @@ class SalesOrderController extends Controller
             'approved_at' => now(),
             'approved_by' => auth()->id(),
         ]);
-        
+
         // Auto-generate Account Payables from vendor breakdown
         \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
-        
+
         // Log successful approval
         \Log::info('AdminKeuangan Sales Order Approved Successfully', [
             'sales_order_id' => $salesOrder->id,
@@ -171,19 +171,19 @@ class SalesOrderController extends Controller
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate(__FILE__, true);
         }
-        
+
         // Force fresh data reload
         $freshSalesOrder = SalesOrder::where('id', $salesOrder->id)
             ->with(['creator', 'releasedBy', 'vouchers'])
             ->first();
-        
+
         \Log::info('Force Refresh Sales Order Data', [
             'sales_order_id' => $salesOrder->id,
             'original_status' => $salesOrder->status,
             'fresh_status' => $freshSalesOrder->status,
             'user_id' => auth()->id(),
         ]);
-        
+
         return redirect()->route('admin-keuangan.sales-orders.show', $salesOrder->id)
             ->with('success', 'Data berhasil di-refresh.');
     }
@@ -337,12 +337,13 @@ class SalesOrderController extends Controller
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
+            'gross_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
-            
+
             // Vendor details (multiple vendors support) - now optional
             'vendor_details' => 'nullable|array',
             'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
@@ -352,7 +353,7 @@ class SalesOrderController extends Controller
             'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
-            
+
             // Voucher data
             'payment_vouchers' => 'nullable|array',
             'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
@@ -363,7 +364,7 @@ class SalesOrderController extends Controller
             'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
             'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
             'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
-            
+
             'receipt_vouchers' => 'nullable|array',
             'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
             'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
@@ -399,14 +400,14 @@ class SalesOrderController extends Controller
         // Calculate totals from vendor breakdown
         $totalSelling = 0;
         $totalBuying = 0;
-        
+
         if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $totalBuying += floatval($item['buying_amount'] ?? 0);
                 $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
-        
+
         $validated['total_selling'] = $totalSelling;
         $validated['total_buying'] = $totalBuying;
         $validated['total_revenue'] = $totalSelling - $totalBuying;
@@ -540,12 +541,13 @@ class SalesOrderController extends Controller
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
             'net_weight' => 'nullable|numeric|min:0',
+            'gross_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
-            
+
             // Vendor details (multiple vendors support) - now optional
             'vendor_details' => 'nullable|array',
             'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
@@ -584,14 +586,14 @@ class SalesOrderController extends Controller
         // Calculate totals from vendor breakdown
         $totalSelling = 0;
         $totalBuying = 0;
-        
+
         if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $totalBuying += floatval($item['buying_amount'] ?? 0);
                 $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
-        
+
         $validated['total_selling'] = $totalSelling;
         $validated['total_buying'] = $totalBuying;
         $validated['total_revenue'] = $totalSelling - $totalBuying;

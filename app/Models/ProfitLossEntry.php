@@ -58,6 +58,8 @@ class ProfitLossEntry extends Model
                 return app('App\Models\PettyCashTransaction')->find($this->reference_id);
             case 'employee_salary':
                 return app('App\Models\EmployeeSalary')->find($this->reference_id);
+            case 'other_income':
+                return app('App\Models\OtherIncome')->find($this->reference_id);
             default:
                 return null;
         }
@@ -182,7 +184,7 @@ class ProfitLossEntry extends Model
     public static function createFromEmployeeSalary($employee_salary, $period_id, $created_by)
     {
         $salary_account = ChartOfAccount::where('account_code', '5001')->first();
-        
+
         if (!$salary_account) {
             throw new \Exception('Salary expense account (5001) not found');
         }
@@ -206,6 +208,58 @@ class ProfitLossEntry extends Model
                 'deductions' => $employee_salary->deductions,
                 'total_salary' => $employee_salary->total_salary,
                 'period_month' => $employee_salary->period_month,
+            ],
+            'created_by' => $created_by,
+        ]);
+    }
+
+    /**
+     * Create profit loss entry from Other Income (Pendapatan Lain-lain)
+     *
+     * This method maps Other Income categories to appropriate revenue accounts:
+     * - Bunga Bank Mandiri -> Account 4002 (Pendapatan Bunga Bank Mandiri)
+     * - Bunga Bank BCA -> Account 4003 (Pendapatan Bunga Bank BCA)
+     * - Lainnya -> Account 4099 (Pendapatan Lain-lain)
+     */
+    public static function createFromOtherIncome($other_income, $period_id, $created_by)
+    {
+        // Map category to account code
+        $account_code = match($other_income->category) {
+            'Bunga Bank Mandiri' => '4002',
+            'Bunga Bank BCA' => '4003',
+            'Lainnya' => '4099',
+            default => '4099'
+        };
+
+        $revenue_account = ChartOfAccount::where('account_code', $account_code)
+                                        ->orWhere('account_name', 'like', '%' . $other_income->category . '%')
+                                        ->first();
+
+        // Fallback: use generic other revenue account if specific account not found
+        if (!$revenue_account) {
+            $revenue_account = ChartOfAccount::where('account_type', 'revenue')
+                                            ->where('account_category', 'revenue_other')
+                                            ->first();
+        }
+
+        if (!$revenue_account) {
+            throw new \Exception('Revenue account not found for Other Income category: ' . $other_income->category);
+        }
+
+        return self::create([
+            'period_id' => $period_id,
+            'account_id' => $revenue_account->id,
+            'description' => 'Pendapatan Lain-lain (' . $other_income->category . ') - ' . $other_income->description,
+            'amount' => $other_income->amount,
+            'entry_type' => 'auto_other_income',
+            'reference_type' => 'other_income',
+            'reference_id' => $other_income->id,
+            'transaction_date' => $other_income->transaction_date,
+            'additional_data' => [
+                'category' => $other_income->category,
+                'description' => $other_income->description,
+                'amount' => $other_income->amount,
+                'notes' => $other_income->notes,
             ],
             'created_by' => $created_by,
         ]);

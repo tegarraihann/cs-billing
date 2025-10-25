@@ -8,6 +8,8 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class AccountReceivableController extends Controller
@@ -95,6 +97,8 @@ class AccountReceivableController extends Controller
     public function show(AccountReceivable $accountReceivable)
     {
         $accountReceivable->load(['customer', 'invoice', 'salesOrder', 'creator']);
+        $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        $accountReceivable->load('components');
         $bankAccounts = \App\Models\BankAccount::all();
 
         return Inertia::render('Admin/AdminKeuangan/AccountReceivables/Show', [
@@ -108,6 +112,14 @@ class AccountReceivableController extends Controller
      */
     public function recordPayment(Request $request, AccountReceivable $accountReceivable)
     {
+        $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        $accountReceivable->refresh();
+        $components = $accountReceivable->components()->get();
+        $requiresComponent = $components->count() > 1;
+        if (!$request->filled('component_id')) {
+            $request->merge(['component_id' => null]);
+        }
+
         // Normalize Indonesian number format before validation
         $amount = $request->input('amount');
         if ($amount) {
@@ -115,28 +127,69 @@ class AccountReceivableController extends Controller
             $request->merge(['amount' => $amount]);
         }
 
-        $validated = $request->validate([
+        $rules = [
             'amount' => 'required|numeric|min:0.01|max:' . $accountReceivable->outstanding_amount,
             'payment_date' => 'required|date',
             'bank_account_id' => 'required|exists:bank_accounts,id',
-            'notes' => 'nullable|string|max:500'
-        ]);
+            'notes' => 'nullable|string|max:500',
+        ];
+
+        $rules['component_id'] = [
+            $requiresComponent ? 'required' : 'nullable',
+            Rule::exists('account_receivable_components', 'id')->where(function ($query) use ($accountReceivable) {
+                $query->where('account_receivable_id', $accountReceivable->id);
+            }),
+        ];
+
+        $validated = $request->validate($rules);
+
+        $component = null;
+        if (!empty($validated['component_id'])) {
+            $component = $components->firstWhere('id', (int) $validated['component_id']);
+        } elseif ($components->count() === 1) {
+            $component = $components->first();
+        }
+
+        if ($requiresComponent && !$component) {
+            return redirect()->back()->withErrors([
+                'component_id' => 'Pilih komponen pembayaran.'
+            ])->withInput();
+        }
+
+        if ($component && $validated['amount'] > $component->outstanding_amount) {
+            return redirect()->back()->withErrors([
+                'amount' => 'Amount cannot exceed outstanding balance for ' . ($component->component_type === 'debit_note' ? 'Debit Note' : 'Invoice Main') . ' (Rp ' . number_format($component->outstanding_amount, 0, ',', '.') . ')'
+            ])->withInput();
+        }
 
         DB::transaction(function () use ($accountReceivable, $validated) {
+            $component = null;
+            if (!empty($validated['component_id'])) {
+                $component = $accountReceivable->components()->find($validated['component_id']);
+            } elseif ($accountReceivable->components()->count() === 1) {
+                $component = $accountReceivable->components()->first();
+            }
+
             $success = $accountReceivable->recordPayment(
                 $validated['amount'],
-                $validated['notes']
+                $validated['notes'],
+                $component,
+                Carbon::parse($validated['payment_date'])
             );
 
             if (!$success) {
                 throw new \Exception('Failed to record payment');
             }
 
+            $componentLabel = $component
+                ? ($component->component_type === 'debit_note' ? 'Debit Note' : 'Invoice Main')
+                : 'Invoice';
+
             // Record bank transaction (Customer Payment = Credit to bank)
             \App\Models\BankTransaction::recordCustomerPayment(
                 $validated['bank_account_id'],
                 $validated['amount'],
-                "Customer payment for Invoice {$accountReceivable->invoice_number} from {$accountReceivable->customer->company_name}",
+                "Customer payment for {$componentLabel} {$accountReceivable->invoice_number} from {$accountReceivable->customer->company_name}",
                 $accountReceivable->id,
                 $validated['payment_date']
             );

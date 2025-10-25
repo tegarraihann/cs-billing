@@ -330,6 +330,32 @@
         <span class="font-medium">Pengeluaran Lain-lain</span>
       </a>
 
+      <!-- Other Income -->
+      <a
+        :href="route('admin-keuangan.other-incomes.index')"
+        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200"
+        :class="
+          isActive('admin-keuangan.other-incomes')
+            ? 'bg-sage-100 text-sage-800 shadow-sm'
+            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+        "
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span class="font-medium">Pendapatan Lain-lain</span>
+      </a>
+
       <!-- Profit Loss Reports -->
       <a
         :href="route('admin-keuangan.profit-loss.index')"
@@ -630,6 +656,7 @@ const route = window.route || function(name, params) {
     'admin-keuangan.profit-reports.index': '/admin-keuangan/profit-reports',
     'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
     'admin-keuangan.general-expenses.index': '/admin-keuangan/general-expenses',
+    'admin-keuangan.other-incomes.index': '/admin-keuangan/other-incomes',
     'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
     'admin-keuangan.bank-balance.index': '/admin-keuangan/bank-balance',
     'admin-keuangan.bank-balance.create': '/admin-keuangan/bank-balance/create',
@@ -681,6 +708,7 @@ const isActive = (routePattern) => {
     'admin-keuangan.profit-reports': '/admin-keuangan/profit-reports',
     'admin-keuangan.petty-cash': '/admin-keuangan/petty-cash',
     'admin-keuangan.general-expenses': '/admin-keuangan/general-expenses',
+    'admin-keuangan.other-incomes': '/admin-keuangan/other-incomes',
     'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
     'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
     'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',

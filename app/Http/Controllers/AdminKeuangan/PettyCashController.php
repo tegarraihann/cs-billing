@@ -16,6 +16,33 @@ use Illuminate\Validation\Rule;
 class PettyCashController extends Controller
 {
     /**
+     * PETTY CASH CONCEPT:
+     *
+     * Petty Cash is ONLY for daily cash expenses that are:
+     * 1. Paid with CASH (not bank transfer)
+     * 2. For general office/operational needs (NOT tied to specific shipments/SOs)
+     * 3. Usually small amounts (office supplies, utilities, courier, etc.)
+     *
+     * Examples of CORRECT Petty Cash usage:
+     * - Office supplies (stationery, paper, etc.)
+     * - Daily office needs (water, snacks, cleaning supplies)
+     * - Small courier fees for documents (not related to SO)
+     * - Office utilities (electricity, internet - if paid cash)
+     * - Transportation for office errands
+     *
+     * Examples of INCORRECT Petty Cash usage:
+     * - Operational costs tied to specific SOs (trucking, customs, etc.)
+     * - Vendor payments for shipments
+     * - Reimbursements for customer shipments
+     * - Large payments that should go through bank transfer
+     *
+     * For shipment-related costs, use:
+     * - Invoice operational_cost items
+     * - Account Payables
+     * - Profit/Loss tracking
+     */
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)

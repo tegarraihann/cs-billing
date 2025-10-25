@@ -444,6 +444,23 @@
                                         placeholder="e.g., Biaya trucking dari gudang ke pelabuhan" required></textarea>
                                 </div>
 
+                                <!-- Vendor Selection -->
+                                <div class="mt-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        Vendor / Penerima *
+                                    </label>
+                                    <select v-model="item.vendor_id"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        <option value="">-- Internal (Divisi Operational) --</option>
+                                        <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                            {{ vendor.nama_vendor }}
+                                        </option>
+                                    </select>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika internal
+                                    </p>
+                                </div>
+
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
@@ -586,7 +603,7 @@
                                         'block text-sm font-medium mb-2',
                                         cost.auto_generated ? 'text-blue-700' : 'text-red-700'
                                     ]">
-                                        Kategori Biaya
+                                        Kategori Biaya *
                                     </label>
                                     <select v-model="cost.category_id" @change="onCategoryChange(index)" :class="[
                                         'w-full px-3 py-2 border rounded-lg focus:ring-2',
@@ -600,6 +617,33 @@
                                             {{ category.name }}
                                         </option>
                                     </select>
+                                </div>
+
+                                <!-- Vendor Selection -->
+                                <div class="mb-4">
+                                    <label :class="[
+                                        'block text-sm font-medium mb-2',
+                                        cost.auto_generated ? 'text-blue-700' : 'text-red-700'
+                                    ]">
+                                        Vendor / Penerima *
+                                    </label>
+                                    <select v-model="cost.vendor_id" :class="[
+                                        'w-full px-3 py-2 border rounded-lg focus:ring-2',
+                                        cost.auto_generated
+                                            ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
+                                            : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                    ]" required>
+                                        <option value="">-- Internal (Divisi Operational) --</option>
+                                        <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                            {{ vendor.nama_vendor }}
+                                        </option>
+                                    </select>
+                                    <p :class="[
+                                        'text-xs mt-1',
+                                        cost.auto_generated ? 'text-blue-600' : 'text-red-600'
+                                    ]">
+                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika internal
+                                    </p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1062,12 +1106,13 @@ const normalizeNumber = (value) => {
         const parts = normalized.split('.');
         if (parts.length === 2) {
             const decimalPart = parts[1];
-            // If decimal part has 3+ digits or is > 99, treat as thousand separator
-            if (decimalPart.length >= 3 || parseInt(decimalPart) >= 100 || parts[0].length >= 2) {
-                // Likely thousand separator: 2.500 or 12.500
+            const isLikelyDecimal = decimalPart.length <= 2 && parseInt(decimalPart, 10) < 100;
+
+            if (!isLikelyDecimal) {
+                // Thousand separator (e.g. 2.500 -> 2500)
                 normalized = normalized.replace(/\./g, '');
             }
-            // Otherwise keep as decimal: 25.50
+            // Otherwise keep as decimal: 25.50 or 2500.50
         } else {
             // Multiple dots, treat as thousand separators: 1.000.500
             normalized = normalized.replace(/\./g, '');
@@ -1105,7 +1150,8 @@ const addReimbursementItem = () => {
         amount: 0,
         item_ref: `reimb_${Date.now()}`,
         type: 'reimbursement',
-        item_type: 'reimbursement'
+        item_type: 'reimbursement',
+        vendor_id: ''
     });
 };
 
@@ -1150,7 +1196,8 @@ const addOperationalCost = () => {
     category: '',
     auto_generated: false,
     source: 'manual_input',
-    item_ref: `manual_${Date.now()}`
+    item_ref: `manual_${Date.now()}`,
+    vendor_id: ''
   });
 };
 

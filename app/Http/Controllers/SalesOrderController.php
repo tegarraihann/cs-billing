@@ -135,6 +135,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'package_unit' => 'nullable|exists:master_package_units,code',
             'net_weight' => 'nullable|numeric|min:0',
+            'gross_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
@@ -354,6 +355,7 @@ class SalesOrderController extends Controller
             'qty' => 'nullable|integer|min:0',
             'package_unit' => 'nullable|exists:master_package_units,code',
             'net_weight' => 'nullable|numeric|min:0',
+            'gross_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
             'container_no' => 'nullable',
             'invoice_number' => 'nullable|string|max:255',
@@ -721,7 +723,7 @@ class SalesOrderController extends Controller
         $request->merge(['receipt_vouchers' => $receiptVouchers]);
 
         // Normalize other numeric fields
-        $numericFields = ['exchange_rate', 'qty', 'net_weight', 'measurement'];
+        $numericFields = ['exchange_rate', 'qty', 'net_weight', 'gross_weight', 'measurement'];
         foreach ($numericFields as $field) {
             $value = $request->input($field);
             if ($value) {

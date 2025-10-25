@@ -144,73 +144,33 @@ class ExpenseCategorizationService
     }
 
     /**
-     * Auto-generate petty cash transactions from invoice operational costs
+     * DEPRECATED: Auto-generate petty cash from invoice is NOT the correct concept
+     *
+     * Petty Cash should ONLY be for daily cash expenses (office supplies, utilities, etc.)
+     * that are NOT related to any Sales Order or shipment.
+     *
+     * Operational costs from invoices should be tracked through:
+     * - Account Payables (for vendor payments)
+     * - Invoice operational_cost items
+     * - Profit/Loss reports
+     *
+     * They should NOT go into Petty Cash because:
+     * 1. They are tied to specific SOs/shipments
+     * 2. They are usually larger amounts paid via bank transfer, not cash
+     * 3. Mixing them with petty cash makes cash management confusing
+     *
+     * @deprecated This method should not be used
      */
     public function autoGeneratePettyCashFromInvoice($invoice): array
     {
-        $generatedTransactions = [];
-        $errors = [];
-
-        // Get operational costs collection instead of query builder
-        $operationalCosts = $invoice->operationalCosts()->get();
-        if ($operationalCosts->isEmpty()) {
-            return [
-                'success' => true,
-                'message' => 'No operational costs to generate petty cash transactions',
-                'transactions' => [],
-                'errors' => []
-            ];
-        }
-
-        foreach ($operationalCosts as $cost) {
-            try {
-                // Process the operational cost
-                $processedData = $this->processOperationalCost([
-                    'template_id' => $cost->template_id ?? null,
-                    'description' => $cost->description,
-                    'category_id' => $cost->category_id ?? null,
-                    'amount' => $cost->amount
-                ]);
-
-                // Create petty cash transaction
-                $transaction = PettyCashTransaction::create([
-                    'transaction_date' => $invoice->invoice_date,
-                    'description' => $processedData['description'],
-                    'category_id' => $processedData['category_id'],
-                    'template_id' => $processedData['template_id'],
-                    'categorization_method' => $processedData['categorization_method'],
-                    'auto_generated' => true,
-                    'invoice_id' => $invoice->id,
-                    'invoice_item_id' => $cost->id,
-                    'amount' => $processedData['amount'],
-                    'type' => 'expense',
-                    'so_number' => $invoice->salesOrder->order_number ?? null,
-                    'balance_after' => 0, // Will be calculated by PettyCashBalance::updateBalanceForDate
-                    'notes' => "Auto-generated from Invoice {$invoice->invoice_number}",
-                    'status' => 'pending', // Require admin approval
-                    'user_id' => auth()->id(),
-                ]);
-
-                $generatedTransactions[] = $transaction;
-
-            } catch (\Exception $e) {
-                $errors[] = [
-                    'cost_id' => $cost->id,
-                    'error' => $e->getMessage()
-                ];
-            }
-        }
-
-        // Update balances for all generated transactions
-        if (!empty($generatedTransactions)) {
-            $this->updatePettyCashBalances($invoice->invoice_date);
-        }
-
+        // Return error to prevent misuse
         return [
-            'success' => empty($errors),
-            'message' => count($generatedTransactions) . ' petty cash transactions generated',
-            'transactions' => $generatedTransactions,
-            'errors' => $errors
+            'success' => false,
+            'message' => 'DEPRECATED: Petty Cash should not be auto-generated from invoices. Operational costs should be tracked through Account Payables and Profit/Loss reports.',
+            'transactions' => [],
+            'errors' => [[
+                'error' => 'This feature has been disabled because it violates the Petty Cash concept. Petty Cash is only for daily cash expenses not related to any SO/shipment.'
+            ]]
         ];
     }
 

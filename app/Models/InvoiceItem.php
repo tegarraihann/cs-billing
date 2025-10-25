@@ -19,6 +19,7 @@ class InvoiceItem extends Model
         'amount',
         'item_ref',
         'item_type',
+        'vendor_id',
         'include_in_customer_invoice',
         'is_hidden_from_customer'
     ];
@@ -34,6 +35,11 @@ class InvoiceItem extends Model
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     // Scopes for filtering by item type

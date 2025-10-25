@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 
 class AccountPayable extends Model
@@ -60,6 +61,11 @@ class AccountPayable extends Model
     public function paidByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'paid_by');
+    }
+
+    public function components(): HasMany
+    {
+        return $this->hasMany(AccountPayableComponent::class);
     }
 
     // Scopes
@@ -183,5 +189,318 @@ class AccountPayable extends Model
                 self::createFromVendorBreakdown($salesOrder, $vendorItem);
             }
         }
+    }
+
+    /**
+     * Sync components from sales order and related invoices
+     */
+    public function syncComponents(): void
+    {
+        $existingComponents = $this->components()->get()->keyBy('component_type');
+        $paidToDistribute = $existingComponents->isEmpty() ? (float) $this->paid_amount : 0.0;
+
+        $componentPayloads = $this->prepareComponentPayloads($paidToDistribute);
+
+        $processedTypes = [];
+        foreach ($componentPayloads as $payload) {
+            $type = $payload['component_type'];
+            $key = $type . '_' . ($payload['vendor_id'] ?? 'null');
+            $processedTypes[] = $key;
+
+            $component = $existingComponents->get($key);
+
+            if (!$component) {
+                // Create new component
+                $component = $this->components()->make([
+                    'component_type' => $type,
+                ]);
+                $component->paid_amount = $payload['paid_amount'] ?? 0;
+            }
+
+            $component->description = $payload['description'] ?? null;
+            $component->amount = $payload['amount'];
+            $component->recipient_name = $payload['recipient_name'] ?? null;
+            $component->vendor_id = $payload['vendor_id'] ?? null;
+            $component->related_items = $payload['related_items'] ?? null;
+
+            if (array_key_exists('paid_amount', $payload) && !$component->exists) {
+                $component->paid_amount = min($payload['amount'], $payload['paid_amount']);
+            }
+
+            if ($component->paid_amount > $component->amount) {
+                $component->paid_amount = $component->amount;
+            }
+
+            $component->outstanding_amount = max(0, $component->amount - $component->paid_amount);
+            $component->status = $this->determineComponentStatus($component);
+            $component->due_date = $this->payment_due_date;
+            $component->save();
+        }
+
+        // Remove components that are no longer relevant
+        if (!empty($processedTypes)) {
+            $this->components()->whereNotIn(
+                \DB::raw("CONCAT(component_type, '_', COALESCE(vendor_id, 'null'))"),
+                $processedTypes
+            )->delete();
+        }
+
+        // If no components exist, create a default one from main record
+        if (empty($componentPayloads) && $existingComponents->isEmpty() && $this->amount > 0) {
+            $componentType = $this->vendor_name === 'Divisi Operational' ? 'operational_cost' : 'vendor_payment';
+
+            $this->components()->create([
+                'component_type' => $componentType,
+                'description' => $this->service_description,
+                'amount' => $this->amount,
+                'paid_amount' => $this->paid_amount,
+                'outstanding_amount' => max(0, $this->amount - $this->paid_amount),
+                'status' => $this->status,
+                'due_date' => $this->payment_due_date,
+                'recipient_name' => $this->vendor_name,
+                'vendor_id' => $this->vendor_id,
+            ]);
+        }
+
+        $this->recalculateTotals();
+    }
+
+    /**
+     * Prepare component payloads from various sources
+     */
+    protected function prepareComponentPayloads(float $paidToDistribute = 0): array
+    {
+        $payloads = [];
+
+        // For vendor payments from vendor_breakdown (not operational/reimbursement)
+        if ($this->vendor_id && $this->vendor_name !== 'Divisi Operational') {
+            // Check if this is from vendor_breakdown or from invoice items
+            $hasInvoiceItems = false;
+            if ($this->salesOrder) {
+                $hasInvoiceItems = $this->salesOrder->invoices()
+                    ->whereHas('items', function ($q) {
+                        $q->whereIn('item_type', ['operational_cost', 'reimbursement'])
+                          ->where('vendor_id', $this->vendor_id);
+                    })
+                    ->exists();
+            }
+
+            if (!$hasInvoiceItems) {
+                // Traditional vendor payment from vendor_breakdown
+                $payloads[] = [
+                    'component_type' => 'vendor_payment',
+                    'description' => $this->service_description,
+                    'amount' => (float) $this->amount,
+                    'recipient_name' => $this->vendor_name,
+                    'vendor_id' => $this->vendor_id,
+                ];
+                return $payloads;
+            }
+        }
+
+        // Get invoice items that match this payable's vendor
+        if ($this->salesOrder) {
+            $invoice = $this->salesOrder->invoices()
+                ->whereHas('items', function ($q) {
+                    $q->whereIn('item_type', ['operational_cost', 'reimbursement']);
+
+                    // Filter by vendor_id matching this payable
+                    if ($this->vendor_id) {
+                        $q->where('vendor_id', $this->vendor_id);
+                    } else {
+                        // For internal (Divisi Operational), get items with null vendor_id
+                        $q->whereNull('vendor_id');
+                    }
+                })
+                ->first();
+
+            if ($invoice) {
+                // Get operational cost items for this vendor
+                $operationalItems = $invoice->items()
+                    ->where('item_type', 'operational_cost')
+                    ->where(function ($q) {
+                        if ($this->vendor_id) {
+                            $q->where('vendor_id', $this->vendor_id);
+                        } else {
+                            $q->whereNull('vendor_id');
+                        }
+                    })
+                    ->get();
+
+                $totalOperational = (float) $operationalItems->sum('amount');
+
+                if ($totalOperational > 0) {
+                    $payloads[] = [
+                        'component_type' => 'operational_cost',
+                        'description' => 'Biaya Operational',
+                        'amount' => $totalOperational,
+                        'recipient_name' => $this->vendor_name,
+                        'vendor_id' => $this->vendor_id,
+                        'related_items' => $operationalItems->pluck('id')->toArray(),
+                    ];
+                }
+
+                // Get reimbursement items for this vendor
+                $reimbursementItems = $invoice->items()
+                    ->where('item_type', 'reimbursement')
+                    ->where(function ($q) {
+                        if ($this->vendor_id) {
+                            $q->where('vendor_id', $this->vendor_id);
+                        } else {
+                            $q->whereNull('vendor_id');
+                        }
+                    })
+                    ->get();
+
+                $totalReimbursement = (float) $reimbursementItems->sum('amount');
+
+                if ($totalReimbursement > 0) {
+                    $payloads[] = [
+                        'component_type' => 'reimbursement',
+                        'description' => 'Reimbursement',
+                        'amount' => $totalReimbursement,
+                        'recipient_name' => $this->vendor_name,
+                        'vendor_id' => $this->vendor_id,
+                        'related_items' => $reimbursementItems->pluck('id')->toArray(),
+                    ];
+                }
+            }
+        }
+
+        // Distribute paid amount proportionally if exists
+        if ($paidToDistribute > 0 && !empty($payloads)) {
+            $totalAmount = array_sum(array_column($payloads, 'amount'));
+            foreach ($payloads as &$payload) {
+                $ratio = $totalAmount > 0 ? $payload['amount'] / $totalAmount : 0;
+                $allocated = $ratio * $paidToDistribute;
+                $payload['paid_amount'] = min($payload['amount'], $allocated);
+            }
+        }
+
+        return $payloads;
+    }
+
+    /**
+     * Determine component status based on payment
+     */
+    protected function determineComponentStatus(AccountPayableComponent $component): string
+    {
+        if ($component->outstanding_amount <= 0.01) {
+            return 'paid';
+        }
+
+        if ($component->paid_amount > 0) {
+            return 'partial';
+        }
+
+        return 'unpaid';
+    }
+
+    /**
+     * Record payment to a specific component
+     */
+    public function recordPaymentToComponent(
+        ?AccountPayableComponent $component,
+        float $amount,
+        string $paymentMethod = null,
+        string $notes = null,
+        $paymentDate = null
+    ): bool {
+        // Sync components first
+        $this->syncComponents();
+
+        $components = $this->components()->get();
+
+        // If no components, use old method
+        if ($components->isEmpty()) {
+            return $this->markAsPaid($amount, $paymentMethod, $notes);
+        }
+
+        // Get the component to pay
+        $component = $component ?: $components->first();
+
+        if (!$component || $component->account_payable_id !== $this->id) {
+            return false;
+        }
+
+        if ($amount <= 0 || $amount > $component->outstanding_amount) {
+            return false;
+        }
+
+        // Update component
+        $component->paid_amount = $component->paid_amount + $amount;
+        $component->outstanding_amount = max(0, $component->amount - $component->paid_amount);
+        $component->status = $this->determineComponentStatus($component);
+        $component->save();
+
+        // Recalculate totals
+        $summary = $this->recalculateTotals(false);
+
+        // Build note entry
+        $label = $component->getComponentLabel();
+        $noteEntry = "Payment to {$label} - {$component->recipient_name} (Rp " . number_format($amount, 2, '.', ',') . ')';
+        if ($notes) {
+            $noteEntry .= ' - ' . $notes;
+        }
+
+        // Update main record
+        $this->fill($summary);
+        $this->payment_date = $paymentDate ?? now();
+        $this->payment_method = $paymentMethod;
+        $this->payment_notes = $noteEntry
+            ? ($this->payment_notes ? $this->payment_notes . "\n" . $noteEntry : $noteEntry)
+            : $this->payment_notes;
+        $this->paid_by = auth()->id();
+        $this->save();
+
+        return true;
+    }
+
+    /**
+     * Recalculate totals from components
+     */
+    public function recalculateTotals(bool $save = true): array
+    {
+        $components = $this->components()->get();
+
+        if ($components->isEmpty()) {
+            $summary = [
+                'amount' => $this->amount,
+                'paid_amount' => $this->paid_amount,
+                'outstanding_amount' => $this->outstanding_amount,
+                'status' => $this->status,
+            ];
+
+            if ($save) {
+                $this->fill($summary)->save();
+            }
+
+            return $summary;
+        }
+
+        $totalAmount = (float) $components->sum('amount');
+        $totalPaid = (float) $components->sum('paid_amount');
+        $totalOutstanding = (float) $components->sum('outstanding_amount');
+
+        $status = 'unpaid';
+        if ($totalOutstanding <= 0.01) {
+            $status = 'paid';
+            $totalOutstanding = 0;
+        } elseif ($totalPaid > 0) {
+            $status = 'partial';
+        }
+
+        $summary = [
+            'amount' => $totalAmount,
+            'paid_amount' => $totalPaid,
+            'outstanding_amount' => $totalOutstanding,
+            'status' => $status,
+        ];
+
+        if ($save) {
+            $this->fill($summary)->save();
+        }
+
+        return $summary;
     }
 }

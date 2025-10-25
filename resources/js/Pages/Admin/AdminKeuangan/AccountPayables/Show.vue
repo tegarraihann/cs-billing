@@ -162,6 +162,62 @@
                 </div>
             </div>
 
+            <!-- Components Breakdown -->
+            <div v-if="componentOptions.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Rincian Komponen Hutang</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Komponen
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Penerima
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Nilai Hutang
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Terbayar
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Outstanding
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr v-for="component in componentOptions" :key="component.id">
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {{ getComponentLabel(component.component_type) }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {{ component.recipient_name || '-' }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                    Rp {{ formatNumber(component.amount) }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                    Rp {{ formatNumber(component.paid_amount) }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                    Rp {{ formatNumber(component.outstanding_amount) }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right">
+                                    <span :class="getStatusClass(component.status)"
+                                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                                        {{ getStatusText(component.status) }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Payment Information -->
             <div v-if="payable.payment_method || payable.payment_notes" class="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Information</h2>
@@ -219,9 +275,39 @@
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Mark Payment</h3>
                     <div class="mb-4 bg-gray-50 p-3 rounded-md">
                         <p class="text-sm text-gray-600">Vendor: {{ payable.vendor?.nama_vendor || payable.vendor_name }}</p>
-                        <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(payable.outstanding_amount) }}</p>
+                        <p v-if="selectedComponent" class="text-sm text-gray-600">
+                            Komponen: {{ getComponentLabel(selectedComponent.component_type) }}
+                        </p>
+                        <p class="text-sm text-gray-600">
+                            Outstanding: Rp {{
+                                formatNumber(
+                                    selectedComponent
+                                        ? selectedComponent.outstanding_amount
+                                        : payable.outstanding_amount
+                                )
+                            }}
+                        </p>
                     </div>
                     <form @submit.prevent="markPayment">
+                        <div v-if="hasMultipleComponents" class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Komponen Pembayaran *</label>
+                            <select
+                                v-model="paymentForm.component_id"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            >
+                                <option value="">Pilih Komponen</option>
+                                <option
+                                    v-for="component in componentOptions"
+                                    :key="component.id"
+                                    :value="component.id"
+                                >
+                                    {{ getComponentLabel(component.component_type) }}
+                                    - {{ component.recipient_name }}
+                                    - Outstanding Rp {{ formatNumber(component.outstanding_amount) }}
+                                </option>
+                            </select>
+                        </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
                             <input
@@ -358,7 +444,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, CreditCard, Edit } from 'lucide-vue-next'
@@ -380,7 +466,8 @@ const paymentForm = reactive({
     payment_date: new Date().toISOString().split('T')[0],
     bank_account_id: '',
     payment_method: '',
-    notes: ''
+    notes: '',
+    component_id: ''
 })
 
 const editForm = reactive({
@@ -388,6 +475,51 @@ const editForm = reactive({
     vendor_invoice_date: props.payable.vendor_invoice_date || '',
     service_remarks: props.payable.service_remarks || ''
 })
+
+// Computed properties for components
+const componentOptions = computed(() => (props.payable.components || []).map(component => ({
+    ...component,
+    id: Number(component.id),
+    amount: parseFloat(component.amount || 0),
+    paid_amount: parseFloat(component.paid_amount || 0),
+    outstanding_amount: parseFloat(component.outstanding_amount || 0)
+})))
+
+const hasMultipleComponents = computed(() => componentOptions.value.length > 1)
+
+const selectedComponent = computed(() => {
+    const id = paymentForm.component_id ? Number(paymentForm.component_id) : null
+    if (!id && componentOptions.value.length === 1) {
+        return componentOptions.value[0]
+    }
+    return componentOptions.value.find(component => component.id === id) || null
+})
+
+// Watch for component selection
+watch(() => paymentForm.component_id, () => {
+    if (hasMultipleComponents.value && !paymentForm.component_id) {
+        paymentForm.amount = ''
+    }
+})
+
+// Initialize component_id
+watch(componentOptions, (options) => {
+    if (!showPaymentModal.value) {
+        return
+    }
+
+    if (!options.length) {
+        paymentForm.component_id = ''
+        return
+    }
+
+    const currentId = paymentForm.component_id ? Number(paymentForm.component_id) : null
+
+    if (!currentId || !options.find(component => component.id === currentId)) {
+        const defaultComponent = options.find(component => parseFloat(component.outstanding_amount || 0) > 0) || options[0]
+        paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
+    }
+}, { immediate: true })
 
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
@@ -429,6 +561,15 @@ const getStatusText = (status) => {
     return texts[status] || status
 }
 
+const getComponentLabel = (type) => {
+    const labels = {
+        'vendor_payment': 'Pembayaran Vendor',
+        'operational_cost': 'Biaya Operational',
+        'reimbursement': 'Reimbursement'
+    }
+    return labels[type] || type
+}
+
 const goBack = () => {
     router.visit(route('admin-keuangan.account-payables.index'))
 }
@@ -438,6 +579,9 @@ const openPaymentModal = () => {
     paymentForm.bank_account_id = ''
     paymentForm.payment_method = ''
     paymentForm.notes = ''
+    paymentForm.component_id = hasMultipleComponents.value
+        ? ''
+        : (componentOptions.value[0] ? String(componentOptions.value[0].id) : '')
     showPaymentModal.value = true
 }
 

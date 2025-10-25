@@ -359,6 +359,12 @@
                                                     formatWeight(salesOrder.net_weight) : '-' }}</p>
                                             </div>
                                             <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">GROSS WEIGHT
+                                                    (KG)</label>
+                                                <p class="text-gray-900">{{ salesOrder.gross_weight ?
+                                                    formatWeight(salesOrder.gross_weight) : '-' }}</p>
+                                            </div>
+                                            <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">MEAS
                                                     (M³)</label>
                                                 <p class="text-gray-900">{{ salesOrder.measurement ?

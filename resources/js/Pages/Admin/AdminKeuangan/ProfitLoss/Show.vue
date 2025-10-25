@@ -94,14 +94,47 @@
                                     </div>
                                     
                                     <div v-if="reportData.revenues.other.length > 0">
-                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Pendapatan Lainnya</h4>
-                                        <div class="space-y-2">
-                                            <div v-for="entry in reportData.revenues.other" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
-                                                <div>
-                                                    <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
-                                                    <div class="text-xs text-gray-500">{{ entry.description }}</div>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-3">Pendapatan Lain-lain</h4>
+
+                                        <!-- Bunga Bank Mandiri -->
+                                        <div v-if="reportData.revenues.other_income_breakdown.bunga_mandiri.total > 0" class="mb-4">
+                                            <div class="flex justify-between items-center py-2 bg-blue-50 px-3 rounded">
+                                                <div class="text-sm font-medium text-blue-900">Pendapatan Lain-lain (Bunga Bank Mandiri)</div>
+                                                <div class="text-sm font-semibold text-blue-900">{{ formatCurrency(reportData.revenues.other_income_breakdown.bunga_mandiri.total) }}</div>
+                                            </div>
+                                            <div class="ml-4 mt-2 space-y-1">
+                                                <div v-for="entry in reportData.revenues.other_income_breakdown.bunga_mandiri.entries" :key="entry.id" class="flex justify-between items-center py-1 text-xs">
+                                                    <div class="text-gray-600">{{ entry.description }}</div>
+                                                    <div class="text-gray-900">{{ formatCurrency(entry.amount) }}</div>
                                                 </div>
-                                                <div class="text-sm font-medium text-gray-900">{{ formatCurrency(entry.amount) }}</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Bunga Bank BCA -->
+                                        <div v-if="reportData.revenues.other_income_breakdown.bunga_bca.total > 0" class="mb-4">
+                                            <div class="flex justify-between items-center py-2 bg-green-50 px-3 rounded">
+                                                <div class="text-sm font-medium text-green-900">Pendapatan Lain-lain (Bunga Bank BCA)</div>
+                                                <div class="text-sm font-semibold text-green-900">{{ formatCurrency(reportData.revenues.other_income_breakdown.bunga_bca.total) }}</div>
+                                            </div>
+                                            <div class="ml-4 mt-2 space-y-1">
+                                                <div v-for="entry in reportData.revenues.other_income_breakdown.bunga_bca.entries" :key="entry.id" class="flex justify-between items-center py-1 text-xs">
+                                                    <div class="text-gray-600">{{ entry.description }}</div>
+                                                    <div class="text-gray-900">{{ formatCurrency(entry.amount) }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Lainnya -->
+                                        <div v-if="reportData.revenues.other_income_breakdown.lainnya.total > 0" class="mb-4">
+                                            <div class="flex justify-between items-center py-2 bg-purple-50 px-3 rounded">
+                                                <div class="text-sm font-medium text-purple-900">Pendapatan Lain-lain (Lainnya)</div>
+                                                <div class="text-sm font-semibold text-purple-900">{{ formatCurrency(reportData.revenues.other_income_breakdown.lainnya.total) }}</div>
+                                            </div>
+                                            <div class="ml-4 mt-2 space-y-1">
+                                                <div v-for="entry in reportData.revenues.other_income_breakdown.lainnya.entries" :key="entry.id" class="flex justify-between items-center py-1 text-xs">
+                                                    <div class="text-gray-600">{{ entry.description }}</div>
+                                                    <div class="text-gray-900">{{ formatCurrency(entry.amount) }}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

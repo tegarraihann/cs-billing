@@ -635,6 +635,20 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::put('/{pettyCash}/update-pending', 'updatePending')->name('update-pending');
     });
 
+    // Other Income Management Routes for Admin Keuangan (Pendapatan Lain-lain)
+    Route::controller(\App\Http\Controllers\AdminKeuangan\OtherIncomeController::class)->prefix('other-incomes')->name('other-incomes.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{otherIncome}', 'show')->name('show');
+        Route::get('/{otherIncome}/edit', 'edit')->name('edit');
+        Route::put('/{otherIncome}', 'update')->name('update');
+        Route::delete('/{otherIncome}', 'destroy')->name('destroy');
+        Route::post('/{otherIncome}/post-to-profit-loss', 'postToProfitLoss')->name('post-to-profit-loss');
+        Route::post('/{otherIncome}/unpost-from-profit-loss', 'unpostFromProfitLoss')->name('unpost-from-profit-loss');
+        Route::get('/api/summary-by-category', 'summaryByCategory')->name('summary-by-category');
+    });
+
     // Expense Template API Routes for Auto-Categorization
     Route::controller(\App\Http\Controllers\Api\ExpenseTemplateController::class)->prefix('api/expense-templates')->name('api.expense-templates.')->group(function () {
         Route::get('/by-category', 'getTemplatesByCategory')->name('by-category');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 
 class AccountReceivable extends Model
@@ -55,6 +56,11 @@ class AccountReceivable extends Model
         return $this->belongsTo(SalesOrder::class);
     }
 
+    public function components(): HasMany
+    {
+        return $this->hasMany(AccountReceivableComponent::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -103,30 +109,68 @@ class AccountReceivable extends Model
         ]);
     }
 
-    public function recordPayment(float $amount, string $notes = null): bool
+    public function recordPayment(float $amount, string $notes = null, ?AccountReceivableComponent $component = null, ?Carbon $paymentDate = null): bool
     {
-        if ($amount <= 0 || $amount > $this->outstanding_amount) {
+        $this->syncComponentsFromInvoice($this->invoice);
+
+        $components = $this->components()->get();
+        if ($components->isEmpty()) {
+            if ($amount <= 0 || $amount > $this->outstanding_amount) {
+                return false;
+            }
+
+            $newPaidAmount = $this->paid_amount + $amount;
+            $newOutstandingAmount = $this->invoice_amount - $newPaidAmount;
+            $newStatus = 'outstanding';
+
+            if ($newOutstandingAmount <= 0) {
+                $newStatus = 'paid';
+                $newOutstandingAmount = 0;
+            } elseif ($newPaidAmount > 0) {
+                $newStatus = 'partial';
+            }
+
+            $this->update([
+                'paid_amount' => $newPaidAmount,
+                'outstanding_amount' => $newOutstandingAmount,
+                'status' => $newStatus,
+                'last_payment_date' => $paymentDate ?? now(),
+                'notes' => $notes ? ($this->notes ? $this->notes . "\n" . $notes : $notes) : $this->notes
+            ]);
+
+            return true;
+        }
+
+        $component = $component ?: $components->first();
+
+        if (!$component || $component->account_receivable_id !== $this->id) {
             return false;
         }
 
-        $newPaidAmount = $this->paid_amount + $amount;
-        $newOutstandingAmount = $this->invoice_amount - $newPaidAmount;
-        
-        $newStatus = 'outstanding';
-        if ($newOutstandingAmount <= 0) {
-            $newStatus = 'paid';
-            $newOutstandingAmount = 0;
-        } elseif ($newPaidAmount > 0) {
-            $newStatus = 'partial';
+        if ($amount <= 0 || $amount > $component->outstanding_amount) {
+            return false;
         }
 
-        $this->update([
-            'paid_amount' => $newPaidAmount,
-            'outstanding_amount' => $newOutstandingAmount,
-            'status' => $newStatus,
-            'last_payment_date' => now(),
-            'notes' => $notes ? ($this->notes ? $this->notes . "\n" . $notes : $notes) : $this->notes
-        ]);
+        $component->paid_amount = $component->paid_amount + $amount;
+        $component->outstanding_amount = max(0, $component->amount - $component->paid_amount);
+        $component->status = $this->determineComponentStatus($component);
+        $component->due_date = $component->due_date ?? $this->due_date;
+        $component->save();
+
+        $summary = $this->recalculateTotals(false);
+
+        $label = $this->componentLabel($component->component_type);
+        $noteEntry = "Payment applied to {$label} (Rp " . number_format($amount, 2, '.', ',') . ')';
+        if ($notes) {
+            $noteEntry .= ' - ' . $notes;
+        }
+
+        $this->fill($summary);
+        $this->last_payment_date = $paymentDate ?? now();
+        $this->notes = $noteEntry
+            ? ($this->notes ? $this->notes . "\n" . $noteEntry : $noteEntry)
+            : $this->notes;
+        $this->save();
 
         return true;
     }
@@ -140,7 +184,7 @@ class AccountReceivable extends Model
             $dueDate = Carbon::parse($invoice->invoice_date)->addDays($invoice->term_days);
         }
 
-        return self::create([
+        $receivable = self::create([
             'invoice_id' => $invoice->id,
             'customer_id' => $invoice->customer_id,
             'customer_name' => $invoice->customer->company_name ?? 'Unknown Customer',
@@ -154,6 +198,10 @@ class AccountReceivable extends Model
             'payment_terms_days' => $invoice->term_days,
             'created_by' => auth()->id()
         ]);
+
+        $receivable->syncComponentsFromInvoice($invoice);
+
+        return $receivable->fresh();
     }
 
     /**
@@ -187,7 +235,7 @@ class AccountReceivable extends Model
         }
 
         // Update the record
-        return $this->update([
+        $updated = $this->update([
             'customer_id' => $invoice->customer_id,
             'customer_name' => $invoice->customer->company_name ?? $this->customer_name,
             'sales_order_id' => $invoice->sales_order_id,
@@ -199,6 +247,10 @@ class AccountReceivable extends Model
             'status' => $newStatus,
             'days_overdue' => $newStatus === 'overdue' ? $this->calculateDaysOverdue() : 0
         ]);
+
+        $this->syncComponentsFromInvoice($invoice);
+
+        return $updated;
     }
 
     /**
@@ -209,12 +261,219 @@ class AccountReceivable extends Model
         $accountReceivable = self::where('invoice_id', $invoice->id)->first();
 
         if ($accountReceivable) {
-            // Update existing record
             $accountReceivable->updateFromInvoice($invoice);
+            $accountReceivable->syncComponentsFromInvoice($invoice);
             return $accountReceivable->fresh();
         } else {
-            // Create new record
             return self::createFromInvoice($invoice);
         }
+    }
+
+    public function syncComponentsFromInvoice(?Invoice $invoice = null): void
+    {
+        $invoice = $invoice ?? $this->invoice;
+        if ($invoice) {
+            $invoice->loadMissing('items');
+        }
+
+        $existingComponents = $this->components()->get()->keyBy('component_type');
+        $paidToDistribute = $existingComponents->isEmpty() ? (float) $this->paid_amount : 0.0;
+
+        $componentPayloads = $this->prepareComponentPayloads($invoice, $paidToDistribute);
+
+        $processedTypes = [];
+        foreach ($componentPayloads as $payload) {
+            $type = $payload['component_type'];
+            $processedTypes[] = $type;
+
+            $component = $existingComponents->get($type);
+
+            if (!$component) {
+                $component = $this->components()->make([
+                    'component_type' => $type,
+                ]);
+                $component->paid_amount = $payload['paid_amount'] ?? 0;
+            }
+
+            $component->description = $payload['description'] ?? null;
+            $component->amount = $payload['amount'];
+
+            if (array_key_exists('paid_amount', $payload) && !$component->exists) {
+                $component->paid_amount = min($payload['amount'], $payload['paid_amount']);
+            }
+
+            if ($component->paid_amount > $component->amount) {
+                $component->paid_amount = $component->amount;
+            }
+
+            $component->outstanding_amount = max(0, $component->amount - $component->paid_amount);
+            $component->status = $this->determineComponentStatus($component);
+            $component->due_date = $this->due_date;
+            $component->save();
+        }
+
+        if (!empty($processedTypes)) {
+            $this->components()->whereNotIn('component_type', $processedTypes)->delete();
+        }
+
+        if (empty($componentPayloads) && $existingComponents->isEmpty()) {
+            $component = $this->components()->create([
+                'component_type' => 'main',
+                'description' => 'Invoice Main',
+                'amount' => $this->invoice_amount,
+                'paid_amount' => $this->paid_amount,
+                'outstanding_amount' => max(0, $this->invoice_amount - $this->paid_amount),
+                'status' => $this->status,
+                'due_date' => $this->due_date,
+            ]);
+
+            $component->status = $this->determineComponentStatus($component);
+            $component->save();
+        }
+
+        $this->recalculateTotals();
+    }
+
+    protected function prepareComponentPayloads(?Invoice $invoice, float $paidToDistribute = 0): array
+    {
+        if (!$invoice) {
+            return [];
+        }
+
+        $items = $invoice->items ?? collect();
+
+        if ($items->isEmpty()) {
+            $invoice->loadMissing('items');
+            $items = $invoice->items ?? collect();
+        }
+
+        $mainAmount = (float) $items->filter(function ($item) {
+            $itemType = strtolower($item->item_type ?? 'billable');
+            return $itemType === 'billable' || $item->item_type === null;
+        })->sum('amount');
+
+        $debitAmount = (float) $items->filter(function ($item) {
+            return strtolower($item->item_type ?? '') === 'reimbursement';
+        })->sum('amount');
+
+        if ($invoice->invoice_type === 'main' && $mainAmount <= 0) {
+            $mainAmount = (float) $invoice->total;
+        }
+
+        if ($invoice->invoice_type === 'reimbursement' && $debitAmount <= 0) {
+            $debitAmount = (float) $invoice->total;
+        }
+
+        if ($invoice->invoice_type === 'combined' && $mainAmount <= 0 && $debitAmount > 0) {
+            $mainAmount = max(0, (float) $invoice->total - $debitAmount);
+        }
+
+        $payloads = [];
+
+        if ($mainAmount > 0) {
+            $payloads[] = [
+                'component_type' => 'main',
+                'description' => 'Invoice Main',
+                'amount' => $mainAmount,
+            ];
+        }
+
+        if ($debitAmount > 0) {
+            $payloads[] = [
+                'component_type' => 'debit_note',
+                'description' => 'Debit Note / Reimbursement',
+                'amount' => $debitAmount,
+            ];
+        }
+
+        if (empty($payloads) && (float) $invoice->total > 0) {
+            $payloads[] = [
+                'component_type' => 'main',
+                'description' => 'Invoice Main',
+                'amount' => (float) $invoice->total,
+            ];
+        }
+
+        if ($paidToDistribute > 0 && !empty($payloads)) {
+            foreach ($payloads as &$payload) {
+                $allocated = min($payload['amount'], $paidToDistribute);
+                $payload['paid_amount'] = $allocated;
+                $paidToDistribute -= $allocated;
+            }
+        }
+
+        return $payloads;
+    }
+
+    protected function determineComponentStatus(AccountReceivableComponent $component): string
+    {
+        if ($component->outstanding_amount <= 0.01) {
+            return 'paid';
+        }
+
+        if ($component->paid_amount > 0) {
+            return 'partial';
+        }
+
+        if ($component->due_date && Carbon::today()->gt(Carbon::parse($component->due_date))) {
+            return 'overdue';
+        }
+
+        return 'outstanding';
+    }
+
+    protected function componentLabel(string $type): string
+    {
+        return match ($type) {
+            'debit_note' => 'Debit Note',
+            default => 'Invoice Main',
+        };
+    }
+
+    public function recalculateTotals(bool $save = true): array
+    {
+        $components = $this->components()->get();
+
+        if ($components->isEmpty()) {
+            $summary = [
+                'invoice_amount' => $this->invoice_amount,
+                'paid_amount' => $this->paid_amount,
+                'outstanding_amount' => $this->outstanding_amount,
+                'status' => $this->status,
+            ];
+
+            if ($save) {
+                $this->fill($summary)->save();
+            }
+
+            return $summary;
+        }
+
+        $totalAmount = (float) $components->sum('amount');
+        $totalPaid = (float) $components->sum('paid_amount');
+        $totalOutstanding = (float) $components->sum('outstanding_amount');
+
+        $status = 'outstanding';
+        if ($totalOutstanding <= 0.01) {
+            $status = 'paid';
+            $totalOutstanding = 0;
+        } elseif ($components->contains(fn ($component) => $component->status === 'overdue')) {
+            $status = 'overdue';
+        } elseif ($totalPaid > 0) {
+            $status = 'partial';
+        }
+
+        $summary = [
+            'invoice_amount' => $totalAmount,
+            'paid_amount' => $totalPaid,
+            'outstanding_amount' => $totalOutstanding,
+            'status' => $status,
+        ];
+
+        if ($save) {
+            $this->fill($summary)->save();
+        }
+
+        return $summary;
     }
 }

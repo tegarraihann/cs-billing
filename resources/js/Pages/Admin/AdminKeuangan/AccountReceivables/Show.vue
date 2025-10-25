@@ -146,6 +146,56 @@
                         </div>
                     </div>
 
+                    <!-- Components Breakdown -->
+                    <div v-if="componentOptions.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Rincian Komponen Piutang</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Komponen
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Nilai Invoice
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Terbayar
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Outstanding
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="component in componentOptions" :key="component.id">
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            {{ getComponentLabel(component.component_type) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(component.amount) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(component.paid_amount) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(component.outstanding_amount) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right">
+                                            <span :class="getStatusClass(component.status)"
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                                                {{ getStatusText(component.status) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Notes -->
                     <div v-if="receivable.notes" class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 class="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
@@ -185,16 +235,41 @@
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Record Payment</h3>
                             <div class="mb-4 bg-gray-50 p-3 rounded-md">
                                 <p class="text-sm text-gray-600">Invoice: {{ receivable.invoice_number }}</p>
-                                <p class="text-sm text-gray-600">Outstanding: Rp {{
-                                    formatNumber(receivable.outstanding_amount) }}</p>
+                                <p v-if="selectedComponent" class="text-sm text-gray-600">
+                                    Komponen: {{ getComponentLabel(selectedComponent.component_type) }}
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    Outstanding:
+                                    Rp {{
+                                        formatNumber(
+                                            selectedComponent
+                                                ? selectedComponent.outstanding_amount
+                                                : receivable.outstanding_amount
+                                        )
+                                    }}
+                                </p>
                             </div>
                             <form @submit.prevent="recordPayment">
+                                <div v-if="hasMultipleComponents" class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Komponen
+                                        Pembayaran *</label>
+                                    <select v-model="paymentForm.component_id" required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Pilih Komponen</option>
+                                        <option v-for="component in componentOptions" :key="component.id"
+                                            :value="component.id">
+                                            {{ getComponentLabel(component.component_type) }} - Outstanding Rp {{
+                                                formatNumber(component.outstanding_amount) }}
+                                        </option>
+                                    </select>
+                                </div>
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
                                     <input v-model="paymentForm.amount" type="text"
                                         @input="formatAmountInput"
                                         @blur="validateAmount"
                                         required
+                                        :disabled="hasMultipleComponents && !paymentForm.component_id"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         placeholder="Enter payment amount (e.g., 2500 or 2.500)" />
                                     <p v-if="amountError" class="mt-1 text-sm text-red-600">{{ amountError }}</p>
@@ -240,7 +315,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, CreditCard, FileText } from 'lucide-vue-next'
@@ -261,8 +336,63 @@ const paymentForm = reactive({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
     bank_account_id: '',
-    notes: ''
+    notes: '',
+    component_id: ''
 })
+
+const componentOptions = computed(() => (props.receivable.components || []).map(component => ({
+    ...component,
+    id: Number(component.id),
+    amount: parseFloat(component.amount || 0),
+    paid_amount: parseFloat(component.paid_amount || 0),
+    outstanding_amount: parseFloat(component.outstanding_amount || 0)
+})))
+const hasMultipleComponents = computed(() => componentOptions.value.length > 1)
+const selectedComponent = computed(() => {
+    const id = paymentForm.component_id ? Number(paymentForm.component_id) : null
+    if (!id && componentOptions.value.length === 1) {
+        return componentOptions.value[0]
+    }
+    return componentOptions.value.find(component => component.id === id) || null
+})
+
+const getComponentLabel = (type) => {
+    return type === 'debit_note' ? 'Debit Note' : 'Invoice Main'
+}
+
+watch(componentOptions, (options) => {
+    if (!showPaymentModal.value) {
+        return
+    }
+
+    if (!options.length) {
+        paymentForm.component_id = ''
+        return
+    }
+
+    const currentId = paymentForm.component_id ? Number(paymentForm.component_id) : null
+
+    if (!currentId || !options.find(component => component.id === currentId)) {
+        const defaultComponent = options.find(component => parseFloat(component.outstanding_amount || 0) > 0) || options[0]
+        paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
+    }
+}, { immediate: true })
+
+watch(
+    () => paymentForm.component_id,
+    () => {
+        amountError.value = ''
+        if (hasMultipleComponents.value && !paymentForm.component_id) {
+            paymentForm.amount = ''
+            return
+        }
+
+        if (paymentForm.amount) {
+            validateAmount()
+        }
+    },
+    { immediate: true }
+)
 
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
@@ -324,6 +454,9 @@ const openPaymentModal = () => {
     paymentForm.amount = ''
     paymentForm.bank_account_id = ''
     paymentForm.notes = ''
+    paymentForm.component_id = hasMultipleComponents.value
+        ? ''
+        : (componentOptions.value[0] ? String(componentOptions.value[0].id) : '')
     amountError.value = ''
     showPaymentModal.value = true
 }
@@ -331,11 +464,19 @@ const openPaymentModal = () => {
 const closePaymentModal = () => {
     showPaymentModal.value = false
     amountError.value = ''
+    paymentForm.component_id = ''
 }
 
 // Format amount input to handle Indonesian number format
 const formatAmountInput = (event) => {
     amountError.value = ''
+
+    if (hasMultipleComponents.value && !paymentForm.component_id) {
+        amountError.value = 'Pilih komponen terlebih dahulu'
+        paymentForm.amount = ''
+        return
+    }
+
     let value = event.target.value
 
     // Remove any non-numeric characters except dots and commas
@@ -348,6 +489,11 @@ const formatAmountInput = (event) => {
 
 // Validate and normalize amount when user leaves input
 const validateAmount = () => {
+    if (hasMultipleComponents.value && !paymentForm.component_id) {
+        amountError.value = 'Pilih komponen terlebih dahulu'
+        return
+    }
+
     let value = paymentForm.amount.toString().trim()
 
     if (!value) {
@@ -393,8 +539,13 @@ const validateAmount = () => {
         return
     }
 
-    if (numericValue > props.receivable.outstanding_amount) {
-        amountError.value = `Amount cannot exceed outstanding balance (Rp ${formatNumber(props.receivable.outstanding_amount)})`
+    const outstandingLimit = selectedComponent.value
+        ? parseFloat(selectedComponent.value.outstanding_amount || 0)
+        : props.receivable.outstanding_amount
+
+    if (numericValue > outstandingLimit) {
+        const label = selectedComponent.value ? getComponentLabel(selectedComponent.value.component_type) : 'invoice'
+        amountError.value = `Amount cannot exceed outstanding balance for ${label} (Rp ${formatNumber(outstandingLimit)})`
         return
     }
 

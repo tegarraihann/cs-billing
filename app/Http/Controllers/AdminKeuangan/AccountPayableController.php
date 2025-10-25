@@ -102,6 +102,11 @@ class AccountPayableController extends Controller
     public function show(AccountPayable $accountPayable)
     {
         $accountPayable->load(['vendor', 'salesOrder', 'creator', 'paidByUser']);
+
+        // Sync components to ensure they are up to date
+        $accountPayable->syncComponents();
+        $accountPayable->load('components');
+
         $bankAccounts = BankAccount::all();
         $reimbursementItems = $this->mapReimbursementItems($accountPayable);
 
@@ -122,7 +127,14 @@ class AccountPayableController extends Controller
      */
     public function markAsPaid(Request $request, AccountPayable $accountPayable)
     {
-        $validated = $request->validate([
+        // Sync components first
+        $accountPayable->syncComponents();
+        $accountPayable->refresh();
+        $components = $accountPayable->components()->get();
+        $requiresComponent = $components->count() > 1;
+
+        // Prepare validation rules
+        $rules = [
             'amount' => 'required|numeric|min:0.01|max:' . $accountPayable->outstanding_amount,
             'payment_method' => 'required|string|max:100',
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -133,29 +145,68 @@ class AccountPayableController extends Controller
             'reimbursement_vendor_name' => 'nullable|string|max:255',
             'reimbursement_paid_at' => 'nullable|date',
             'reimbursement_notes' => 'nullable|string|max:500'
-        ]);
+        ];
 
-        DB::transaction(function () use ($accountPayable, $validated) {
-            $success = $accountPayable->markAsPaid(
+        // Add component_id validation if multiple components
+        if ($requiresComponent) {
+            $rules['component_id'] = 'required|exists:account_payable_components,id';
+        } else {
+            $rules['component_id'] = 'nullable|exists:account_payable_components,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Get the component to pay
+        $component = null;
+        if (!empty($validated['component_id'])) {
+            $component = $components->firstWhere('id', (int) $validated['component_id']);
+        } elseif ($components->count() === 1) {
+            $component = $components->first();
+        }
+
+        // If multiple components and no component selected, return error
+        if ($requiresComponent && !$component) {
+            return redirect()->back()->withErrors([
+                'component_id' => 'Pilih komponen pembayaran.'
+            ])->withInput();
+        }
+
+        // Validate amount doesn't exceed component outstanding
+        if ($component && $validated['amount'] > $component->outstanding_amount) {
+            return redirect()->back()->withErrors([
+                'amount' => 'Amount cannot exceed outstanding balance for ' . $component->getComponentLabel() . ' (Rp ' . number_format($component->outstanding_amount, 0, ',', '.') . ')'
+            ])->withInput();
+        }
+
+        DB::transaction(function () use ($accountPayable, $component, $validated) {
+            // Record payment to component
+            $success = $accountPayable->recordPaymentToComponent(
+                $component,
                 $validated['amount'],
                 $validated['payment_method'],
-                $validated['notes']
+                $validated['notes'],
+                \Carbon\Carbon::parse($validated['payment_date'])
             );
 
             if (!$success) {
                 throw new \Exception('Failed to mark payment');
             }
 
+            $componentLabel = $component
+                ? $component->getComponentLabel() . ' - ' . $component->recipient_name
+                : $accountPayable->vendor_name;
+
             // Record bank transaction (Vendor Payment = Debit from bank)
             \App\Models\BankTransaction::recordVendorPayment(
                 $validated['bank_account_id'],
                 $validated['amount'],
-                "Vendor payment for {$accountPayable->service_description} to {$accountPayable->vendor_name}",
+                "Payment for {$componentLabel}: {$accountPayable->service_description}",
                 $accountPayable->id,
                 $validated['payment_date']
             );
 
-            if (!empty($validated['reimbursement_items'])) {
+            // If component is reimbursement, mark related reimbursement items as paid
+            if ($component && $component->component_type === 'reimbursement' && !empty($validated['reimbursement_items'])) {
                 $reimbursementVendor = $validated['reimbursement_vendor_name']
                     ?? $accountPayable->vendor_name
                     ?? 'Eshaka Wijaya Logistics';
@@ -165,6 +216,7 @@ class AccountPayableController extends Controller
 
                 $reimbursementExtras = [
                     'account_payable_id' => $accountPayable->id,
+                    'account_payable_component_id' => $component->id,
                     'account_payable_vendor' => $accountPayable->vendor_name,
                     'account_payable_invoice_number' => $accountPayable->vendor_invoice_number,
                 ];

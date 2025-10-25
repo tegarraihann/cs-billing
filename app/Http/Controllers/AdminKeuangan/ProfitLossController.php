@@ -351,9 +351,21 @@ class ProfitLossController extends Controller
         $employeeSalaries = EmployeeSalary::whereBetween('salary_date', [$startDate, $endDate])
                                         ->where('status', 'paid')
                                         ->get();
-                                        
+
         foreach ($employeeSalaries as $salary) {
             ProfitLossEntry::createFromEmployeeSalary($salary, $period->id, Auth::id());
+        }
+
+        // Generate entries from Other Income (Pendapatan Lain-lain)
+        if (class_exists('App\Models\OtherIncome')) {
+            $otherIncomes = app('App\Models\OtherIncome')
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->where('posted_to_profit_loss', true)
+                ->get();
+
+            foreach ($otherIncomes as $income) {
+                ProfitLossEntry::createFromOtherIncome($income, $period->id, Auth::id());
+            }
         }
 
         $period->calculateTotals();
