@@ -18,6 +18,23 @@
 
                 <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
                     <div class="px-6 py-8">
+                        <!-- Error Alert -->
+                        <div v-if="errors.error" class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+                                    <div class="mt-2 text-sm text-red-700">
+                                        {{ errors.error }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <form @submit.prevent="submit">
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
@@ -185,7 +202,20 @@ const processing = computed(() => form.processing)
 const dateSuggestions = ref([])
 
 const submit = () => {
-    form.post(route('admin-keuangan.profit-loss.store'))
+    console.log('Submitting profit loss period form:', form.data())
+
+    form.post(route('admin-keuangan.profit-loss.store'), {
+        onSuccess: (page) => {
+            console.log('Profit loss period created successfully', page)
+        },
+        onError: (errors) => {
+            console.error('Profit loss period creation failed:', errors)
+            alert('Gagal membuat periode laba rugi. Lihat console untuk detail error.')
+        },
+        onFinish: () => {
+            console.log('Profit loss period creation request finished')
+        }
+    })
 }
 
 const updateDateSuggestions = () => {

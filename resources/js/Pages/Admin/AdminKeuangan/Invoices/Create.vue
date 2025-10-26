@@ -447,7 +447,7 @@
                                 <!-- Vendor Selection -->
                                 <div class="mt-3">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                        Vendor / Penerima *
+                                        Vendor / Penerima
                                     </label>
                                     <select v-model="item.vendor_id"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
@@ -625,14 +625,14 @@
                                         'block text-sm font-medium mb-2',
                                         cost.auto_generated ? 'text-blue-700' : 'text-red-700'
                                     ]">
-                                        Vendor / Penerima *
+                                        Vendor / Penerima
                                     </label>
                                     <select v-model="cost.vendor_id" :class="[
                                         'w-full px-3 py-2 border rounded-lg focus:ring-2',
                                         cost.auto_generated
                                             ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
                                             : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    ]" required>
+                                    ]">
                                         <option value="">-- Internal (Divisi Operational) --</option>
                                         <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
                                             {{ vendor.nama_vendor }}
@@ -767,11 +767,23 @@ const props = defineProps({
     preselectedSalesOrder: [String, Number],
     preselectedInvoiceType: String,
     preselectedVendorBreakdown: Array,
+    preselectedOtherCosts: {
+        type: Array,
+        default: () => []
+    },
+    preselectedReimbursementItems: {
+        type: Array,
+        default: () => []
+    },
     operationalCostCategories: {
         type: Array,
         default: () => []
     },
     packageUnits: {
+        type: Array,
+        default: () => []
+    },
+    vendors: {
         type: Array,
         default: () => []
     },
@@ -986,6 +998,7 @@ const populateItemsFromSalesOrder = (salesOrder) => {
                     rate: normalizeNumber(item.amount),
                     currency: 'IDR',
                     amount: normalizeNumber(item.amount),
+                    vendor_id: item.vendor_id || null, // ✅ ADDED: Transfer vendor_id from SO
                     item_ref: `reimb_${item.id || index}`,
                     type: 'reimbursement',
                     item_type: 'reimbursement'
@@ -1012,6 +1025,7 @@ const populateItemsFromSalesOrder = (salesOrder) => {
                     category_name: categoryInfo.name,
                     category: categoryInfo.name,
                     category_source: categoryInfo.source,
+                    vendor_id: cost.vendor_id || null, // ✅ ADDED: Transfer vendor_id from SO
                     item_type: 'operational_cost',
                     include_in_customer_invoice: false,
                     is_hidden_from_customer: true,

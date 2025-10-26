@@ -11,8 +11,8 @@
                   <Edit class="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 class="text-2xl font-semibold text-gray-900">Edit Sales Order: {{ salesOrder.order_number }}</h1>
-                  <p class="mt-1 text-sm text-gray-600">Edit dokumen sales order untuk pelanggan</p>
+                  <h1 class="text-2xl font-semibold text-gray-900">Edit Shipping Order: {{ salesOrder.order_number }}</h1>
+                  <p class="mt-1 text-sm text-gray-600">Edit dokumen Shipping order untuk pelanggan</p>
                 </div>
               </div>
               <div class="mt-4 sm:mt-0 flex space-x-3">
@@ -38,8 +38,8 @@
         <!-- Form Section -->
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
           <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Form Edit Sales Order</h3>
-            <p class="mt-1 text-sm text-gray-600">Perbarui informasi sales order dengan benar</p>
+            <h3 class="text-lg font-medium text-gray-900">Form Edit Shipping Order</h3>
+            <p class="mt-1 text-sm text-gray-600">Perbarui informasi Shipping order dengan benar</p>
           </div>
 
           <div class="p-6">
@@ -324,7 +324,7 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <!-- Row 2: Service Description & RCVD INV -->
                 <div class="grid grid-cols-2 gap-3">
                   <div>
@@ -848,7 +848,7 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <span v-if="form.processing">Menyimpan...</span>
-            <span v-else>Update Sales Order</span>
+            <span v-else>Update Shipping Order</span>
           </button>
         </div>
       </form>
@@ -944,13 +944,13 @@ const initializeVendorBreakdown = () => {
       remarks: item.remarks || ''
     }));
   }
-  return [{ 
-    vendor_id: '', 
-    nama_vendor: '', 
-    no_rekening: '', 
-    nama_rekening: '', 
-    description: '', 
-    buying_amount: 0, 
+  return [{
+    vendor_id: '',
+    nama_vendor: '',
+    no_rekening: '',
+    nama_rekening: '',
+    description: '',
+    buying_amount: 0,
     selling_amount: 0,
     rcvd_inv: '',
     remarks: ''
@@ -1017,13 +1017,13 @@ const onVendorSelect = (index) => {
 
 // Vendor breakdown management methods
 const addVendorItem = () => {
-  form.vendor_breakdown.push({ 
-    vendor_id: '', 
-    nama_vendor: '', 
-    no_rekening: '', 
-    nama_rekening: '', 
-    description: '', 
-    buying_amount: 0, 
+  form.vendor_breakdown.push({
+    vendor_id: '',
+    nama_vendor: '',
+    no_rekening: '',
+    nama_rekening: '',
+    description: '',
+    buying_amount: 0,
     selling_amount: 0,
     rcvd_inv: '',
     remarks: ''
@@ -1073,13 +1073,13 @@ const removeReimbursementItem = (index) => {
 const formatNumber = (item, field) => {
   const value = item[field];
   if (!value) return;
-  
+
   // Remove all non-numeric characters except decimal point
   const numericValue = value.toString().replace(/[^\d]/g, '');
-  
+
   // Format with dots as thousand separators
   const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  
+
   item[field] = formatted;
 };
 
@@ -1182,7 +1182,7 @@ const submit = () => {
   form.transform(() => cleanedData).put(route("admin-keuangan.sales-orders.update", props.salesOrder.id), {
     onSuccess: (page) => {
       console.log('Success response received:', page);
-      
+
       // Check if this is actually the index page (successful redirect)
       if (page.component === 'Admin/AdminKeuangan/SalesOrders/Index') {
         console.log('Successfully redirected to index page');
@@ -1196,11 +1196,11 @@ const submit = () => {
     },
     onError: (errors) => {
       console.error('Sales Order Update Error:', errors);
-      
+
       // Handle specific validation errors
       if (errors && Object.keys(errors).length > 0) {
         let errorMessages = [];
-        
+
         // Collect all error messages
         Object.keys(errors).forEach(field => {
           if (Array.isArray(errors[field])) {
@@ -1209,11 +1209,11 @@ const submit = () => {
             errorMessages.push(errors[field]);
           }
         });
-        
-        const errorMessage = errorMessages.length > 0 
-          ? errorMessages.join('. ') 
+
+        const errorMessage = errorMessages.length > 0
+          ? errorMessages.join('. ')
           : "Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan.";
-          
+
         showAlert("error", "Gagal Menyimpan", errorMessage);
       } else {
         showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat memperbarui sales order. Silakan coba lagi.");

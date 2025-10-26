@@ -320,7 +320,6 @@ class SalesOrderController extends Controller
             'pod' => 'nullable|string|max:255',
             'gudang_utc' => 'nullable|string|max:255',
             'party_lcl' => 'nullable|string|max:255',
-            'prepared_by' => 'nullable|string|max:255',
             'exchange_rate' => 'nullable|numeric|min:0',
             'vendor_breakdown' => 'nullable|array',
             'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',

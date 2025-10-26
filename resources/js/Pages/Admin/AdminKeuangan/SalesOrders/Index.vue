@@ -5,8 +5,8 @@
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Manajemen Sales Orders</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola sales order dari CS dan buat sales order baru</p>
+            <h1 class="text-2xl font-bold text-gray-900">Manajemen Shipping Orders</h1>
+            <p class="mt-1 text-sm text-gray-600">Kelola Shipping order dari CS dan buat Shipping order baru</p>
           </div>
           <div class="flex space-x-2">
             <Link
@@ -14,7 +14,7 @@
               class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
             >
               <Plus class="w-4 h-4 mr-2" />
-              Buat Sales Order
+              Buat Shipping Order
             </Link>
           </div>
         </div>
@@ -51,7 +51,7 @@
           <div class="px-4 py-5 sm:p-6">
             <div class="sm:flex sm:items-center sm:justify-between mb-4">
               <div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Sales Orders</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Shipping Orders</h3>
                 <p class="mt-1 text-sm text-gray-600">Total: {{ salesOrders?.total || 0 }} data</p>
               </div>
             </div>
@@ -190,8 +190,8 @@
 
             <div v-if="!salesOrders.data || salesOrders.data.length === 0" class="text-center py-12">
               <FileText class="mx-auto h-12 w-12 text-gray-400" />
-              <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada data sales orders</h3>
-              <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan sales order pertama</p>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada data Shipping orders</h3>
+              <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan Shipping order pertama</p>
             </div>
 
             <div v-if="salesOrders.links" class="mt-6">

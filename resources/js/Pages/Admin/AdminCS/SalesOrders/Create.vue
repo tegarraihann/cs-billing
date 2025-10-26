@@ -527,7 +527,7 @@
               <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
                 <div v-for="(cost, index) in form.other_costs" :key="index" class="border border-orange-200 rounded-lg p-3 bg-white">
                   <div class="grid grid-cols-12 gap-3">
-                    <div class="col-span-5">
+                    <div class="col-span-4">
                       <label class="block text-xs font-medium text-orange-700 mb-1">Deskripsi Biaya</label>
                       <input
                         v-model="cost.description"
@@ -536,7 +536,7 @@
                         class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
                       />
                     </div>
-                    <div class="col-span-3">
+                    <div class="col-span-2">
                       <label class="block text-xs font-medium text-orange-700 mb-1">Jumlah Biaya</label>
                       <input
                         v-model="cost.amount"
@@ -546,7 +546,7 @@
                         class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
                       />
                     </div>
-                    <div class="col-span-3">
+                    <div class="col-span-2">
                       <label class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
                       <select
                         v-model="cost.category"
@@ -562,6 +562,20 @@
                           {{ category.name }}
                         </option>
                       </select>
+                    </div>
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-orange-700 mb-1">Vendor / Penerima</label>
+                      <select
+                        v-model="cost.vendor_id"
+                        class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                      >
+                        <option value="">-- Belum Ditentukan --</option>
+                        <option value="internal">-- Internal (Divisi Operational) --</option>
+                        <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                          {{ vendor.nama_vendor }}
+                        </option>
+                      </select>
+                      <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah tahu akan dibayar ke siapa</p>
                     </div>
                     <div class="col-span-1 flex items-end">
                       <button
@@ -622,7 +636,7 @@
 
               <div v-if="reimbursementItems && reimbursementItems.length > 0" class="space-y-3">
                 <div v-for="(item, index) in reimbursementItems" :key="index" class="border border-purple-200 rounded-lg p-3 bg-white">
-                  <div class="grid grid-cols-12 gap-3">
+                  <div class="grid grid-cols-12 gap-3 mb-2">
                     <div class="col-span-4">
                       <label class="block text-xs font-medium text-purple-700 mb-1">Deskripsi</label>
                       <input
@@ -642,7 +656,7 @@
                         class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
                       />
                     </div>
-                    <div class="col-span-3">
+                    <div class="col-span-2">
                       <label class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
                       <select
                         v-model="item.category"
@@ -661,14 +675,19 @@
                         <option value="general">Lain-lain</option>
                       </select>
                     </div>
-                    <div class="col-span-2">
-                      <label class="block text-xs font-medium text-purple-700 mb-1">Catatan</label>
-                      <input
-                        v-model="item.notes"
-                        type="text"
-                        placeholder="Opsional"
+                    <div class="col-span-3">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Vendor / Penerima</label>
+                      <select
+                        v-model="item.vendor_id"
                         class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-                      />
+                      >
+                        <option value="">-- Belum Ditentukan --</option>
+                        <option value="internal">-- Internal (Divisi Operational) --</option>
+                        <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                          {{ vendor.nama_vendor }}
+                        </option>
+                      </select>
+                      <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah tahu akan dibayar ke siapa</p>
                     </div>
                     <div class="col-span-1 flex items-end">
                       <button
@@ -680,6 +699,17 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-11">
+                      <label class="block text-xs font-medium text-purple-700 mb-1">Catatan</label>
+                      <input
+                        v-model="item.notes"
+                        type="text"
+                        placeholder="Catatan tambahan (opsional)"
+                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1406,7 +1436,8 @@ const addOtherCost = () => {
   form.other_costs.push({
     description: '',
     amount: 0,
-    category: ''
+    category: '',
+    vendor_id: '' // Vendor/penerima pembayaran
   });
 };
 
@@ -1479,7 +1510,8 @@ const addReimbursementItem = () => {
     description: '',
     amount: 0,
     category: '',
-    notes: ''
+    notes: '',
+    vendor_id: '' // Vendor/penerima pembayaran
   });
 };
 

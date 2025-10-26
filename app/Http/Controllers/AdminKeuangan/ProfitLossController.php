@@ -35,6 +35,11 @@ class ProfitLossController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Profit Loss Period Store - Request Started', [
+            'request_data' => $request->all(),
+            'user_id' => Auth::id()
+        ]);
+
         $request->validate([
             'period_name' => 'required|string|max:255',
             'period_type' => 'required|in:monthly,quarterly,yearly',
@@ -46,7 +51,12 @@ class ProfitLossController extends Controller
         DB::beginTransaction();
         try {
             $period_code = $this->generatePeriodCode($request->period_type, $request->start_date);
-            
+
+            \Log::info('Profit Loss Period Store - Creating Period', [
+                'period_code' => $period_code,
+                'period_name' => $request->period_name
+            ]);
+
             $period = ProfitLossPeriod::create([
                 'period_code' => $period_code,
                 'period_name' => $request->period_name,
@@ -57,15 +67,36 @@ class ProfitLossController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
+            \Log::info('Profit Loss Period Store - Period Created', [
+                'period_id' => $period->id,
+                'period_code' => $period->period_code
+            ]);
+
+            \Log::info('Profit Loss Period Store - Starting Auto Generate Entries');
             $this->autoGenerateEntries($period);
-            
+            \Log::info('Profit Loss Period Store - Auto Generate Entries Completed');
+
             DB::commit();
-            
+
+            \Log::info('Profit Loss Period Store - Success', [
+                'period_id' => $period->id,
+                'redirect_to' => route('admin-keuangan.profit-loss.show', $period)
+            ]);
+
             return redirect()->route('admin-keuangan.profit-loss.show', $period)
                            ->with('success', 'Periode laporan laba rugi berhasil dibuat');
-                           
+
         } catch (\Exception $e) {
             DB::rollback();
+
+            \Log::error('Profit Loss Period Store - Error', [
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+                'stack_trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+
             return redirect()->back()
                            ->withErrors(['error' => 'Gagal membuat periode: ' . $e->getMessage()])
                            ->withInput();
@@ -342,9 +373,18 @@ class ProfitLossController extends Controller
                 ->whereBetween('transaction_date', [$startDate, $endDate])
                 ->where('status', 'approved')
                 ->get();
-                
+
+            \Log::info('Auto Generate - Processing Petty Cash Transactions', [
+                'count' => $pettyCashTransactions->count()
+            ]);
+
             foreach ($pettyCashTransactions as $pct) {
-                ProfitLossEntry::createFromPettyCash($pct, $period->id, Auth::id());
+                $entry = ProfitLossEntry::createFromPettyCash($pct, $period->id, Auth::id());
+                if (!$entry) {
+                    \Log::warning('Petty Cash entry skipped (no category)', [
+                        'petty_cash_id' => $pct->id
+                    ]);
+                }
             }
         }
 

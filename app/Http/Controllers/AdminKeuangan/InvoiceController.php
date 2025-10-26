@@ -109,6 +109,8 @@ class InvoiceController extends Controller
                 'preselectedSalesOrder' => $salesOrder->id,
                 'preselectedInvoiceType' => $request->invoice_type,
                 'preselectedVendorBreakdown' => $salesOrder->vendor_breakdown,
+                'preselectedOtherCosts' => $salesOrder->other_costs ?? [], // Send other_costs with vendor_id
+                'preselectedReimbursementItems' => $salesOrder->reimbursementItems ?? [], // Send reimbursement items with vendor_id
                 'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get(),
                 'vendors' => \App\Models\Vendor::orderBy('nama_vendor')->get(['id', 'nama_vendor', 'nomor_rekening'])
             ]);
@@ -160,8 +162,22 @@ class InvoiceController extends Controller
                 if (isset($item['quantity'])) {
                     $items[$index]['quantity'] = $this->normalizeIndonesianNumber($item['quantity']);
                 }
+
+                // Clean up empty string values to null for optional fields
+                $optionalFields = ['vendor_id', 'category_id', 'category_name', 'category', 'category_source', 'item_ref'];
+                foreach ($optionalFields as $field) {
+                    if (isset($item[$field]) && $item[$field] === '') {
+                        $items[$index][$field] = null;
+                    }
+                }
             }
             $request->merge(['items' => $items]);
+
+            \Log::info('Invoice Store Request - AFTER CLEANUP', [
+                'cleaned_items' => $items,
+                'items_count' => count($items),
+                'user_id' => auth()->id()
+            ]);
 
             $validated = $request->validate([
             'sales_order_id' => 'required|exists:sales_orders,id',
@@ -198,6 +214,15 @@ class InvoiceController extends Controller
             'items.*.item_type' => 'nullable|string|in:billable,operational_cost,reimbursement',
             'items.*.include_in_customer_invoice' => 'nullable|boolean',
             'items.*.is_hidden_from_customer' => 'nullable|boolean',
+            // Operational cost specific fields
+            'items.*.category_id' => 'nullable|string',
+            'items.*.category_name' => 'nullable|string|max:255',
+            'items.*.category' => 'nullable|string|max:255',
+            'items.*.category_source' => 'nullable|string|max:255',
+            'items.*.vendor_id' => 'nullable|exists:vendors,id',
+            'items.*.auto_generated' => 'nullable|boolean',
+            'items.*.source' => 'nullable|string|max:100',
+            // Down payment fields
             'down_payment_amount' => 'nullable|numeric|min:0',
             'down_payment_date' => 'nullable|date',
             'down_payment_notes' => 'nullable|string|max:1000',
@@ -219,12 +244,24 @@ class InvoiceController extends Controller
         $invoiceDate = Carbon::parse($validated['invoice_date']);
         $dueDate = $invoiceDate->copy()->addDays($validated['term_days']);
 
-        // Validate that we have items
-        if (empty($validated['items'])) {
-            return back()->withErrors([
-                'items' => 'Invoice items are required. Please add at least one invoice item.'
+        // Validate that we have items (including operational costs)
+        if (!isset($validated['items']) || !is_array($validated['items']) || count($validated['items']) === 0) {
+            \Log::warning('Invoice Store Failed: No items provided', [
+                'validated_items' => $validated['items'] ?? null,
+                'request_items' => $request->input('items'),
+                'user_id' => auth()->id()
             ]);
+
+            return back()->withErrors([
+                'items' => 'Invoice harus memiliki minimal satu item. Silakan tambahkan Main Item, Reimbursement, atau Biaya Operasional.'
+            ])->withInput();
         }
+
+        \Log::info('Invoice Store: Items validation passed', [
+            'items_count' => count($validated['items']),
+            'items_types' => array_count_values(array_column($validated['items'], 'item_type')),
+            'user_id' => auth()->id()
+        ]);
 
         // Cari customer berdasarkan customer_id jika ada, atau buat dummy customer
         $customerId = $salesOrder->customer_id;
@@ -301,7 +338,7 @@ class InvoiceController extends Controller
                 $isHiddenFromCustomer = true;
             }
 
-            InvoiceItem::create([
+            $invoiceItemData = [
                 'invoice_id' => $invoice->id,
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
@@ -313,7 +350,14 @@ class InvoiceController extends Controller
                 'item_type' => $itemType,
                 'include_in_customer_invoice' => $includeInCustomerInvoice,
                 'is_hidden_from_customer' => $isHiddenFromCustomer
-            ]);
+            ];
+
+            // Add vendor_id for operational costs if provided
+            if ($itemType === 'operational_cost' && isset($item['vendor_id']) && $item['vendor_id'] !== null) {
+                $invoiceItemData['vendor_id'] = $item['vendor_id'];
+            }
+
+            InvoiceItem::create($invoiceItemData);
 
             if ($itemType === 'reimbursement') {
                 $itemRef = strtolower(trim($item['item_ref'] ?? ''));
@@ -359,6 +403,16 @@ class InvoiceController extends Controller
 
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil dibuat.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Invoice Store Validation Error', [
+                'validation_errors' => $e->errors(),
+                'user_id' => auth()->id(),
+                'request_items' => $request->input('items')
+            ]);
+
+            // Re-throw validation exception to show proper validation errors
+            throw $e;
 
         } catch (\Exception $e) {
             \Log::error('Invoice Store Error', [

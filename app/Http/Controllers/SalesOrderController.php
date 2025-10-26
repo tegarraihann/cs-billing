@@ -129,6 +129,7 @@ class SalesOrderController extends Controller
             'other_costs.*.description' => 'required_with:other_costs|string|max:255',
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
+            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -179,6 +180,7 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
+            'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -349,6 +351,7 @@ class SalesOrderController extends Controller
             'other_costs.*.description' => 'required_with:other_costs|string|max:255',
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
+            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -378,6 +381,7 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
+            'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
         ]);
 
         // Convert container_no string to array if needed

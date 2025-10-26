@@ -128,9 +128,20 @@ class ProfitLossEntry extends Model
 
     public static function createFromPettyCash($petty_cash, $period_id, $created_by)
     {
+        // Skip if category is null (data integrity issue)
+        if (!$petty_cash->category) {
+            \Log::warning('Petty Cash has no category - Skipping', [
+                'petty_cash_id' => $petty_cash->id,
+                'description' => $petty_cash->description ?? 'N/A',
+                'amount' => $petty_cash->amount ?? 0
+            ]);
+            return null;
+        }
+
         $expense_account = null;
-        
+
         switch ($petty_cash->category->name) {
+            // Old mapping (may not be used anymore)
             case 'Beban Listrik dan Air':
                 $expense_account = ChartOfAccount::where('account_code', '5101')->first();
                 break;
@@ -155,12 +166,66 @@ class ProfitLossEntry extends Model
             case 'Beban Bensin dan Toll':
                 $expense_account = ChartOfAccount::where('account_code', '5206')->first();
                 break;
+
+            // New mapping (current categories)
+            case 'Transportasi':
+                $expense_account = ChartOfAccount::where('account_code', '5210')->first();
+                break;
+            case 'Konsumsi':
+                $expense_account = ChartOfAccount::where('account_code', '5220')->first();
+                break;
+            case 'ATK & Supplies':
+            case 'ATK':
+            case 'Supplies':
+                $expense_account = ChartOfAccount::where('account_code', '5230')->first();
+                break;
+            case 'Komunikasi':
+                $expense_account = ChartOfAccount::where('account_code', '5240')->first();
+                break;
+            case 'Maintenance':
+                $expense_account = ChartOfAccount::where('account_code', '5250')->first();
+                break;
+            case 'Listrik & Air':
+            case 'Listrik dan Air':
+                $expense_account = ChartOfAccount::where('account_code', '5310')->first();
+                break;
+            case 'Internet & Telepon':
+            case 'Internet dan Telepon':
+                $expense_account = ChartOfAccount::where('account_code', '5320')->first();
+                break;
+            case 'Sewa Kantor':
+            case 'Sewa':
+                $expense_account = ChartOfAccount::where('account_code', '5330')->first();
+                break;
+            case 'Promosi & Iklan':
+            case 'Promosi':
+            case 'Iklan':
+                $expense_account = ChartOfAccount::where('account_code', '5410')->first();
+                break;
+            case 'Entertainment':
+            case 'Entertaint':
+                $expense_account = ChartOfAccount::where('account_code', '5420')->first();
+                break;
             default:
-                $expense_account = ChartOfAccount::where('account_code', '5303')->first();
+                // Fallback: Try to find expense account by category name or use general expense account
+                $expense_account = ChartOfAccount::where('account_type', 'expense')
+                    ->where('account_category', 'expense_operational')
+                    ->first();
+
+                if (!$expense_account) {
+                    // Last resort: use general expense account code 5303
+                    $expense_account = ChartOfAccount::where('account_code', '5303')->first();
+                }
         }
 
         if (!$expense_account) {
-            throw new \Exception('Expense account not found for category: ' . $petty_cash->category->name);
+            \Log::error('Petty Cash to Profit Loss - Account Not Found', [
+                'category_name' => $petty_cash->category->name,
+                'petty_cash_id' => $petty_cash->id,
+                'available_expense_accounts' => ChartOfAccount::where('account_type', 'expense')->pluck('account_name', 'account_code')->toArray()
+            ]);
+
+            throw new \Exception('Expense account not found for category: ' . $petty_cash->category->name . '. Please create expense account in Chart of Accounts first.');
         }
 
         return self::create([

@@ -27,7 +27,6 @@ class SalesOrder extends Model
         'pod',
         'gudang_utc',
         'party_lcl',
-        'prepared_by',
         'exchange_rate',
         'jenis_biaya',
         'vendor_breakdown',
@@ -84,16 +83,16 @@ class SalesOrder extends Model
         'sent_at',
         'confirmed_at',
         'last_modified_at',
-        
+
         // System fields
         'created_by',
         'created_at',
         'updated_at',
-        
+
         // Release tracking fields
         'released_at',
         'released_by',
-        
+
         // Admin Keuangan approval/rejection fields
         'approved_at',
         'approved_by',
@@ -213,12 +212,12 @@ class SalesOrder extends Model
         if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
             return collect($this->vendor_breakdown)->sum('buying_amount');
         }
-        
+
         // Fallback to buying_breakdown for backward compatibility
         if ($this->buying_breakdown && is_array($this->buying_breakdown)) {
             return collect($this->buying_breakdown)->sum('amount');
         }
-        
+
         return 0;
     }
 
@@ -228,12 +227,12 @@ class SalesOrder extends Model
         if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
             return collect($this->vendor_breakdown)->sum('selling_amount');
         }
-        
+
         // Fallback to selling_breakdown for backward compatibility
         if ($this->selling_breakdown && is_array($this->selling_breakdown)) {
             return collect($this->selling_breakdown)->sum('amount');
         }
-        
+
         return 0;
     }
 

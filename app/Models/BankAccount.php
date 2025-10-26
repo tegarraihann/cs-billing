@@ -122,6 +122,25 @@ class BankAccount extends Model
     }
 
     /**
+     * Update current balance WITHOUT triggering events (prevents infinite loop)
+     */
+    public function updateCurrentBalanceQuietly(): void
+    {
+        $currentMonth = Carbon::now()->format('Y-m');
+        $currentBalance = $this->getCurrentBalance();
+
+        $balance = $this->balances()
+                       ->where('period_month', $currentMonth)
+                       ->first();
+
+        if ($balance) {
+            // Use saveQuietly() to prevent triggering the saved() event
+            $balance->current_balance = $currentBalance;
+            $balance->saveQuietly();
+        }
+    }
+
+    /**
      * Scope: Only active banks
      */
     public function scopeActive($query)

@@ -41,13 +41,17 @@ class BankBalance extends Model
 
     /**
      * Boot method to auto-update current balance on save
+     *
+     * FIXED: Removed infinite loop by using updateCurrentBalanceQuietly()
+     * This method uses saveQuietly() to prevent triggering the saved() event again
      */
     protected static function boot()
     {
         parent::boot();
 
         static::saved(function ($balance) {
-            $balance->bankAccount->updateCurrentBalance();
+            // Update bank account's current balance using quiet method to prevent infinite loop
+            $balance->bankAccount->updateCurrentBalanceQuietly();
         });
     }
 
