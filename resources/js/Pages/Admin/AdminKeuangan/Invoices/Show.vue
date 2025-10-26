@@ -1535,13 +1535,37 @@ const getReimbursementLatestHistory = (entry) => {
   };
 };
 
-// Computed untuk operational costs
+// Computed untuk operational costs (EXCLUDE buying costs/COGS)
 const getOperationalCosts = computed(() => {
-  return (props.invoice.items || []).filter(item => item.item_type === 'operational_cost');
+  return (props.invoice.items || []).filter(item => {
+    // Only show operational_cost items
+    if (item.item_type !== 'operational_cost') return false;
+
+    // Exclude buying costs (COGS) - they are auto-generated and should be hidden from view
+    const description = (item.description || '').toLowerCase();
+    const itemRef = (item.item_ref || '').toLowerCase();
+
+    // Check if this is a buying cost item
+    const isBuyingCost = description.includes('buying cost') ||
+                         description.includes('cogs') ||
+                         itemRef.startsWith('cogs_vendor_');
+
+    // Return true only if it's NOT a buying cost
+    return !isBuyingCost;
+  });
 });
 
 const getOperationalCostsTotal = computed(() => {
   return getOperationalCosts.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+// Computed for ALL operational costs (including COGS) for profit calculation
+const getAllOperationalCostsForCalculation = computed(() => {
+  return (props.invoice.items || []).filter(item => item.item_type === 'operational_cost');
+});
+
+const getAllOperationalCostsTotal = computed(() => {
+  return getAllOperationalCostsForCalculation.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
 });
 
 // Computed untuk profit calculation - hanya main items (billable) yang dihitung sebagai revenue
@@ -1554,7 +1578,8 @@ const getGrossRevenue = computed(() => {
 });
 
 const getNetProfit = computed(() => {
-  return getGrossRevenue.value - getOperationalCostsTotal.value;
+  // Use ALL operational costs (including COGS) for accurate profit calculation
+  return getGrossRevenue.value - getAllOperationalCostsTotal.value;
 });
 
 const getProfitMargin = computed(() => {

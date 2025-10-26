@@ -1007,13 +1007,25 @@ const populateItemsFromSalesOrder = (salesOrder) => {
         });
     }
 
-    // 3. Populate operational costs from other_costs (input CS)
+    // 3. DO NOT populate buying costs from vendor_breakdown to frontend form
+    // Buying costs (COGS) will be auto-generated in BACKEND when invoice is saved
+    // This keeps the form clean and prevents user confusion
+    // Backend will automatically create operational cost items from vendor_breakdown buying prices
+
+    // 4. Populate operational costs from other_costs (input CS)
     if (salesOrder.other_costs && Array.isArray(salesOrder.other_costs)) {
         console.log('Populating operational costs from other_costs:', salesOrder.other_costs);
         salesOrder.other_costs.forEach((cost, index) => {
             const amount = normalizeNumber(cost.amount);
             if (amount > 0) {
                 const categoryInfo = deriveOperationalCategoryInfo(cost);
+
+                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
+                let vendorId = null;
+                if (cost.vendor_id && cost.vendor_id !== 'internal' && cost.vendor_id !== '') {
+                    vendorId = typeof cost.vendor_id === 'number' ? cost.vendor_id : parseInt(cost.vendor_id);
+                }
+
                 operationalCosts.value.push({
                     description: cost.description || `Operational Cost ${index + 1}`,
                     quantity: 1,
@@ -1025,7 +1037,7 @@ const populateItemsFromSalesOrder = (salesOrder) => {
                     category_name: categoryInfo.name,
                     category: categoryInfo.name,
                     category_source: categoryInfo.source,
-                    vendor_id: cost.vendor_id || null, // ✅ ADDED: Transfer vendor_id from SO
+                    vendor_id: vendorId, // ✅ Cleaned: 'internal' converted to null
                     item_type: 'operational_cost',
                     include_in_customer_invoice: false,
                     is_hidden_from_customer: true,

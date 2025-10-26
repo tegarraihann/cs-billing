@@ -13,6 +13,7 @@ class ReimbursementItem extends Model
         'invoice_id',
         'description',
         'amount',
+        'vendor_id',
         'category',
         'status',
         'receipt_info',
@@ -51,6 +52,11 @@ class ReimbursementItem extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     // Scopes

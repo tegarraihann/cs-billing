@@ -382,16 +382,9 @@ class InvoiceController extends Controller
             }
         }
 
-        // NOTE: Auto-generation of operational costs has been moved to frontend
-        // to prevent double data issues. Frontend now handles auto-population
-        // from both vendor_breakdown and other_costs with proper visual indicators.
-        //
-        // Previously auto-generated operational costs are now handled in:
-        // - Frontend: Invoice Create form auto-populates from SO data
-        // - User can review, edit, and approve before submission
-        // - Prevents duplicate entries and gives Finance full control
-        //
-        // Auto-generation moved to frontend for better UX and data control.
+        // Auto-generate buying cost items from vendor_breakdown (COGS)
+        // This is done in backend to keep form clean for finance users
+        $this->autoGenerateBuyingCosts($invoice, $salesOrder);
 
         $invoice->calculateTotals();
 
@@ -1561,10 +1554,13 @@ class InvoiceController extends Controller
                 $vendorName = $vendor ? $vendor->nama_vendor : 'Divisi Operational';
 
                 // Check if account payable already exists for this SO and vendor
+                // Clean vendor_id to ensure it's null or valid integer
+                $cleanCheckVendorId = $vendorId && is_numeric($vendorId) && (int)$vendorId > 0 ? (int)$vendorId : null;
+
                 $existingPayable = \App\Models\AccountPayable::where('sales_order_id', $invoice->sales_order_id)
-                    ->where(function ($q) use ($vendorId, $vendorName) {
-                        if ($vendorId) {
-                            $q->where('vendor_id', $vendorId);
+                    ->where(function ($q) use ($cleanCheckVendorId, $vendorName) {
+                        if ($cleanCheckVendorId) {
+                            $q->where('vendor_id', $cleanCheckVendorId);
                         } else {
                             $q->where('vendor_name', $vendorName)
                               ->whereNull('vendor_id');
@@ -1591,9 +1587,12 @@ class InvoiceController extends Controller
                     ]);
                 } else {
                     // Create new account payable
+                    // Ensure vendor_id is either null or a valid integer (not empty string)
+                    $cleanVendorId = $vendorId && is_numeric($vendorId) && (int)$vendorId > 0 ? (int)$vendorId : null;
+
                     $payable = \App\Models\AccountPayable::create([
                         'sales_order_id' => $invoice->sales_order_id,
-                        'vendor_id' => $vendorId,
+                        'vendor_id' => $cleanVendorId,
                         'vendor_name' => $vendorName,
                         'vendor_invoice_number' => ($vendor ? 'V-' : 'OP-') . $invoice->invoice_number,
                         'vendor_invoice_date' => $invoice->invoice_date,
@@ -1627,6 +1626,62 @@ class InvoiceController extends Controller
                 'invoice_id' => $invoice->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+            // Don't throw exception to prevent blocking invoice creation
+        }
+    }
+
+    /**
+     * Auto-generate buying cost operational items from vendor_breakdown
+     * This ensures COGS is recorded without cluttering the form UI
+     */
+    private function autoGenerateBuyingCosts(Invoice $invoice, SalesOrder $salesOrder): void
+    {
+        try {
+            // Check if SO has vendor_breakdown
+            if (!$salesOrder->vendor_breakdown || !is_array($salesOrder->vendor_breakdown)) {
+                return;
+            }
+
+            // For each vendor in breakdown, create buying cost item
+            foreach ($salesOrder->vendor_breakdown as $index => $vendor) {
+                $buyingAmount = floatval($vendor['buying_amount'] ?? 0);
+
+                // Only create if buying amount > 0
+                if ($buyingAmount > 0) {
+                    $description = ($vendor['description'] ?? 'Service') . ' - Buying Cost (COGS)';
+                    $vendorId = !empty($vendor['vendor_id']) && is_numeric($vendor['vendor_id'])
+                        ? (int)$vendor['vendor_id']
+                        : null;
+
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => $description,
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $buyingAmount,
+                        'currency' => 'IDR',
+                        'amount' => $buyingAmount,
+                        'item_ref' => 'cogs_vendor_' . ($vendor['vendor_id'] ?? $index),
+                        'item_type' => 'operational_cost',
+                        'vendor_id' => $vendorId,
+                        'include_in_customer_invoice' => false,
+                        'is_hidden_from_customer' => true,
+                    ]);
+
+                    \Log::info('Auto-generated buying cost (COGS)', [
+                        'invoice_id' => $invoice->id,
+                        'description' => $description,
+                        'amount' => $buyingAmount,
+                        'vendor_id' => $vendorId,
+                    ]);
+                }
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to auto-generate buying costs', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
             ]);
             // Don't throw exception to prevent blocking invoice creation
         }

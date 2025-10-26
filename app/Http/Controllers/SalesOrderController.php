@@ -634,10 +634,17 @@ class SalesOrderController extends Controller
     {
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
+                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
+                $vendorId = null;
+                if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
+                    $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
+                }
+
                 ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
                     'description' => $item['description'],
                     'amount' => $item['amount'],
+                    'vendor_id' => $vendorId,
                     'category' => $item['category'] ?? 'general',
                     'notes' => $item['notes'] ?? null,
                     'status' => 'pending',
@@ -660,10 +667,17 @@ class SalesOrderController extends Controller
         // Create new reimbursement items
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
+                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
+                $vendorId = null;
+                if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
+                    $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
+                }
+
                 ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
                     'description' => $item['description'],
                     'amount' => $item['amount'],
+                    'vendor_id' => $vendorId,
                     'category' => $item['category'] ?? 'general',
                     'notes' => $item['notes'] ?? null,
                     'status' => 'pending',
