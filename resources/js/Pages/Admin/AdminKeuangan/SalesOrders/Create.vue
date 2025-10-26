@@ -732,13 +732,31 @@
                                             form.errors.commodity }}</div>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
+                                        <div class="max-w-xs">
                                             <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
-                                            <input v-model="form.qty" type="number" min="0"
-                                                placeholder="Masukkan quantity"
-                                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                            <div class="relative flex w-full">
+                                                <input v-model="form.qty" type="number" min="0"
+                                                    placeholder="0.00"
+                                                    class="w-28 px-3 py-2 border border-sage-300 rounded-l-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10" />
+                                                <div class="relative flex-1">
+                                                    <select v-model="form.package_unit"
+                                                        class="h-full w-full px-3 py-2 border-t border-r border-b border-sage-300 bg-white rounded-r-lg appearance-none cursor-pointer focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10 pr-8">
+                                                        <option value="">Unit</option>
+                                                        <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
+                                                            {{ unit.code }}
+                                                        </option>
+                                                    </select>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                                        <svg class="w-4 h-4 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{
                                                 form.errors.qty }}</div>
+                                            <div v-if="form.errors.package_unit" class="mt-2 text-sm text-red-600">{{
+                                                form.errors.package_unit }}</div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-sage-700 mb-2">NET WEIGHT
@@ -1172,6 +1190,7 @@ const form = useForm({
     note: "",
     commodity: "",
     qty: "",
+    package_unit: "",
     net_weight: "",
     gross_weight: "",
     measurement: "",

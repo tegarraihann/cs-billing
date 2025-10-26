@@ -331,10 +331,18 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
+
+            // Other costs validation
+            'other_costs' => 'nullable|array',
+            'other_costs.*.description' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.category' => 'nullable|string|max:100',
+            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
+            'package_unit' => 'nullable|exists:master_package_units,code',
             'net_weight' => 'nullable|numeric|min:0',
             'gross_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
@@ -352,6 +360,14 @@ class SalesOrderController extends Controller
             'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
+
+            // Reimbursement items validation
+            'reimbursement_items' => 'nullable|array',
+            'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
+            'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.category' => 'nullable|string|max:100',
+            'reimbursement_items.*.notes' => 'nullable|string|max:500',
+            'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
 
             // Voucher data
             'payment_vouchers' => 'nullable|array',
@@ -427,12 +443,19 @@ class SalesOrderController extends Controller
             $validated['order_number'] = SalesOrder::generateOrderNumber();
         }
 
+        // Extract reimbursement items before creating sales order
+        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        unset($validated['reimbursement_items']);
+
         // Remove voucher data from sales order data
         $paymentVouchers = $validated['payment_vouchers'] ?? [];
         $receiptVouchers = $validated['receipt_vouchers'] ?? [];
         unset($validated['payment_vouchers'], $validated['receipt_vouchers']);
 
         $salesOrder = SalesOrder::create($validated);
+
+        // Create reimbursement items
+        $this->createReimbursementItems($salesOrder, $reimbursementItems);
 
         // Create vouchers
         $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
@@ -490,6 +513,9 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Load reimbursement items with vendor relationship for editing
+        $salesOrder->load(['reimbursementItems.vendor']);
+
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
             'vendors' => $vendors,
@@ -504,6 +530,9 @@ class SalesOrderController extends Controller
      */
     public function update(Request $request, SalesOrder $salesOrder)
     {
+        // Normalize Indonesian number format before validation
+        $this->normalizeNumericFields($request);
+
         $validated = $request->validate([
             // Required fields based on requirements only
             'order_number' => 'required|string|max:255',
@@ -535,10 +564,18 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
+
+            // Other costs validation
+            'other_costs' => 'nullable|array',
+            'other_costs.*.description' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.category' => 'nullable|string|max:100',
+            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
             'qty' => 'nullable|integer|min:0',
+            'package_unit' => 'nullable|exists:master_package_units,code',
             'net_weight' => 'nullable|numeric|min:0',
             'gross_weight' => 'nullable|numeric|min:0',
             'measurement' => 'nullable|numeric|min:0',
@@ -556,6 +593,14 @@ class SalesOrderController extends Controller
             'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
             'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
+
+            // Reimbursement items validation
+            'reimbursement_items' => 'nullable|array',
+            'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
+            'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.category' => 'nullable|string|max:100',
+            'reimbursement_items.*.notes' => 'nullable|string|max:500',
+            'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
         ]);
 
         // Convert container_no to array format
@@ -601,7 +646,14 @@ class SalesOrderController extends Controller
         // Don't change status on update - preserve existing status
         // This prevents released Sales Orders from being reverted to draft when edited
 
+        // Extract reimbursement items before updating sales order
+        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        unset($validated['reimbursement_items']);
+
         $salesOrder->update($validated);
+
+        // Update reimbursement items
+        $this->updateReimbursementItems($salesOrder, $reimbursementItems);
 
         return redirect()
             ->route('admin-keuangan.sales-orders.index')
@@ -779,5 +831,180 @@ class SalesOrderController extends Controller
                 ]);
             }
         }
+    }
+
+    /**
+     * Create reimbursement items for a sales order
+     */
+    private function createReimbursementItems(SalesOrder $salesOrder, array $reimbursementItems)
+    {
+        foreach ($reimbursementItems as $item) {
+            if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
+                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
+                $vendorId = null;
+                if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
+                    $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
+                }
+
+                \App\Models\ReimbursementItem::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'description' => $item['description'],
+                    'amount' => $item['amount'],
+                    'vendor_id' => $vendorId,
+                    'category' => $item['category'] ?? 'general',
+                    'notes' => $item['notes'] ?? null,
+                    'status' => 'pending',
+                    'created_by' => Auth::id(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Update reimbursement items for a sales order
+     */
+    private function updateReimbursementItems(SalesOrder $salesOrder, array $reimbursementItems)
+    {
+        // Delete existing reimbursement items that are still pending (not yet processed)
+        $salesOrder->reimbursementItems()
+            ->where('status', 'pending')
+            ->delete();
+
+        // Create new reimbursement items
+        foreach ($reimbursementItems as $item) {
+            if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
+                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
+                $vendorId = null;
+                if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
+                    $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
+                }
+
+                \App\Models\ReimbursementItem::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'description' => $item['description'],
+                    'amount' => $item['amount'],
+                    'vendor_id' => $vendorId,
+                    'category' => $item['category'] ?? 'general',
+                    'notes' => $item['notes'] ?? null,
+                    'status' => 'pending',
+                    'created_by' => Auth::id(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Normalize Indonesian number format in request data
+     */
+    private function normalizeNumericFields(Request $request)
+    {
+        // Normalize vendor breakdown amounts
+        $vendorBreakdown = $request->input('vendor_breakdown', []);
+        foreach ($vendorBreakdown as $index => $vendor) {
+            if (isset($vendor['buying_amount'])) {
+                $vendorBreakdown[$index]['buying_amount'] = $this->normalizeIndonesianNumber($vendor['buying_amount']);
+            }
+            if (isset($vendor['selling_amount'])) {
+                $vendorBreakdown[$index]['selling_amount'] = $this->normalizeIndonesianNumber($vendor['selling_amount']);
+            }
+        }
+        $request->merge(['vendor_breakdown' => $vendorBreakdown]);
+
+        // Normalize other costs amounts
+        $otherCosts = $request->input('other_costs', []);
+        foreach ($otherCosts as $index => $cost) {
+            if (isset($cost['amount'])) {
+                $otherCosts[$index]['amount'] = $this->normalizeIndonesianNumber($cost['amount']);
+            }
+        }
+        $request->merge(['other_costs' => $otherCosts]);
+
+        // Normalize reimbursement items amounts
+        $reimbursementItems = $request->input('reimbursement_items', []);
+        foreach ($reimbursementItems as $index => $item) {
+            if (isset($item['amount'])) {
+                $reimbursementItems[$index]['amount'] = $this->normalizeIndonesianNumber($item['amount']);
+            }
+        }
+        $request->merge(['reimbursement_items' => $reimbursementItems]);
+
+        // Normalize other numeric fields
+        if ($request->has('exchange_rate')) {
+            $request->merge(['exchange_rate' => $this->normalizeIndonesianNumber($request->exchange_rate)]);
+        }
+        if ($request->has('net_weight')) {
+            $request->merge(['net_weight' => $this->normalizeIndonesianNumber($request->net_weight)]);
+        }
+        if ($request->has('gross_weight')) {
+            $request->merge(['gross_weight' => $this->normalizeIndonesianNumber($request->gross_weight)]);
+        }
+        if ($request->has('measurement')) {
+            $request->merge(['measurement' => $this->normalizeIndonesianNumber($request->measurement)]);
+        }
+    }
+
+    /**
+     * Normalize Indonesian number format (1.000,50 -> 1000.50)
+     * Also handles international format (1000.50 or 2)
+     */
+    private function normalizeIndonesianNumber($value)
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        // Convert to string for processing
+        $value = (string)$value;
+
+        // Remove spaces
+        $value = trim($value);
+
+        // If already a valid number (no formatting), return as is
+        if (is_numeric($value)) {
+            return $value;
+        }
+
+        // Check if this is Indonesian format (has comma as decimal separator)
+        // Indonesian: 1.000,50 or 1.000 or 1000,50
+        // International: 1,000.50 or 1000.50
+
+        if (strpos($value, ',') !== false) {
+            // Has comma - check if it's Indonesian format (comma is decimal)
+            // Indonesian format: comma appears after dots OR comma is the only separator
+            $dotPos = strrpos($value, '.');
+            $commaPos = strrpos($value, ',');
+
+            if ($dotPos === false || $commaPos > $dotPos) {
+                // Indonesian format: 1.000,50 or 1000,50
+                // Remove thousand separators (dots)
+                $value = str_replace('.', '', $value);
+                // Replace decimal comma with dot
+                $value = str_replace(',', '.', $value);
+            } else {
+                // International format with comma as thousand separator: 1,000.50
+                // Remove thousand separators (commas)
+                $value = str_replace(',', '', $value);
+            }
+        } else {
+            // No comma - could be 1.000 (Indonesian thousand) or 1000.50 (international decimal)
+            // Check if dot is used as thousand separator (appears before last 3 digits)
+            if (strpos($value, '.') !== false) {
+                $parts = explode('.', $value);
+                // If last part has exactly 3 digits and there are multiple parts, it's thousand separator
+                // Example: 1.000 or 10.000.000 (Indonesian)
+                // But 1.5 or 1.50 is decimal (International)
+                if (count($parts) > 1 && strlen($parts[count($parts) - 1]) === 3 && count($parts) > 2) {
+                    // Multiple dots with 3-digit groups: definitely Indonesian thousand separator
+                    $value = str_replace('.', '', $value);
+                } elseif (count($parts) == 2 && strlen($parts[1]) === 3 && strlen($parts[0]) > 3) {
+                    // Single dot with exactly 3 digits after and more than 3 before: likely Indonesian
+                    // Example: 10000.000 but NOT 2.000 (ambiguous, keep as is)
+                    $value = str_replace('.', '', $value);
+                }
+                // Otherwise keep dot as decimal separator (international format)
+            }
+        }
+
+        return $value;
     }
 }
