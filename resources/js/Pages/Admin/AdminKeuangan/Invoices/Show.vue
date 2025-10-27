@@ -737,7 +737,7 @@
               <div class="text-center">
                 <div class="text-2xl font-bold text-orange-800">{{ formatCurrency(getReimbursementTotal) }}</div>
                 <div class="text-sm text-orange-600 mt-1">Reimbursement</div>
-                <div class="text-xs text-gray-500 mt-1">Biaya reimbursement</div>
+                <div class="text-xs text-gray-500 mt-1">Cost Neutral</div>
               </div>
             </div>
 
@@ -772,9 +772,10 @@
                 <span class="text-gray-600">Operational Costs (Biaya internal):</span>
                 <span class="font-medium text-red-700">- {{ formatCurrency(getOperationalCostsTotal) }}</span>
               </div>
+              <hr class="border-gray-300">
               <div class="flex justify-between">
-                <span class="text-gray-600">Reimbursement (Biaya reimbursement):</span>
-                <span class="font-medium text-orange-700">- {{ formatCurrency(getReimbursementTotal) }}</span>
+                <span class="text-gray-600">Reimbursement (Cost Neutral - Tidak mengurangi profit):</span>
+                <span class="font-medium text-orange-700">{{ formatCurrency(getReimbursementTotal) }}</span>
               </div>
               <hr class="border-gray-300">
               <div class="flex justify-between font-semibold">
@@ -1591,8 +1592,9 @@ const getGrossRevenue = computed(() => {
 });
 
 const getNetProfit = computed(() => {
-  // Use ALL operational costs (including COGS) and reimbursement for accurate profit calculation
-  return getGrossRevenue.value - getAllOperationalCostsTotal.value - getReimbursementTotal.value;
+  // Reimbursement is cost neutral (tidak mengurangi profit karena akan di-reimburse)
+  // Only operational costs reduce the profit
+  return getGrossRevenue.value - getAllOperationalCostsTotal.value;
 });
 
 const getProfitMargin = computed(() => {
