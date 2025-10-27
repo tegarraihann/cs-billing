@@ -313,11 +313,9 @@
                                                     <select v-model="item.description"
                                                         class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                         <option value="">Pilih Jenis Biaya</option>
-                                                        <option value="OF/AF">OF/AF</option>
-                                                        <option value="HANDLING">HANDLING</option>
-                                                        <option value="PIB EDI">PIB EDI</option>
-                                                        <option value="ADMIN DOC">ADMIN DOC</option>
-                                                        <option value="TRUCKING">TRUCKING</option>
+                                                        <option v-for="serviceType in serviceTypes" :key="serviceType.id" :value="serviceType.code">
+                                                            {{ serviceType.code }} - {{ serviceType.name }}
+                                                        </option>
                                                         <option value="D/O CHARGES">D/O CHARGES</option>
                                                         <option value="LOLO">LOLO</option>
                                                         <option value="STORAGE">STORAGE</option>
@@ -1112,6 +1110,7 @@ const props = defineProps({
     customers: Array,
     vendors: Array,
     shipmentTypes: Array,
+    serviceTypes: Array,
     operationalCostCategories: Array,
     packageUnits: {
         type: Array,

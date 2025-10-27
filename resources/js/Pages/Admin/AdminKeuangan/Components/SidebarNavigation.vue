@@ -244,6 +244,19 @@
                     <span class="font-medium">Shipment Type</span>
                 </a>
 
+                <!-- Service Type -->
+                <a :href="route('admin-keuangan.service-types.index')"
+                    class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.service-types.*')
+                            ? 'bg-sage-100 text-sage-800 shadow-sm'
+                            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                        ">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <span class="font-medium">Service Type</span>
+                </a>
+
                 <!-- Expense Template -->
                 <a href="/admin-keuangan/expense-templates"
                     class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.expense-templates.*')
@@ -360,6 +373,9 @@ const route = window.route || function (name, params) {
         'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
         'admin-keuangan.shipment-types.index': '/admin-keuangan/shipment-types',
         'admin-keuangan.shipment-types.create': '/admin-keuangan/shipment-types/create',
+        'admin-keuangan.service-types.index': '/admin-keuangan/service-types',
+        'admin-keuangan.service-types.create': '/admin-keuangan/service-types/create',
+        'admin-keuangan.service-types.edit': '/admin-keuangan/service-types/:id/edit',
         'admin-keuangan.expense-templates.index': '/admin-keuangan/expense-templates',
         'admin-keuangan.expense-templates.create': '/admin-keuangan/expense-templates/create',
         'admin-keuangan.operational-cost-categories.index': '/admin-keuangan/operational-cost-categories',

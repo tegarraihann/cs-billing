@@ -721,7 +721,17 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{masterPackageUnit}/edit', 'edit')->name('edit');
         Route::put('/{masterPackageUnit}', 'update')->name('update');
         Route::delete('/{masterPackageUnit}', 'destroy')->name('destroy');
-        Route::patch('/{masterPackageUnit}/toggle-status', 'toggleStatus')->name('toggle-status');
+    });
+
+    // Service Type Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\ServiceTypeController::class)->prefix('service-types')->name('service-types.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{serviceType}', 'show')->name('show');
+        Route::get('/{serviceType}/edit', 'edit')->name('edit');
+        Route::put('/{serviceType}', 'update')->name('update');
+        Route::delete('/{serviceType}', 'destroy')->name('destroy');
     });
 
     // API route for getting active package units
