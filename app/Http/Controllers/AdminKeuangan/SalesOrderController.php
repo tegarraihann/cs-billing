@@ -877,12 +877,27 @@ class SalesOrderController extends Controller
      */
     private function updateReimbursementItems(SalesOrder $salesOrder, array $reimbursementItems)
     {
-        // Delete existing reimbursement items that are still pending (not yet processed)
+        // Delete existing reimbursement items that can still be edited
+        // Only delete items with status: pending or linked
+        // Do NOT delete items that are already invoiced or paid
         $salesOrder->reimbursementItems()
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'linked'])
             ->delete();
 
-        // Create new reimbursement items
+        // Get existing invoiced/paid items to prevent duplication
+        $existingInvoicedItems = $salesOrder->reimbursementItems()
+            ->whereIn('status', ['invoiced', 'paid'])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'description' => strtolower(trim($item->description)),
+                    'amount' => (float)$item->amount,
+                    'vendor_id' => $item->vendor_id,
+                ];
+            })
+            ->toArray();
+
+        // Create new reimbursement items (skip duplicates of invoiced items)
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
                 // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
@@ -891,16 +906,36 @@ class SalesOrderController extends Controller
                     $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
                 }
 
-                \App\Models\ReimbursementItem::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'description' => $item['description'],
-                    'amount' => $item['amount'],
+                // Check if this item already exists in invoiced/paid status
+                $isDuplicate = false;
+                $itemSignature = [
+                    'description' => strtolower(trim($item['description'])),
+                    'amount' => (float)$item['amount'],
                     'vendor_id' => $vendorId,
-                    'category' => $item['category'] ?? 'general',
-                    'notes' => $item['notes'] ?? null,
-                    'status' => 'pending',
-                    'created_by' => Auth::id(),
-                ]);
+                ];
+
+                foreach ($existingInvoicedItems as $existing) {
+                    if ($existing['description'] === $itemSignature['description']
+                        && abs($existing['amount'] - $itemSignature['amount']) < 0.01
+                        && $existing['vendor_id'] == $itemSignature['vendor_id']) {
+                        $isDuplicate = true;
+                        break;
+                    }
+                }
+
+                // Only create if not a duplicate of an invoiced item
+                if (!$isDuplicate) {
+                    \App\Models\ReimbursementItem::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'description' => $item['description'],
+                        'amount' => $item['amount'],
+                        'vendor_id' => $vendorId,
+                        'category' => $item['category'] ?? 'general',
+                        'notes' => $item['notes'] ?? null,
+                        'status' => 'pending',
+                        'created_by' => Auth::id(),
+                    ]);
+                }
             }
         }
     }
