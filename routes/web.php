@@ -240,10 +240,10 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
         $salesOrdersToday = \App\Models\SalesOrder::where('created_at', '>=', $startOfDay)->count();
         $pendingSalesOrders = \App\Models\SalesOrder::whereNull('approved_at')->whereNull('rejected_at')->count();
 
-        // Revenue calculation - using total_selling from this month
+        // Revenue calculation - using total_revenue (selling - buying) from this month
         $revenueThisMonth = \App\Models\SalesOrder::where('created_at', '>=', $startOfMonth)
-            ->whereNotNull('total_selling')
-            ->sum('total_selling');
+            ->whereNotNull('total_revenue')
+            ->sum('total_revenue');
 
         // Recent Sales Orders (latest 5)
         $recentSalesOrders = \App\Models\SalesOrder::with(['creator'])
