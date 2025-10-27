@@ -1,162 +1,152 @@
 <template>
   <AdminKeuanganLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <Head title="Manajemen Service Type" />
+
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-6">
           <div>
-            <h2 class="text-2xl font-bold text-sage-800 mb-2">
-              Manajemen Service Type
-            </h2>
-            <p class="text-sage-600">
-              Kelola data jenis biaya/service untuk vendor items
-            </p>
+            <h1 class="text-2xl font-bold text-gray-900">Manajemen Service Type</h1>
+            <p class="mt-1 text-sm text-gray-600">Kelola data jenis biaya/service untuk vendor items</p>
           </div>
-          <div class="mt-4 sm:mt-0">
-            <Link
-              :href="route('admin-keuangan.service-types.create')"
-              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Tambah Service Type
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <!-- Search Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Search Input -->
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-sage-700 mb-2">Cari Data</label>
-            <input
-              v-model="form.search"
-              type="text"
-              placeholder="Cari kode, nama, atau deskripsi..."
-              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            />
-          </div>
-
-          <!-- Status Filter -->
-          <div>
-            <label class="block text-sm font-medium text-sage-700 mb-2">Status</label>
-            <select
-              v-model="form.status"
-              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="1">Aktif</option>
-              <option value="0">Tidak Aktif</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Search Button -->
-        <div class="mt-4">
-          <button
-            @click="search"
-            class="w-full md:w-auto px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+          <Link
+            :href="route('admin-keuangan.service-types.create')"
+            class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
           >
-            Cari
-          </button>
-        </div>
-      </div>
-
-      <!-- Service Types Table -->
-      <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-sage-200">
-          <h3 class="text-lg font-semibold text-sage-800">Daftar Service Type</h3>
-          <p class="text-sm text-sage-600 mt-1">
-            Total: {{ serviceTypes?.total || 0 }} data
-          </p>
+            <Plus class="w-4 h-4 mr-2" />
+            Tambah Service Type
+          </Link>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-sage-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Urutan
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Kode
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Nama
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Deskripsi
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-sage-200">
-              <tr
-                v-for="serviceType in serviceTypes.data"
-                :key="serviceType.id"
-                class="hover:bg-sage-50 transition-colors"
+        <!-- Search Section -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Search Input -->
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cari Data</label>
+                <input
+                  v-model="form.search"
+                  type="text"
+                  placeholder="Cari kode, nama, atau deskripsi..."
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                  @keyup.enter="search"
+                />
+              </div>
+
+              <!-- Status Filter -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  v-model="form.status"
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                >
+                  <option value="">Semua Status</option>
+                  <option value="1">Aktif</option>
+                  <option value="0">Tidak Aktif</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Search Button -->
+            <div class="mt-4">
+              <button
+                @click="search"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
               >
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-sage-600">
-                  {{ serviceType.sort_order }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-sage-900">
-                  {{ serviceType.code }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-sage-900">
-                  {{ serviceType.name }}
-                </td>
-                <td class="px-6 py-4 text-sm text-sage-900">
-                  {{ serviceType.description || '-' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    :class="
-                      serviceType.is_active
-                        ? 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'
-                        : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
-                    "
-                  >
-                    {{ serviceType.is_active ? 'Aktif' : 'Tidak Aktif' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div class="flex items-center space-x-2">
-                    <Link
-                      :href="route('admin-keuangan.service-types.edit', serviceType.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-full transition-colors"
-                      title="Edit"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Link>
-                    <button
-                      @click="confirmDelete(serviceType)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                      title="Hapus"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                <Search class="w-4 h-4 mr-2" />
+                Cari
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="serviceTypes?.data && serviceTypes.data.length > 0" class="px-6 py-4 border-t border-sage-200">
-          <Pagination :data="serviceTypes" />
+        <!-- Service Types Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Urutan
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Kode
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nama
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Deskripsi
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" class="relative px-6 py-3">
+                      <span class="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="serviceType in serviceTypes.data" :key="serviceType.id" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ serviceType.sort_order }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ serviceType.code }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ serviceType.name }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                      {{ serviceType.description || '-' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        :class="
+                          serviceType.is_active
+                            ? 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'
+                            : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
+                        "
+                      >
+                        {{ serviceType.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <Link
+                          :href="route('admin-keuangan.service-types.edit', serviceType.id)"
+                          class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
+                          title="Edit"
+                        >
+                          <Edit class="w-4 h-4" />
+                        </Link>
+                        <button
+                          @click="confirmDelete(serviceType)"
+                          class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
+                          title="Hapus"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div v-if="serviceTypes.data.length === 0" class="text-center py-12">
+              <PackageSearch class="mx-auto h-12 w-12 text-gray-400" />
+              <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada service type</h3>
+              <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan service type pertama</p>
+            </div>
+
+            <div v-if="serviceTypes?.data && serviceTypes.data.length > 0" class="mt-6">
+              <Pagination :data="serviceTypes" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -175,11 +165,12 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { Link, router, useForm } from '@inertiajs/vue3';
+import { reactive } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import AlertDialog from '@/Components/AlertDialog.vue';
+import { Plus, Search, Edit, Trash2, PackageSearch } from 'lucide-vue-next';
 
 const props = defineProps({
   serviceTypes: Object,

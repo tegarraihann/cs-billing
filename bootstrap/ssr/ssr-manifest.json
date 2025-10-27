@@ -526,23 +526,13 @@
     "/build/assets/Show-B0m_PzJ6.css"
   ],
   "resources/js/Pages/Admin/AdminKeuangan/ServiceTypes/Create.vue": [
-    "/build/assets/Create-DOVPRvJF.js",
-    "/build/assets/Create-D0hjwJcP.css"
-  ],
-  "resources/js/Pages/Admin/AdminKeuangan/ServiceTypes/Create.vue?vue&type=style&index=0&scoped=615b2d97&lang.css": [
-    "/build/assets/Create-DOVPRvJF.js",
-    "/build/assets/Create-D0hjwJcP.css"
+    "/build/assets/Create-BxLhIx_V.js"
   ],
   "resources/js/Pages/Admin/AdminKeuangan/ServiceTypes/Edit.vue": [
-    "/build/assets/Edit--hkQvzx1.js",
-    "/build/assets/Edit-BIIRMWyd.css"
-  ],
-  "resources/js/Pages/Admin/AdminKeuangan/ServiceTypes/Edit.vue?vue&type=style&index=0&scoped=59fe764f&lang.css": [
-    "/build/assets/Edit--hkQvzx1.js",
-    "/build/assets/Edit-BIIRMWyd.css"
+    "/build/assets/Edit-BsQXiXMu.js"
   ],
   "resources/js/Pages/Admin/AdminKeuangan/ServiceTypes/Index.vue": [
-    "/build/assets/Index-n8MrNay1.js"
+    "/build/assets/Index-d7Ha8zLq.js"
   ],
   "resources/js/Pages/Admin/AdminKeuangan/ShipmentTypes/Create.vue": [
     "/build/assets/Create-BqqjMPGQ.js",
