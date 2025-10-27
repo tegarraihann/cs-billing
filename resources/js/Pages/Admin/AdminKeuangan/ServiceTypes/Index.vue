@@ -155,8 +155,8 @@
         </div>
 
         <!-- Pagination -->
-        <div v-if="serviceTypes?.links" class="px-6 py-4 border-t border-sage-200">
-          <Pagination :links="serviceTypes.links" />
+        <div v-if="serviceTypes?.data && serviceTypes.data.length > 0" class="px-6 py-4 border-t border-sage-200">
+          <Pagination :data="serviceTypes" />
         </div>
       </div>
     </div>
