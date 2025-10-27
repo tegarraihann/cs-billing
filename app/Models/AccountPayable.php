@@ -196,7 +196,11 @@ class AccountPayable extends Model
      */
     public function syncComponents(): void
     {
-        $existingComponents = $this->components()->get()->keyBy('component_type');
+        // FIX: Use composite key (component_type + vendor_id) for proper matching
+        $existingComponents = $this->components()->get()->keyBy(function ($item) {
+            return $item->component_type . '_' . ($item->vendor_id ?? 'null');
+        });
+
         $paidToDistribute = $existingComponents->isEmpty() ? (float) $this->paid_amount : 0.0;
 
         $componentPayloads = $this->prepareComponentPayloads($paidToDistribute);
@@ -215,16 +219,23 @@ class AccountPayable extends Model
                     'component_type' => $type,
                 ]);
                 $component->paid_amount = $payload['paid_amount'] ?? 0;
-            }
 
-            $component->description = $payload['description'] ?? null;
-            $component->amount = $payload['amount'];
-            $component->recipient_name = $payload['recipient_name'] ?? null;
-            $component->vendor_id = $payload['vendor_id'] ?? null;
-            $component->related_items = $payload['related_items'] ?? null;
+                // Set these fields only on creation
+                $component->description = $payload['description'] ?? null;
+                $component->amount = $payload['amount'];
+                $component->recipient_name = $payload['recipient_name'] ?? null;
+                $component->vendor_id = $payload['vendor_id'] ?? null;
+                $component->related_items = $payload['related_items'] ?? null;
 
-            if (array_key_exists('paid_amount', $payload) && !$component->exists) {
-                $component->paid_amount = min($payload['amount'], $payload['paid_amount']);
+                if (array_key_exists('paid_amount', $payload)) {
+                    $component->paid_amount = min($payload['amount'], $payload['paid_amount']);
+                }
+            } else {
+                // Component exists - only update non-financial fields
+                // DO NOT update amount to prevent duplication bug
+                $component->description = $payload['description'] ?? $component->description;
+                $component->recipient_name = $payload['recipient_name'] ?? $component->recipient_name;
+                $component->related_items = $payload['related_items'] ?? $component->related_items;
             }
 
             if ($component->paid_amount > $component->amount) {
