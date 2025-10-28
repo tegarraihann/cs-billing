@@ -70,13 +70,10 @@
                 <thead class="bg-gray-50">
                   <tr>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Urutan
+                      No
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Kode
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Nama
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Deskripsi
@@ -92,13 +89,10 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                   <tr v-for="serviceType in serviceTypes.data" :key="serviceType.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ serviceType.sort_order }}
+                      {{ serviceType.id }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm font-medium text-gray-900">{{ serviceType.code }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ serviceType.name }}
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-500">
                       {{ serviceType.description || '-' }}

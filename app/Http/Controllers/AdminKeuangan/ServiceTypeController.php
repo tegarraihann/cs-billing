@@ -56,10 +56,8 @@ class ServiceTypeController extends Controller
     {
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:master_service_types,code',
-            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer|min:0',
         ]);
 
         MasterServiceType::create($validated);
@@ -96,10 +94,8 @@ class ServiceTypeController extends Controller
     {
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:master_service_types,code,' . $serviceType->id,
-            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer|min:0',
         ]);
 
         $serviceType->update($validated);

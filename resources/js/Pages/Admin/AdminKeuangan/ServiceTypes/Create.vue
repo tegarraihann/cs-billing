@@ -19,41 +19,21 @@
         <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
           <div class="px-6 py-8">
             <form @submit.prevent="submit" class="space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Kode -->
-                <div>
-                  <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
-                    Kode Service Type <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="code"
-                    v-model="form.code"
-                    type="text"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                    :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.code }"
-                    placeholder="Contoh: OF/AF, HANDLING"
-                  />
-                  <div v-if="form.errors.code" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.code }}
-                  </div>
-                </div>
-
-                <!-- Nama -->
-                <div>
-                  <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                    Nama Service Type <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="name"
-                    v-model="form.name"
-                    type="text"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                    :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.name }"
-                    placeholder="Contoh: Ocean Freight / Air Freight"
-                  />
-                  <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.name }}
-                  </div>
+              <!-- Kode -->
+              <div>
+                <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
+                  Kode Service Type <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="code"
+                  v-model="form.code"
+                  type="text"
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                  :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.code }"
+                  placeholder="Contoh: OF/AF, HANDLING"
+                />
+                <div v-if="form.errors.code" class="mt-1 text-sm text-red-600">
+                  {{ form.errors.code }}
                 </div>
               </div>
 
@@ -71,40 +51,18 @@
                 ></textarea>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Urutan -->
-                <div>
-                  <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">
-                    Urutan Tampilan
-                  </label>
+              <!-- Status Aktif -->
+              <div class="flex items-center">
+                <label class="flex items-center cursor-pointer">
                   <input
-                    id="sort_order"
-                    v-model.number="form.sort_order"
-                    type="number"
-                    min="0"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                    :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.sort_order }"
-                    placeholder="0"
+                    v-model="form.is_active"
+                    type="checkbox"
+                    class="h-4 w-4 text-sage-600 focus:ring-sage-500 border-gray-300 rounded"
                   />
-                  <p class="mt-1 text-sm text-gray-500">Angka lebih kecil akan muncul lebih dahulu</p>
-                  <div v-if="form.errors.sort_order" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.sort_order }}
-                  </div>
-                </div>
-
-                <!-- Status Aktif -->
-                <div class="flex items-center">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.is_active"
-                      type="checkbox"
-                      class="h-4 w-4 text-sage-600 focus:ring-sage-500 border-gray-300 rounded"
-                    />
-                    <span class="ml-2 block text-sm text-gray-900">
-                      Status Aktif
-                    </span>
-                  </label>
-                </div>
+                  <span class="ml-2 block text-sm text-gray-900">
+                    Status Aktif
+                  </span>
+                </label>
               </div>
 
               <!-- Submit Button -->
@@ -140,10 +98,8 @@ import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 
 const form = useForm({
   code: '',
-  name: '',
   description: '',
-  is_active: true,
-  sort_order: 0
+  is_active: true
 })
 
 const processing = computed(() => form.processing)

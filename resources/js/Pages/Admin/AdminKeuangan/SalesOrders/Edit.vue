@@ -279,7 +279,7 @@
                                                         class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                         <option value="">Pilih Jenis Biaya</option>
                                                         <option v-for="serviceType in serviceTypes" :key="serviceType.id" :value="serviceType.code">
-                                                            {{ serviceType.code }} - {{ serviceType.name }}
+                                                            {{ serviceType.code }}
                                                         </option>
                                                         <option value="D/O CHARGES">D/O CHARGES</option>
                                                         <option value="LOLO">LOLO</option>
