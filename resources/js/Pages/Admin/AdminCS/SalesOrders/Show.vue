@@ -1,89 +1,79 @@
 <template>
-  <AdminLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+  <AdminCSLayout>
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                  <FileText class="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 class="text-2xl font-semibold text-gray-900">
+                    Sales Order: {{ salesOrder.order_number }}
+                  </h1>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Detail informasi sales order
+                  </p>
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex flex-wrap gap-3">
+                <a
+                  v-if="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved'"
+                  :href="route('admin-cs.sales-orders.print', salesOrder.id)"
+                  target="_blank"
+                  class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition"
+                >
+                  <FileDown class="w-4 h-4 mr-2" />
+                  Export PDF
+                </a>
+                <button
+                  v-else
+                  disabled
+                  class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed"
+                  title="Sales order harus dirilis terlebih dahulu untuk dapat dicetak"
+                >
+                  <FileDown class="w-4 h-4 mr-2" />
+                  Export PDF
+                </button>
+                <Link
+                  v-if="salesOrder.status === 'draft'"
+                  :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
+                  class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                >
+                  <Pencil class="w-4 h-4 mr-2" />
+                  Edit
+                </Link>
+                <button
+                  v-else
+                  disabled
+                  class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed"
+                  title="Sales order tidak dapat diedit (sudah dirilis)"
+                >
+                  <Pencil class="w-4 h-4 mr-2" />
+                  Edit
+                </button>
+                <Link
+                  :href="route('admin-cs.sales-orders.index')"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                >
+                  <ArrowLeft class="w-4 h-4 mr-2" />
+                  Kembali
+                </Link>
+              </div>
             </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">
-                Sales Order: {{ salesOrder.order_number }}
-              </h2>
-              <p class="text-sage-600">
-                Detail informasi sales order
-              </p>
-            </div>
-          </div>
-          <div class="mt-4 sm:mt-0 flex space-x-3">
-            <a
-              v-if="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved'"
-              :href="route('admin-cs.sales-orders.print', salesOrder.id)"
-              target="_blank"
-              class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Export PDF
-            </a>
-            <button
-              v-else
-              disabled
-              class="inline-flex items-center px-4 py-2 bg-gray-400 text-gray-700 rounded-lg cursor-not-allowed"
-              title="Sales order harus dirilis terlebih dahulu untuk dapat dicetak"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print PDF (Belum Dirilis)
-            </button>
-            <Link
-              v-if="salesOrder.status === 'draft'"
-              :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
-              class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit
-            </Link>
-            <button
-              v-else
-              disabled
-              class="inline-flex items-center px-4 py-2 bg-gray-400 text-gray-700 rounded-lg cursor-not-allowed"
-              title="Sales order tidak dapat diedit (sudah dirilis)"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit (Tidak Tersedia)
-            </button>
-            <Link
-              :href="route('admin-cs.sales-orders.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Kembali
-            </Link>
           </div>
         </div>
-
-      </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
           <!-- SO Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">Informasi Sales Order</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900">Informasi Sales Order</h3>
             </div>
             <div class="p-6">
               <!-- Primary Information - Two Columns -->
@@ -179,19 +169,19 @@
                 <div class="overflow-x-auto mb-6">
                   <table class="min-w-full">
                     <thead>
-                      <tr class="bg-sage-50">
-                        <th class="px-6 py-4 text-left text-sm font-bold text-sage-800 uppercase tracking-wide">JENIS BIAYA</th>
-                        <th class="px-6 py-4 text-center text-sm font-bold text-sage-800 uppercase tracking-wide">BUYING</th>
-                        <th class="px-6 py-4 text-center text-sm font-bold text-sage-800 uppercase tracking-wide">SELLING</th>
-                        <th class="px-6 py-4 text-center text-sm font-bold text-sage-800 uppercase tracking-wide">REVENUE</th>
-                        <th class="px-6 py-4 text-left text-sm font-bold text-sage-800 uppercase tracking-wide">REMARKS</th>
+                      <tr class="bg-gray-50">
+                        <th class="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">JENIS BIAYA</th>
+                        <th class="px-6 py-4 text-center text-sm font-bold text-gray-900 uppercase tracking-wide">BUYING</th>
+                        <th class="px-6 py-4 text-center text-sm font-bold text-gray-900 uppercase tracking-wide">SELLING</th>
+                        <th class="px-6 py-4 text-center text-sm font-bold text-gray-900 uppercase tracking-wide">REVENUE</th>
+                        <th class="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">REMARKS</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0"
                           v-for="(item, index) in salesOrder.vendor_breakdown"
                           :key="index"
-                          class="hover:bg-sage-50 transition-colors">
+                          class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 text-sm text-gray-900">
                           {{ item.description || 'Service Type' }}
                         </td>
@@ -201,7 +191,7 @@
                         <td class="px-6 py-4 text-center text-sm font-mono text-gray-900">
                           {{ formatCurrency(item.selling_amount || 0) }}
                         </td>
-                        <td class="px-6 py-4 text-center text-sm font-mono" :class="getVendorProfit(item) >= 0 ? 'text-sage-700' : 'text-red-600'">
+                        <td class="px-6 py-4 text-center text-sm font-mono" :class="getVendorProfit(item) >= 0 ? 'text-green-700' : 'text-red-600'">
                           {{ formatCurrency(getVendorProfit(item)) }}
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">
@@ -222,8 +212,8 @@
                         </td>
                       </tr>
                       <!-- Total Row -->
-                      <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0" class="bg-sage-50 border-t border-gray-200">
-                        <td class="px-6 py-4 text-sm font-semibold text-sage-800 uppercase">
+                      <tr v-if="salesOrder.vendor_breakdown && salesOrder.vendor_breakdown.length > 0" class="bg-gray-50 border-t border-gray-200">
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-900 uppercase">
                           TOTAL
                         </td>
                         <td class="px-6 py-4 text-center text-sm font-mono font-semibold text-gray-900">
@@ -232,7 +222,7 @@
                         <td class="px-6 py-4 text-center text-sm font-mono font-semibold text-gray-900">
                           {{ formatCurrency(totalSelling) }}
                         </td>
-                        <td class="px-6 py-4 text-center text-sm font-mono font-semibold" :class="totalRevenue >= 0 ? 'text-sage-700' : 'text-red-600'">
+                        <td class="px-6 py-4 text-center text-sm font-mono font-semibold" :class="totalRevenue >= 0 ? 'text-green-700' : 'text-red-600'">
                           {{ formatCurrency(totalRevenue) }}
                         </td>
                         <td class="px-6 py-4 text-center text-gray-400">
@@ -408,15 +398,15 @@
           </div>
 
           <!-- Voucher Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">Voucher Information</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900">Voucher Information</h3>
             </div>
             <div class="p-6 space-y-6">
 
               <!-- Payment Vouchers -->
               <div v-if="paymentVouchers && paymentVouchers.length > 0" class="space-y-4">
-                <h4 class="text-md font-semibold text-sage-700 border-b border-gray-200 pb-2">Payment Vouchers</h4>
+                <h4 class="text-md font-semibold text-gray-700 border-b border-gray-200 pb-2">Payment Vouchers</h4>
                 <div class="grid grid-cols-1 gap-4">
                   <div
                     v-for="voucher in paymentVouchers"
@@ -468,7 +458,7 @@
 
               <!-- Receipt Vouchers -->
               <div v-if="receiptVouchers && receiptVouchers.length > 0" class="space-y-4">
-                <h4 class="text-md font-semibold text-sage-700 border-b border-gray-200 pb-2">Receipt Vouchers</h4>
+                <h4 class="text-md font-semibold text-gray-700 border-b border-gray-200 pb-2">Receipt Vouchers</h4>
                 <div class="grid grid-cols-1 gap-4">
                   <div
                     v-for="voucher in receiptVouchers"
@@ -537,9 +527,9 @@
         <!-- Sidebar -->
         <div class="space-y-6">
           <!-- Status -->
-          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">Status</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900">Status</h3>
             </div>
             <div class="p-6">
               <span
@@ -552,9 +542,9 @@
           </div>
 
           <!-- System Information -->
-          <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
-              <h3 class="text-lg font-semibold text-sage-800">System Information</h3>
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900">System Information</h3>
             </div>
             <div class="p-6 space-y-4">
               <div>
@@ -583,13 +573,15 @@
         </div>
       </div>
     </div>
-  </AdminLayout>
+  </div>
+</AdminCSLayout>
 </template>
 
 <script setup>
 import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
-import AdminLayout from "@/Layouts/AdminLayout.vue";
+import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
+import { FileText, FileDown, Pencil, ArrowLeft } from "lucide-vue-next";
 
 const props = defineProps({
   salesOrder: Object,
@@ -728,50 +720,7 @@ const getReimbursementStatusColor = (status) => {
 </script>
 
 <style scoped>
-/* Custom Sage Colors */
-.text-sage-600 {
-  color: #8db580;
-}
-.text-sage-700 {
-  color: #7ba169;
-}
-.text-sage-800 {
-  color: #6b8f5e;
-}
-.bg-sage-50 {
-  background-color: #f4f6f3;
-}
-.bg-sage-600 {
-  background-color: #8db580;
-}
-.bg-sage-700 {
-  background-color: #7ba169;
-}
-.border-sage-200 {
-  border-color: #d4ddd0;
-}
-.border-sage-300 {
-  border-color: #c0cdb8;
-}
-.border-sage-400 {
-  border-color: #a8b89c;
-}
-.bg-sage-25 {
-  background-color: #f8faf7;
-}
-.bg-sage-100 {
-  background-color: #eef3eb;
-}
-.text-sage-800 {
-  color: #6b8f5e;
-}
-.divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #d4ddd0;
-}
-.hover\:bg-sage-25:hover {
-  background-color: #f8faf7;
-}
-.hover\:bg-sage-700:hover {
-  background-color: #7ba169;
+.bg-sage-800 {
+  background-color: #6b8f5e;
 }
 </style>

@@ -1,36 +1,42 @@
 <template>
-  <AdminLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+  <AdminCSLayout>
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                  <Pen class="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 class="text-2xl font-semibold text-gray-900">Edit Sales Order: {{ salesOrder.order_number }}</h1>
+                  <p class="mt-1 text-sm text-gray-600">Perbarui informasi sales order untuk pelanggan</p>
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex gap-3">
+                <Link
+                  :href="route('admin-cs.sales-orders.show', salesOrder.id)"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                >
+                  <Eye class="w-4 h-4 mr-2" />
+                  Lihat Detail
+                </Link>
+                <Link
+                  :href="route('admin-cs.sales-orders.index')"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                >
+                  <ArrowLeft class="w-4 h-4 mr-2" />
+                  Kembali
+                </Link>
+              </div>
             </div>
-            <div>
-              <h2 class="text-2xl font-bold text-sage-800">Edit Sales Order: {{ salesOrder.order_number }}</h2>
-              <p class="text-sage-600">Edit dokumen sales order untuk pelanggan</p>
-            </div>
-          </div>
-          <div class="mt-4 sm:mt-0">
-            <Link
-              :href="route('admin-cs.sales-orders.index')"
-              class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Kembali
-            </Link>
           </div>
         </div>
-      </div>
 
-      <!-- Form Section -->
-      <form @submit.prevent="submit" class="space-y-6">
+        <!-- Form Section -->
+        <form @submit.prevent="submit" class="space-y-6">
 
         <!-- Basic Information -->
         <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
@@ -39,15 +45,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
-            <svg
-              :class="{'rotate-180': !sections.basic}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.basic }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.basic" class="p-6 space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -111,15 +112,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Pengiriman</h3>
-            <svg
-              :class="{'rotate-180': !sections.shipping}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.shipping }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.shipping" class="p-6 space-y-4">
             <div>
@@ -256,15 +252,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Pricing</h3>
-            <svg
-              :class="{'rotate-180': !sections.pricing}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.pricing }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.pricing" class="p-6 space-y-6">
 
@@ -275,9 +266,10 @@
                 <button
                   type="button"
                   @click="addVendorItem"
-                  class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+                  class="inline-flex items-center text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
                 >
-                  + Tambah Vendor
+                  <Plus class="w-4 h-4 mr-2" />
+                  Tambah Vendor
                 </button>
               </div>
               <div v-for="(item, index) in form.vendor_breakdown" :key="index" class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
@@ -301,9 +293,9 @@
                     <button
                       type="button"
                       @click="removeVendorItem(index)"
-                      class="w-full h-10 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors"
+                      class="w-full h-10 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
                     >
-                      ×
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -465,15 +457,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Barang</h3>
-            <svg
-              :class="{'rotate-180': !sections.goods}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.goods }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.goods" class="p-6 space-y-4">
             <div>
@@ -542,9 +529,10 @@
                 <button
                   type="button"
                   @click="addContainerNo"
-                  class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
+                  class="inline-flex items-center text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors"
                 >
-                  + Tambah Container
+                  <Plus class="w-4 h-4 mr-2" />
+                  Tambah Container
                 </button>
               </div>
               <div v-for="(container, index) in form.container_no" :key="'container-' + index" class="flex gap-2 mb-2">
@@ -558,9 +546,9 @@
                   type="button"
                   @click="removeContainerNo(index)"
                   v-if="form.container_no.length > 1"
-                  class="px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-lg transition-colors"
+                  class="px-3 py-2 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
                 >
-                  ×
+                  <Trash2 class="w-4 h-4" />
                 </button>
               </div>
               <div v-if="form.errors.container_no" class="mt-2 text-sm text-red-600">{{ form.errors.container_no }}</div>
@@ -575,15 +563,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Informasi Invoice</h3>
-            <svg
-              :class="{'rotate-180': !sections.invoice}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.invoice }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.invoice" class="p-6 space-y-4">
             <div>
@@ -624,15 +607,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Biaya Beban Lain (Operational)</h3>
-            <svg
-              :class="{'rotate-180': !sections.other_costs}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.other_costs }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.other_costs" class="p-6">
             <!-- Biaya Beban Lain Section -->
@@ -642,9 +620,10 @@
                 <button
                   type="button"
                   @click="addOtherCost"
-                  class="text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors"
+                  class="inline-flex items-center text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors"
                 >
-                  + Tambah Biaya
+                  <Plus class="w-4 h-4 mr-2" />
+                  Tambah Biaya
                 </button>
               </div>
 
@@ -688,15 +667,13 @@
                       </select>
                     </div>
                     <div class="col-span-1 flex items-end">
-                      <button
-                        type="button"
-                        @click="removeOtherCost(index)"
-                        class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                        :disabled="form.other_costs.length <= 1"
-                      >
-                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                    <button
+                      type="button"
+                      @click="removeOtherCost(index)"
+                      class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                      :disabled="form.other_costs.length <= 1"
+                    >
+                      <Trash2 class="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -717,9 +694,7 @@
                     @click="addOtherCost"
                     class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                   >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                    <Plus class="w-4 h-4 mr-2" />
                     Tambah Biaya Lagi
                   </button>
                 </div>
@@ -740,15 +715,10 @@
             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors"
           >
             <h3 class="text-lg font-semibold text-sage-800">Items Reimbursement</h3>
-            <svg
-              :class="{'rotate-180': !sections.reimbursement}"
+            <ChevronDown
+              :class="{ 'rotate-180': !sections.reimbursement }"
               class="w-5 h-5 text-sage-600 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
           <div v-show="sections.reimbursement" class="p-6">
             <!-- Reimbursement Section -->
@@ -758,9 +728,10 @@
                 <button
                   type="button"
                   @click="addReimbursementItem"
-                  class="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
+                  class="inline-flex items-center text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
                 >
-                  + Tambah Reimbursement
+                  <Plus class="w-4 h-4 mr-2" />
+                  Tambah Reimbursement
                 </button>
               </div>
 
@@ -815,14 +786,12 @@
                       />
                     </div>
                     <div class="col-span-1 flex items-end">
-                      <button
-                        type="button"
-                        @click="removeReimbursementItem(index)"
-                        class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                      >
-                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                    <button
+                      type="button"
+                      @click="removeReimbursementItem(index)"
+                      class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                    >
+                      <Trash2 class="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -843,9 +812,7 @@
                     @click="addReimbursementItem"
                     class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                    <Plus class="w-4 h-4 mr-2" />
                     Tambah Reimbursement Lagi
                   </button>
                 </div>
@@ -872,20 +839,16 @@
             :disabled="form.processing"
             class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <svg
+            <Loader2
               v-if="form.processing"
-              class="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+              class="animate-spin -ml-1 mr-3 h-4 w-4"
+            />
             <span v-if="form.processing">Menyimpan...</span>
             <span v-else>Update Sales Order</span>
           </button>
         </div>
       </form>
+    </div>
     </div>
 
     <!-- Alert Dialog -->
@@ -900,14 +863,15 @@
       @cancel="handleAlertCancel"
       @close="closeAlert"
     />
-  </AdminLayout>
+  </AdminCSLayout>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
-import AdminLayout from "@/Layouts/AdminLayout.vue";
+import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import { Pen, Eye, ArrowLeft, ChevronDown, Plus, Trash2, Loader2 } from "lucide-vue-next";
 
 const props = defineProps({
   salesOrder: Object,
@@ -1317,6 +1281,9 @@ const submit = () => {
 }
 .bg-sage-700 {
   background-color: #7ba169;
+}
+.bg-sage-800 {
+  background-color: #6b8f5e;
 }
 .border-sage-200 {
   border-color: #d4ddd0;
