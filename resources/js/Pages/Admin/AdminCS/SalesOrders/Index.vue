@@ -1,327 +1,268 @@
 <template>
-  <AdminLayout>
-    <div class="p-4 sm:p-6 lg:p-8">
-      <!-- Header Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
+  <AdminCSLayout>
+    <div class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
-            <h2 class="text-2xl font-bold text-sage-800 mb-2">
-              Manajemen Sales Order
-            </h2>
-            <p class="text-sage-600">
-              Kelola dokumen sales order dan penawaran harga
-            </p>
+            <h1 class="text-2xl font-bold text-gray-900">Manajemen Sales Order</h1>
+            <p class="mt-1 text-sm text-gray-600">Kelola dokumen sales order dan penawaran harga</p>
           </div>
-          <div class="mt-4 sm:mt-0">
+          <div class="mt-4 sm:mt-0 flex space-x-2">
             <Link
               :href="route('admin-cs.sales-orders.create')"
-              class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+              class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 hover:bg-sage-900"
             >
-              <svg
-                class="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
+              <Plus class="w-4 h-4 mr-2" />
               Buat Sales Order
             </Link>
           </div>
         </div>
-      </div>
 
-      <!-- Search and Filter Section -->
-      <div
-        class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Search Input -->
-          <div>
-            <label class="block text-sm font-medium text-sage-700 mb-2"
-              >Cari Data</label
-            >
-            <input
-              v-model="form.search"
-              type="text"
-              placeholder="Cari SO Number, Customer, Consignee..."
-              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            />
-          </div>
-
-          <!-- Status Filter -->
-          <div>
-            <label class="block text-sm font-medium text-sage-700 mb-2"
-              >Status</label
-            >
-            <select
-              v-model="form.status"
-              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="draft">Draft</option>
-              <option value="sent">Terkirim</option>
-              <option value="confirmed">Dikonfirmasi</option>
-              <option value="cancelled">Dibatalkan</option>
-            </select>
-          </div>
-
-          <!-- Search Button -->
-          <div class="flex items-end">
-            <button
-              @click="search"
-              class="w-full px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-            >
-              Cari
-            </button>
+        <!-- Filter Section -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cari Data</label>
+                <input
+                  v-model="form.search"
+                  @input="debouncedSearch()"
+                  type="text"
+                  placeholder="Cari SO Number, Customer, Consignee..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  v-model="form.status"
+                  @change="onStatusChange"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                >
+                  <option value="">Semua Status</option>
+                  <option value="draft">Draft</option>
+                  <option value="sent">Terkirim</option>
+                  <option value="confirmed">Dikonfirmasi</option>
+                  <option value="cancelled">Dibatalkan</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button
+                  @click="applyFilters"
+                  class="w-full px-4 py-2 bg-sage-800 text-white rounded-md transition-colors hover:bg-sage-900"
+                >
+                  Cari
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Sales Orders Table -->
-      <div
-        class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
-      >
-        <div class="px-6 py-4 border-b border-sage-200">
-          <h3 class="text-lg font-semibold text-sage-800">Daftar Sales Order</h3>
-          <p class="text-sm text-sage-600 mt-1">
-            Total: {{ salesOrders?.total || 0 }} data
-          </p>
-        </div>
+        <!-- Sales Orders Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="sm:flex sm:items-center sm:justify-between mb-4">
+              <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Sales Order</h3>
+                <p class="mt-1 text-sm text-gray-600">Total: {{ salesOrders?.total || 0 }} data</p>
+              </div>
+            </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-sage-50">
-              <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Order Number
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Customer
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Shipper
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Shipment Type
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Commodity
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  QTY
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Container No
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
-                >
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-sage-200">
-              <tr
-                v-for="salesOrder in salesOrders.data"
-                :key="salesOrder.id"
-                class="hover:bg-sage-50 transition-colors"
-              >
-                <!-- Order Number -->
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                  {{ salesOrder.order_number || salesOrder.so_number }}
-                </td>
-
-                <!-- Customer -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <div>
-                    <div class="font-medium">{{ salesOrder.customer || salesOrder.customer_name }}</div>
-                    <div class="text-gray-500" v-if="salesOrder.customer_code">
-                      {{ salesOrder.customer_code }}
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Shipper -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ salesOrder.shipper || salesOrder.consignee_shipper || '-' }}
-                </td>
-
-                <!-- Shipment Type -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {{ salesOrder.shipment_type || '-' }}
-                  </span>
-                </td>
-
-                <!-- Commodity -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <div class="max-w-32 truncate" :title="salesOrder.commodity">
-                    {{ salesOrder.commodity || salesOrder.goods || '-' }}
-                  </div>
-                </td>
-
-                <!-- QTY -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {{ salesOrder.qty || '-' }}
-                </td>
-
-                <!-- Container No -->
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <div v-if="salesOrder.container_no && Array.isArray(salesOrder.container_no)" class="space-y-1">
-                    <span v-for="(container, index) in salesOrder.container_no.slice(0, 2)" :key="index" class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1">
-                      {{ container }}
-                    </span>
-                    <div v-if="salesOrder.container_no.length > 2" class="text-xs text-gray-500">
-                      +{{ salesOrder.container_no.length - 2 }} lainnya
-                    </div>
-                  </div>
-                  <span v-else-if="salesOrder.container_no" class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                    {{ salesOrder.container_no }}
-                  </span>
-                  <span v-else class="text-gray-500">-</span>
-                </td>
-
-                <!-- Status -->
-                <td class="px-6 py-4 text-sm">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusColor(salesOrder.status)"
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Order Number
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Shipper
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Shipment Type
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Commodity
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      QTY
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Container No
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr
+                    v-for="salesOrder in salesOrders.data"
+                    :key="salesOrder.id"
+                    class="hover:bg-gray-50 transition-colors"
                   >
-                    {{ getStatusLabel(salesOrder.status) }}
-                  </span>
-                </td>
+                    <!-- Order Number -->
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                      {{ salesOrder.order_number || salesOrder.so_number }}
+                    </td>
 
-                <!-- Actions -->
-                <td class="px-6 py-4 text-sm font-medium">
-                  <div class="flex items-center space-x-2">
-                    <button
-                      @click="releaseSalesOrder(salesOrder.id)"
-                      :disabled="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved' || salesOrder.status === 'rejected'"
-                      class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors"
-                      :class="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved' || salesOrder.status === 'rejected'
-                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed' 
-                        : 'text-blue-600 hover:text-blue-900 hover:bg-blue-100'"
-                      :title="salesOrder.status === 'released' || salesOrder.status === 'confirmed' || salesOrder.status === 'approved' || salesOrder.status === 'rejected' ? 'Sudah Diproses' : 'Rilis Sales Order'"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                      </svg>
-                    </button>
-                    <Link
-                      :href="route('admin-cs.sales-orders.show', salesOrder.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
-                      title="Lihat Detail"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                  </Link>
-                  <Link
-                    v-if="salesOrder.status === 'draft'"
-                    :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
-                    class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
-                    title="Edit"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </Link>
-                  <span
-                    v-else
-                    class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                    title="Tidak dapat diedit (Sales Order sudah dirilis)"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </span>
-                  <button
-                    v-if="salesOrder.status === 'draft'"
-                    @click="deleteSalesOrder(salesOrder.id)"
-                    class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                    title="Hapus"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                  <span
-                    v-else
-                    class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                    title="Tidak dapat dihapus (Sales Order sudah dirilis)"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </span>
-                  </div>
-                </td>
-              </tr>
+                    <!-- Customer -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <div>
+                        <div class="font-medium">{{ salesOrder.customer || salesOrder.customer_name }}</div>
+                        <div class="text-gray-500" v-if="salesOrder.customer_code">
+                          {{ salesOrder.customer_code }}
+                        </div>
+                      </div>
+                    </td>
 
-              <!-- Empty State -->
-              <tr v-if="!salesOrders.data || salesOrders.data.length === 0">
-                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
-                  <div class="flex flex-col items-center">
-                    <svg
-                      class="w-12 h-12 text-gray-300 mb-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    <p class="text-lg font-medium mb-2">Tidak ada data</p>
-                    <p class="text-sm text-gray-400">
-                      Belum ada sales order yang tersedia
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                    <!-- Shipper -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ salesOrder.shipper || salesOrder.consignee_shipper || '-' }}
+                    </td>
 
-        <!-- Pagination -->
-        <div
-          v-if="salesOrders.last_page > 1"
-          class="px-6 py-4 border-t border-sage-200"
-        >
-          <Pagination :data="salesOrders" />
+                    <!-- Shipment Type -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ salesOrder.shipment_type || '-' }}
+                      </span>
+                    </td>
+
+                    <!-- Commodity -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <div class="max-w-32 truncate" :title="salesOrder.commodity">
+                        {{ salesOrder.commodity || salesOrder.goods || '-' }}
+                      </div>
+                    </td>
+
+                    <!-- QTY -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ salesOrder.qty || '-' }}
+                    </td>
+
+                    <!-- Container No -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      <div v-if="salesOrder.container_no && Array.isArray(salesOrder.container_no)" class="space-y-1">
+                        <span
+                          v-for="(container, index) in salesOrder.container_no.slice(0, 2)"
+                          :key="index"
+                          class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1"
+                        >
+                          {{ container }}
+                        </span>
+                        <div v-if="salesOrder.container_no.length > 2" class="text-xs text-gray-500">
+                          +{{ salesOrder.container_no.length - 2 }} lainnya
+                        </div>
+                      </div>
+                      <span
+                        v-else-if="salesOrder.container_no"
+                        class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                      >
+                        {{ salesOrder.container_no }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-6 py-4 text-sm">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="getStatusColor(salesOrder.status)"
+                      >
+                        {{ getStatusLabel(salesOrder.status) }}
+                      </span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="px-6 py-4 text-sm font-medium">
+                      <div class="flex items-center space-x-2">
+                        <button
+                          @click="releaseSalesOrder(salesOrder.id)"
+                          :disabled="isProcessedStatus(salesOrder.status)"
+                          class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors"
+                          :class="isProcessedStatus(salesOrder.status)
+                            ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                            : 'text-sage-600 hover:text-sage-900 hover:bg-sage-100'"
+                          :title="isProcessedStatus(salesOrder.status) ? 'Sudah Diproses' : 'Rilis Sales Order'"
+                        >
+                          <Send class="w-4 h-4" />
+                        </button>
+
+                        <Link
+                          :href="route('admin-cs.sales-orders.show', salesOrder.id)"
+                          class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
+                          title="Lihat Detail"
+                        >
+                          <Eye class="w-4 h-4" />
+                        </Link>
+
+                        <Link
+                          v-if="salesOrder.status === 'draft'"
+                          :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
+                          class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil class="w-4 h-4" />
+                        </Link>
+                        <span
+                          v-else
+                          class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
+                          title="Tidak dapat diedit (Sales Order sudah diproses)"
+                        >
+                          <Pencil class="w-4 h-4" />
+                        </span>
+
+                        <button
+                          v-if="salesOrder.status === 'draft'"
+                          @click="deleteSalesOrder(salesOrder.id)"
+                          class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                        <span
+                          v-else
+                          class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
+                          title="Tidak dapat dihapus (Sales Order sudah diproses)"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Empty State -->
+                  <tr v-if="!salesOrders.data || salesOrders.data.length === 0">
+                    <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+                      <div class="flex flex-col items-center">
+                        <FileText class="w-12 h-12 text-gray-300 mb-4" />
+                        <p class="text-lg font-medium mb-2">Tidak ada data</p>
+                        <p class="text-sm text-gray-400">
+                          Belum ada sales order yang tersedia
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div
+              v-if="salesOrders.last_page > 1"
+              class="px-4 py-4 border-t border-gray-200"
+            >
+              <Pagination :data="salesOrders" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -351,28 +292,29 @@
       @cancel="cancelDelete"
       @close="cancelDelete"
     />
-  </AdminLayout>
+  </AdminCSLayout>
 </template>
 
 <script setup>
-import { reactive, watch, ref } from "vue";
+import { reactive, ref, onBeforeUnmount } from "vue";
 import { router, Link } from "@inertiajs/vue3";
-import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { debounce } from "lodash";
+import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import { Plus, Send, Eye, Pencil, Trash2, FileText } from "lucide-vue-next";
 
 const props = defineProps({
   salesOrders: Object,
   filters: Object,
 });
 
-// Form data
 const form = reactive({
   search: props.filters?.search || "",
   status: props.filters?.status || "",
 });
 
-const search = () => {
+const applyFilters = () => {
   const params = {};
   if (form.search) params.search = form.search;
   if (form.status) params.status = form.status;
@@ -383,10 +325,15 @@ const search = () => {
   });
 };
 
-// Alert Dialog State
+const debouncedSearch = debounce(applyFilters, 300);
+const onStatusChange = () => applyFilters();
+
 const showReleaseDialog = ref(false);
 const showDeleteDialog = ref(false);
 const currentSalesOrderId = ref(null);
+
+const processedStatuses = ["released", "confirmed", "approved", "rejected"];
+const isProcessedStatus = (status) => processedStatuses.includes(status);
 
 const releaseSalesOrder = (salesOrderId) => {
   currentSalesOrderId.value = salesOrderId;
@@ -394,25 +341,18 @@ const releaseSalesOrder = (salesOrderId) => {
 };
 
 const confirmRelease = () => {
-  if (currentSalesOrderId.value) {
-    router.post(route('admin-cs.sales-orders.release', currentSalesOrderId.value), {}, {
-      onSuccess: () => {
-        // Refresh the page to show updated status
-        router.get(route("admin-cs.sales-orders.index"), {
-          search: form.search,
-          status: form.status
-        }, {
-          preserveState: true,
-          replace: true,
-        });
-      },
-      onError: (errors) => {
-        alert('Terjadi kesalahan saat merilis sales order: ' + Object.values(errors).join(', '));
-      }
-    });
-  }
-  showReleaseDialog.value = false;
-  currentSalesOrderId.value = null;
+  if (!currentSalesOrderId.value) return;
+
+  router.post(route("admin-cs.sales-orders.release", currentSalesOrderId.value), {}, {
+    onSuccess: () => applyFilters(),
+    onError: (errors) => {
+      alert("Terjadi kesalahan saat merilis sales order: " + Object.values(errors).join(", "));
+    },
+    onFinish: () => {
+      showReleaseDialog.value = false;
+      currentSalesOrderId.value = null;
+    },
+  });
 };
 
 const cancelRelease = () => {
@@ -426,25 +366,18 @@ const deleteSalesOrder = (salesOrderId) => {
 };
 
 const confirmDelete = () => {
-  if (currentSalesOrderId.value) {
-    router.delete(route('admin-cs.sales-orders.destroy', currentSalesOrderId.value), {
-      onSuccess: () => {
-        // Refresh the page to show updated list
-        router.get(route("admin-cs.sales-orders.index"), {
-          search: form.search,
-          status: form.status
-        }, {
-          preserveState: true,
-          replace: true,
-        });
-      },
-      onError: (errors) => {
-        alert('Terjadi kesalahan saat menghapus sales order: ' + Object.values(errors).join(', '));
-      }
-    });
-  }
-  showDeleteDialog.value = false;
-  currentSalesOrderId.value = null;
+  if (!currentSalesOrderId.value) return;
+
+  router.delete(route("admin-cs.sales-orders.destroy", currentSalesOrderId.value), {
+    onSuccess: () => applyFilters(),
+    onError: (errors) => {
+      alert("Terjadi kesalahan saat menghapus sales order: " + Object.values(errors).join(", "));
+    },
+    onFinish: () => {
+      showDeleteDialog.value = false;
+      currentSalesOrderId.value = null;
+    },
+  });
 };
 
 const cancelDelete = () => {
@@ -452,121 +385,72 @@ const cancelDelete = () => {
   currentSalesOrderId.value = null;
 };
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("id-ID");
-};
-
-const formatCurrency = (amount, currency = 'IDR') => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
-
 const getStatusLabel = (status) => {
   const labels = {
-    draft: 'Draft',
-    sent: 'Terkirim',
-    confirmed: 'Dikonfirmasi',
-    cancelled: 'Dibatalkan',
-    released: 'Dirilis',
-    approved: 'Disetujui',
-    rejected: 'Ditolak'
+    draft: "Draft",
+    sent: "Terkirim",
+    confirmed: "Dikonfirmasi",
+    cancelled: "Dibatalkan",
+    released: "Dirilis",
+    approved: "Disetujui",
+    rejected: "Ditolak",
   };
   return labels[status] || status;
 };
 
 const getStatusColor = (status) => {
   const colors = {
-    draft: 'bg-gray-100 text-gray-800',
-    sent: 'bg-blue-100 text-blue-800',
-    confirmed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
-    released: 'bg-purple-100 text-purple-800',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800'
+    draft: "bg-gray-100 text-gray-800",
+    sent: "bg-blue-100 text-blue-800",
+    confirmed: "bg-green-100 text-green-800",
+    cancelled: "bg-red-100 text-red-800",
+    released: "bg-purple-100 text-purple-800",
+    approved: "bg-green-100 text-green-800",
+    rejected: "bg-red-100 text-red-800",
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return colors[status] || "bg-gray-100 text-gray-800";
 };
 
-// Watch for changes in search input and trigger search after a delay
-watch(
-  () => form.search,
-  () => {
-    clearTimeout(window.searchTimeout);
-    window.searchTimeout = setTimeout(() => {
-      search();
-    }, 500);
-  }
-);
-
-// Watch for changes in status filter
-watch(
-  () => form.status,
-  () => {
-    search();
-  }
-);
+onBeforeUnmount(() => {
+  debouncedSearch.cancel();
+});
 </script>
 
 <style scoped>
-/* Custom Sage Colors */
 .text-sage-600 {
   color: #8db580;
 }
-
 .text-sage-700 {
   color: #7ba169;
 }
-
 .text-sage-800 {
   color: #6b8f5e;
 }
-
-.text-sage-500 {
-  color: #9fb894;
+.text-sage-900 {
+  color: #5a7a4f;
 }
-
-.bg-sage-50 {
-  background-color: #f4f6f3;
+.bg-sage-100 {
+  background-color: #e8ece5;
 }
-
-.bg-sage-600 {
-  background-color: #8db580;
+.bg-sage-800 {
+  background-color: #6b8f5e;
 }
-
-.bg-sage-700 {
-  background-color: #7ba169;
+.bg-sage-900 {
+  background-color: #5a7a4f;
 }
-
-.border-sage-200 {
-  border-color: #d4ddd0;
+.hover\:bg-sage-100:hover {
+  background-color: #e8ece5;
 }
-
-
-.hover\:bg-sage-50:hover {
-  background-color: #f4f6f3;
+.hover\:bg-sage-900:hover {
+  background-color: #5a7a4f;
 }
-
-.hover\:bg-sage-700:hover {
-  background-color: #7ba169;
-}
-
 .hover\:text-sage-900:hover {
   color: #5a7a4f;
 }
-
 .focus\:ring-sage-500:focus {
   --tw-ring-color: #8db580;
 }
-
 .focus\:border-sage-500:focus {
   border-color: #8db580;
-}
-
-.divide-sage-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #d4ddd0;
 }
 </style>
