@@ -380,6 +380,8 @@ const route = window.route || function (name, params) {
         'admin-keuangan.expense-templates.create': '/admin-keuangan/expense-templates/create',
         'admin-keuangan.operational-cost-categories.index': '/admin-keuangan/operational-cost-categories',
         'admin-keuangan.operational-cost-categories.create': '/admin-keuangan/operational-cost-categories/create',
+        'admin-keuangan.master-package-units.index': '/admin-keuangan/master-package-units',
+        'admin-keuangan.master-package-units.create': '/admin-keuangan/master-package-units/create',
     };
     return routes[name] || '#';
 };
@@ -400,8 +402,11 @@ const isActive = (routePattern) => {
             'admin-keuangan.customers': '/admin-keuangan/customers',
             'admin-keuangan.vendors': '/admin-keuangan/vendors',
             'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
-            'admin-keuangan.expense-templates': '/admin-keuangan/expense-templates',
-            'admin-keuangan.operational-cost-categories': '/admin-keuangan/operational-cost-categories',
+            'admin-keuangan.shipment-types.': '/admin-keuangan/shipment-types',
+            'admin-keuangan.service-types.': '/admin-keuangan/service-types',
+            'admin-keuangan.expense-templates.': '/admin-keuangan/expense-templates',
+            'admin-keuangan.operational-cost-categories.': '/admin-keuangan/operational-cost-categories',
+            'admin-keuangan.master-package-units.': '/admin-keuangan/master-package-units',
         };
 
         const basePath = routeMap[basePattern] || basePattern;
@@ -425,8 +430,11 @@ const isActive = (routePattern) => {
         'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
         'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
         'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',
+        'admin-keuangan.shipment-types': '/admin-keuangan/shipment-types',
+        'admin-keuangan.service-types': '/admin-keuangan/service-types',
         'admin-keuangan.expense-templates': '/admin-keuangan/expense-templates',
         'admin-keuangan.operational-cost-categories': '/admin-keuangan/operational-cost-categories',
+        'admin-keuangan.master-package-units': '/admin-keuangan/master-package-units',
     };
 
     const routePath = routeMap[routePattern];
