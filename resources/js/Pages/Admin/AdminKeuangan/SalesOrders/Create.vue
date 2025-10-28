@@ -12,7 +12,8 @@
                                 </div>
                                 <div>
                                     <h1 class="text-2xl font-semibold text-gray-900">Buat Shipping Order Baru</h1>
-                                    <p class="mt-1 text-sm text-gray-600">Buat dokumen Shipping order untuk pelanggan</p>
+                                    <p class="mt-1 text-sm text-gray-600">Buat dokumen Shipping order untuk pelanggan
+                                    </p>
                                 </div>
                             </div>
                             <div class="mt-4 sm:mt-0 flex space-x-3">
@@ -185,7 +186,7 @@
                                         <input v-model="form.aju" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.aju" class="mt-2 text-sm text-red-600">{{ form.errors.aju
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">SPPB DATE</label>
@@ -213,14 +214,14 @@
                                         <input v-model="form.pol" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pol" class="mt-2 text-sm text-red-600">{{ form.errors.pol
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">POD</label>
                                         <input v-model="form.pod" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pod" class="mt-2 text-sm text-red-600">{{ form.errors.pod
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">GUDANG/UTC</label>
@@ -313,7 +314,8 @@
                                                     <select v-model="item.description"
                                                         class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                         <option value="">Pilih Jenis Biaya</option>
-                                                        <option v-for="serviceType in serviceTypes" :key="serviceType.id" :value="serviceType.code">
+                                                        <option v-for="serviceType in serviceTypes"
+                                                            :key="serviceType.id" :value="serviceType.code">
                                                             {{ serviceType.code }}
                                                         </option>
                                                         <option value="D/O CHARGES">D/O CHARGES</option>
@@ -436,12 +438,12 @@
                                             <div class="flex justify-between">
                                                 <span>Total Pemasukan (Selling):</span>
                                                 <span class="font-medium text-green-700">{{ formatCurrency(totalSelling)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span>Total Pengeluaran (Buying):</span>
                                                 <span class="font-medium text-red-700">{{ formatCurrency(totalBuying)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span>Biaya Operasional:</span>
@@ -458,7 +460,7 @@
                                                     Keseluruhan:</span>
                                                 <span class="text-sm font-bold text-red-800">{{
                                                     formatCurrency(totalBuying + totalOtherCosts + totalReimbursement)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div
                                                 class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
@@ -733,20 +735,23 @@
                                         <div class="max-w-xs">
                                             <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
                                             <div class="relative flex w-full">
-                                                <input v-model="form.qty" type="number" min="0"
-                                                    placeholder="0.00"
+                                                <input v-model="form.qty" type="number" min="0" placeholder="0.00"
                                                     class="w-28 px-3 py-2 border border-sage-300 rounded-l-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10" />
                                                 <div class="relative flex-1">
                                                     <select v-model="form.package_unit"
                                                         class="h-full w-full px-3 py-2 border-t border-r border-b border-sage-300 bg-white rounded-r-lg appearance-none cursor-pointer focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10 pr-8">
                                                         <option value="">Unit</option>
-                                                        <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
+                                                        <option v-for="unit in packageUnits" :key="unit.code"
+                                                            :value="unit.code">
                                                             {{ unit.code }}
                                                         </option>
                                                     </select>
-                                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                                        <svg class="w-4 h-4 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    <div
+                                                        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                                        <svg class="w-4 h-4 text-sage-500" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                         </svg>
                                                     </div>
                                                 </div>
@@ -856,7 +861,7 @@
                                         <input v-model="form.top" type="text" placeholder="e.g., NET 30"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.top" class="mt-2 text-sm text-red-600">{{ form.errors.top
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                 </div>
                             </div>

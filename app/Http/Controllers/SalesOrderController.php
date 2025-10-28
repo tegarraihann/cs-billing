@@ -93,168 +93,168 @@ class SalesOrderController extends Controller
             $this->normalizeNumericFields($request);
 
             $validated = $request->validate([
-            // Required fields based on requirements only
-            'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number',
-            'ref_no' => 'nullable|string|max:255',
-            'so_date' => 'nullable|date',
-            'customer' => 'required|string|max:255',
-            'shipper' => 'nullable|string|max:255',
-            'bl_awb' => 'nullable|string|max:255',
-            'liner' => 'nullable|string|max:255',
-            'vessel' => 'nullable|string|max:255',
-            'eta' => 'nullable|date',
-            'etd' => 'nullable|date',
-            'aju' => 'nullable|string|max:255',
-            'sppb_date' => 'nullable|date',
-            'shipment_type' => 'nullable|string|max:255',
-            'pol' => 'nullable|string|max:255',
-            'pod' => 'nullable|string|max:255',
-            'gudang_utc' => 'nullable|string|max:255',
-            'party_lcl' => 'nullable|string|max:255',
-            'prepared_by' => 'nullable|string|max:255',
-            'exchange_rate' => 'nullable|numeric|min:0',
-            'vendor_breakdown' => 'nullable|array',
-            'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
-            'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
-            'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
-            'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
-            'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
-            'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
-            'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
-            'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
-            'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
+                // Required fields based on requirements only
+                'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number',
+                'ref_no' => 'nullable|string|max:255',
+                'so_date' => 'nullable|date',
+                'customer' => 'required|string|max:255',
+                'shipper' => 'nullable|string|max:255',
+                'bl_awb' => 'nullable|string|max:255',
+                'liner' => 'nullable|string|max:255',
+                'vessel' => 'nullable|string|max:255',
+                'eta' => 'nullable|date',
+                'etd' => 'nullable|date',
+                'aju' => 'nullable|string|max:255',
+                'sppb_date' => 'nullable|date',
+                'shipment_type' => 'nullable|string|max:255',
+                'pol' => 'nullable|string|max:255',
+                'pod' => 'nullable|string|max:255',
+                'gudang_utc' => 'nullable|string|max:255',
+                'party_lcl' => 'nullable|string|max:255',
+                'prepared_by' => 'nullable|string|max:255',
+                'exchange_rate' => 'nullable|numeric|min:0',
+                'vendor_breakdown' => 'nullable|array',
+                'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
+                'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
+                'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
+                'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
+                'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+                'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+                'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+                'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
+                'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
 
-            // Other costs validation
-            'other_costs' => 'nullable|array',
-            'other_costs.*.description' => 'required_with:other_costs|string|max:255',
-            'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
-            'other_costs.*.category' => 'nullable|string|max:100',
-            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
-            'remarks' => 'nullable|string',
-            'note' => 'nullable|string',
-            'commodity' => 'nullable|string',
-            'qty' => 'nullable|integer|min:0',
-            'package_unit' => 'nullable|exists:master_package_units,code',
-            'net_weight' => 'nullable|numeric|min:0',
-            'gross_weight' => 'nullable|numeric|min:0',
-            'measurement' => 'nullable|numeric|min:0',
-            'container_no' => 'nullable',
-            'invoice_number' => 'nullable|string|max:255',
-            'invoice_date' => 'nullable|date',
-            'top' => 'nullable|string|max:255',
-            
-            // Vendor details (multiple vendors support) - now optional
-            'vendor_details' => 'nullable|array',
-            'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
-            'vendor_details.*.deskripsi' => 'required_with:vendor_details|string|max:500',
-            'vendor_details.*.nominal' => 'required_with:vendor_details|numeric|min:0',
-            'vendor_details.*.no_rekening' => 'required_with:vendor_details|string|max:255',
-            'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
-            'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
-            'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
-            
-            // Voucher data
-            'payment_vouchers' => 'nullable|array',
-            'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
-            'payment_vouchers.*.date' => 'required_with:payment_vouchers|date',
-            'payment_vouchers.*.description' => 'required_with:payment_vouchers|string',
-            'payment_vouchers.*.amount' => 'required_with:payment_vouchers|numeric|min:0',
-            'payment_vouchers.*.prepared_by' => 'nullable|string|max:255',
-            'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
-            'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
-            'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
-            
-            'receipt_vouchers' => 'nullable|array',
-            'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
-            'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
-            'receipt_vouchers.*.description' => 'required_with:receipt_vouchers|string',
-            'receipt_vouchers.*.amount' => 'required_with:receipt_vouchers|numeric|min:0',
-            'receipt_vouchers.*.prepared_by' => 'nullable|string|max:255',
-            'receipt_vouchers.*.authorized_by' => 'nullable|string|max:255',
-            'receipt_vouchers.*.finance_by' => 'nullable|string|max:255',
-            'receipt_vouchers.*.receipt_by' => 'nullable|string|max:255',
+                // Other costs validation
+                'other_costs' => 'nullable|array',
+                'other_costs.*.description' => 'required_with:other_costs|string|max:255',
+                'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
+                'other_costs.*.category' => 'nullable|string|max:100',
+                'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
+                'remarks' => 'nullable|string',
+                'note' => 'nullable|string',
+                'commodity' => 'nullable|string',
+                'qty' => 'nullable|integer|min:0',
+                'package_unit' => 'nullable|exists:master_package_units,code',
+                'net_weight' => 'nullable|numeric|min:0',
+                'gross_weight' => 'nullable|numeric|min:0',
+                'measurement' => 'nullable|numeric|min:0',
+                'container_no' => 'nullable',
+                'invoice_number' => 'nullable|string|max:255',
+                'invoice_date' => 'nullable|date',
+                'top' => 'nullable|string|max:255',
 
-            // Reimbursement items validation
-            'reimbursement_items' => 'nullable|array',
-            'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
-            'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
-            'reimbursement_items.*.category' => 'nullable|string|max:100',
-            'reimbursement_items.*.notes' => 'nullable|string|max:500',
-            'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
-        ]);
+                // Vendor details (multiple vendors support) - now optional
+                'vendor_details' => 'nullable|array',
+                'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
+                'vendor_details.*.deskripsi' => 'required_with:vendor_details|string|max:500',
+                'vendor_details.*.nominal' => 'required_with:vendor_details|numeric|min:0',
+                'vendor_details.*.no_rekening' => 'required_with:vendor_details|string|max:255',
+                'vendor_details.*.nama_vendor' => 'required_with:vendor_details|string|max:255',
+                'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
+                'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
 
-        $validated['created_by'] = Auth::id();
+                // Voucher data
+                'payment_vouchers' => 'nullable|array',
+                'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
+                'payment_vouchers.*.date' => 'required_with:payment_vouchers|date',
+                'payment_vouchers.*.description' => 'required_with:payment_vouchers|string',
+                'payment_vouchers.*.amount' => 'required_with:payment_vouchers|numeric|min:0',
+                'payment_vouchers.*.prepared_by' => 'nullable|string|max:255',
+                'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
+                'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
+                'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
 
-        // Convert container_no string to array if needed
-        if (isset($validated['container_no']) && is_string($validated['container_no'])) {
-            $validated['container_no'] = [$validated['container_no']];
-        }
+                'receipt_vouchers' => 'nullable|array',
+                'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
+                'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
+                'receipt_vouchers.*.description' => 'required_with:receipt_vouchers|string',
+                'receipt_vouchers.*.amount' => 'required_with:receipt_vouchers|numeric|min:0',
+                'receipt_vouchers.*.prepared_by' => 'nullable|string|max:255',
+                'receipt_vouchers.*.authorized_by' => 'nullable|string|max:255',
+                'receipt_vouchers.*.finance_by' => 'nullable|string|max:255',
+                'receipt_vouchers.*.receipt_by' => 'nullable|string|max:255',
 
-        // Set legacy fields for backward compatibility
-        $validated['so_number'] = $validated['order_number'];
-        $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
-        $validated['customer_name'] = $validated['customer'];
-        $validated['customer_address'] = 'N/A';
-        $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
-        $validated['shipping_address'] = 'N/A';
-        $validated['service_description'] = 'Sales Order';
-        // Calculate totals from vendor breakdown
-        $totalSelling = 0;
-        $totalBuying = 0;
-        
-        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
-            foreach ($validated['vendor_breakdown'] as $item) {
-                $totalBuying += floatval($item['buying_amount'] ?? 0);
-                $totalSelling += floatval($item['selling_amount'] ?? 0);
+                // Reimbursement items validation
+                'reimbursement_items' => 'nullable|array',
+                'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
+                'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+                'reimbursement_items.*.category' => 'nullable|string|max:100',
+                'reimbursement_items.*.notes' => 'nullable|string|max:500',
+                'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
+            ]);
+
+            $validated['created_by'] = Auth::id();
+
+            // Convert container_no string to array if needed
+            if (isset($validated['container_no']) && is_string($validated['container_no'])) {
+                $validated['container_no'] = [$validated['container_no']];
             }
-        }
-        
-        $validated['total_selling'] = $totalSelling;
-        $validated['total_buying'] = $totalBuying;
-        $validated['total_revenue'] = $totalSelling - $totalBuying;
-        $validated['total_amount'] = $totalSelling;
-        $validated['status'] = 'draft';
 
-        // Prepare multiple vendors data for storage
-        $vendorDetails = $validated['vendor_details'] ?? [];
-        unset($validated['vendor_details']); // Remove vendor_details from main validated data
-        $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
+            // Set legacy fields for backward compatibility
+            $validated['so_number'] = $validated['order_number'];
+            $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
+            $validated['customer_name'] = $validated['customer'];
+            $validated['customer_address'] = 'N/A';
+            $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
+            $validated['shipping_address'] = 'N/A';
+            $validated['service_description'] = 'Sales Order';
+            // Calculate totals from vendor breakdown
+            $totalSelling = 0;
+            $totalBuying = 0;
 
-        // Auto-generate order number if empty or not provided
-        if (empty($validated['order_number'])) {
-            $validated['order_number'] = SalesOrder::generateOrderNumber();
-        }
+            if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+                foreach ($validated['vendor_breakdown'] as $item) {
+                    $totalBuying += floatval($item['buying_amount'] ?? 0);
+                    $totalSelling += floatval($item['selling_amount'] ?? 0);
+                }
+            }
 
-        // Remove voucher data and reimbursement items from sales order data
-        $paymentVouchers = $validated['payment_vouchers'] ?? [];
-        $receiptVouchers = $validated['receipt_vouchers'] ?? [];
-        $reimbursementItems = $validated['reimbursement_items'] ?? [];
-        unset($validated['payment_vouchers'], $validated['receipt_vouchers'], $validated['reimbursement_items']);
+            $validated['total_selling'] = $totalSelling;
+            $validated['total_buying'] = $totalBuying;
+            $validated['total_revenue'] = $totalSelling - $totalBuying;
+            $validated['total_amount'] = $totalSelling;
+            $validated['status'] = 'draft';
+
+            // Prepare multiple vendors data for storage
+            $vendorDetails = $validated['vendor_details'] ?? [];
+            unset($validated['vendor_details']); // Remove vendor_details from main validated data
+            $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
+
+            // Auto-generate order number if empty or not provided
+            if (empty($validated['order_number'])) {
+                $validated['order_number'] = SalesOrder::generateOrderNumber();
+            }
+
+            // Remove voucher data and reimbursement items from sales order data
+            $paymentVouchers = $validated['payment_vouchers'] ?? [];
+            $receiptVouchers = $validated['receipt_vouchers'] ?? [];
+            $reimbursementItems = $validated['reimbursement_items'] ?? [];
+            unset($validated['payment_vouchers'], $validated['receipt_vouchers'], $validated['reimbursement_items']);
 
 
-        $salesOrder = SalesOrder::create($validated);
+            $salesOrder = SalesOrder::create($validated);
 
 
-        // Create vouchers
-        $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
-        $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
+            // Create vouchers
+            $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
+            $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
 
-        // Create reimbursement items
-        $this->createReimbursementItems($salesOrder, $reimbursementItems);
+            // Create reimbursement items
+            $this->createReimbursementItems($salesOrder, $reimbursementItems);
 
 
-        return redirect()
-            ->route('admin-cs.sales-orders.index')
-            ->with('success', 'Sales Order berhasil dibuat.');
-            
+            return redirect()
+                ->route('admin-cs.sales-orders.index')
+                ->with('success', 'Sales Order berhasil dibuat.');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput()
                 ->with('error', 'Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan.');
-                
+
         } catch (\Exception $e) {
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat menyimpan sales order. Silakan coba lagi atau hubungi administrator.');
@@ -290,7 +290,7 @@ class SalesOrderController extends Controller
             ->get();
 
         $serviceTypes = \App\Models\MasterServiceType::active()
-            ->select('id', 'code', 'name', 'description')
+            ->select('id', 'code', 'description')
             ->ordered()
             ->get();
 
@@ -370,7 +370,7 @@ class SalesOrderController extends Controller
             'invoice_number' => 'nullable|string|max:255',
             'invoice_date' => 'nullable|date',
             'top' => 'nullable|string|max:255',
-            
+
             // Vendor details (multiple vendors support) - now optional
             'vendor_details' => 'nullable|array',
             'vendor_details.*.vendor_id' => 'required_with:vendor_details|exists:vendors,id',
@@ -411,14 +411,14 @@ class SalesOrderController extends Controller
         // Calculate totals from vendor breakdown
         $totalSelling = 0;
         $totalBuying = 0;
-        
+
         if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $totalBuying += floatval($item['buying_amount'] ?? 0);
                 $totalSelling += floatval($item['selling_amount'] ?? 0);
             }
         }
-        
+
         $validated['total_selling'] = $totalSelling;
         $validated['total_buying'] = $totalBuying;
         $validated['total_revenue'] = $totalSelling - $totalBuying;
@@ -464,7 +464,7 @@ class SalesOrderController extends Controller
         // Validate required fields before release
         $requiredFields = ['order_number', 'customer'];
         $missingFields = [];
-        
+
         foreach ($requiredFields as $field) {
             if (empty($salesOrder->$field)) {
                 $missingFields[] = $field;
@@ -481,7 +481,7 @@ class SalesOrderController extends Controller
             'released_at' => now(),
             'released_by' => Auth::id(),
         ]);
-        
+
         // Release all vouchers associated with this sales order
         $unreleasedVouchers = $salesOrder->vouchers()->where('status', \App\Models\Voucher::STATUS_DRAFT)->get();
         foreach ($unreleasedVouchers as $voucher) {
@@ -490,7 +490,7 @@ class SalesOrderController extends Controller
                 'released_at' => now(),
             ]);
         }
-        
+
         // Log successful release for debugging
         \Log::info('CS Sales Order Released Successfully', [
             'sales_order_id' => $salesOrder->id,
@@ -604,7 +604,7 @@ class SalesOrderController extends Controller
     public function releaseVouchers(SalesOrder $salesOrder)
     {
         $unreleasedVouchers = $salesOrder->vouchers()->where('status', Voucher::STATUS_DRAFT)->get();
-        
+
         foreach ($unreleasedVouchers as $voucher) {
             $voucher->update([
                 'status' => Voucher::STATUS_RELEASED,
@@ -643,7 +643,7 @@ class SalesOrderController extends Controller
                 // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
                 $vendorId = null;
                 if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
-                    $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
+                    $vendorId = is_numeric($item['vendor_id']) ? (int) $item['vendor_id'] : null;
                 }
 
                 ReimbursementItem::create([
@@ -676,7 +676,7 @@ class SalesOrderController extends Controller
                 // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
                 $vendorId = null;
                 if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
-                    $vendorId = is_numeric($item['vendor_id']) ? (int)$item['vendor_id'] : null;
+                    $vendorId = is_numeric($item['vendor_id']) ? (int) $item['vendor_id'] : null;
                 }
 
                 ReimbursementItem::create([
@@ -762,38 +762,41 @@ class SalesOrderController extends Controller
      */
     private function normalizeIndonesianNumber($value)
     {
-        if (!$value) {
+        if ($value === null || $value === '') {
             return $value;
         }
 
-        $value = trim($value);
-
-        // Handle Indonesian format
-        if (strpos($value, '.') !== false && strpos($value, ',') !== false) {
-            // Format: 2.500,50 (dot = thousand separator, comma = decimal)
-            $value = str_replace('.', '', $value);
-            $value = str_replace(',', '.', $value);
-        } elseif (strpos($value, '.') !== false && strpos($value, ',') === false) {
-            // Could be: 2.500 (thousand) or 2500.50 (decimal)
-            $parts = explode('.', $value);
-            if (count($parts) === 2) {
-                $decimalPart = $parts[1];
-                // If decimal part has 3+ digits or is > 99, treat as thousand separator
-                if (strlen($decimalPart) >= 3 || intval($decimalPart) >= 100 || strlen($parts[0]) >= 2) {
-                    // Likely thousand separator: 2.500 or 12.500
-                    $value = str_replace('.', '', $value);
-                }
-                // Otherwise keep as decimal: 25.50
-            } else {
-                // Multiple dots, treat as thousand separators: 1.000.500
-                $value = str_replace('.', '', $value);
-            }
-        } elseif (strpos($value, ',') !== false) {
-            // Format: 2500,50 (comma as decimal)
-            $value = str_replace(',', '.', $value);
+        // Sudah numeric -> kembalikan apa adanya (menghindari "2.0000" jadi 20000)
+        if (is_numeric($value)) {
+            return $value;
         }
 
+        $value = trim((string) $value);
+
+        $hasDot = strpos($value, '.') !== false;
+        $hasComma = strpos($value, ',') !== false;
+
+        if ($hasDot && $hasComma) {
+            // "2.500,50" -> "2500.50"
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+            return $value;
+        }
+
+        if (!$hasDot && $hasComma) {
+            // "2500,50" -> "2500.50"
+            return str_replace(',', '.', $value);
+        }
+
+        if ($hasDot && !$hasComma) {
+            // HANYA titik -> anggap TITIK = DESIMAL (JANGAN dihapus)
+            // "2.0000" harus tetap "2.0000"
+            return $value;
+        }
+
+        // Tidak ada titik/koma
         return $value;
     }
+
 
 }

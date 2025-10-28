@@ -278,7 +278,7 @@ class SalesOrderController extends Controller
             ->get();
 
         $serviceTypes = \App\Models\MasterServiceType::active()
-            ->select('id', 'code', 'name', 'description')
+            ->select('id', 'code', 'description')
             ->ordered()
             ->get();
 
@@ -515,7 +515,7 @@ class SalesOrderController extends Controller
             ->get();
 
         $serviceTypes = \App\Models\MasterServiceType::active()
-            ->select('id', 'code', 'name', 'description')
+            ->select('id', 'code', 'description')
             ->ordered()
             ->get();
 
