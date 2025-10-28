@@ -289,6 +289,11 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        $serviceTypes = \App\Models\MasterServiceType::active()
+            ->select('id', 'code', 'name', 'description')
+            ->ordered()
+            ->get();
+
         $operationalCostCategories = \App\Models\OperationalCostCategory::active()
             ->select('id', 'name', 'description')
             ->orderBy('name')
@@ -301,6 +306,7 @@ class SalesOrderController extends Controller
             'salesOrder' => $salesOrder,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
+            'serviceTypes' => $serviceTypes,
             'operationalCostCategories' => $operationalCostCategories,
             'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
         ]);
