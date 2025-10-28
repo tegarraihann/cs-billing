@@ -1,36 +1,40 @@
 <template>
-    <AdminLayout>
-        <div class="p-4 sm:p-6 lg:p-8">
-            <!-- Header Section -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-sage-600 rounded-full flex items-center justify-center mr-4">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+    <AdminCSLayout>
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="bg-white shadow rounded-lg mb-6">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-sage-800 rounded-full flex items-center justify-center mr-4">
+                                    <Plus class="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 class="text-2xl font-semibold text-gray-900">Buat Sales Order Baru</h1>
+                                    <p class="mt-1 text-sm text-gray-600">Buat dokumen sales order untuk pelanggan</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 sm:mt-0 flex space-x-3">
+                                <Link :href="route('admin-cs.sales-orders.index')"
+                                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                    <ArrowLeft class="mr-2 h-4 w-4" />
+                                    Kembali
+                                </Link>
+                            </div>
                         </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-sage-800">Buat Sales Order Baru</h2>
-                            <p class="text-sage-600">Buat dokumen sales order untuk pelanggan</p>
-                        </div>
-                    </div>
-                    <div class="mt-4 sm:mt-0">
-                        <Link :href="route('admin-cs.sales-orders.index')"
-                            class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Kembali
-                        </Link>
                     </div>
                 </div>
-            </div>
 
-            <!-- Form Section -->
-            <form @submit.prevent="submit" class="space-y-6">
+                <!-- Form Container -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Form Sales Order Baru</h3>
+                        <p class="mt-1 text-sm text-gray-600">Lengkapi informasi sales order dengan benar</p>
+                    </div>
+
+                    <div class="p-6">
+                        <form @submit.prevent="submit" class="space-y-6">
                 <!-- Customer Selection -->
                 <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-visible">
                     <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
@@ -73,11 +77,8 @@
                     <div @click="toggleSection('basic')"
                         class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
                         <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
-                        <svg :class="{ 'rotate-180': !sections.basic }"
-                            class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown :class="{ 'rotate-180': !sections.basic }"
+                            class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                     </div>
                     <div v-show="sections.basic" class="p-6 space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -128,11 +129,8 @@
                     <div @click="toggleSection('shipping')"
                         class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
                         <h3 class="text-lg font-semibold text-sage-800">Informasi Pengiriman</h3>
-                        <svg :class="{ 'rotate-180': !sections.shipping }"
-                            class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown :class="{ 'rotate-180': !sections.shipping }"
+                            class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                     </div>
                     <div v-show="sections.shipping" class="p-6 space-y-4">
                         <div>
@@ -239,11 +237,8 @@
                     <div @click="toggleSection('pricing')"
                         class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
                         <h3 class="text-lg font-semibold text-sage-800">Informasi Pricing</h3>
-                        <svg :class="{ 'rotate-180': !sections.pricing }"
-                            class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown :class="{ 'rotate-180': !sections.pricing }"
+                            class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                     </div>
                     <div v-show="sections.pricing" class="p-6 space-y-6">
 
@@ -387,10 +382,7 @@
                                 class="flex justify-center mt-6 pt-4 border-t border-gray-200">
                                 <button type="button" @click="addVendorItem"
                                     class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
+                                    <Plus class="w-4 h-4 mr-2" />
                                     Tambah Vendor Lagi
                                 </button>
                             </div>
@@ -493,12 +485,7 @@
                                             <button type="button" @click="removeOtherCost(index)"
                                                 class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
                                                 :disabled="form.other_costs.length <= 1">
-                                                <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
+                                                <Trash2 class="w-4 h-4 mx-auto" />
                                             </button>
                                         </div>
                                     </div>
@@ -517,10 +504,7 @@
                                 <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
                                     <button type="button" @click="addOtherCost"
                                         class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
+                                        <Plus class="w-4 h-4 mr-2" />
                                         Tambah Biaya Lagi
                                     </button>
                                 </div>
@@ -593,12 +577,7 @@
                                         <div class="col-span-1 flex items-end">
                                             <button type="button" @click="removeReimbursementItem(index)"
                                                 class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
+                                                <Trash2 class="w-4 h-4 mx-auto" />
                                             </button>
                                         </div>
                                     </div>
@@ -626,10 +605,7 @@
                                 <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
                                     <button type="button" @click="addReimbursementItem"
                                         class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
+                                        <Plus class="w-4 h-4 mr-2" />
                                         Tambah Reimbursement Lagi
                                     </button>
                                 </div>
@@ -664,11 +640,8 @@
                     <div @click="toggleSection('goods')"
                         class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
                         <h3 class="text-lg font-semibold text-sage-800">Informasi Barang</h3>
-                        <svg :class="{ 'rotate-180': !sections.goods }"
-                            class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown :class="{ 'rotate-180': !sections.goods }"
+                            class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                     </div>
                     <div v-show="sections.goods" class="p-6 space-y-4">
                         <div>
@@ -754,10 +727,7 @@
                                 class="flex justify-center mt-4 pt-4 border-t border-sage-200">
                                 <button type="button" @click="addContainerNo"
                                     class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
+                                    <Plus class="w-4 h-4 mr-2" />
                                     Tambah Container Lagi
                                 </button>
                             </div>
@@ -770,11 +740,8 @@
                     <div @click="toggleSection('invoice')"
                         class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
                         <h3 class="text-lg font-semibold text-sage-800">Informasi Invoice</h3>
-                        <svg :class="{ 'rotate-180': !sections.invoice }"
-                            class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown :class="{ 'rotate-180': !sections.invoice }"
+                            class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                     </div>
                     <div v-show="sections.invoice" class="p-6 space-y-4">
                         <div>
@@ -806,11 +773,8 @@
                     <div @click="toggleSection('voucher')"
                         class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
                         <h3 class="text-lg font-semibold text-sage-800">Voucher Management</h3>
-                        <svg :class="{ 'rotate-180': !sections.voucher }"
-                            class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown :class="{ 'rotate-180': !sections.voucher }"
+                            class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                     </div>
                     <div v-show="sections.voucher" class="p-6 space-y-6">
 
@@ -820,10 +784,7 @@
                                 <h4 class="text-md font-semibold text-sage-700">Payment Vouchers</h4>
                                 <button type="button" @click="addPaymentVoucher"
                                     class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
+                                    <Plus class="w-4 h-4 mr-1" />
                                     Add Payment
                                 </button>
                             </div>
@@ -839,10 +800,7 @@
                                     <h5 class="font-medium text-gray-700">Payment Voucher #{{ index + 1 }}</h5>
                                     <button type="button" @click="removePaymentVoucher(index)"
                                         class="text-red-600 hover:text-red-800">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <Trash2 class="w-4 h-4" />
                                     </button>
                                 </div>
 
@@ -888,10 +846,7 @@
                                 class="flex justify-center mt-6 pt-4 border-t border-blue-200">
                                 <button type="button" @click="addPaymentVoucher"
                                     class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
+                                    <Plus class="w-4 h-4 mr-2" />
                                     Add Payment Lagi
                                 </button>
                             </div>
@@ -903,10 +858,7 @@
                                 <h4 class="text-md font-semibold text-sage-700">Receipt Vouchers</h4>
                                 <button type="button" @click="addReceiptVoucher"
                                     class="inline-flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
+                                    <Plus class="w-4 h-4 mr-1" />
                                     Add Receipt
                                 </button>
                             </div>
@@ -922,10 +874,7 @@
                                     <h5 class="font-medium text-gray-700">Receipt Voucher #{{ index + 1 }}</h5>
                                     <button type="button" @click="removeReceiptVoucher(index)"
                                         class="text-red-600 hover:text-red-800">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <Trash2 class="w-4 h-4" />
                                     </button>
                                 </div>
 
@@ -971,10 +920,7 @@
                                 class="flex justify-center mt-6 pt-4 border-t border-green-200">
                                 <button type="button" @click="addReceiptVoucher"
                                     class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
+                                    <Plus class="w-4 h-4 mr-2" />
                                     Add Receipt Lagi
                                 </button>
                             </div>
@@ -986,11 +932,11 @@
                 <!-- Submit Buttons -->
                 <div class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
                     <Link :href="route('admin-cs.sales-orders.index')"
-                        class="inline-flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                    Batal
+                        class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Batal
                     </Link>
                     <button type="submit" :disabled="form.processing"
-                        class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        class="inline-flex items-center justify-center px-6 py-2 bg-sage-800 text-white rounded-lg hover:bg-sage-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                         <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none"
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -1004,21 +950,25 @@
                     </button>
                 </div>
             </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Alert Dialog -->
         <AlertDialog :show="alertDialog.show" :type="alertDialog.type" :title="alertDialog.title"
             :message="alertDialog.message" :confirm-text="alertDialog.confirmText" :cancel-text="alertDialog.cancelText"
             @confirm="handleAlertConfirm" @cancel="handleAlertCancel" @close="closeAlert" />
-    </AdminLayout>
+    </AdminCSLayout>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
-import AdminLayout from "@/Layouts/AdminLayout.vue";
+import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
 import SearchableSelect from "@/Components/SearchableSelect.vue";
+import { Plus, ArrowLeft, ChevronDown, Trash2 } from "lucide-vue-next";
 
 const props = defineProps({
     customers: Array,
@@ -1463,23 +1413,27 @@ const submit = () => {
 <style scoped>
 /* Custom Sage Colors */
 .text-sage-600 {
-    color: #8db580;
+    color: #4b5563;
 }
 
 .text-sage-700 {
-    color: #7ba169;
+    color: #374151;
 }
 
 .text-sage-800 {
-    color: #6b8f5e;
+    color: #1f2937;
+}
+
+.text-sage-500 {
+    color: #6b7280;
 }
 
 .bg-sage-50 {
-    background-color: #f4f6f3;
+    background-color: #f9fafb;
 }
 
 .bg-sage-100 {
-    background-color: #e8ede4;
+    background-color: #f3f4f6;
 }
 
 .bg-sage-600 {
@@ -1490,20 +1444,32 @@ const submit = () => {
     background-color: #7ba169;
 }
 
+.bg-sage-800 {
+    background-color: #6b8f5e;
+}
+
+.bg-sage-900 {
+    background-color: #5a7a4f;
+}
+
 .border-sage-200 {
-    border-color: #d4ddd0;
+    border-color: #e5e7eb;
 }
 
 .border-sage-300 {
-    border-color: #c0cdb8;
+    border-color: #d1d5db;
 }
 
 .hover\:bg-sage-100:hover {
-    background-color: #e8ede4;
+    background-color: #f3f4f6;
 }
 
 .hover\:bg-sage-700:hover {
     background-color: #7ba169;
+}
+
+.hover\:bg-sage-900:hover {
+    background-color: #5a7a4f;
 }
 
 .focus\:ring-sage-500:focus {
