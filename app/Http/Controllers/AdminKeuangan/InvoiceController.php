@@ -9,6 +9,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
 use App\Models\OperationalCostCategory;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -352,19 +353,17 @@ class InvoiceController extends Controller
                 'is_hidden_from_customer' => $isHiddenFromCustomer
             ];
 
-            // Add vendor_id for operational costs if provided
-            if ($itemType === 'operational_cost' && isset($item['vendor_id']) && $item['vendor_id'] !== null) {
-                $invoiceItemData['vendor_id'] = $item['vendor_id'];
+            // Persist vendor information when provided
+            if (isset($item['vendor_id']) && $item['vendor_id'] !== null && $item['vendor_id'] !== '') {
+                $invoiceItemData['vendor_id'] = (int) $item['vendor_id'];
             }
 
             InvoiceItem::create($invoiceItemData);
 
             if ($itemType === 'reimbursement') {
                 $itemRef = strtolower(trim($item['item_ref'] ?? ''));
-                if ($itemRef) {
-                    if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
-                        $linkedReimbursementItemIds[] = (int) $matches[1];
-                    }
+                if ($itemRef && preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
+                    $linkedReimbursementItemIds[] = (int) $matches[1];
                 }
             }
         }
@@ -541,7 +540,27 @@ class InvoiceController extends Controller
 
     public function edit(Invoice $invoice)
     {
-        $invoice->load(['salesOrder', 'customer', 'items']);
+        $invoice->load(['salesOrder.reimbursementItems', 'customer', 'items']);
+
+        // Prefill vendor_id on reimbursement items from linked reimbursement records when missing
+        $reimbursementMap = optional($invoice->salesOrder)->reimbursementItems
+            ? $invoice->salesOrder->reimbursementItems->keyBy('id')
+            : collect();
+
+        if ($reimbursementMap->isNotEmpty()) {
+            $invoice->items = $invoice->items->map(function (InvoiceItem $item) use ($reimbursementMap) {
+                if (!$item->vendor_id && $item->item_type === 'reimbursement' && $item->item_ref) {
+                    if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $item->item_ref, $matches)) {
+                        $reimbId = (int) $matches[1];
+                        $reimb = $reimbursementMap->get($reimbId);
+                        if ($reimb && $reimb->vendor_id) {
+                            $item->vendor_id = (int) $reimb->vendor_id;
+                        }
+                    }
+                }
+                return $item;
+            });
+        }
 
         $salesOrders = SalesOrder::with('customer')
             ->where('status', 'approved')
@@ -551,10 +570,15 @@ class InvoiceController extends Controller
             })
             ->get();
 
+        $vendors = Vendor::select('id', 'nama_vendor', 'nomor_rekening', 'nama_rekening')
+            ->orderBy('nama_vendor')
+            ->get();
+
         return Inertia::render('Admin/AdminKeuangan/Invoices/Edit', [
             'invoice' => $invoice,
             'salesOrders' => $salesOrders,
-            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits()
+            'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
+            'vendors' => $vendors,
         ]);
     }
 
@@ -587,7 +611,8 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit' => 'required|string|max:50',
             'items.*.rate' => 'required|numeric|min:0',
-            'items.*.currency' => 'required|string|max:3',
+              'items.*.currency' => 'required|string|max:3',
+              'items.*.vendor_id' => 'nullable|exists:vendors,id',
             'items.*.item_ref' => 'nullable|string|max:100',
             'down_payment_amount' => 'nullable|numeric|min:0',
             'down_payment_date' => 'nullable|date',
@@ -633,8 +658,16 @@ class InvoiceController extends Controller
         // Create new items
         foreach ($validated['items'] as $item) {
             $amount = $item['quantity'] * $item['rate'];
+            $itemType = $item['item_type'] ?? 'billable';
+            $includeInCustomerInvoice = $item['include_in_customer_invoice'] ?? true;
+            $isHiddenFromCustomer = $item['is_hidden_from_customer'] ?? false;
 
-            $createdItem = InvoiceItem::create([
+            if ($itemType === 'operational_cost') {
+                $includeInCustomerInvoice = false;
+                $isHiddenFromCustomer = true;
+            }
+
+            $invoiceItemData = [
                 'invoice_id' => $invoice->id,
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
@@ -642,12 +675,23 @@ class InvoiceController extends Controller
                 'rate' => $item['rate'],
                 'currency' => $item['currency'],
                 'amount' => $amount,
-                'item_ref' => $item['item_ref'] ?? null
-            ]);
+                'item_ref' => $item['item_ref'] ?? null,
+                'item_type' => $itemType,
+                'include_in_customer_invoice' => $includeInCustomerInvoice,
+                'is_hidden_from_customer' => $isHiddenFromCustomer,
+            ];
 
-            $itemRef = strtolower(trim($item['item_ref'] ?? ''));
-            if ($itemRef && preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
-                $linkedReimbursementItemIds[] = (int) $matches[1];
+            if (isset($item['vendor_id']) && $item['vendor_id'] !== null && $item['vendor_id'] !== '') {
+                $invoiceItemData['vendor_id'] = (int) $item['vendor_id'];
+            }
+
+            InvoiceItem::create($invoiceItemData);
+
+            if ($itemType === 'reimbursement') {
+                $itemRef = strtolower(trim($item['item_ref'] ?? ''));
+                if ($itemRef && preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
+                    $linkedReimbursementItemIds[] = (int) $matches[1];
+                }
             }
         }
 
@@ -753,6 +797,7 @@ class InvoiceController extends Controller
                     'amount' => $reimbursementItem->amount,
                     'item_ref' => 'reimbursement_' . $reimbursementItem->id,
                     'item_type' => 'reimbursement',
+                    'vendor_id' => vendor_id,
                     'include_in_customer_invoice' => true,
                     'is_hidden_from_customer' => false
                 ]);
@@ -1531,6 +1576,10 @@ class InvoiceController extends Controller
             // Get operational costs and reimbursement items from invoice
             $allItems = $invoice->items()
                 ->whereIn('item_type', ['operational_cost', 'reimbursement'])
+                ->where(function ($query) {
+                    $query->whereNull('item_ref')
+                          ->orWhere('item_ref', 'not like', 'cogs_vendor_%');
+                })
                 ->with('vendor')
                 ->get();
 

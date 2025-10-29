@@ -543,6 +543,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/create', 'create')->name('create');
         Route::get('/payment-history', 'paymentHistory')->name('payment-history');
         Route::get('/overdue-report', 'overdueReport')->name('overdue-report');
+        Route::get('/profit-loss-periods', 'getProfitLossPeriods')->name('profit-loss-periods');
         Route::post('/', 'store')->name('store');
         Route::get('/{invoice}', 'show')->name('show');
         Route::get('/{invoice}/edit', 'edit')->name('edit');
@@ -565,7 +566,6 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{invoice}/post-to-profit-loss', 'postToProfitLoss')->name('post-to-profit-loss');
         Route::delete('/{invoice}/unpost-from-profit-loss', 'unpostFromProfitLoss')->name('unpost-from-profit-loss');
         Route::post('/{invoice}/fix-operational-costs', 'fixOperationalCosts')->name('fix-operational-costs');
-        Route::get('/profit-loss-periods', 'getProfitLossPeriods')->name('profit-loss-periods');
     });
 
     // Expense Template Management Routes for Admin Keuangan

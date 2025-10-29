@@ -1033,7 +1033,7 @@
               >
                 <option value="">Pilih Periode...</option>
                 <option v-for="period in profitLossPeriods" :key="period.id" :value="period.id">
-                  {{ period.name }} ({{ period.start_date }} - {{ period.end_date }})
+                  {{ formatPeriodLabel(period) }}
                 </option>
               </select>
               <p class="text-xs text-gray-500 mt-1">
@@ -1165,6 +1165,23 @@ const route = window.route || function(name, params) {
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('id-ID');
+};
+
+const formatPeriodLabel = (period) => {
+  if (!period || typeof period !== 'object') {
+    return 'Periode';
+  }
+
+  const name =
+    period.period_name ||
+    period.name ||
+    period.period_code ||
+    `Periode ${period.id ?? ''}`.trim();
+
+  const start = period.start_date ? formatDate(period.start_date) : '-';
+  const end = period.end_date ? formatDate(period.end_date) : '-';
+
+  return `${name} (${start} - ${end})`;
 };
 
 const formatNumber = (number) => {
@@ -1623,12 +1640,25 @@ const shouldShowProfitLossButton = computed(() => {
 // Method untuk load profit loss periods
 const loadProfitLossPeriods = async () => {
   try {
-    const response = await fetch(route('admin-keuangan.invoices.profit-loss-periods'));
+    const response = await fetch(route('admin-keuangan.invoices.profit-loss-periods'), {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const data = await response.json();
-    profitLossPeriods.value = data.periods || [];
-    profitLossAccounts.value = data.accounts || [];
+    profitLossPeriods.value = Array.isArray(data) ? data : (data.periods || []);
+    profitLossAccounts.value = (!Array.isArray(data) && data.accounts) ? data.accounts : [];
   } catch (error) {
     console.error('Error loading profit loss periods:', error);
+    profitLossPeriods.value = [];
+    profitLossAccounts.value = [];
   }
 };
 
@@ -1652,7 +1682,7 @@ const unpostFromProfitLoss = () => {
   if (confirm('Apakah Anda yakin ingin membatalkan posting ke laba rugi?')) {
     processing.value = true;
 
-    router.post(route('admin-keuangan.invoices.unpost-from-profit-loss', props.invoice.id), {}, {
+    router.delete(route('admin-keuangan.invoices.unpost-from-profit-loss', props.invoice.id), {
       onSuccess: () => {
         processing.value = false;
       },

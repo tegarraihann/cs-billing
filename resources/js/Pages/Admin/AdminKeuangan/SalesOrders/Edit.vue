@@ -202,13 +202,6 @@
                                             form.errors.party_lcl }}</div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-sage-700 mb-2">PREPARED BY</label>
-                                        <input v-model="form.prepared_by" type="text"
-                                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
-                                        <div v-if="form.errors.prepared_by" class="mt-2 text-sm text-red-600">{{
-                                            form.errors.prepared_by }}</div>
-                                    </div>
-                                    <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">EXCHANGE
                                             RATE</label>
                                         <input v-model="form.exchange_rate" type="number" step="0.0001"
@@ -825,13 +818,14 @@ const initializeOtherCosts = () => {
 const reimbursementItems = ref(
     props.salesOrder.reimbursement_items && props.salesOrder.reimbursement_items.length > 0
         ? props.salesOrder.reimbursement_items.map(item => ({
+            id: item.id || null,
             description: item.description || "",
             amount: item.amount || 0,
             category: item.category || "",
             notes: item.notes || "",
-            vendor_id: item.vendor_id || ""
+            vendor_id: item.vendor_id ?? ""
         }))
-        : [{ description: "", amount: 0, category: "", notes: "", vendor_id: "" }]
+        : [{ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "" }]
 );
 
 // Alert Dialog State
@@ -988,7 +982,7 @@ const removeOtherCost = (index) => {
 
 // Reimbursement management methods
 const addReimbursementItem = () => {
-    reimbursementItems.value.push({ description: "", amount: 0, category: "", notes: "", vendor_id: "" });
+    reimbursementItems.value.push({ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "" });
 };
 
 const removeReimbursementItem = (index) => {

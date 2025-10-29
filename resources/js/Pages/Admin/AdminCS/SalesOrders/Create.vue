@@ -1301,31 +1301,34 @@ const normalizeNumber = (value) => {
 
     let normalized = value.toString().trim();
 
-    // Handle Indonesian format
-    if (normalized.includes('.') && normalized.includes(',')) {
-        // Format: 2.500,50 (dot = thousand separator, comma = decimal)
+    // Hilangkan karakter selain digit, titik, dan koma
+    normalized = normalized.replace(/[^\d.,]/g, '');
+
+    const commaCount = (normalized.match(/,/g) || []).length;
+    const dotCount = (normalized.match(/\./g) || []).length;
+
+    if (commaCount > 1 && dotCount === 0) {
+        // Format internasional: 1,000,000
+        normalized = normalized.replace(/,/g, '');
+    } else if (dotCount > 1 && commaCount === 0) {
+        // Format Indonesia: 1.000.000
+        normalized = normalized.replace(/\./g, '');
+    } else if (commaCount > 0 && dotCount > 0) {
+        // Mixed -> anggap Indonesia (titik ribuan, koma desimal)
         normalized = normalized.replace(/\./g, '').replace(',', '.');
-    } else if (normalized.includes('.') && !normalized.includes(',')) {
-        // Could be: 2.500 (thousand) or 2500.50 (decimal)
-        const parts = normalized.split('.');
-        if (parts.length === 2) {
-            const decimalPart = parts[1];
-            // If decimal part has 3+ digits or is > 99, treat as thousand separator
-            if (decimalPart.length >= 3 || parseInt(decimalPart) >= 100 || parts[0].length >= 2) {
-                // Likely thousand separator: 2.500 or 12.500
-                normalized = normalized.replace(/\./g, '');
-            }
-            // Otherwise keep as decimal: 25.50
-        } else {
-            // Multiple dots, treat as thousand separators: 1.000.500
-            normalized = normalized.replace(/\./g, '');
-        }
-    } else if (normalized.includes(',')) {
-        // Format: 2500,50 (comma as decimal)
+    } else if (commaCount === 1 && dotCount === 0) {
         normalized = normalized.replace(',', '.');
     }
 
-    return parseFloat(normalized) || 0;
+    // Pastikan hanya satu titik desimal
+    if ((normalized.match(/\./g) || []).length > 1) {
+        const parts = normalized.split('.');
+        const decimal = parts.pop();
+        normalized = parts.join('') + (decimal ? '.' + decimal : '');
+    }
+
+    const parsed = parseFloat(normalized);
+    return Number.isNaN(parsed) ? 0 : parsed;
 };
 
 // Reimbursement items management

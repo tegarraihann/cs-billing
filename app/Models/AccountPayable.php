@@ -329,6 +329,10 @@ class AccountPayable extends Model
                 // Get operational cost items for this vendor
                 $operationalItems = $invoice->items()
                     ->where('item_type', 'operational_cost')
+                    ->where(function ($itemQuery) {
+                        $itemQuery->whereNull('item_ref')
+                                  ->orWhere('item_ref', 'not like', 'cogs_vendor_%');
+                    })
                     ->where(function ($q) {
                         if ($this->vendor_id) {
                             $q->where('vendor_id', $this->vendor_id);
