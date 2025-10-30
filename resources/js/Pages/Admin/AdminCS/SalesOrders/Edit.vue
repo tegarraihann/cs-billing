@@ -526,14 +526,14 @@
                                     <div v-for="(cost, index) in form.other_costs" :key="index"
                                         class="border border-orange-200 rounded-lg p-3 bg-white">
                                         <div class="grid grid-cols-12 gap-3">
-                                            <div class="col-span-5">
+                                            <div class="col-span-4">
                                                 <label class="block text-xs font-medium text-orange-700 mb-1">Deskripsi
                                                     Biaya</label>
                                                 <input v-model="cost.description" type="text"
                                                     placeholder="Contoh: Biaya handling, dokumen, dll"
                                                     class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                             </div>
-                                            <div class="col-span-3">
+                                            <div class="col-span-2">
                                                 <label class="block text-xs font-medium text-orange-700 mb-1">Jumlah
                                                     Biaya</label>
                                                 <input v-model="cost.amount" type="text"
@@ -541,7 +541,7 @@
                                                     @input="formatCostAmount(cost, $event)"
                                                     class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                             </div>
-                                            <div class="col-span-3">
+                                            <div class="col-span-2">
                                                 <label
                                                     class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
                                                 <select v-model="cost.category"
@@ -553,6 +553,21 @@
                                                         {{ category.name }}
                                                     </option>
                                                 </select>
+                                            </div>
+                                            <div class="col-span-3">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Vendor /
+                                                    Penerima</label>
+                                                <select v-model="cost.vendor_id"
+                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
+                                                    <option value="">-- Belum Ditentukan --</option>
+                                                    <option value="internal">-- Internal (Divisi Operational) --</option>
+                                                    <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                                        {{ vendor.nama_vendor }}
+                                                    </option>
+                                                </select>
+                                                <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah tahu akan
+                                                    dibayar ke siapa</p>
                                             </div>
                                             <div class="col-span-1 flex items-end">
                                                 <button type="button" @click="removeOtherCost(index)"
@@ -630,7 +645,7 @@
                                                     placeholder="0.00"
                                                     class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                             </div>
-                                            <div class="col-span-3">
+                                            <div class="col-span-2">
                                                 <label
                                                     class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
                                                 <select v-model="item.category"
@@ -648,17 +663,33 @@
                                                     <option value="general">Lain-lain</option>
                                                 </select>
                                             </div>
-                                            <div class="col-span-2">
+                                            <div class="col-span-3">
                                                 <label
-                                                    class="block text-xs font-medium text-purple-700 mb-1">Catatan</label>
-                                                <input v-model="item.notes" type="text" placeholder="Opsional"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Vendor /
+                                                    Penerima</label>
+                                                <select v-model="item.vendor_id"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
+                                                    <option value="">-- Belum Ditentukan --</option>
+                                                    <option value="internal">-- Internal (Divisi Operational) --</option>
+                                                    <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                                        {{ vendor.nama_vendor }}
+                                                    </option>
+                                                </select>
+                                                <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah tahu akan
+                                                    dibayar ke siapa</p>
                                             </div>
                                             <div class="col-span-1 flex items-end">
                                                 <button type="button" @click="removeReimbursementItem(index)"
                                                     class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-12 gap-3 mt-3">
+                                            <div class="col-span-12">
+                                                <label class="block text-xs font-medium text-purple-700 mb-1">Catatan</label>
+                                                <input v-model="item.notes" type="text" placeholder="Catatan tambahan (opsional)"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                             </div>
                                         </div>
                                     </div>
@@ -781,6 +812,36 @@ const initializeVendorBreakdown = () => {
     }];
 };
 
+const initializeOtherCosts = () => {
+    if (props.salesOrder.other_costs && Array.isArray(props.salesOrder.other_costs)) {
+        return props.salesOrder.other_costs.length > 0
+            ? props.salesOrder.other_costs.map(cost => ({
+                description: cost.description || '',
+                amount: cost.amount ?? 0,
+                category: cost.category || '',
+                vendor_id: cost.vendor_id ?? ''
+            }))
+            : [{ description: '', amount: 0, category: '', vendor_id: '' }];
+    }
+
+    return [{ description: '', amount: 0, category: '', vendor_id: '' }];
+};
+
+const initializeReimbursementItems = () => {
+    if (props.salesOrder.reimbursement_items && Array.isArray(props.salesOrder.reimbursement_items) && props.salesOrder.reimbursement_items.length > 0) {
+        return props.salesOrder.reimbursement_items.map(item => ({
+            id: item.id ?? null,
+            description: item.description || '',
+            amount: item.amount ?? 0,
+            category: item.category || '',
+            notes: item.notes || '',
+            vendor_id: item.vendor_id ?? ''
+        }));
+    }
+
+    return [{ id: null, description: '', amount: 0, category: '', notes: '', vendor_id: '' }];
+};
+
 const form = useForm({
     // Required fields based on requirements only
     order_number: props.salesOrder.order_number || "",
@@ -814,15 +875,11 @@ const form = useForm({
     invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : "",
     top: props.salesOrder.top || "",
     package_unit: props.salesOrder.package_unit || "",
-    other_costs: props.salesOrder.other_costs || [{ description: "", amount: 0, category: "" }]
+    other_costs: initializeOtherCosts()
 });
 
 // Initialize reimbursement items from props
-const reimbursementItems = ref(
-    props.salesOrder.reimbursement_items && props.salesOrder.reimbursement_items.length > 0
-        ? props.salesOrder.reimbursement_items
-        : [{ description: "", amount: 0, category: "", notes: "" }]
-);
+const reimbursementItems = ref(initializeReimbursementItems());
 
 const toggleSection = (section) => {
     sections.value[section] = !sections.value[section];
@@ -883,7 +940,8 @@ const addOtherCost = () => {
     form.other_costs.push({
         description: "",
         amount: 0,
-        category: ""
+        category: "",
+        vendor_id: ""
     });
 };
 
@@ -945,7 +1003,8 @@ const addReimbursementItem = () => {
         description: "",
         amount: 0,
         category: "",
-        notes: ""
+        notes: "",
+        vendor_id: ""
     });
 };
 
@@ -1061,12 +1120,18 @@ const submit = () => {
             buying_amount: parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0,
             selling_amount: parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0
         })),
+        other_costs: form.other_costs.map(cost => ({
+            description: cost.description || '',
+            amount: normalizeNumber(cost.amount),
+            category: cost.category || '',
+            vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
+        })),
         reimbursement_items: (reimbursementItems.value || []).map(it => ({
             description: it.description || '',
             amount: normalizeNumber(it.amount),    // pakai normalizermu
             category: it.category || '',
             notes: it.notes || '',
-            vendor_id: it.vendor_id ?? null,
+            vendor_id: it.vendor_id === '' ? null : it.vendor_id,
         })),
     };
 

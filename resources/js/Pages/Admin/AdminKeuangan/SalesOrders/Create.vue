@@ -518,7 +518,7 @@
                                             <div v-for="(cost, index) in form.other_costs" :key="index"
                                                 class="border border-orange-200 rounded-lg p-3 bg-white">
                                                 <div class="grid grid-cols-12 gap-3">
-                                                    <div class="col-span-5">
+                                                    <div class="col-span-4">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Deskripsi
                                                             Biaya</label>
@@ -526,7 +526,7 @@
                                                             placeholder="Contoh: Biaya handling, dokumen, dll"
                                                             class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Jumlah
                                                             Biaya</label>
@@ -534,7 +534,7 @@
                                                             placeholder="0"
                                                             class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
                                                         <select v-model="cost.category"
@@ -547,16 +547,26 @@
                                                             </option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-span-1 flex items-end">
+                                                    <div class="col-span-3">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Vendor /
+                                                            Penerima</label>
+                                                        <select v-model="cost.vendor_id"
+                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
+                                                            <option value="">-- Belum Ditentukan --</option>
+                                                            <option value="internal">-- Internal (Divisi Operational) --</option>
+                                                            <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                                                {{ vendor.nama_vendor }}
+                                                            </option>
+                                                        </select>
+                                                        <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah tahu akan
+                                                            dibayar ke siapa</p>
+                                                    </div>
+                                                    <div class="col-span-1 flex items-center justify-center">
                                                         <button type="button" @click="removeOtherCost(index)"
-                                                            class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                                                            class="w-full px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
                                                             :disabled="form.other_costs.length <= 1">
-                                                            <svg class="w-4 h-4 mx-auto" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
+                                                            <Trash2 class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -629,19 +639,19 @@
                                                             placeholder="Contoh: Transport, Akomodasi, dll"
                                                             class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Jumlah</label>
                                                         <input v-model="item.amount" type="number" min="0" step="0.01"
                                                             placeholder="0"
                                                             class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
                                                         <select v-model="item.category"
                                                             class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
-                                                            <option value="">Pilih kategori</option>
+                                                            <option value="">Pilih Kategori</option>
                                                             <option value="transport">Transport</option>
                                                             <option value="accommodation">Akomodasi</option>
                                                             <option value="meal">Makan</option>
@@ -654,15 +664,23 @@
                                                             <option value="general">Umum</option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-span-1 flex items-end">
+                                                    <div class="col-span-3">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Vendor / Penerima</label>
+                                                        <select v-model="item.vendor_id"
+                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
+                                                            <option value="">-- Belum Ditentukan --</option>
+                                                            <option value="internal">-- Internal (Divisi Operational) --</option>
+                                                            <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                                                {{ vendor.nama_vendor }}
+                                                            </option>
+                                                        </select>
+                                                        <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah tahu akan dibayar ke siapa</p>
+                                                    </div>
+                                                    <div class="col-span-1 flex items-center justify-center">
                                                         <button type="button" @click="removeReimbursementItem(index)"
-                                                            class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                            <svg class="w-4 h-4 mx-auto" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
+                                                            class="w-full px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
+                                                            <Trash2 class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1109,7 +1127,7 @@ import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
 import SearchableSelect from "@/Components/SearchableSelect.vue";
-import { Plus, ArrowLeft, LoaderCircle, CheckCircle } from 'lucide-vue-next';
+import { Plus, ArrowLeft, LoaderCircle, CheckCircle, Trash2 } from 'lucide-vue-next';
 
 const props = defineProps({
     customers: Array,
@@ -1153,7 +1171,7 @@ const customerOptions = computed(() => {
 // Voucher data
 const paymentVouchers = ref([]);
 const receiptVouchers = ref([]);
-const reimbursementItems = ref([]);
+const reimbursementItems = ref([{ description: '', amount: 0, category: '', notes: '', vendor_id: '' }]);
 
 // Collapseable sections state
 const sections = ref({
@@ -1189,7 +1207,7 @@ const form = useForm({
     prepared_by: "",
     exchange_rate: "",
     vendor_breakdown: [{ vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
-    other_costs: [],
+    other_costs: [{ description: '', amount: 0, category: '', vendor_id: '' }],
     remarks: "",
     note: "",
     commodity: "",
@@ -1281,7 +1299,8 @@ const addOtherCost = () => {
     form.other_costs.push({
         description: '',
         amount: 0,
-        category: ''
+        category: '',
+        vendor_id: ''
     });
 };
 
@@ -1297,7 +1316,8 @@ const addReimbursementItem = () => {
         description: '',
         amount: 0,
         category: '',
-        notes: ''
+        notes: '',
+        vendor_id: ''
     });
 };
 
@@ -1420,12 +1440,31 @@ const closeAlert = () => {
 
 const submit = () => {
     // Add voucher data and reimbursement items to form
+    const sanitizedReimbursements = reimbursementItems.value
+        .filter(r => r.description && r.amount && r.amount > 0)
+        .map(r => ({
+            description: r.description,
+            amount: parseFloat(r.amount) || 0,
+            category: r.category || '',
+            notes: r.notes || '',
+            vendor_id: r.vendor_id === '' ? null : r.vendor_id
+        }));
+
+    const sanitizedOtherCosts = form.other_costs
+        .filter(c => c.description && c.amount && c.amount > 0)
+        .map(c => ({
+            description: c.description,
+            amount: parseFloat(c.amount) || 0,
+            category: c.category || '',
+            vendor_id: c.vendor_id === '' ? null : c.vendor_id
+        }));
+
     const formData = {
         ...form.data(),
         payment_vouchers: paymentVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
         receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-        reimbursement_items: reimbursementItems.value.filter(r => r.description && r.amount && r.amount > 0),
-        other_costs: form.other_costs.filter(c => c.description && c.amount && c.amount > 0)
+        reimbursement_items: sanitizedReimbursements,
+        other_costs: sanitizedOtherCosts
     };
 
     form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"), {
