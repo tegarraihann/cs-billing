@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class AccountPayable extends Model
 {
@@ -183,11 +184,88 @@ class AccountPayable extends Model
             return;
         }
 
-        foreach ($salesOrder->vendor_breakdown as $vendorItem) {
-            // Only create if there's a buying amount
-            if (!empty($vendorItem['buying_amount']) && floatval($vendorItem['buying_amount']) > 0) {
-                self::createFromVendorBreakdown($salesOrder, $vendorItem);
+        $grouped = collect($salesOrder->vendor_breakdown)
+            ->filter(fn ($item) => is_array($item) && !empty($item['buying_amount']) && floatval($item['buying_amount']) > 0)
+            ->groupBy(function ($item) use ($salesOrder) {
+                $vendorId = self::normalizeVendorIdentifierValue($item['vendor_id'] ?? null);
+                $vendorName = trim((string) ($item['nama_vendor'] ?? ''));
+
+                if ($vendorId !== null) {
+                    return 'id_' . $vendorId;
+                }
+
+                if ($vendorName === '') {
+                    $vendorName = 'Divisi Operational';
+                }
+
+                return 'internal_' . strtolower($vendorName);
+            });
+
+        foreach ($grouped as $items) {
+            $firstItem = $items->first();
+            $normalizedVendorId = self::normalizeVendorIdentifierValue($firstItem['vendor_id'] ?? null);
+            $totalBuying = $items->sum(function ($item) {
+                return (float) ($item['buying_amount'] ?? 0);
+            });
+
+            if ($totalBuying <= 0) {
+                continue;
             }
+
+            $vendor = $normalizedVendorId ? Vendor::find($normalizedVendorId) : null;
+            $vendorName = $vendor?->nama_vendor ?? trim((string) ($firstItem['nama_vendor'] ?? 'Divisi Operational'));
+
+            $descriptions = $items->pluck('description')->filter()->map(fn ($desc) => trim((string) $desc))->filter()->unique()->values();
+            $remarks = $items->pluck('remarks')->filter()->map(fn ($remark) => trim((string) $remark))->filter()->unique()->values();
+
+            $lookup = [
+                'sales_order_id' => $salesOrder->id,
+                'vendor_id' => $normalizedVendorId,
+            ];
+
+            if ($normalizedVendorId === null) {
+                $lookup['vendor_name'] = $vendorName;
+            }
+
+            $payable = self::firstOrNew($lookup);
+
+            $serviceDescription = $descriptions->isNotEmpty() ? $descriptions->implode(', ') : 'Vendor Payment';
+            $serviceRemarks = $remarks->isNotEmpty() ? $remarks->implode(PHP_EOL) : null;
+
+            if (!$payable->exists) {
+                $payable->fill([
+                    'vendor_name' => $vendorName,
+                    'vendor_invoice_number' => $firstItem['rcvd_inv'] ?? null,
+                    'service_description' => $serviceDescription,
+                    'service_remarks' => $serviceRemarks,
+                    'amount' => $totalBuying,
+                    'paid_amount' => 0,
+                    'outstanding_amount' => $totalBuying,
+                    'status' => $totalBuying > 0 ? 'unpaid' : 'paid',
+                    'vendor_bank_account' => $vendor?->nomor_rekening,
+                    'vendor_account_name' => $vendor?->nama_rekening,
+                    'created_by' => auth()->id(),
+                ]);
+            } else {
+                $payable->vendor_name = $vendorName;
+                $payable->service_description = $serviceDescription;
+                $payable->service_remarks = $serviceRemarks ?? $payable->service_remarks;
+                $payable->vendor_bank_account = $vendor?->nomor_rekening ?? $payable->vendor_bank_account;
+                $payable->vendor_account_name = $vendor?->nama_rekening ?? $payable->vendor_account_name;
+                $payable->amount = $totalBuying;
+                $payable->outstanding_amount = max(0, $payable->amount - $payable->paid_amount);
+
+                if ($payable->outstanding_amount <= 0.01) {
+                    $payable->status = 'paid';
+                } elseif ($payable->paid_amount > 0 && $payable->outstanding_amount > 0.01) {
+                    $payable->status = 'partial';
+                } else {
+                    $payable->status = 'unpaid';
+                }
+            }
+
+            $payable->save();
+            $payable->syncComponents();
         }
     }
 
@@ -197,13 +275,14 @@ class AccountPayable extends Model
     public function syncComponents(): void
     {
         // FIX: Use composite key (component_type + vendor_id) for proper matching
-        $existingComponents = $this->components()->get()->keyBy(function ($item) {
+        $existingComponentsCollection = $this->components()->get();
+        $existingComponents = $existingComponentsCollection->keyBy(function ($item) {
             return $item->component_type . '_' . ($item->vendor_id ?? 'null');
         });
 
-        $paidToDistribute = $existingComponents->isEmpty() ? (float) $this->paid_amount : 0.0;
+        $paidToDistribute = $existingComponentsCollection->isEmpty() ? (float) $this->paid_amount : 0.0;
 
-        $componentPayloads = $this->prepareComponentPayloads($paidToDistribute);
+        $componentPayloads = $this->prepareComponentPayloads($paidToDistribute, $existingComponentsCollection);
 
         $processedTypes = [];
         foreach ($componentPayloads as $payload) {
@@ -236,6 +315,12 @@ class AccountPayable extends Model
                 $component->description = $payload['description'] ?? $component->description;
                 $component->recipient_name = $payload['recipient_name'] ?? $component->recipient_name;
                 $component->related_items = $payload['related_items'] ?? $component->related_items;
+                if (array_key_exists('vendor_id', $payload)) {
+                    $component->vendor_id = $payload['vendor_id'];
+                }
+                if (isset($payload['amount']) && abs((float) $component->amount - (float) $payload['amount']) > 0.01) {
+                    $component->amount = (float) $payload['amount'];
+                }
             }
 
             if ($component->paid_amount > $component->amount) {
@@ -279,110 +364,68 @@ class AccountPayable extends Model
     /**
      * Prepare component payloads from various sources
      */
-    protected function prepareComponentPayloads(float $paidToDistribute = 0): array
+    protected function prepareComponentPayloads(float $paidToDistribute = 0, ?Collection $existingComponents = null): array
     {
         $payloads = [];
+        $existingComponents = $existingComponents ?? collect();
 
-        // For vendor payments from vendor_breakdown (not operational/reimbursement)
-        if ($this->vendor_id && $this->vendor_name !== 'Divisi Operational') {
-            // Check if this is from vendor_breakdown or from invoice items
-            $hasInvoiceItems = false;
-            if ($this->salesOrder) {
-                $hasInvoiceItems = $this->salesOrder->invoices()
-                    ->whereHas('items', function ($q) {
-                        $q->whereIn('item_type', ['operational_cost', 'reimbursement'])
-                          ->where('vendor_id', $this->vendor_id);
-                    })
-                    ->exists();
-            }
+        [$vendorPaymentAmount, $vendorPaymentDescriptions] = $this->extractVendorPaymentData();
+        /** @var AccountPayableComponent|null $existingVendorComponent */
+        $existingVendorComponent = $existingComponents->first(function ($component) {
+            return $component->component_type === 'vendor_payment';
+        });
 
-            if (!$hasInvoiceItems) {
-                // Traditional vendor payment from vendor_breakdown
+        if ($vendorPaymentAmount > 0) {
+            $payloads[] = [
+                'component_type' => 'vendor_payment',
+                'description' => $this->buildVendorPaymentDescription($vendorPaymentDescriptions, $existingVendorComponent),
+                'amount' => $vendorPaymentAmount,
+                'recipient_name' => $this->vendor_name,
+                'vendor_id' => $this->vendor_id,
+            ];
+        } elseif ($existingVendorComponent && (float) $existingVendorComponent->amount > 0) {
+            // Pertahankan komponen vendor payment lama bila masih ada outstanding
+            $payloads[] = [
+                'component_type' => 'vendor_payment',
+                'description' => $existingVendorComponent->description ?? $this->service_description,
+                'amount' => (float) $existingVendorComponent->amount,
+                'recipient_name' => $existingVendorComponent->recipient_name ?? $this->vendor_name,
+                'vendor_id' => $existingVendorComponent->vendor_id ?? $this->vendor_id,
+            ];
+        }
+
+        $invoiceItems = $this->collectInvoiceItemsForVendor();
+
+        if ($invoiceItems->isNotEmpty()) {
+            $operationalItems = $invoiceItems->where('item_type', 'operational_cost');
+            $totalOperational = (float) $operationalItems->sum('amount');
+
+            if ($totalOperational > 0) {
                 $payloads[] = [
-                    'component_type' => 'vendor_payment',
-                    'description' => $this->service_description,
-                    'amount' => (float) $this->amount,
+                    'component_type' => 'operational_cost',
+                    'description' => 'Biaya Operational',
+                    'amount' => $totalOperational,
                     'recipient_name' => $this->vendor_name,
                     'vendor_id' => $this->vendor_id,
+                    'related_items' => $operationalItems->pluck('id')->toArray(),
                 ];
-                return $payloads;
+            }
+
+            $reimbursementItems = $invoiceItems->where('item_type', 'reimbursement');
+            $totalReimbursement = (float) $reimbursementItems->sum('amount');
+
+            if ($totalReimbursement > 0) {
+                $payloads[] = [
+                    'component_type' => 'reimbursement',
+                    'description' => 'Reimbursement',
+                    'amount' => $totalReimbursement,
+                    'recipient_name' => $this->vendor_name,
+                    'vendor_id' => $this->vendor_id,
+                    'related_items' => $reimbursementItems->pluck('id')->toArray(),
+                ];
             }
         }
 
-        // Get invoice items that match this payable's vendor
-        if ($this->salesOrder) {
-            $invoice = $this->salesOrder->invoices()
-                ->whereHas('items', function ($q) {
-                    $q->whereIn('item_type', ['operational_cost', 'reimbursement']);
-
-                    // Filter by vendor_id matching this payable
-                    if ($this->vendor_id) {
-                        $q->where('vendor_id', $this->vendor_id);
-                    } else {
-                        // For internal (Divisi Operational), get items with null vendor_id
-                        $q->whereNull('vendor_id');
-                    }
-                })
-                ->first();
-
-            if ($invoice) {
-                // Get operational cost items for this vendor
-                $operationalItems = $invoice->items()
-                    ->where('item_type', 'operational_cost')
-                    ->where(function ($itemQuery) {
-                        $itemQuery->whereNull('item_ref')
-                                  ->orWhere('item_ref', 'not like', 'cogs_vendor_%');
-                    })
-                    ->where(function ($q) {
-                        if ($this->vendor_id) {
-                            $q->where('vendor_id', $this->vendor_id);
-                        } else {
-                            $q->whereNull('vendor_id');
-                        }
-                    })
-                    ->get();
-
-                $totalOperational = (float) $operationalItems->sum('amount');
-
-                if ($totalOperational > 0) {
-                    $payloads[] = [
-                        'component_type' => 'operational_cost',
-                        'description' => 'Biaya Operational',
-                        'amount' => $totalOperational,
-                        'recipient_name' => $this->vendor_name,
-                        'vendor_id' => $this->vendor_id,
-                        'related_items' => $operationalItems->pluck('id')->toArray(),
-                    ];
-                }
-
-                // Get reimbursement items for this vendor
-                $reimbursementItems = $invoice->items()
-                    ->where('item_type', 'reimbursement')
-                    ->where(function ($q) {
-                        if ($this->vendor_id) {
-                            $q->where('vendor_id', $this->vendor_id);
-                        } else {
-                            $q->whereNull('vendor_id');
-                        }
-                    })
-                    ->get();
-
-                $totalReimbursement = (float) $reimbursementItems->sum('amount');
-
-                if ($totalReimbursement > 0) {
-                    $payloads[] = [
-                        'component_type' => 'reimbursement',
-                        'description' => 'Reimbursement',
-                        'amount' => $totalReimbursement,
-                        'recipient_name' => $this->vendor_name,
-                        'vendor_id' => $this->vendor_id,
-                        'related_items' => $reimbursementItems->pluck('id')->toArray(),
-                    ];
-                }
-            }
-        }
-
-        // Distribute paid amount proportionally if exists
         if ($paidToDistribute > 0 && !empty($payloads)) {
             $totalAmount = array_sum(array_column($payloads, 'amount'));
             foreach ($payloads as &$payload) {
@@ -390,9 +433,124 @@ class AccountPayable extends Model
                 $allocated = $ratio * $paidToDistribute;
                 $payload['paid_amount'] = min($payload['amount'], $allocated);
             }
+            unset($payload);
         }
 
         return $payloads;
+    }
+
+    protected function extractVendorPaymentData(): array
+    {
+        if (!$this->salesOrder || !is_array($this->salesOrder->vendor_breakdown)) {
+            return [0.0, []];
+        }
+
+        $payableVendorId = $this->vendor_id ? (int) $this->vendor_id : null;
+        $payableVendorName = $this->vendor_name ? trim((string) $this->vendor_name) : null;
+
+        $amount = 0.0;
+        $descriptions = [];
+
+        foreach ($this->salesOrder->vendor_breakdown as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $entryVendorId = $this->normalizeVendorIdentifier($entry['vendor_id'] ?? null);
+            $entryVendorName = isset($entry['nama_vendor']) ? trim((string) $entry['nama_vendor']) : null;
+
+            $matchesVendor = $payableVendorId === $entryVendorId;
+
+            if (!$matchesVendor) {
+                $entryIsInternal = $entryVendorId === null;
+                $payableIsInternal = $payableVendorId === null;
+
+                if ($payableIsInternal && $entryIsInternal) {
+                    $matchesVendor = true;
+                } elseif ($payableIsInternal && $payableVendorName && $entryVendorName) {
+                    $matchesVendor = strcasecmp($payableVendorName, $entryVendorName) === 0;
+                }
+            }
+
+            if (!$matchesVendor) {
+                continue;
+            }
+
+            $amount += (float) ($entry['buying_amount'] ?? 0);
+            $description = trim((string) ($entry['description'] ?? ''));
+            if ($description !== '') {
+                $descriptions[] = $description;
+            }
+        }
+
+        return [$amount, array_values(array_unique($descriptions))];
+    }
+
+    protected function collectInvoiceItemsForVendor(): Collection
+    {
+        if (!$this->sales_order_id) {
+            return collect();
+        }
+
+        return InvoiceItem::query()
+            ->whereHas('invoice', function ($query) {
+                $query->where('sales_order_id', $this->sales_order_id);
+            })
+            ->whereIn('item_type', ['operational_cost', 'reimbursement'])
+            ->where(function ($query) {
+                if ($this->vendor_id) {
+                    $query->where('vendor_id', $this->vendor_id);
+                } else {
+                    $query->whereNull('vendor_id');
+                }
+            })
+            ->where(function ($query) {
+                $query->whereNull('item_ref')
+                      ->orWhere('item_ref', 'not like', 'cogs_vendor_%');
+            })
+            ->get();
+    }
+
+    protected function buildVendorPaymentDescription(array $descriptions, ?AccountPayableComponent $existingComponent = null): string
+    {
+        if (!empty($descriptions)) {
+            return implode(', ', $descriptions);
+        }
+
+        if ($existingComponent && $existingComponent->description) {
+            return $existingComponent->description;
+        }
+
+        return $this->service_description ?? 'Vendor Payment';
+    }
+
+    protected function normalizeVendorIdentifier($value): ?int
+    {
+        return static::normalizeVendorIdentifierValue($value);
+    }
+
+    protected static function normalizeVendorIdentifierValue($value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            if ($trimmed === '' || strtolower($trimmed) === 'internal') {
+                return null;
+            }
+
+            if (is_numeric($trimmed)) {
+                return (int) $trimmed;
+            }
+        }
+
+        return null;
     }
 
     /**

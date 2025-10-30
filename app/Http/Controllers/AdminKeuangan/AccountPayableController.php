@@ -18,7 +18,14 @@ class AccountPayableController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AccountPayable::with(['vendor', 'salesOrder', 'creator'])
+        $query = AccountPayable::with([
+                'vendor',
+                'salesOrder',
+                'creator',
+                'components' => function ($query) {
+                    $query->orderBy('component_type');
+                },
+            ])
             ->orderBy('created_at', 'desc');
 
         // Search functionality
@@ -70,18 +77,57 @@ class AccountPayableController extends Controller
         $currentQuery = clone $query;
         $currentResults = $currentQuery->get();
 
-        $vendorSummary = $currentResults->groupBy('vendor_id')->map(function ($payables, $vendorId) {
-            $vendor = $payables->first()->vendor;
-            return [
-                'vendor_id' => $vendorId,
-                'vendor_name' => $vendor ? $vendor->nama_vendor : $payables->first()->vendor_name,
-                'total_amount' => (float) $payables->sum('amount'),
-                'total_paid' => (float) $payables->sum('paid_amount'),
-                'total_outstanding' => (float) $payables->sum('outstanding_amount'),
-                'count_invoices' => (int) $payables->count(),
-                'count_overdue' => (int) $payables->where('payment_due_date', '<', now())->whereIn('status', ['unpaid', 'partial'])->count()
-            ];
-        })->sortByDesc('total_outstanding')->values();
+        $vendorSummary = $currentResults
+            ->flatMap(function (AccountPayable $payable) {
+                $payable->loadMissing('components');
+
+                if ($payable->components->isEmpty()) {
+                    return [[
+                        'vendor_id' => $payable->vendor_id,
+                        'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
+                        'source_type' => $payable->vendor_id ? 'vendor_payment' : 'operational_cost',
+                        'source_label' => $payable->vendor_id ? 'Vendor Payment' : 'Biaya Operasional',
+                        'total_amount' => (float) $payable->amount,
+                        'total_paid' => (float) $payable->paid_amount,
+                        'total_outstanding' => (float) $payable->outstanding_amount,
+                        'count_payables' => 1,
+                        'count_overdue' => in_array($payable->status, ['unpaid', 'partial'], true) && $payable->payment_due_date && $payable->payment_due_date < now() ? 1 : 0,
+                    ]];
+                }
+
+                return $payable->components->map(function ($component) use ($payable) {
+                    return [
+                        'vendor_id' => $payable->vendor_id,
+                        'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
+                        'source_type' => $component->component_type,
+                        'source_label' => $component->getComponentLabel(),
+                        'total_amount' => (float) $component->amount,
+                        'total_paid' => (float) $component->paid_amount,
+                        'total_outstanding' => (float) $component->outstanding_amount,
+                        'count_payables' => 1,
+                        'count_overdue' => $component->due_date && $component->status !== 'paid' && $component->due_date < now() ? 1 : 0,
+                    ];
+                });
+            })
+            ->groupBy(function ($entry) {
+                return ($entry['vendor_id'] ?? 'internal') . '::' . $entry['source_type'];
+            })
+            ->map(function ($entries) {
+                $first = $entries->first();
+                return [
+                    'vendor_id' => $first['vendor_id'],
+                    'vendor_name' => $first['vendor_name'],
+                    'source_type' => $first['source_type'],
+                    'source_label' => $first['source_label'],
+                    'total_amount' => (float) $entries->sum('total_amount'),
+                    'total_paid' => (float) $entries->sum('total_paid'),
+                    'total_outstanding' => (float) $entries->sum('total_outstanding'),
+                    'count_payables' => (int) $entries->sum('count_payables'),
+                    'count_overdue' => (int) $entries->sum('count_overdue'),
+                ];
+            })
+            ->sortByDesc('total_outstanding')
+            ->values();
 
         // Get vendors for filter
         $vendors = Vendor::select('id', 'nama_vendor')->orderBy('nama_vendor')->get();

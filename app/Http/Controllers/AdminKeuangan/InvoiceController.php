@@ -1618,21 +1618,20 @@ class InvoiceController extends Controller
                     ->first();
 
                 if ($existingPayable) {
-                    // Update existing payable
-                    $existingPayable->update([
-                        'amount' => $totalAmount,
-                        'outstanding_amount' => $totalAmount - $existingPayable->paid_amount,
+                    $existingPayable->fill([
                         'service_description' => $this->buildServiceDescription($items, $invoice),
+                        'vendor_invoice_number' => $existingPayable->vendor_invoice_number ?? (($vendor ? 'V-' : 'OP-') . $invoice->invoice_number),
+                        'vendor_invoice_date' => $existingPayable->vendor_invoice_date ?? $invoice->invoice_date,
                     ]);
+                    $existingPayable->save();
 
-                    // Sync components to split operational and reimbursement
                     $existingPayable->syncComponents();
 
                     \Log::info('Payable updated with components', [
                         'account_payable_id' => $existingPayable->id,
                         'invoice_id' => $invoice->id,
                         'vendor' => $vendorName,
-                        'amount' => $totalAmount,
+                        'amount' => $existingPayable->amount,
                     ]);
                 } else {
                     // Create new account payable

@@ -821,7 +821,7 @@
     <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Konfirmasi Pembayaran</h3>
-        
+
         <form @submit.prevent="confirmPayment">
           <div class="space-y-4">
             <div>
@@ -836,7 +836,7 @@
                 required
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Pembayaran</label>
               <input
@@ -847,7 +847,7 @@
                 required
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Metode Pembayaran</label>
               <input
@@ -857,7 +857,7 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
               <textarea
@@ -868,7 +868,7 @@
               ></textarea>
             </div>
           </div>
-          
+
           <div class="flex justify-end space-x-3 mt-6">
             <button
               type="button"
@@ -1296,14 +1296,14 @@ const getPaymentStatusLabel = (invoice) => {
   if (invoice.status === 'paid') {
     return 'Lunas';
   }
-  
+
   const dueDate = new Date(invoice.due_date);
   const today = new Date();
-  
+
   if (invoice.status !== 'paid' && dueDate < today) {
     return 'Overdue';
   }
-  
+
   return 'Belum Dibayar';
 };
 
@@ -1319,7 +1319,7 @@ const getPaymentStatusColor = (invoice) => {
 
 const confirmPayment = () => {
   processing.value = true;
-  
+
   router.post(route('admin-keuangan.invoices.confirm-payment', props.invoice.id), paymentForm, {
     onSuccess: () => {
       showPaymentModal.value = false;
@@ -1333,7 +1333,7 @@ const confirmPayment = () => {
 
 const markAsSent = () => {
   processing.value = true;
-  
+
   router.post(route('admin-keuangan.invoices.mark-sent', props.invoice.id), {}, {
     onSuccess: () => {
       showMarkSentModal.value = false;

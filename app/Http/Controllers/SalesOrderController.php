@@ -7,9 +7,12 @@ use App\Models\Customer;
 use App\Models\Voucher;
 use App\Models\ShipmentType;
 use App\Models\ReimbursementItem;
+use App\Models\InvoiceItem;
+use App\Models\AccountPayableComponent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPDF;
 
@@ -301,6 +304,7 @@ class SalesOrderController extends Controller
 
         // Load reimbursement items for editing
         $salesOrder->load(['reimbursementItems']);
+        $this->hydrateOtherCostsWithVendors($salesOrder);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
@@ -640,11 +644,7 @@ class SalesOrderController extends Controller
     {
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
-                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
-                $vendorId = null;
-                if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
-                    $vendorId = is_numeric($item['vendor_id']) ? (int) $item['vendor_id'] : null;
-                }
+                $vendorId = $this->resolveVendorId($item['vendor_id'] ?? null);
 
                 ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
@@ -673,11 +673,7 @@ class SalesOrderController extends Controller
         // Create new reimbursement items
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
-                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
-                $vendorId = null;
-                if (isset($item['vendor_id']) && $item['vendor_id'] !== '' && $item['vendor_id'] !== 'internal') {
-                    $vendorId = is_numeric($item['vendor_id']) ? (int) $item['vendor_id'] : null;
-                }
+                $vendorId = $this->resolveVendorId($item['vendor_id'] ?? null);
 
                 ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
@@ -691,6 +687,172 @@ class SalesOrderController extends Controller
                 ]);
             }
         }
+    }
+
+    /**
+     * Hydrate other costs with vendor information from related finance records
+     */
+    private function hydrateOtherCostsWithVendors(SalesOrder $salesOrder): void
+    {
+        $otherCosts = $salesOrder->other_costs;
+
+        if (empty($otherCosts) || !is_array($otherCosts)) {
+            return;
+        }
+
+        $normalizedCosts = array_map(function ($cost) {
+            return is_array($cost) ? $cost : (array) $cost;
+        }, $otherCosts);
+
+        $operationalInvoiceItems = InvoiceItem::query()
+            ->where('item_type', 'operational_cost')
+            ->whereHas('invoice', function ($query) use ($salesOrder) {
+                $query->where('sales_order_id', $salesOrder->id);
+            })
+            ->get(['id', 'description', 'amount', 'vendor_id']);
+
+        $operationalPayableComponents = AccountPayableComponent::query()
+            ->where('component_type', 'operational_cost')
+            ->whereHas('accountPayable', function ($query) use ($salesOrder) {
+                $query->where('sales_order_id', $salesOrder->id);
+            })
+            ->get(['id', 'description', 'recipient_name', 'amount', 'vendor_id']);
+
+        foreach ($normalizedCosts as $index => $cost) {
+            if (!empty($cost['vendor_id'])) {
+                continue;
+            }
+
+            $matchedVendorId = $this->matchVendorForCost(
+                $cost,
+                $operationalInvoiceItems
+            );
+
+            if (!$matchedVendorId) {
+                $matchedVendorId = $this->matchVendorForCost(
+                    $cost,
+                    $operationalPayableComponents,
+                    'description',
+                    'recipient_name'
+                );
+            }
+
+            if ($matchedVendorId) {
+                $normalizedCosts[$index]['vendor_id'] = $matchedVendorId;
+            }
+        }
+
+        $salesOrder->setAttribute('other_costs', $normalizedCosts);
+    }
+
+    /**
+     * Attempt to find vendor id for a specific operational cost entry
+     */
+    private function matchVendorForCost(
+        array $cost,
+        Collection $items,
+        string $primaryDescriptionKey = 'description',
+        ?string $alternateDescriptionKey = null
+    ): ?int {
+        if ($items->isEmpty()) {
+            return null;
+        }
+
+        $items = $items->filter(fn ($item) => !empty($item->vendor_id));
+
+        if ($items->isEmpty()) {
+            return null;
+        }
+
+        $amount = $cost['amount'] ?? null;
+        $description = $cost['description'] ?? null;
+
+        $amountCandidates = $items->filter(function ($item) use ($amount) {
+            return $this->amountMatches($amount, $item->amount ?? null);
+        });
+
+        if ($amountCandidates->isEmpty()) {
+            return null;
+        }
+
+        if ($description) {
+            $descriptionMatch = $amountCandidates->first(function ($item) use ($description, $primaryDescriptionKey, $alternateDescriptionKey) {
+                $primary = $item->{$primaryDescriptionKey} ?? null;
+                if ($this->descriptionMatches($description, $primary)) {
+                    return true;
+                }
+
+                if ($alternateDescriptionKey) {
+                    $alternate = $item->{$alternateDescriptionKey} ?? null;
+                    return $this->descriptionMatches($description, $alternate);
+                }
+
+                return false;
+            });
+
+            if ($descriptionMatch) {
+                return (int) $descriptionMatch->vendor_id;
+            }
+        }
+
+        if ($amountCandidates->count() === 1) {
+            return (int) $amountCandidates->first()->vendor_id;
+        }
+
+        return null;
+    }
+
+    private function descriptionMatches(?string $expected, ?string $actual): bool
+    {
+        if ($expected === null || $expected === '') {
+            return false;
+        }
+
+        if ($actual === null || $actual === '') {
+            return false;
+        }
+
+        return strcasecmp(trim($expected), trim($actual)) === 0;
+    }
+
+    private function amountMatches($expected, $actual): bool
+    {
+        if ($expected === null || $actual === null) {
+            return false;
+        }
+
+        return abs((float) $expected - (float) $actual) < 0.01;
+    }
+
+    /**
+     * Normalize vendor identifier from form input
+     */
+    private function resolveVendorId($rawVendor): ?int
+    {
+        if ($rawVendor === null) {
+            return null;
+        }
+
+        if (is_array($rawVendor)) {
+            $rawVendor = $rawVendor['id'] ?? $rawVendor['value'] ?? null;
+        }
+
+        if ($rawVendor === null) {
+            return null;
+        }
+
+        if (is_string($rawVendor)) {
+            $rawVendor = trim($rawVendor);
+            if ($rawVendor === '' || strtolower($rawVendor) === 'internal') {
+                return null;
+            }
+        }
+
+        if (is_numeric($rawVendor)) {
+            return (int) $rawVendor;
+        }
+
+        return null;
     }
 
     /**

@@ -232,60 +232,63 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr
-                                v-for="payable in payables.data"
-                                :key="payable.id"
+                                v-for="row in tableRows"
+                                :key="row.key"
                                 class="hover:bg-gray-50"
                             >
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ payable.vendor?.nama_vendor || payable.vendor_name }}
+                                        {{ row.vendorName }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        {{ payable.vendor_invoice_date ? formatDate(payable.vendor_invoice_date) : '-' }}
+                                        {{ row.vendorInvoiceDate ? formatDate(row.vendorInvoiceDate) : '-' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ payable.service_description }}
+                                        {{ row.serviceLabel }}
                                     </div>
-                                    <div class="text-sm text-gray-500" v-if="payable.service_remarks">
-                                        {{ payable.service_remarks.substring(0, 50) }}{{ payable.service_remarks.length > 50 ? '...' : '' }}
+                                    <div class="text-sm text-gray-600" v-if="row.serviceDescription">
+                                        {{ row.serviceDescription }}
+                                    </div>
+                                    <div class="text-sm text-gray-500" v-if="row.serviceRemarks">
+                                        {{ row.serviceRemarks.substring(0, 50) }}{{ row.serviceRemarks.length > 50 ? '...' : '' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        <div v-if="payable.vendor_invoice_number">
-                                            Invoice: {{ payable.vendor_invoice_number }}
+                                        <div v-if="row.invoiceNumber">
+                                            Invoice: {{ row.invoiceNumber }}
                                         </div>
-                                        <div v-if="payable.sales_order">
-                                            SO: {{ payable.sales_order.order_number }}
+                                        <div v-if="row.salesOrder">
+                                            SO: {{ row.salesOrder.order_number }}
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                    Rp {{ formatNumber(payable.amount) }}
+                                    Rp {{ formatNumber(row.amount) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                    Rp {{ formatNumber(payable.paid_amount) }}
+                                    Rp {{ formatNumber(row.paidAmount) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                    Rp {{ formatNumber(payable.outstanding_amount) }}
+                                    Rp {{ formatNumber(row.outstanding) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <span
-                                        :class="getStatusClass(payable.status)"
+                                        :class="getStatusClass(row.status)"
                                         class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
                                     >
-                                        {{ getStatusText(payable.status) }}
-                                        <span v-if="payable.days_overdue > 0" class="ml-1">
-                                            ({{ payable.days_overdue }} hari)
+                                        {{ getStatusText(row.status) }}
+                                        <span v-if="row.daysOverdue > 0" class="ml-1">
+                                            ({{ row.daysOverdue }} hari)
                                         </span>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     <div class="flex items-center justify-center space-x-2">
                                         <button
-                                            @click="showPayable(payable)"
+                                            @click="showPayable(row.payable)"
                                             class="text-blue-600 hover:text-blue-900"
                                             title="Lihat Detail"
                                         >
@@ -295,8 +298,8 @@
                                             </svg>
                                         </button>
                                         <button
-                                            v-if="payable.status !== 'paid'"
-                                            @click="openPaymentModal(payable)"
+                                            v-if="row.status !== 'paid'"
+                                            @click="openPaymentModal(row.payable)"
                                             class="text-green-600 hover:text-green-900"
                                             title="Mark Payment"
                                         >
@@ -367,7 +370,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import ReimbursementPaymentModal from '@/Components/ReimbursementPaymentModal.vue'
@@ -405,6 +408,93 @@ const paymentForm = reactive({
     reimbursement_vendor_name: '',
     reimbursement_paid_at: new Date().toISOString().split('T')[0],
     reimbursement_notes: ''
+})
+
+const componentTypeLabels = {
+    vendor_payment: 'Vendor Payment',
+    operational_cost: 'Biaya Operational',
+    reimbursement: 'Reimbursement'
+}
+
+const componentLabel = (type) => {
+    return componentTypeLabels[type] || 'Komponen'
+}
+
+const calculateDaysOverdue = (dueDate, status) => {
+    if (!dueDate || status === 'paid') {
+        return 0
+    }
+
+    const parsedDate = new Date(dueDate)
+    if (Number.isNaN(parsedDate.getTime())) {
+        return 0
+    }
+
+    const diff = Math.floor((Date.now() - parsedDate.getTime()) / (1000 * 60 * 60 * 24))
+    return diff > 0 ? diff : 0
+}
+
+const tableRows = computed(() => {
+    const rows = []
+    const data = props.payables?.data || []
+
+    data.forEach((payable) => {
+        const vendorName = payable.vendor?.nama_vendor || payable.vendor_name
+        const vendorInvoiceDate = payable.vendor_invoice_date || null
+        const invoiceNumber = payable.vendor_invoice_number || null
+        const salesOrder = payable.sales_order || null
+        const baseRemarks = payable.service_remarks || ''
+        const baseDueDate = payable.payment_due_date || null
+        const baseStatus = payable.status || 'unpaid'
+        const baseDaysOverdue = payable.days_overdue || calculateDaysOverdue(baseDueDate, baseStatus)
+        const components = payable.components || []
+
+        if (!components.length) {
+            rows.push({
+                key: `${payable.id}-base`,
+                payable,
+                vendorName,
+                vendorInvoiceDate,
+                invoiceNumber,
+                salesOrder,
+                serviceLabel: componentLabel('vendor_payment'),
+                serviceDescription: payable.service_description || '',
+                serviceRemarks: baseRemarks,
+                amount: payable.amount || 0,
+                paidAmount: payable.paid_amount || 0,
+                outstanding: payable.outstanding_amount || 0,
+                status: baseStatus,
+                daysOverdue: baseDaysOverdue
+            })
+            return
+        }
+
+        components.forEach((component) => {
+            const label = componentLabel(component.component_type)
+            const status = component.status || baseStatus
+            const dueDate = component.due_date || baseDueDate
+
+            rows.push({
+                key: `${payable.id}-${component.id}`,
+                payable,
+                component,
+                vendorName,
+                vendorInvoiceDate,
+                invoiceNumber,
+                salesOrder,
+                serviceLabel: label,
+                serviceDescription: component.description || payable.service_description || '',
+                serviceRemarks: baseRemarks,
+                amount: component.amount || 0,
+                paidAmount: component.paid_amount || 0,
+                outstanding: component.outstanding_amount || 0,
+                status,
+                daysOverdue: calculateDaysOverdue(dueDate, status)
+            })
+        })
+    })
+
+    return rows
 })
 
 let debounceTimer = null
