@@ -1113,6 +1113,43 @@ const closeAlert = () => {
 
 const submit = () => {
     // Clean up formatted numbers before sending
+    const sanitizedOtherCosts = (form.other_costs || [])
+        .filter(cost => {
+            const description = (cost.description || '').toString().trim();
+            const amount = normalizeNumber(cost.amount);
+            const category = (cost.category || '').toString().trim();
+            const vendor = cost.vendor_id !== undefined && cost.vendor_id !== null
+                ? cost.vendor_id.toString().trim()
+                : '';
+
+            return description !== '' || amount > 0 || category !== '' || vendor !== '';
+        })
+        .map(cost => ({
+            description: cost.description || '',
+            amount: normalizeNumber(cost.amount),
+            category: cost.category || '',
+            vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
+        }));
+
+    const sanitizedReimbursements = (reimbursementItems.value || [])
+        .filter(item => {
+            const description = (item.description || '').toString().trim();
+            const amount = normalizeNumber(item.amount);
+            const category = (item.category || '').toString().trim();
+            const vendor = item.vendor_id !== undefined && item.vendor_id !== null
+                ? item.vendor_id.toString().trim()
+                : '';
+
+            return description !== '' || amount > 0 || category !== '' || vendor !== '';
+        })
+        .map(item => ({
+            description: item.description || '',
+            amount: normalizeNumber(item.amount),
+            category: item.category || '',
+            notes: item.notes || '',
+            vendor_id: item.vendor_id === '' ? null : item.vendor_id,
+        }));
+
     const cleanedData = {
         ...form.data(),
         vendor_breakdown: form.vendor_breakdown.map(item => ({
@@ -1120,19 +1157,8 @@ const submit = () => {
             buying_amount: parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0,
             selling_amount: parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0
         })),
-        other_costs: form.other_costs.map(cost => ({
-            description: cost.description || '',
-            amount: normalizeNumber(cost.amount),
-            category: cost.category || '',
-            vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
-        })),
-        reimbursement_items: (reimbursementItems.value || []).map(it => ({
-            description: it.description || '',
-            amount: normalizeNumber(it.amount),    // pakai normalizermu
-            category: it.category || '',
-            notes: it.notes || '',
-            vendor_id: it.vendor_id === '' ? null : it.vendor_id,
-        })),
+        other_costs: sanitizedOtherCosts,
+        reimbursement_items: sanitizedReimbursements,
     };
 
     form.transform(() => cleanedData).put(route("admin-cs.sales-orders.update", props.salesOrder.id), {
