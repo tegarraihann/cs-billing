@@ -145,7 +145,7 @@ class AccountPayableController extends Controller
     /**
      * Display the specified account payable
      */
-    public function show(AccountPayable $accountPayable)
+    public function show(Request $request, AccountPayable $accountPayable)
     {
         $accountPayable->load(['vendor', 'salesOrder', 'creator', 'paidByUser']);
 
@@ -155,11 +155,14 @@ class AccountPayableController extends Controller
 
         $bankAccounts = BankAccount::all();
         $reimbursementItems = $this->mapReimbursementItems($accountPayable);
+        $selectedComponentId = $request->query('component_id');
+        $selectedComponentId = $selectedComponentId !== null ? (int) $selectedComponentId : null;
 
         return Inertia::render('Admin/AdminKeuangan/AccountPayables/Show', [
             'payable' => $accountPayable,
             'bankAccounts' => $bankAccounts,
-            'reimbursementItems' => $reimbursementItems
+            'reimbursementItems' => $reimbursementItems,
+            'selectedComponentId' => $selectedComponentId,
         ]);
     }
 

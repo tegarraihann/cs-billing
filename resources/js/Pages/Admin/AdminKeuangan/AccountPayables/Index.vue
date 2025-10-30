@@ -288,7 +288,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     <div class="flex items-center justify-center space-x-2">
                                         <button
-                                            @click="showPayable(row.payable)"
+                                            @click="showPayable(row)"
                                             class="text-blue-600 hover:text-blue-900"
                                             title="Lihat Detail"
                                         >
@@ -299,7 +299,7 @@
                                         </button>
                                         <button
                                             v-if="row.status !== 'paid'"
-                                            @click="openPaymentModal(row.payable)"
+                                            @click="openPaymentModal(row)"
                                             class="text-green-600 hover:text-green-900"
                                             title="Mark Payment"
                                         >
@@ -351,7 +351,7 @@
             :form="paymentForm"
             :bank-accounts="props.bankAccounts"
             :reimbursement-items="reimbursementItems"
-            :max-amount="selectedPayable ? Number(selectedPayable.outstanding_amount || 0) : 0"
+            :max-amount="selectedComponent ? Number(selectedComponent.outstanding_amount || 0) : (selectedPayable ? Number(selectedPayable.outstanding_amount || 0) : 0)"
             title="Mark Payment"
             submit-label="Mark Payment"
             @close="closePaymentModal"
@@ -359,8 +359,9 @@
         >
             <template #summary>
                 <div class="mb-4 bg-gray-50 p-3 rounded-md">
-                    <p class="text-sm text-gray-600">Vendor: {{ selectedPayable?.vendor?.nama_vendor || selectedPayable?.vendor_name }}</p>
-                    <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(selectedPayable?.outstanding_amount) }}</p>
+                    <p class="text-sm text-gray-600">Vendor: {{ modalVendorName }}</p>
+                    <p class="text-sm text-gray-600">Komponen: {{ modalServiceLabel }}</p>
+                    <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(modalOutstanding) }}</p>
                 </div>
             </template>
         </ReimbursementPaymentModal>
@@ -394,6 +395,7 @@ const searchForm = reactive({
 })
 
 const showPaymentModal = ref(false)
+const selectedRow = ref(null)
 const selectedPayable = ref(null)
 const processing = ref(false)
 const reimbursementItems = ref([])
@@ -404,6 +406,7 @@ const paymentForm = reactive({
     bank_account_id: '',
     payment_method: '',
     notes: '',
+    component_id: '',
     reimbursement_items: [],
     reimbursement_vendor_name: '',
     reimbursement_paid_at: new Date().toISOString().split('T')[0],
@@ -419,6 +422,38 @@ const componentTypeLabels = {
 const componentLabel = (type) => {
     return componentTypeLabels[type] || 'Komponen'
 }
+
+const selectedComponent = computed(() => selectedRow.value?.component || null)
+
+const modalOutstanding = computed(() => {
+    if (selectedComponent.value) {
+        return Number(selectedComponent.value.outstanding_amount || 0)
+    }
+    if (selectedPayable.value) {
+        return Number(selectedPayable.value.outstanding_amount || 0)
+    }
+    return 0
+})
+
+const modalServiceLabel = computed(() => {
+    if (selectedComponent.value) {
+        return componentLabel(selectedComponent.value.component_type)
+    }
+    return 'Total Hutang'
+})
+
+const modalVendorName = computed(() => {
+    if (selectedComponent.value && selectedComponent.value.recipient_name) {
+        return selectedComponent.value.recipient_name
+    }
+    if (selectedPayable.value?.vendor?.nama_vendor) {
+        return selectedPayable.value.vendor.nama_vendor
+    }
+    if (selectedPayable.value?.vendor_name) {
+        return selectedPayable.value.vendor_name
+    }
+    return 'Eshaka Wijaya Logistics'
+})
 
 const calculateDaysOverdue = (dueDate, status) => {
     if (!dueDate || status === 'paid') {
@@ -552,31 +587,46 @@ const getStatusText = (status) => {
     return texts[status] || status
 }
 
-const showPayable = (payable) => {
-    router.visit(route('admin-keuangan.account-payables.show', payable.id))
+const showPayable = (row) => {
+    const params = {
+        accountPayable: row.payable.id
+    }
+    if (row.component) {
+        params.component_id = row.component.id
+    }
+    router.visit(route('admin-keuangan.account-payables.show', params))
 }
 
-const openPaymentModal = async (payable) => {
-    selectedPayable.value = payable
+const openPaymentModal = async (row) => {
+    selectedRow.value = row
+    selectedPayable.value = row.payable
     paymentForm.amount = ''
     paymentForm.bank_account_id = ''
     paymentForm.payment_method = ''
     paymentForm.notes = ''
-    paymentForm.reimbursement_vendor_name = payable.vendor?.nama_vendor || payable.vendor_name || 'Eshaka Wijaya Logistics'
+    paymentForm.component_id = row.component ? String(row.component.id) : ''
+    paymentForm.reimbursement_vendor_name = modalVendorName.value
     paymentForm.reimbursement_paid_at = new Date().toISOString().split('T')[0]
     paymentForm.reimbursement_notes = ''
     reimbursementItems.value = []
 
-    try {
-        const response = await fetch(route('admin-keuangan.account-payables.reimbursement-items', payable.id))
-        if (response.ok) {
-            reimbursementItems.value = await response.json()
-            paymentForm.reimbursement_items = reimbursementItems.value
-                .filter(item => item.status !== 'paid')
-                .map(item => item.id)
+    if (row.component && row.component.component_type === 'reimbursement') {
+        try {
+            const response = await fetch(route('admin-keuangan.account-payables.reimbursement-items', {
+                accountPayable: row.payable.id
+            }))
+            if (response.ok) {
+                reimbursementItems.value = await response.json()
+                paymentForm.reimbursement_items = reimbursementItems.value
+                    .filter(item => item.status !== 'paid')
+                    .map(item => item.id)
+            }
+        } catch (error) {
+            console.error('Failed to fetch reimbursement items', error)
         }
-    } catch (error) {
-        console.error('Failed to fetch reimbursement items', error)
+    } else {
+        paymentForm.reimbursement_items = []
+        reimbursementItems.value = []
     }
 
     showPaymentModal.value = true
@@ -585,7 +635,12 @@ const openPaymentModal = async (payable) => {
 const closePaymentModal = () => {
     showPaymentModal.value = false
     selectedPayable.value = null
+    selectedRow.value = null
     reimbursementItems.value = []
+    paymentForm.component_id = ''
+    paymentForm.reimbursement_items = []
+    paymentForm.reimbursement_vendor_name = ''
+    paymentForm.reimbursement_notes = ''
 }
 
 const markPayment = () => {

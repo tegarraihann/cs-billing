@@ -163,7 +163,7 @@
             </div>
 
             <!-- Components Breakdown -->
-            <div v-if="componentOptions.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div v-if="visibleComponents.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Rincian Komponen Hutang</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -190,7 +190,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="component in componentOptions" :key="component.id">
+                            <tr v-for="component in visibleComponents" :key="component.id">
                                 <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ getComponentLabel(component.component_type) }}
                                 </td>
@@ -273,20 +273,22 @@
             <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                 <div class="mt-3">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Mark Payment</h3>
-                    <div class="mb-4 bg-gray-50 p-3 rounded-md">
-                        <p class="text-sm text-gray-600">Vendor: {{ payable.vendor?.nama_vendor || payable.vendor_name }}</p>
-                        <p v-if="selectedComponent" class="text-sm text-gray-600">
-                            Komponen: {{ getComponentLabel(selectedComponent.component_type) }}
-                        </p>
-                        <p class="text-sm text-gray-600">
-                            Outstanding: Rp {{
-                                formatNumber(
-                                    selectedComponent
-                                        ? selectedComponent.outstanding_amount
-                                        : payable.outstanding_amount
-                                )
-                            }}
-                        </p>
+                        <div class="mb-4 bg-gray-50 p-3 rounded-md">
+                            <p class="text-sm text-gray-600">
+                                Vendor: {{ selectedComponent?.recipient_name || payable.vendor?.nama_vendor || payable.vendor_name }}
+                            </p>
+                            <p v-if="selectedComponent" class="text-sm text-gray-600">
+                                Komponen: {{ getComponentLabel(selectedComponent.component_type) }}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                Outstanding: Rp {{
+                                    formatNumber(
+                                        selectedComponent
+                                            ? selectedComponent.outstanding_amount
+                                            : payable.outstanding_amount
+                                    )
+                                }}
+                            </p>
                     </div>
                     <form @submit.prevent="markPayment">
                         <div v-if="hasMultipleComponents" class="mb-4">
@@ -314,7 +316,7 @@
                                 v-model="paymentForm.amount"
                                 type="number"
                                 step="0.01"
-                                :max="payable.outstanding_amount"
+                                :max="selectedComponent ? selectedComponent.outstanding_amount : payable.outstanding_amount"
                                 required
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 placeholder="Enter payment amount"
@@ -454,6 +456,10 @@ const props = defineProps({
     bankAccounts: {
         type: Array,
         default: () => []
+    },
+    selectedComponentId: {
+        type: [Number, String, null],
+        default: null
     }
 })
 
@@ -485,6 +491,29 @@ const componentOptions = computed(() => (props.payable.components || []).map(com
     outstanding_amount: parseFloat(component.outstanding_amount || 0)
 })))
 
+const selectedComponentIdProp = computed(() => {
+    if (props.selectedComponentId === null || props.selectedComponentId === undefined || props.selectedComponentId === '') {
+        return null
+    }
+    const numeric = Number(props.selectedComponentId)
+    return Number.isNaN(numeric) ? null : numeric
+})
+
+const visibleComponents = computed(() => {
+    if (!componentOptions.value.length) {
+        return []
+    }
+
+    if (selectedComponentIdProp.value) {
+        const match = componentOptions.value.find(component => component.id === selectedComponentIdProp.value)
+        if (match) {
+            return [match]
+        }
+    }
+
+    return componentOptions.value
+})
+
 const hasMultipleComponents = computed(() => componentOptions.value.length > 1)
 
 const selectedComponent = computed(() => {
@@ -502,24 +531,27 @@ watch(() => paymentForm.component_id, () => {
     }
 })
 
-// Initialize component_id
-watch(componentOptions, (options) => {
-    if (!showPaymentModal.value) {
-        return
-    }
+// Initialize component selection
+watch(
+    () => [selectedComponentIdProp.value, componentOptions.value],
+    ([selectedId, options]) => {
+        if (!options.length) {
+            paymentForm.component_id = ''
+            return
+        }
 
-    if (!options.length) {
-        paymentForm.component_id = ''
-        return
-    }
+        if (selectedId && options.find(component => component.id === selectedId)) {
+            paymentForm.component_id = String(selectedId)
+            return
+        }
 
-    const currentId = paymentForm.component_id ? Number(paymentForm.component_id) : null
-
-    if (!currentId || !options.find(component => component.id === currentId)) {
-        const defaultComponent = options.find(component => parseFloat(component.outstanding_amount || 0) > 0) || options[0]
-        paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
-    }
-}, { immediate: true })
+        if (!paymentForm.component_id) {
+            const defaultComponent = options.find(component => parseFloat(component.outstanding_amount || 0) > 0) || options[0]
+            paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
+        }
+    },
+    { immediate: true, deep: true }
+)
 
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
@@ -579,9 +611,10 @@ const openPaymentModal = () => {
     paymentForm.bank_account_id = ''
     paymentForm.payment_method = ''
     paymentForm.notes = ''
-    paymentForm.component_id = hasMultipleComponents.value
-        ? ''
-        : (componentOptions.value[0] ? String(componentOptions.value[0].id) : '')
+    const defaultComponent = visibleComponents.value.length === 1
+        ? visibleComponents.value[0]
+        : (componentOptions.value.find(component => parseFloat(component.outstanding_amount || 0) > 0) || componentOptions.value[0])
+    paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
     showPaymentModal.value = true
 }
 
