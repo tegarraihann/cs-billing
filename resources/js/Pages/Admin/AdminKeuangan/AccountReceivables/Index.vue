@@ -366,59 +366,129 @@
 
         <!-- Payment Modal -->
         <div v-if="showPaymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div class="mt-3">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Record Payment</h3>
-                    <div class="mb-4">
-                        <p class="text-sm text-gray-600">Invoice: {{ selectedReceivable?.invoice_number }}</p>
-                        <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(selectedReceivable?.outstanding_amount) }}</p>
+            <div class="relative top-12 mx-auto w-full max-w-lg px-4">
+                <div class="bg-white rounded-lg shadow-lg border">
+                    <div class="flex items-center justify-between px-6 py-4 border-b">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Record Payment</h3>
+                            <p class="text-sm text-gray-600 mt-1">
+                                Invoice {{ selectedReceivable?.invoice_number }}
+                                <span v-if="paymentContext.outstanding_amount">
+                                    · Outstanding: Rp {{ formatNumber(paymentContext.outstanding_amount) }}
+                                </span>
+                            </p>
+                        </div>
+                        <button @click="closePaymentModal" class="text-gray-400 hover:text-gray-600">
+                            <span class="sr-only">Close</span>
+                            ✕
+                        </button>
                     </div>
-                    <form @submit.prevent="recordPayment">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                            <input
-                                v-model="paymentForm.amount"
-                                type="number"
-                                step="0.01"
-                                :max="selectedReceivable?.outstanding_amount"
-                                required
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
+
+                    <div class="px-6 py-5">
+                        <div v-if="paymentDataLoading" class="py-6 text-center text-sm text-gray-600">
+                            Memuat data pembayaran...
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
-                            <input
-                                v-model="paymentForm.payment_date"
-                                type="date"
-                                required
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
+
+                        <div v-else>
+                            <div v-if="paymentDataError" class="mb-4 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+                                {{ paymentDataError }}
+                            </div>
+
+                            <form @submit.prevent="recordPayment">
+                                <div v-if="paymentComponents.length > 0" class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        Komponen Pembayaran <span v-if="requiresComponent">*</span>
+                                    </label>
+                                    <select
+                                        v-model="paymentForm.component_id"
+                                        :disabled="paymentComponents.length === 1"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    >
+                                        <option value="">Pilih Komponen</option>
+                                        <option v-for="component in paymentComponents" :key="component.id" :value="component.id.toString()">
+                                            {{ getComponentLabel(component.component_type) }} - Outstanding Rp {{ formatNumber(component.outstanding_amount) }}
+                                        </option>
+                                    </select>
+                                    <p v-if="formErrors.component_id" class="mt-1 text-xs text-red-600">{{ formErrors.component_id }}</p>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                                    <input
+                                        v-model="paymentForm.amount"
+                                        type="text"
+                                        @input="formatAmountInput"
+                                        @blur="validateAmount"
+                                        :disabled="requiresComponent && !paymentForm.component_id"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Masukkan nominal (contoh: 2500 atau 2.500)"
+                                    />
+                                    <p v-if="amountError" class="mt-1 text-xs text-red-600">{{ amountError }}</p>
+                                    <p v-else-if="formErrors.amount" class="mt-1 text-xs text-red-600">{{ formErrors.amount }}</p>
+                                    <p v-else class="mt-1 text-xs text-gray-500">
+                                        Maksimal: Rp {{ formatNumber(currentOutstandingLimit) }}
+                                    </p>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
+                                    <input
+                                        v-model="paymentForm.payment_date"
+                                        type="date"
+                                        required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                    <p v-if="formErrors.payment_date" class="mt-1 text-xs text-red-600">{{ formErrors.payment_date }}</p>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account *</label>
+                                    <select
+                                        v-model="paymentForm.bank_account_id"
+                                        required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    >
+                                        <option value="">Pilih Rekening</option>
+                                        <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id.toString()">
+                                            {{ bank.bank_name }} · {{ bank.account_name }} ({{ bank.account_number }})
+                                        </option>
+                                    </select>
+                                    <p v-if="bankAccounts.length === 0" class="mt-1 text-xs text-red-600">
+                                        Tidak ada rekening bank aktif. Tambahkan rekening terlebih dahulu.
+                                    </p>
+                                    <p v-if="formErrors.bank_account_id" class="mt-1 text-xs text-red-600">{{ formErrors.bank_account_id }}</p>
+                                </div>
+
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                    <textarea
+                                        v-model="paymentForm.notes"
+                                        rows="3"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Catatan pembayaran (opsional)"
+                                    ></textarea>
+                                    <p v-if="formErrors.notes" class="mt-1 text-xs text-red-600">{{ formErrors.notes }}</p>
+                                </div>
+
+                                <div class="flex justify-end space-x-3">
+                                    <button
+                                        type="button"
+                                        @click="closePaymentModal"
+                                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        :disabled="processing || bankAccounts.length === 0"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                        {{ processing ? 'Menyimpan...' : 'Record Payment' }}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea
-                                v-model="paymentForm.notes"
-                                rows="3"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            ></textarea>
-                        </div>
-                        <div class="flex justify-end space-x-3">
-                            <button
-                                type="button"
-                                @click="closePaymentModal"
-                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                :disabled="processing"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {{ processing ? 'Recording...' : 'Record Payment' }}
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -428,10 +498,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { DollarSign, AlertTriangle, FileText, CheckCircle } from 'lucide-vue-next'
+import axios from 'axios'
 
 const props = defineProps({
     receivables: Object,
@@ -454,10 +525,23 @@ const selectedReceivable = ref(null)
 const processing = ref(false)
 
 const paymentForm = reactive({
+    component_id: '',
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
+    bank_account_id: '',
     notes: ''
 })
+
+const paymentComponents = ref([])
+const bankAccounts = ref([])
+const paymentContext = reactive({
+    outstanding_amount: 0,
+    requires_component: false
+})
+const paymentDataLoading = ref(false)
+const paymentDataError = ref('')
+const amountError = ref('')
+const formErrors = ref({})
 
 let debounceTimer = null
 
@@ -534,6 +618,19 @@ const formatDate = (date) => {
     })
 }
 
+const getComponentLabel = (type) => {
+    switch (type) {
+        case 'invoice_main':
+            return 'Invoice Main'
+        case 'debit_note':
+            return 'Debit Note'
+        case 'reimbursement':
+            return 'Reimbursement'
+        default:
+            return type ? type.replace(/_/g, ' ').toUpperCase() : 'Komponen'
+    }
+}
+
 const getStatusClass = (status) => {
     const classes = {
         outstanding: 'bg-yellow-100 text-yellow-800',
@@ -560,33 +657,214 @@ const showReceivable = (receivable) => {
 
 const openPaymentModal = (receivable) => {
     selectedReceivable.value = receivable
-    paymentForm.amount = ''
-    paymentForm.notes = ''
     showPaymentModal.value = true
+    paymentDataLoading.value = true
+    paymentDataError.value = ''
+    paymentComponents.value = []
+    bankAccounts.value = []
+    paymentForm.component_id = ''
+    paymentForm.amount = ''
+    paymentForm.payment_date = new Date().toISOString().split('T')[0]
+    paymentForm.bank_account_id = ''
+    paymentForm.notes = ''
+    amountError.value = ''
+    formErrors.value = {}
+
+    axios
+        .get(route('admin-keuangan.account-receivables.payment-data', receivable.id))
+        .then(({ data }) => {
+            paymentComponents.value = (data.components || []).map((component) => ({
+                ...component,
+                id: component.id.toString()
+            }))
+            bankAccounts.value = (data.bank_accounts || []).map((bank) => ({
+                ...bank,
+                id: bank.id.toString()
+            }))
+            paymentContext.outstanding_amount = data.receivable?.outstanding_amount || 0
+            paymentContext.requires_component = !!data.requires_component
+            paymentForm.payment_date = data.default_payment_date || new Date().toISOString().split('T')[0]
+            paymentForm.bank_account_id = bankAccounts.value.length > 0 ? bankAccounts.value[0].id : ''
+
+            if (paymentComponents.value.length === 1) {
+                paymentForm.component_id = paymentComponents.value[0].id
+            }
+
+            amountError.value = ''
+            formErrors.value = {}
+        })
+        .catch(() => {
+            paymentDataError.value = 'Gagal memuat data pembayaran. Silakan coba lagi.'
+        })
+        .finally(() => {
+            paymentDataLoading.value = false
+        })
 }
 
 const closePaymentModal = () => {
     showPaymentModal.value = false
     selectedReceivable.value = null
+    paymentComponents.value = []
+    bankAccounts.value = []
+    paymentContext.outstanding_amount = 0
+    paymentContext.requires_component = false
+    paymentForm.component_id = ''
+    paymentForm.amount = ''
+    paymentForm.bank_account_id = ''
+    paymentForm.notes = ''
+    amountError.value = ''
+    paymentDataError.value = ''
+    formErrors.value = {}
 }
 
 const recordPayment = () => {
+    amountError.value = ''
+    if (formErrors.value.amount) {
+        const { amount, ...rest } = formErrors.value
+        formErrors.value = rest
+    }
+
+    validateAmount()
+    if (amountError.value) {
+        return
+    }
+
     processing.value = true
-    
+
     router.post(
         route('admin-keuangan.account-receivables.record-payment', selectedReceivable.value.id),
-        paymentForm,
         {
+            component_id: paymentForm.component_id || null,
+            amount: paymentForm.amount,
+            payment_date: paymentForm.payment_date,
+            bank_account_id: paymentForm.bank_account_id,
+            notes: paymentForm.notes
+        },
+        {
+            preserveScroll: true,
             onSuccess: () => {
+                formErrors.value = {}
                 closePaymentModal()
-                processing.value = false
             },
-            onError: () => {
+            onError: (errors) => {
+                formErrors.value = { ...errors }
+                if (errors?.amount) {
+                    amountError.value = ''
+                }
+            },
+            onFinish: () => {
                 processing.value = false
             }
         }
     )
 }
+
+const selectedComponent = computed(() => {
+    if (!paymentForm.component_id) {
+        return null
+    }
+    return paymentComponents.value.find((component) => component.id === paymentForm.component_id) || null
+})
+const requiresComponent = computed(() => paymentContext.requires_component)
+const currentOutstandingLimit = computed(() => {
+    if (selectedComponent.value) {
+        return selectedComponent.value.outstanding_amount || 0
+    }
+    return paymentContext.outstanding_amount || 0
+})
+
+const clearFormError = (field) => {
+    if (formErrors.value[field]) {
+        const newErrors = { ...formErrors.value }
+        delete newErrors[field]
+        formErrors.value = newErrors
+    }
+}
+
+const formatAmountInput = (event) => {
+    clearFormError('amount')
+    amountError.value = ''
+
+    if (requiresComponent.value && !paymentForm.component_id) {
+        amountError.value = 'Pilih komponen terlebih dahulu'
+        paymentForm.amount = ''
+        return
+    }
+
+    let value = event.target.value || ''
+    value = value.replace(/[^\d.,]/g, '')
+    paymentForm.amount = value
+}
+
+const validateAmount = () => {
+    clearFormError('amount')
+    amountError.value = ''
+
+    if (requiresComponent.value && !paymentForm.component_id) {
+        amountError.value = 'Pilih komponen terlebih dahulu'
+        return
+    }
+
+    const rawValue = (paymentForm.amount || '').toString().trim()
+    if (!rawValue) {
+        amountError.value = 'Amount is required'
+        return
+    }
+
+    let normalizedValue = rawValue
+
+    if (rawValue.includes('.') && rawValue.includes(',')) {
+        normalizedValue = rawValue.replace(/\./g, '').replace(',', '.')
+    } else if (rawValue.includes('.') && !rawValue.includes(',')) {
+        const parts = rawValue.split('.')
+        if (parts.length === 2) {
+            const decimalPart = parts[1]
+            if (decimalPart.length <= 2 && parseInt(decimalPart) < 100 && parts[0].length <= 4) {
+                normalizedValue = rawValue
+            } else {
+                normalizedValue = rawValue.replace(/\./g, '')
+            }
+        } else {
+            normalizedValue = rawValue.replace(/\./g, '')
+        }
+    } else if (rawValue.includes(',')) {
+        normalizedValue = rawValue.replace(',', '.')
+    }
+
+    const numericValue = parseFloat(normalizedValue)
+    if (isNaN(numericValue) || numericValue <= 0) {
+        amountError.value = 'Please enter a valid amount'
+        return
+    }
+
+    const limit = currentOutstandingLimit.value
+    if (numericValue > limit) {
+        const label = selectedComponent.value
+            ? getComponentLabel(selectedComponent.value.component_type)
+            : 'invoice'
+        amountError.value = `Amount cannot exceed outstanding balance for ${label} (Rp ${formatNumber(limit)})`
+        return
+    }
+
+    paymentForm.amount = normalizedValue
+}
+
+watch(
+    () => paymentForm.component_id,
+    (newValue, oldValue) => {
+        if (newValue !== oldValue) {
+            clearFormError('component_id')
+            amountError.value = ''
+            if (!newValue && requiresComponent.value) {
+                paymentForm.amount = ''
+                return
+            }
+            if (selectedComponent.value) {
+                paymentForm.amount = selectedComponent.value.outstanding_amount
+            }
+        }
+    }
+)
 
 const generateSOA = (customer) => {
     const params = new URLSearchParams({

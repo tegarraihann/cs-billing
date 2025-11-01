@@ -45,6 +45,7 @@
                   <option value="">Semua Status</option>
                   <option value="1">Aktif</option>
                   <option value="0">Tidak Aktif</option>
+                  <option value="deleted">Dihapus</option>
                 </select>
               </div>
             </div>
@@ -87,9 +88,9 @@
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                  <tr v-for="serviceType in serviceTypes.data" :key="serviceType.id" class="hover:bg-gray-50">
+                  <tr v-for="(serviceType, index) in serviceTypes.data" :key="serviceType.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ serviceType.id }}
+                      {{ (serviceTypes.from ?? 1) + index }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm font-medium text-gray-900">{{ serviceType.code }}</div>
@@ -98,7 +99,11 @@
                       {{ serviceType.description || '-' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
+                      <span v-if="serviceType.deleted_at" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                        Dihapus
+                      </span>
                       <span
+                        v-else
                         :class="
                           serviceType.is_active
                             ? 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'
@@ -118,12 +123,19 @@
                           <Edit class="w-4 h-4" />
                         </Link>
                         <button
+                          v-if="!serviceType.deleted_at"
                           @click="confirmDelete(serviceType)"
                           class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
                           title="Hapus"
                         >
                           <Trash2 class="w-4 h-4" />
                         </button>
+                        <span
+                          v-else
+                          class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-400 border border-gray-200 rounded"
+                        >
+                          Sudah dihapus
+                        </span>
                       </div>
                     </td>
                   </tr>

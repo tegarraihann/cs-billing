@@ -5,6 +5,7 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\AccountReceivable;
 use App\Models\Customer;
+use App\Models\BankAccount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -104,6 +105,52 @@ class AccountReceivableController extends Controller
         return Inertia::render('Admin/AdminKeuangan/AccountReceivables/Show', [
             'receivable' => $accountReceivable,
             'bankAccounts' => $bankAccounts
+        ]);
+    }
+
+    /**
+     * Provide payment form data for modal (components & bank accounts)
+     */
+    public function paymentData(AccountReceivable $accountReceivable)
+    {
+        $accountReceivable->load(['invoice', 'customer']);
+        $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        $accountReceivable->load('components');
+
+        $components = $accountReceivable->components->map(function ($component) {
+            return [
+                'id' => $component->id,
+                'component_type' => $component->component_type,
+                'description' => $component->description,
+                'invoice_amount' => (float) $component->amount,
+                'paid_amount' => (float) $component->paid_amount,
+                'outstanding_amount' => (float) $component->outstanding_amount,
+            ];
+        })->values();
+
+        $bankAccounts = BankAccount::select('id', 'bank_name', 'account_name', 'account_number')
+            ->orderBy('bank_name')
+            ->get()
+            ->map(function ($bank) {
+                return [
+                    'id' => $bank->id,
+                    'bank_name' => $bank->bank_name,
+                    'account_name' => $bank->account_name,
+                    'account_number' => $bank->account_number,
+                ];
+            });
+
+        return response()->json([
+            'receivable' => [
+                'id' => $accountReceivable->id,
+                'invoice_number' => $accountReceivable->invoice_number,
+                'outstanding_amount' => (float) $accountReceivable->outstanding_amount,
+                'status' => $accountReceivable->status,
+            ],
+            'components' => $components,
+            'requires_component' => $components->count() > 1,
+            'bank_accounts' => $bankAccounts,
+            'default_payment_date' => now()->toDateString(),
         ]);
     }
 

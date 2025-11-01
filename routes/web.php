@@ -584,6 +584,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
     Route::controller(\App\Http\Controllers\AdminKeuangan\AccountReceivableController::class)->prefix('account-receivables')->name('account-receivables.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{accountReceivable}', 'show')->name('show');
+        Route::get('/{accountReceivable}/payment-data', 'paymentData')->name('payment-data');
         Route::post('/{accountReceivable}/record-payment', 'recordPayment')->name('record-payment');
         Route::get('/customers/{customer}/generate-soa', 'generateSOA')->name('generate-soa');
         Route::get('/customers/{customer}/receivables', 'getByCustomer')->name('get-by-customer');

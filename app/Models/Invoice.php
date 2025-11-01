@@ -407,6 +407,7 @@ class Invoice extends Model
 
         $userId = $userId ?? auth()->id();
         $entryIds = [];
+        $period = \App\Models\ProfitLossPeriod::findOrFail($periodId);
 
         try {
             \DB::beginTransaction();
@@ -467,6 +468,9 @@ class Invoice extends Model
                 $entryIds[] = $costEntry->id;
             }
 
+            // Update profit & loss period summary so ringkasan reflects latest totals
+            $period->calculateTotals();
+
             // Update invoice status
             $this->update([
                 'posted_to_profit_loss' => true,
@@ -500,9 +504,17 @@ class Invoice extends Model
         }
 
         $userId = $userId ?? auth()->id();
+        $periods = [];
 
         try {
             \DB::beginTransaction();
+
+            if ($this->profit_loss_entries && is_array($this->profit_loss_entries)) {
+                $periodIds = \App\Models\ProfitLossEntry::whereIn('id', $this->profit_loss_entries)
+                    ->pluck('period_id')
+                    ->unique();
+                $periods = \App\Models\ProfitLossPeriod::whereIn('id', $periodIds)->get();
+            }
 
             // Delete related profit loss entries
             if ($this->profit_loss_entries && is_array($this->profit_loss_entries)) {
@@ -516,6 +528,11 @@ class Invoice extends Model
                 'posted_by' => null,
                 'profit_loss_entries' => null
             ]);
+
+            // Recalculate affected profit & loss periods after removing entries
+            foreach ($periods as $period) {
+                $period->calculateTotals();
+            }
 
             \DB::commit();
             return true;
