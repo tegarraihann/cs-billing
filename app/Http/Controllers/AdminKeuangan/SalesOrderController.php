@@ -993,7 +993,8 @@ class SalesOrderController extends Controller
     {
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
-                $vendorId = $this->resolveVendorId($item['vendor_id'] ?? null);
+                $rawVendor = $item['vendor_id'] ?? null;
+                $vendorId = $this->resolveVendorId($rawVendor);
 
                 \App\Models\ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
@@ -1004,6 +1005,7 @@ class SalesOrderController extends Controller
                     'notes' => $item['notes'] ?? null,
                     'status' => 'pending',
                     'created_by' => Auth::id(),
+                    'receipt_info' => $this->mergeVendorSelectionIntoReceiptInfo(null, $rawVendor),
                 ]);
             }
         }
@@ -1031,7 +1033,8 @@ class SalesOrderController extends Controller
                 continue;
             }
 
-            $vendorId = $this->resolveVendorId($item['vendor_id'] ?? null);
+            $rawVendor = $item['vendor_id'] ?? null;
+            $vendorId = $this->resolveVendorId($rawVendor);
 
             $attributes = [
                 'description' => $item['description'],
@@ -1053,6 +1056,11 @@ class SalesOrderController extends Controller
             }
 
             if ($reimbursement) {
+                $attributes['receipt_info'] = $this->mergeVendorSelectionIntoReceiptInfo(
+                    $reimbursement->receipt_info ?? null,
+                    $rawVendor
+                );
+
                 $reimbursement->fill($attributes);
 
                 if ($reimbursement->isDirty()) {
@@ -1087,6 +1095,7 @@ class SalesOrderController extends Controller
                     'notes' => $attributes['notes'],
                     'status' => 'pending',
                     'created_by' => Auth::id(),
+                    'receipt_info' => $this->mergeVendorSelectionIntoReceiptInfo(null, $rawVendor),
                 ]);
 
                 $processedIds[] = $newItem->id;
@@ -1133,6 +1142,43 @@ class SalesOrderController extends Controller
         }
 
         return null;
+    }
+
+    private function determineVendorSelection($rawVendor): ?string
+    {
+        if ($rawVendor === null || $rawVendor === '') {
+            return null;
+        }
+
+        if (is_array($rawVendor)) {
+            $rawVendor = $rawVendor['id'] ?? $rawVendor['value'] ?? null;
+        }
+
+        if ($rawVendor === null || $rawVendor === '') {
+            return null;
+        }
+
+        return strtolower((string) $rawVendor) === 'internal' ? 'internal' : null;
+    }
+
+    private function mergeVendorSelectionIntoReceiptInfo($existingReceiptInfo, $rawVendor): ?array
+    {
+        $selection = $this->determineVendorSelection($rawVendor);
+
+        if (is_string($existingReceiptInfo)) {
+            $decoded = json_decode($existingReceiptInfo, true);
+            $existingReceiptInfo = is_array($decoded) ? $decoded : [];
+        } elseif (!is_array($existingReceiptInfo)) {
+            $existingReceiptInfo = $existingReceiptInfo ? (array) $existingReceiptInfo : [];
+        }
+
+        if ($selection) {
+            $existingReceiptInfo['vendor_selection'] = $selection;
+        } else {
+            unset($existingReceiptInfo['vendor_selection']);
+        }
+
+        return empty($existingReceiptInfo) ? null : $existingReceiptInfo;
     }
 
     /**

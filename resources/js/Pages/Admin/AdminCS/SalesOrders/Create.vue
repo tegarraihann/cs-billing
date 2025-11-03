@@ -306,16 +306,15 @@
                                                     <select v-model="item.description"
                                                         class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                         <option value="">Pilih Jenis Biaya</option>
-                                                        <option value="OF/AF">OF/AF</option>
-                                                        <option value="HANDLING">HANDLING</option>
-                                                        <option value="PIB EDI">PIB EDI</option>
-                                                        <option value="ADMIN DOC">ADMIN DOC</option>
-                                                        <option value="TRUCKING">TRUCKING</option>
-                                                        <option value="D/O CHARGES">D/O CHARGES</option>
-                                                        <option value="LOLO">LOLO</option>
-                                                        <option value="STORAGE">STORAGE</option>
-                                                        <option value="REFUND">REFUND</option>
-                                                        <option value="OTHER">OTHER</option>
+                                                        <option v-for="option in serviceTypeOptions"
+                                                            :key="option.value"
+                                                            :value="option.value">
+                                                            {{ option.label }}
+                                                        </option>
+                                                        <option v-if="item.description && !isKnownServiceType(item.description)"
+                                                            :value="item.description">
+                                                            {{ item.description }}
+                                                        </option>
                                                     </select>
                                                 </div>
                                                 <div>
@@ -1064,10 +1063,14 @@ const props = defineProps({
     customers: Array,
     vendors: Array,
     shipmentTypes: Array,
+    serviceTypes: {
+        type: Array,
+        default: () => [],
+    },
     operationalCostCategories: Array,
     packageUnits: {
         type: Array,
-        default: () => []
+        default: () => [],
     },
     orderNumber: String,
 });
@@ -1097,6 +1100,27 @@ const customerOptions = computed(() => {
         pic_name: customer.pic_name
     }));
 });
+
+const serviceTypeOptions = computed(() => {
+    return (props.serviceTypes ?? []).map(type => ({
+        value: type.code,
+        label: type.code,
+    }));
+});
+
+const serviceTypeMap = computed(() => {
+    return (props.serviceTypes ?? []).reduce((acc, type) => {
+        acc[type.code] = type.description || type.code;
+        return acc;
+    }, {});
+});
+
+const isKnownServiceType = (code) => {
+    if (!code) {
+        return false;
+    }
+    return Object.prototype.hasOwnProperty.call(serviceTypeMap.value, code);
+};
 
 // Voucher data
 const paymentVouchers = ref([]);

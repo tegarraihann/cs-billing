@@ -274,21 +274,24 @@ class AccountPayable extends Model
      */
     public function syncComponents(): void
     {
-        // FIX: Use composite key (component_type + vendor_id) for proper matching
+        $this->loadMissing(['salesOrder']);
+
         $existingComponentsCollection = $this->components()->get();
         $existingComponents = $existingComponentsCollection->keyBy(function ($item) {
-            return $item->component_type . '_' . ($item->vendor_id ?? 'null');
+            return $this->computeExistingComponentKey($item);
         });
 
         $paidToDistribute = $existingComponentsCollection->isEmpty() ? (float) $this->paid_amount : 0.0;
 
         $componentPayloads = $this->prepareComponentPayloads($paidToDistribute, $existingComponentsCollection);
 
-        $processedTypes = [];
+        $processedKeys = [];
         foreach ($componentPayloads as $payload) {
             $type = $payload['component_type'];
-            $key = $type . '_' . ($payload['vendor_id'] ?? 'null');
-            $processedTypes[] = $key;
+            $vendorId = $payload['vendor_id'] ?? null;
+            $lookupReference = $payload['lookup_reference'] ?? null;
+            $key = $this->makeComponentLookupKey($type, $vendorId, $lookupReference);
+            $processedKeys[] = $key;
 
             $component = $existingComponents->get($key);
 
@@ -300,11 +303,16 @@ class AccountPayable extends Model
                 $component->paid_amount = $payload['paid_amount'] ?? 0;
 
                 // Set these fields only on creation
+                $relatedItemsPayload = $payload['related_items'] ?? [];
+                if ($lookupReference !== null) {
+                    $relatedItemsPayload['lookup_ref'] = $lookupReference;
+                }
+
                 $component->description = $payload['description'] ?? null;
                 $component->amount = $payload['amount'];
                 $component->recipient_name = $payload['recipient_name'] ?? null;
                 $component->vendor_id = $payload['vendor_id'] ?? null;
-                $component->related_items = $payload['related_items'] ?? null;
+                $component->related_items = !empty($relatedItemsPayload) ? $relatedItemsPayload : null;
 
                 if (array_key_exists('paid_amount', $payload)) {
                     $component->paid_amount = min($payload['amount'], $payload['paid_amount']);
@@ -314,7 +322,14 @@ class AccountPayable extends Model
                 // DO NOT update amount to prevent duplication bug
                 $component->description = $payload['description'] ?? $component->description;
                 $component->recipient_name = $payload['recipient_name'] ?? $component->recipient_name;
-                $component->related_items = $payload['related_items'] ?? $component->related_items;
+                $existingRelatedItems = is_array($component->related_items) ? $component->related_items : [];
+                if (!empty($payload['related_items'])) {
+                    $existingRelatedItems = array_merge($existingRelatedItems, $payload['related_items']);
+                }
+                if ($lookupReference !== null) {
+                    $existingRelatedItems['lookup_ref'] = $lookupReference;
+                }
+                $component->related_items = !empty($existingRelatedItems) ? $existingRelatedItems : null;
                 if (array_key_exists('vendor_id', $payload)) {
                     $component->vendor_id = $payload['vendor_id'];
                 }
@@ -334,11 +349,14 @@ class AccountPayable extends Model
         }
 
         // Remove components that are no longer relevant
-        if (!empty($processedTypes)) {
-            $this->components()->whereNotIn(
-                \DB::raw("CONCAT(component_type, '_', COALESCE(vendor_id, 'null'))"),
-                $processedTypes
-            )->delete();
+        if (!empty($processedKeys)) {
+            $processedKeys = array_unique($processedKeys);
+            foreach ($existingComponentsCollection as $existingComponent) {
+                $existingKey = $this->computeExistingComponentKey($existingComponent);
+                if (!in_array($existingKey, $processedKeys, true)) {
+                    $existingComponent->delete();
+                }
+            }
         }
 
         // If no components exist, create a default one from main record
@@ -369,29 +387,101 @@ class AccountPayable extends Model
         $payloads = [];
         $existingComponents = $existingComponents ?? collect();
 
-        [$vendorPaymentAmount, $vendorPaymentDescriptions] = $this->extractVendorPaymentData();
-        /** @var AccountPayableComponent|null $existingVendorComponent */
-        $existingVendorComponent = $existingComponents->first(function ($component) {
+        $vendorPaymentEntries = $this->collectVendorPaymentEntries();
+
+        $existingVendorComponents = $existingComponents->filter(function ($component) {
             return $component->component_type === 'vendor_payment';
         });
 
-        if ($vendorPaymentAmount > 0) {
-            $payloads[] = [
-                'component_type' => 'vendor_payment',
-                'description' => $this->buildVendorPaymentDescription($vendorPaymentDescriptions, $existingVendorComponent),
-                'amount' => $vendorPaymentAmount,
-                'recipient_name' => $this->vendor_name,
-                'vendor_id' => $this->vendor_id,
-            ];
-        } elseif ($existingVendorComponent && (float) $existingVendorComponent->amount > 0) {
-            // Pertahankan komponen vendor payment lama bila masih ada outstanding
-            $payloads[] = [
-                'component_type' => 'vendor_payment',
-                'description' => $existingVendorComponent->description ?? $this->service_description,
-                'amount' => (float) $existingVendorComponent->amount,
-                'recipient_name' => $existingVendorComponent->recipient_name ?? $this->vendor_name,
-                'vendor_id' => $existingVendorComponent->vendor_id ?? $this->vendor_id,
-            ];
+        $existingVendorByReference = $existingVendorComponents->filter(function ($component) {
+            $related = $component->related_items;
+            return is_array($related) && !empty($related['lookup_ref']);
+        })->keyBy(function ($component) {
+            return $component->related_items['lookup_ref'];
+        });
+
+        $legacyVendorComponents = $existingVendorComponents->filter(function ($component) {
+            $related = $component->related_items;
+            return !is_array($related) || empty($related['lookup_ref']);
+        })->values();
+
+        $legacyPaidPool = $legacyVendorComponents->sum('paid_amount');
+        $remainingLegacyPaid = $legacyPaidPool;
+        $remainingLegacyAmount = $vendorPaymentEntries->sum('amount');
+
+        if ($vendorPaymentEntries->isNotEmpty()) {
+            foreach ($vendorPaymentEntries as $entry) {
+                $lookupRef = $entry['lookup_ref'];
+                $existingForEntry = $existingVendorByReference->get($lookupRef);
+                $legacyFallbackComponent = $legacyVendorComponents->first();
+
+                $paidAmount = $existingForEntry ? (float) $existingForEntry->paid_amount : 0.0;
+                if (!$existingForEntry && $remainingLegacyPaid > 0 && $remainingLegacyAmount > 0) {
+                    $allocationRatio = $entry['amount'] / $remainingLegacyAmount;
+                    $allocation = $allocationRatio > 0 ? $allocationRatio * $remainingLegacyPaid : 0.0;
+                    $paidAmount = min($entry['amount'], $allocation);
+                    $remainingLegacyPaid = max(0.0, $remainingLegacyPaid - $paidAmount);
+                    $remainingLegacyAmount = max(0.0, $remainingLegacyAmount - $entry['amount']);
+                }
+
+                $descriptionCandidates = $entry['description'] !== '' ? [$entry['description']] : [];
+                $relatedItems = [
+                    'source' => 'vendor_breakdown',
+                    'vendor_breakdown_index' => $entry['entry_index'],
+                ];
+
+                if ($entry['entry_id'] !== null) {
+                    $relatedItems['vendor_breakdown_id'] = $entry['entry_id'];
+                }
+
+                $payload = [
+                    'component_type' => 'vendor_payment',
+                    'description' => $this->buildVendorPaymentDescription(
+                        $descriptionCandidates,
+                        $existingForEntry ?? $legacyFallbackComponent
+                    ),
+                    'amount' => $entry['amount'],
+                    'recipient_name' => $this->vendor_name,
+                    'vendor_id' => $this->vendor_id,
+                    'related_items' => $relatedItems,
+                    'lookup_reference' => $lookupRef,
+                ];
+
+                if ($paidAmount > 0) {
+                    $payload['paid_amount'] = min($entry['amount'], $paidAmount);
+                }
+
+                $payloads[] = $payload;
+            }
+        } elseif ($existingVendorComponents->isNotEmpty()) {
+            /** @var AccountPayableComponent|null $existingVendorComponent */
+            $existingVendorComponent = $existingVendorComponents->first();
+            if ($existingVendorComponent && (float) $existingVendorComponent->amount > 0) {
+                $payload = [
+                    'component_type' => 'vendor_payment',
+                    'description' => $existingVendorComponent->description ?? $this->service_description,
+                    'amount' => (float) $existingVendorComponent->amount,
+                    'recipient_name' => $existingVendorComponent->recipient_name ?? $this->vendor_name,
+                    'vendor_id' => $existingVendorComponent->vendor_id ?? $this->vendor_id,
+                ];
+
+                $related = $existingVendorComponent->related_items;
+                if (is_array($related) && !empty($related)) {
+                    $payload['related_items'] = $related;
+                    if (!empty($related['lookup_ref'])) {
+                        $payload['lookup_reference'] = $related['lookup_ref'];
+                    }
+                }
+
+                if ((float) $existingVendorComponent->paid_amount > 0) {
+                    $payload['paid_amount'] = min(
+                        (float) $existingVendorComponent->amount,
+                        (float) $existingVendorComponent->paid_amount
+                    );
+                }
+
+                $payloads[] = $payload;
+            }
         }
 
         $invoiceItems = $this->collectInvoiceItemsForVendor();
@@ -429,6 +519,9 @@ class AccountPayable extends Model
         if ($paidToDistribute > 0 && !empty($payloads)) {
             $totalAmount = array_sum(array_column($payloads, 'amount'));
             foreach ($payloads as &$payload) {
+                if (isset($payload['paid_amount']) && $payload['paid_amount'] !== null) {
+                    continue;
+                }
                 $ratio = $totalAmount > 0 ? $payload['amount'] / $totalAmount : 0;
                 $allocated = $ratio * $paidToDistribute;
                 $payload['paid_amount'] = min($payload['amount'], $allocated);
@@ -439,51 +532,88 @@ class AccountPayable extends Model
         return $payloads;
     }
 
-    protected function extractVendorPaymentData(): array
+    protected function collectVendorPaymentEntries(): Collection
     {
         if (!$this->salesOrder || !is_array($this->salesOrder->vendor_breakdown)) {
-            return [0.0, []];
+            return collect();
         }
 
         $payableVendorId = $this->vendor_id ? (int) $this->vendor_id : null;
         $payableVendorName = $this->vendor_name ? trim((string) $this->vendor_name) : null;
 
-        $amount = 0.0;
-        $descriptions = [];
+        return collect($this->salesOrder->vendor_breakdown)
+            ->values()
+            ->filter(function ($entry) {
+                return is_array($entry);
+            })
+            ->map(function ($entry, $index) use ($payableVendorId, $payableVendorName) {
+                $entryVendorId = $this->normalizeVendorIdentifier($entry['vendor_id'] ?? null);
+                $entryVendorName = isset($entry['nama_vendor']) ? trim((string) $entry['nama_vendor']) : null;
 
-        foreach ($this->salesOrder->vendor_breakdown as $entry) {
-            if (!is_array($entry)) {
-                continue;
-            }
+                $matchesVendor = $payableVendorId === $entryVendorId;
 
-            $entryVendorId = $this->normalizeVendorIdentifier($entry['vendor_id'] ?? null);
-            $entryVendorName = isset($entry['nama_vendor']) ? trim((string) $entry['nama_vendor']) : null;
+                if (!$matchesVendor) {
+                    $entryIsInternal = $entryVendorId === null;
+                    $payableIsInternal = $payableVendorId === null;
 
-            $matchesVendor = $payableVendorId === $entryVendorId;
-
-            if (!$matchesVendor) {
-                $entryIsInternal = $entryVendorId === null;
-                $payableIsInternal = $payableVendorId === null;
-
-                if ($payableIsInternal && $entryIsInternal) {
-                    $matchesVendor = true;
-                } elseif ($payableIsInternal && $payableVendorName && $entryVendorName) {
-                    $matchesVendor = strcasecmp($payableVendorName, $entryVendorName) === 0;
+                    if ($payableIsInternal && $entryIsInternal) {
+                        $matchesVendor = true;
+                    } elseif ($payableIsInternal && $payableVendorName && $entryVendorName) {
+                        $matchesVendor = strcasecmp($payableVendorName, $entryVendorName) === 0;
+                    }
                 }
-            }
 
-            if (!$matchesVendor) {
-                continue;
-            }
+                if (!$matchesVendor) {
+                    return null;
+                }
 
-            $amount += (float) ($entry['buying_amount'] ?? 0);
-            $description = trim((string) ($entry['description'] ?? ''));
-            if ($description !== '') {
-                $descriptions[] = $description;
-            }
+                $amount = (float) ($entry['buying_amount'] ?? 0);
+                if ($amount <= 0) {
+                    return null;
+                }
+
+                $description = trim((string) ($entry['description'] ?? ''));
+
+                $lookupRef = $entry['id'] ?? null;
+                if ($lookupRef === null) {
+                    $lookupRef = md5(json_encode([
+                        'index' => $index,
+                        'description' => $description,
+                        'amount' => $amount,
+                    ]));
+                } else {
+                    $lookupRef = (string) $lookupRef;
+                }
+
+                return [
+                    'amount' => $amount,
+                    'description' => $description,
+                    'entry_index' => $index,
+                    'entry_id' => $entry['id'] ?? null,
+                    'lookup_ref' => $lookupRef,
+                ];
+            })
+            ->filter()
+            ->values();
+    }
+
+    protected function makeComponentLookupKey(string $componentType, $vendorId, ?string $reference = null): string
+    {
+        $base = $componentType . '_' . ($vendorId ?? 'null');
+
+        return $reference ? $base . '_' . $reference : $base;
+    }
+
+    protected function computeExistingComponentKey(AccountPayableComponent $component): string
+    {
+        $relatedItems = $component->related_items;
+        $reference = null;
+
+        if (is_array($relatedItems) && !empty($relatedItems['lookup_ref'])) {
+            $reference = (string) $relatedItems['lookup_ref'];
         }
 
-        return [$amount, array_values(array_unique($descriptions))];
+        return $this->makeComponentLookupKey($component->component_type, $component->vendor_id, $reference);
     }
 
     protected function collectInvoiceItemsForVendor(): Collection

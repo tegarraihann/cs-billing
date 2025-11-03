@@ -253,15 +253,15 @@
                                             <select v-model="item.description"
                                                 class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                 <option value="">Pilih Jenis Biaya</option>
-                                                <option v-for="serviceType in serviceTypes" :key="serviceType.id"
-                                                    :value="serviceType.code">
-                                                    {{ serviceType.code }}
+                                                <option v-for="option in serviceTypeOptions"
+                                                    :key="option.value"
+                                                    :value="option.value">
+                                                    {{ option.label }}
                                                 </option>
-                                                <option value="D/O CHARGES">D/O CHARGES</option>
-                                                <option value="LOLO">LOLO</option>
-                                                <option value="STORAGE">STORAGE</option>
-                                                <option value="REFUND">REFUND</option>
-                                                <option value="OTHER">OTHER</option>
+                                                <option v-if="item.description && !isKnownServiceType(item.description)"
+                                                    :value="item.description">
+                                                    {{ item.description }}
+                                                </option>
                                             </select>
                                         </div>
                                         <div>
@@ -758,7 +758,10 @@ const props = defineProps({
     salesOrder: Object,
     vendors: Array,
     shipmentTypes: Array,
-    serviceTypes: Array,
+    serviceTypes: {
+        type: Array,
+        default: () => [],
+    },
     operationalCostCategories: Array,
 });
 
@@ -827,16 +830,71 @@ const initializeOtherCosts = () => {
     return [{ description: '', amount: 0, category: '', vendor_id: '' }];
 };
 
+const parseReceiptInfo = (info) => {
+    if (!info) {
+        return {};
+    }
+
+    if (typeof info === 'string') {
+        try {
+            const parsed = JSON.parse(info);
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (error) {
+            console.warn('Failed to parse receipt_info JSON:', error);
+            return {};
+        }
+    }
+
+    return info;
+};
+
+const serviceTypeOptions = computed(() => {
+    return (props.serviceTypes ?? []).map(type => ({
+        value: type.code,
+        label: type.code,
+    }));
+});
+
+const serviceTypeMap = computed(() => {
+    return (props.serviceTypes ?? []).reduce((acc, type) => {
+        acc[type.code] = type.description || type.code;
+        return acc;
+    }, {});
+});
+
+const isKnownServiceType = (code) => {
+    if (!code) {
+        return false;
+    }
+    return Object.prototype.hasOwnProperty.call(serviceTypeMap.value, code);
+};
+
 const initializeReimbursementItems = () => {
     if (props.salesOrder.reimbursement_items && Array.isArray(props.salesOrder.reimbursement_items) && props.salesOrder.reimbursement_items.length > 0) {
-        return props.salesOrder.reimbursement_items.map(item => ({
-            id: item.id ?? null,
-            description: item.description || '',
-            amount: item.amount ?? 0,
-            category: item.category || '',
-            notes: item.notes || '',
-            vendor_id: item.vendor_id ?? ''
-        }));
+        return props.salesOrder.reimbursement_items.map(item => {
+            const receiptInfo = parseReceiptInfo(item.receipt_info);
+            const rawVendor =
+                item.vendor_selection ??
+                receiptInfo.vendor_selection ??
+                item.vendor_id ??
+                item.vendor?.id ??
+                item.vendor_code ??
+                null;
+
+            const normalizedVendorId =
+                rawVendor === null || rawVendor === undefined || rawVendor === ''
+                    ? ''
+                    : (String(rawVendor).toLowerCase() === 'internal' ? 'internal' : rawVendor);
+
+            return {
+                id: item.id ?? null,
+                description: item.description || '',
+                amount: item.amount ?? 0,
+                category: item.category || '',
+                notes: item.notes || '',
+                vendor_id: normalizedVendorId,
+            };
+        });
     }
 
     return [{ id: null, description: '', amount: 0, category: '', notes: '', vendor_id: '' }];

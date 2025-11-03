@@ -6,10 +6,10 @@
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold text-sage-800">
-              Tambah Kategori Biaya Operasional
+              Add Chart Of Accounts
             </h1>
             <p class="text-sage-600 mt-1">
-              Buat kategori biaya operasional baru untuk sistem finance
+              Buat Chart Of Accounts baru untuk sistem finance
             </p>
           </div>
           <Link
@@ -41,7 +41,7 @@
             Informasi Kategori
           </h2>
           <p class="text-sm text-sage-600 mt-1">
-            Lengkapi form di bawah untuk menambahkan kategori biaya operasional baru
+            Lengkapi form di bawah untuk menambahkan chart of accounts baru
           </p>
         </div>
 
@@ -55,7 +55,7 @@
               id="name"
               v-model="form.name"
               type="text"
-              placeholder="Masukkan nama kategori biaya operasional"
+              placeholder="Masukkan nama chart of accounts"
               class="w-full rounded-lg border-sage-300 focus:border-sage-500 focus:ring-sage-500"
               :class="{ 'border-red-300 focus:border-red-500': form.errors.name }"
               required

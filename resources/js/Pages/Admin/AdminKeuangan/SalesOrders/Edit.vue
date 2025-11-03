@@ -271,14 +271,13 @@
                                                     <select v-model="item.description"
                                                         class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                         <option value="">Pilih Jenis Biaya</option>
-                                                        <option v-for="serviceType in serviceTypes" :key="serviceType.id" :value="serviceType.code">
-                                                            {{ serviceType.code }}
+                                                        <option v-for="option in serviceTypeOptions" :key="option.value" :value="option.value">
+                                                            {{ option.label }}
                                                         </option>
-                                                        <option value="D/O CHARGES">D/O CHARGES</option>
-                                                        <option value="LOLO">LOLO</option>
-                                                        <option value="STORAGE">STORAGE</option>
-                                                        <option value="REFUND">REFUND</option>
-                                                        <option value="OTHER">OTHER</option>
+                                                        <option v-if="item.description && !isKnownServiceType(item.description)"
+                                                            :value="item.description">
+                                                            {{ item.description }}
+                                                        </option>
                                                     </select>
                                                 </div>
                                                 <div>
@@ -347,6 +346,11 @@
                                                     <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="flex justify-end mt-2">
+                                            <button type="button" @click="addVendorItem" class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors">
+                                                + Tambah Vendor
+                                            </button>
                                         </div>
                                         <!-- Total Summary -->
                                         <div
@@ -815,18 +819,77 @@ const initializeOtherCosts = () => {
 };
 
 // Initialize reimbursement items from salesOrder data
+const rawReimbursementItems = props.salesOrder.reimbursement_items
+    ?? props.salesOrder.reimbursementItems
+    ?? [];
+
+const parseReceiptInfo = (info) => {
+    if (!info) {
+        return {};
+    }
+
+    if (typeof info === 'string') {
+        try {
+            const parsed = JSON.parse(info);
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (error) {
+            console.warn('Failed to parse receipt_info JSON:', error);
+            return {};
+        }
+    }
+
+    return info;
+};
+
 const reimbursementItems = ref(
-    props.salesOrder.reimbursement_items && props.salesOrder.reimbursement_items.length > 0
-        ? props.salesOrder.reimbursement_items.map(item => ({
-            id: item.id || null,
-            description: item.description || "",
-            amount: item.amount || 0,
-            category: item.category || "",
-            notes: item.notes || "",
-            vendor_id: item.vendor_id ?? ""
-        }))
+    rawReimbursementItems.length > 0
+        ? rawReimbursementItems.map(item => {
+            const receiptInfo = parseReceiptInfo(item.receipt_info);
+            const rawVendor =
+                item.vendor_selection ??
+                receiptInfo.vendor_selection ??
+                item.vendor_id ??
+                item.vendor?.id ??
+                item.vendor_code ??
+                null;
+
+            const normalizedVendorId =
+                rawVendor === null || rawVendor === undefined || rawVendor === ""
+                    ? ""
+                    : (String(rawVendor).toLowerCase() === "internal" ? "internal" : rawVendor);
+
+            return {
+                id: item.id ?? null,
+                description: item.description ?? "",
+                amount: item.amount ?? 0,
+                category: item.category ?? "",
+                notes: item.notes ?? "",
+                vendor_id: normalizedVendorId,
+            };
+        })
         : [{ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "" }]
 );
+
+const serviceTypeOptions = computed(() => {
+    return (props.serviceTypes ?? []).map(type => ({
+        value: type.code,
+        label: type.code,
+    }));
+});
+
+const serviceTypeMap = computed(() => {
+    return (props.serviceTypes ?? []).reduce((acc, type) => {
+        acc[type.code] = type.description || type.code;
+        return acc;
+    }, {});
+});
+
+const isKnownServiceType = (code) => {
+    if (!code) {
+        return false;
+    }
+    return Object.prototype.hasOwnProperty.call(serviceTypeMap.value, code);
+};
 
 // Alert Dialog State
 const alertDialog = ref({
@@ -1203,3 +1266,4 @@ const submit = () => {
     border-color: #8db580;
 }
 </style>
+

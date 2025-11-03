@@ -713,7 +713,7 @@
         </div>
 
         <div class="px-6 py-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Gross Revenue -->
             <div class="bg-green-50 rounded-lg p-4 border border-green-200">
               <div class="text-center">
@@ -729,15 +729,6 @@
                 <div class="text-2xl font-bold text-red-800">{{ formatCurrency(getOperationalCostsTotal) }}</div>
                 <div class="text-sm text-red-600 mt-1">Operational Costs</div>
                 <div class="text-xs text-gray-500 mt-1">Biaya operasional</div>
-              </div>
-            </div>
-
-            <!-- Reimbursement -->
-            <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
-              <div class="text-center">
-                <div class="text-2xl font-bold text-orange-800">{{ formatCurrency(getReimbursementTotal) }}</div>
-                <div class="text-sm text-orange-600 mt-1">Reimbursement</div>
-                <div class="text-xs text-gray-500 mt-1">Cost Neutral</div>
               </div>
             </div>
 
@@ -1566,37 +1557,13 @@ const getReimbursementLatestHistory = (entry) => {
   };
 };
 
-// Computed untuk operational costs (EXCLUDE buying costs/COGS)
+// Computed untuk operational costs (menampilkan semua termasuk buying/COGS)
 const getOperationalCosts = computed(() => {
-  return (props.invoice.items || []).filter(item => {
-    // Only show operational_cost items
-    if (item.item_type !== 'operational_cost') return false;
-
-    // Exclude buying costs (COGS) - they are auto-generated and should be hidden from view
-    const description = (item.description || '').toLowerCase();
-    const itemRef = (item.item_ref || '').toLowerCase();
-
-    // Check if this is a buying cost item
-    const isBuyingCost = description.includes('buying cost') ||
-                         description.includes('cogs') ||
-                         itemRef.startsWith('cogs_vendor_');
-
-    // Return true only if it's NOT a buying cost
-    return !isBuyingCost;
-  });
+  return (props.invoice.items || []).filter(item => item.item_type === 'operational_cost');
 });
 
 const getOperationalCostsTotal = computed(() => {
   return getOperationalCosts.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
-});
-
-// Computed for ALL operational costs (including COGS) for profit calculation
-const getAllOperationalCostsForCalculation = computed(() => {
-  return (props.invoice.items || []).filter(item => item.item_type === 'operational_cost');
-});
-
-const getAllOperationalCostsTotal = computed(() => {
-  return getAllOperationalCostsForCalculation.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
 });
 
 // Computed untuk profit calculation - hanya main items (billable) yang dihitung sebagai revenue
@@ -1611,7 +1578,7 @@ const getGrossRevenue = computed(() => {
 const getNetProfit = computed(() => {
   // Reimbursement is cost neutral (tidak mengurangi profit karena akan di-reimburse)
   // Only operational costs reduce the profit
-  return getGrossRevenue.value - getAllOperationalCostsTotal.value;
+  return getGrossRevenue.value - getOperationalCostsTotal.value;
 });
 
 const getProfitMargin = computed(() => {

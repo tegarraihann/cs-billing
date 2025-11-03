@@ -61,6 +61,16 @@ class AccountPayableController extends Controller
 
         $payables = $query->paginate(15);
 
+        $payables->getCollection()->each(function (AccountPayable $payable) {
+            $payable->syncComponents();
+            $payable->load([
+                'components' => function ($query) {
+                    $query->orderBy('component_type');
+                },
+                'vendor',
+            ]);
+        });
+
         // Calculate summary
         $summary = [
             'total_outstanding' => AccountPayable::sum('outstanding_amount'),
@@ -76,6 +86,10 @@ class AccountPayableController extends Controller
         // Calculate summary per vendor (for current filtered results)
         $currentQuery = clone $query;
         $currentResults = $currentQuery->get();
+        $currentResults->each(function (AccountPayable $payable) {
+            $payable->syncComponents();
+            $payable->loadMissing(['components', 'vendor']);
+        });
 
         $vendorSummary = $currentResults
             ->flatMap(function (AccountPayable $payable) {

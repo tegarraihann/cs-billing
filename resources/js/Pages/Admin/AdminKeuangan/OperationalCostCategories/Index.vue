@@ -6,10 +6,10 @@
         <div class="flex justify-between items-center">
           <div>
             <h1 class="text-2xl font-bold text-sage-800">
-              Kategori Biaya Operasional
+              Chart Of Accounts
             </h1>
             <p class="text-sage-600 mt-1">
-              Kelola kategori biaya operasional untuk sistem finance
+              Kelola chart of accounts untuk sistem finance
             </p>
           </div>
           <Link
@@ -98,7 +98,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-sage-200">
         <div class="p-6 border-b border-sage-200">
           <h2 class="text-lg font-semibold text-sage-800">
-            Daftar Kategori Biaya Operasional
+            Daftar Chart Of Accounts
           </h2>
         </div>
 
@@ -252,19 +252,24 @@
               {{ operationalCostCategories.total }} hasil
             </div>
             <div class="flex space-x-1">
-              <Link
-                v-for="(link, index) in operationalCostCategories.links"
-                :key="index"
-                :href="link.url"
-                :class="[
-                  'px-3 py-2 text-sm border rounded',
-                  link.active
-                    ? 'bg-sage-600 text-white border-sage-600'
-                    : 'bg-white text-sage-700 border-sage-300 hover:bg-sage-50'
-                ]"
-                v-html="link.label"
-              >
-              </Link>
+              <template v-for="(link, index) in operationalCostCategories.links" :key="index">
+                <Link
+                  v-if="link.url"
+                  :href="link.url"
+                  :class="[
+                    'px-3 py-2 text-sm border rounded',
+                    link.active
+                      ? 'bg-sage-600 text-white border-sage-600'
+                      : 'bg-white text-sage-700 border-sage-300 hover:bg-sage-50'
+                  ]"
+                  v-html="link.label"
+                />
+                <span
+                  v-else
+                  class="px-3 py-2 text-sm border rounded bg-sage-100 text-sage-400 border-sage-200 cursor-not-allowed"
+                  v-html="link.label"
+                />
+              </template>
             </div>
           </div>
         </div>
@@ -311,16 +316,34 @@ const props = defineProps({
   filters: Object,
 })
 
-// Route function
-const route = window.route || function(name, params) {
+// Route helper (fallback if Ziggy helper is unavailable)
+const fallbackRoute = (name, params = null) => {
   const routes = {
     'admin-keuangan.operational-cost-categories.index': '/admin-keuangan/operational-cost-categories',
     'admin-keuangan.operational-cost-categories.create': '/admin-keuangan/operational-cost-categories/create',
     'admin-keuangan.operational-cost-categories.show': '/admin-keuangan/operational-cost-categories',
     'admin-keuangan.operational-cost-categories.edit': '/admin-keuangan/operational-cost-categories',
+    'admin-keuangan.operational-cost-categories.destroy': '/admin-keuangan/operational-cost-categories',
   }
   const baseRoute = routes[name] || '#'
-  return params ? `${baseRoute}/${params}` : baseRoute
+  if (params === null || params === undefined) {
+    return baseRoute
+  }
+
+  // Support sending an object (e.g., { id: 1 })
+  if (typeof params === 'object') {
+    const value = params.id ?? params
+    return `${baseRoute}/${value}`
+  }
+
+  return `${baseRoute}/${params}`
+}
+
+const route = (...args) => {
+  if (typeof window !== 'undefined' && typeof window.route === 'function') {
+    return window.route(...args)
+  }
+  return fallbackRoute(...args)
 }
 
 // Form data

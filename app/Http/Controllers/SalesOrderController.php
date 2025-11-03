@@ -6,6 +6,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\Voucher;
 use App\Models\ShipmentType;
+use App\Models\MasterServiceType;
 use App\Models\ReimbursementItem;
 use App\Models\InvoiceItem;
 use App\Models\AccountPayableComponent;
@@ -61,6 +62,11 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        $serviceTypes = MasterServiceType::active()
+            ->select('id', 'code', 'description')
+            ->ordered()
+            ->get();
+
         $operationalCostCategories = \App\Models\OperationalCostCategory::active()
             ->select('id', 'name', 'description')
             ->orderBy('name')
@@ -73,6 +79,7 @@ class SalesOrderController extends Controller
             'customers' => $customers,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
+            'serviceTypes' => $serviceTypes,
             'operationalCostCategories' => $operationalCostCategories,
             'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
             'orderNumber' => $orderNumber
@@ -121,7 +128,7 @@ class SalesOrderController extends Controller
                 'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
                 'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
                 'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
-                'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+                'vendor_breakdown.*.description' => 'nullable|string|max:255',
                 'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
                 'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
                 'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
@@ -350,7 +357,7 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
             'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
             'vendor_breakdown.*.nama_rekening' => 'nullable|string|max:255',
-            'vendor_breakdown.*.description' => 'nullable|string|in:,OF/AF,HANDLING,PIB EDI,ADMIN DOC,TRUCKING,D/O CHARGES,LOLO,STORAGE,REFUND,OTHER',
+            'vendor_breakdown.*.description' => 'nullable|string|max:255',
             'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
@@ -644,7 +651,8 @@ class SalesOrderController extends Controller
     {
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
-                $vendorId = $this->resolveVendorId($item['vendor_id'] ?? null);
+                $rawVendor = $item['vendor_id'] ?? null;
+                $vendorId = $this->resolveVendorId($rawVendor);
 
                 ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
@@ -655,6 +663,7 @@ class SalesOrderController extends Controller
                     'notes' => $item['notes'] ?? null,
                     'status' => 'pending',
                     'created_by' => Auth::id(),
+                    'receipt_info' => $this->mergeVendorSelectionIntoReceiptInfo(null, $rawVendor),
                 ]);
             }
         }
@@ -673,7 +682,8 @@ class SalesOrderController extends Controller
         // Create new reimbursement items
         foreach ($reimbursementItems as $item) {
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
-                $vendorId = $this->resolveVendorId($item['vendor_id'] ?? null);
+                $rawVendor = $item['vendor_id'] ?? null;
+                $vendorId = $this->resolveVendorId($rawVendor);
 
                 ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
@@ -684,6 +694,7 @@ class SalesOrderController extends Controller
                     'notes' => $item['notes'] ?? null,
                     'status' => 'pending',
                     'created_by' => Auth::id(),
+                    'receipt_info' => $this->mergeVendorSelectionIntoReceiptInfo(null, $rawVendor),
                 ]);
             }
         }
@@ -853,6 +864,43 @@ class SalesOrderController extends Controller
         }
 
         return null;
+    }
+
+    private function determineVendorSelection($rawVendor): ?string
+    {
+        if ($rawVendor === null || $rawVendor === '') {
+            return null;
+        }
+
+        if (is_array($rawVendor)) {
+            $rawVendor = $rawVendor['id'] ?? $rawVendor['value'] ?? null;
+        }
+
+        if ($rawVendor === null || $rawVendor === '') {
+            return null;
+        }
+
+        return strtolower((string) $rawVendor) === 'internal' ? 'internal' : null;
+    }
+
+    private function mergeVendorSelectionIntoReceiptInfo($existingReceiptInfo, $rawVendor): ?array
+    {
+        $selection = $this->determineVendorSelection($rawVendor);
+
+        if (is_string($existingReceiptInfo)) {
+            $decoded = json_decode($existingReceiptInfo, true);
+            $existingReceiptInfo = is_array($decoded) ? $decoded : [];
+        } elseif (!is_array($existingReceiptInfo)) {
+            $existingReceiptInfo = $existingReceiptInfo ? (array) $existingReceiptInfo : [];
+        }
+
+        if ($selection) {
+            $existingReceiptInfo['vendor_selection'] = $selection;
+        } else {
+            unset($existingReceiptInfo['vendor_selection']);
+        }
+
+        return empty($existingReceiptInfo) ? null : $existingReceiptInfo;
     }
 
     /**

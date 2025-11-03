@@ -1702,6 +1702,17 @@ class InvoiceController extends Controller
                         ? (int)$vendor['vendor_id']
                         : null;
 
+                    $itemRef = 'cogs_vendor_' . ($vendor['vendor_id'] ?? $index);
+
+                    $alreadyExists = InvoiceItem::query()
+                        ->where('invoice_id', $invoice->id)
+                        ->where('item_ref', $itemRef)
+                        ->exists();
+
+                    if ($alreadyExists) {
+                        continue;
+                    }
+
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'description' => $description,
@@ -1710,7 +1721,7 @@ class InvoiceController extends Controller
                         'rate' => $buyingAmount,
                         'currency' => 'IDR',
                         'amount' => $buyingAmount,
-                        'item_ref' => 'cogs_vendor_' . ($vendor['vendor_id'] ?? $index),
+                        'item_ref' => $itemRef,
                         'item_type' => 'operational_cost',
                         'vendor_id' => $vendorId,
                         'include_in_customer_invoice' => false,

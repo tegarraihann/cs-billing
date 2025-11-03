@@ -568,18 +568,6 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{invoice}/fix-operational-costs', 'fixOperationalCosts')->name('fix-operational-costs');
     });
 
-    // Expense Template Management Routes for Admin Keuangan
-    Route::controller(\App\Http\Controllers\AdminKeuangan\ExpenseTemplateController::class)->prefix('expense-templates')->name('expense-templates.')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{expenseTemplate}', 'show')->name('show');
-        Route::get('/{expenseTemplate}/edit', 'edit')->name('edit');
-        Route::put('/{expenseTemplate}', 'update')->name('update');
-        Route::delete('/{expenseTemplate}', 'destroy')->name('destroy');
-        Route::patch('/{expenseTemplate}/toggle-status', 'toggleStatus')->name('toggle-status');
-    });
-
     // Account Receivables Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\AccountReceivableController::class)->prefix('account-receivables')->name('account-receivables.')->group(function () {
         Route::get('/', 'index')->name('index');

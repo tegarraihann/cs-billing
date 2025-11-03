@@ -146,7 +146,7 @@
                 </div>
 
                 <!-- Vendor Summary Section -->
-                <div v-if="vendorSummary && vendorSummary.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                <div v-if="vendorSummaryRows.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ringkasan per Vendor</h3>
                         <div class="overflow-x-auto">
@@ -163,8 +163,8 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr
-                                v-for="vendor in vendorSummary"
-                                :key="vendor.vendor_id"
+                                v-for="vendor in vendorSummaryRows"
+                                :key="vendor.key"
                                 class="hover:bg-gray-50"
                             >
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -422,6 +422,47 @@ const componentTypeLabels = {
 const componentLabel = (type) => {
     return componentTypeLabels[type] || 'Komponen'
 }
+
+const vendorSummaryRows = computed(() => {
+    const summary = Array.isArray(props.vendorSummary) ? props.vendorSummary : []
+    if (summary.length === 0) {
+        return []
+    }
+
+    const groups = new Map()
+
+    summary.forEach((item) => {
+        if (!item) {
+            return
+        }
+
+        const vendorId = item.vendor_id ?? null
+        const vendorName = item.vendor_name || 'Internal'
+        const key = vendorId !== null ? `id_${vendorId}` : `name_${vendorName}`
+
+        if (!groups.has(key)) {
+            groups.set(key, {
+                key,
+                vendor_id: vendorId,
+                vendor_name: vendorName,
+                total_amount: 0,
+                total_paid: 0,
+                total_outstanding: 0,
+                count_invoices: 0,
+                count_overdue: 0
+            })
+        }
+
+        const aggregated = groups.get(key)
+        aggregated.total_amount += Number(item.total_amount || 0)
+        aggregated.total_paid += Number(item.total_paid || 0)
+        aggregated.total_outstanding += Number(item.total_outstanding || 0)
+        aggregated.count_invoices += Number(item.count_invoices || 0)
+        aggregated.count_overdue += Number(item.count_overdue || 0)
+    })
+
+    return Array.from(groups.values())
+})
 
 const selectedComponent = computed(() => selectedRow.value?.component || null)
 

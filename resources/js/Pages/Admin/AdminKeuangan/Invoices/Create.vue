@@ -457,7 +457,8 @@
                                         </option>
                                     </select>
                                     <p class="text-xs text-gray-600 mt-1">
-                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika internal
+                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika
+                                        internal
                                     </p>
                                 </div>
 
@@ -642,7 +643,8 @@
                                         'text-xs mt-1',
                                         cost.auto_generated ? 'text-blue-600' : 'text-red-600'
                                     ]">
-                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika internal
+                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika
+                                        internal
                                     </p>
                                 </div>
 
@@ -676,7 +678,7 @@
                             <div class="flex justify-between items-center text-sm">
                                 <span class="font-medium text-red-700">Total Biaya Operasional:</span>
                                 <span class="font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal())
-                                    }}</span>
+                                }}</span>
                             </div>
                         </div>
 
@@ -699,23 +701,17 @@
                 <div v-if="operationalCosts.length > 0"
                     class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 border border-blue-200">
                     <h3 class="text-lg font-semibold text-blue-800 mb-4">Ringkasan Profit</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                         <div class="bg-white rounded-lg p-4 border border-blue-200">
                             <div class="text-blue-600 font-medium">Gross Revenue</div>
                             <div class="text-xl font-bold text-blue-800">{{ formatCurrency(calculateGrossRevenue()) }}
                             </div>
                             <div class="text-xs text-blue-500">Billable items only</div>
                         </div>
-                        <div class="bg-white rounded-lg p-4 border border-orange-200">
-                            <div class="text-orange-600 font-medium">Reimbursement</div>
-                            <div class="text-xl font-bold text-orange-800">{{
-                                formatCurrency(calculateReimbursementTotal()) }}</div>
-                            <div class="text-xs text-orange-500">Cost-neutral</div>
-                        </div>
                         <div class="bg-white rounded-lg p-4 border border-red-200">
                             <div class="text-red-600 font-medium">Operational Costs</div>
                             <div class="text-xl font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal())
-                                }}</div>
+                            }}</div>
                             <div class="text-xs text-red-500">Internal costs only</div>
                         </div>
                         <div class="bg-white rounded-lg p-4 border border-green-200">
@@ -957,6 +953,100 @@ const loadSalesOrderData = () => {
     }
 };
 
+const parseReceiptInfo = (info) => {
+    if (!info) {
+        return {};
+    }
+
+    if (typeof info === 'string') {
+        try {
+            const parsed = JSON.parse(info);
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (error) {
+            console.warn('Gagal mengurai receipt_info:', info, error);
+            return {};
+        }
+    }
+
+    if (typeof info === 'object') {
+        return info;
+    }
+
+    return {};
+};
+
+const resolveVendorSelectionFromRecord = (record) => {
+    if (!record || typeof record !== 'object') {
+        return { vendorId: '', vendorType: null };
+    }
+
+    const receiptInfo = parseReceiptInfo(record.receipt_info ?? record.receiptInfo);
+
+    const selectionCandidates = [
+        record.vendor_selection,
+        record.vendorSelection,
+        receiptInfo.vendor_selection,
+        receiptInfo.vendorSelection,
+        receiptInfo.vendor_type,
+    ];
+
+    let vendorType = null;
+    for (const candidate of selectionCandidates) {
+        if (typeof candidate === 'string' && candidate.trim() !== '') {
+            vendorType = candidate.trim().toLowerCase();
+            break;
+        }
+    }
+
+    const vendorCandidates = [
+        record.vendor_id,
+        record.vendorId,
+        record.vendor?.id,
+        record.vendor?.vendor_id,
+        record.vendor_code,
+        record.vendor_code_id,
+        record.vendor_uuid,
+        receiptInfo.vendor_id,
+        receiptInfo.vendorId,
+        receiptInfo.vendor,
+    ];
+
+    let rawVendor = vendorCandidates.find((value) => value !== undefined && value !== null && value !== '');
+
+    if (rawVendor && typeof rawVendor === 'object') {
+        rawVendor = rawVendor.id ?? rawVendor.value ?? rawVendor.vendor_id ?? rawVendor.vendorId ?? null;
+    }
+
+    if (typeof rawVendor === 'string') {
+        const trimmed = rawVendor.trim();
+
+        if (trimmed === '' || trimmed === '-') {
+            rawVendor = '';
+        } else if (trimmed.toLowerCase() === 'internal') {
+            rawVendor = '';
+            vendorType = 'internal';
+        } else if (/^-?\d+$/.test(trimmed)) {
+            const parsed = Number(trimmed);
+            rawVendor = Number.isNaN(parsed) ? '' : parsed;
+        } else {
+            rawVendor = '';
+        }
+    }
+
+    if (typeof rawVendor === 'number' && Number.isFinite(rawVendor)) {
+        return { vendorId: rawVendor, vendorType };
+    }
+
+    if (rawVendor === '' || rawVendor === null || rawVendor === undefined) {
+        if (vendorType === 'internal') {
+            return { vendorId: '', vendorType: 'internal' };
+        }
+        return { vendorId: '', vendorType: vendorType ?? null };
+    }
+
+    return { vendorId: '', vendorType: vendorType ?? null };
+};
+
 // Function to auto-populate items from sales order
 const populateItemsFromSalesOrder = (salesOrder) => {
     if (!salesOrder) return;
@@ -969,18 +1059,43 @@ const populateItemsFromSalesOrder = (salesOrder) => {
     // 1. Populate main items from vendor_breakdown
     if (salesOrder.vendor_breakdown && Array.isArray(salesOrder.vendor_breakdown)) {
         salesOrder.vendor_breakdown.forEach((vendor, index) => {
-            if (vendor.selling_amount && vendor.selling_amount > 0) {
-                // Add to main items with selling amount as rate
+            const sellingAmount = normalizeNumber(vendor.selling_amount);
+            if (sellingAmount > 0) {
                 mainItems.value.push({
                     description: vendor.description || `Service ${index + 1}`,
                     quantity: 1,
                     unit: 'SET',
-                    rate: normalizeNumber(vendor.selling_amount),
+                    rate: sellingAmount,
                     currency: 'IDR',
-                    amount: normalizeNumber(vendor.selling_amount),
+                    amount: sellingAmount,
                     item_ref: `vendor_${vendor.vendor_id || index}`,
                     type: 'main',
                     item_type: 'billable'
+                });
+            }
+
+            const buyingAmount = normalizeNumber(vendor.buying_amount);
+            if (buyingAmount > 0) {
+                const vendorInfo = resolveVendorSelectionFromRecord(vendor);
+
+                operationalCosts.value.push({
+                    description: `${vendor.description || `Service ${index + 1}`} - Buying Cost (COGS)`,
+                    quantity: 1,
+                    unit: 'SET',
+                    rate: buyingAmount,
+                    currency: 'IDR',
+                    amount: buyingAmount,
+                    category_id: '',
+                    category_name: '',
+                    category: '',
+                    category_source: '',
+                    vendor_id: vendorInfo.vendorId,
+                    item_type: 'operational_cost',
+                    include_in_customer_invoice: false,
+                    is_hidden_from_customer: true,
+                    auto_generated: true,
+                    source: 'vendor_breakdown_buying',
+                    item_ref: `cogs_vendor_${vendor.vendor_id || index}`
                 });
             }
         });
@@ -991,6 +1106,8 @@ const populateItemsFromSalesOrder = (salesOrder) => {
         console.log('Populating reimbursement items from relationship:', salesOrder.reimbursement_items);
         salesOrder.reimbursement_items.forEach((item, index) => {
             if (item.amount && item.amount > 0) {
+                const vendorInfo = resolveVendorSelectionFromRecord(item);
+
                 reimbursementItems.value.push({
                     description: item.description || `Reimbursement ${index + 1}`,
                     quantity: 1,
@@ -998,7 +1115,7 @@ const populateItemsFromSalesOrder = (salesOrder) => {
                     rate: normalizeNumber(item.amount),
                     currency: 'IDR',
                     amount: normalizeNumber(item.amount),
-                    vendor_id: item.vendor_id || null, // ✅ ADDED: Transfer vendor_id from SO
+                    vendor_id: vendorInfo.vendorId,
                     item_ref: `reimb_${item.id || index}`,
                     type: 'reimbursement',
                     item_type: 'reimbursement'
@@ -1019,12 +1136,7 @@ const populateItemsFromSalesOrder = (salesOrder) => {
             const amount = normalizeNumber(cost.amount);
             if (amount > 0) {
                 const categoryInfo = deriveOperationalCategoryInfo(cost);
-
-                // Clean vendor_id: convert 'internal' string to null, keep numeric IDs
-                let vendorId = null;
-                if (cost.vendor_id && cost.vendor_id !== 'internal' && cost.vendor_id !== '') {
-                    vendorId = typeof cost.vendor_id === 'number' ? cost.vendor_id : parseInt(cost.vendor_id);
-                }
+                const vendorInfo = resolveVendorSelectionFromRecord(cost);
 
                 operationalCosts.value.push({
                     description: cost.description || `Operational Cost ${index + 1}`,
@@ -1037,7 +1149,7 @@ const populateItemsFromSalesOrder = (salesOrder) => {
                     category_name: categoryInfo.name,
                     category: categoryInfo.name,
                     category_source: categoryInfo.source,
-                    vendor_id: vendorId, // ✅ Cleaned: 'internal' converted to null
+                    vendor_id: vendorInfo.vendorId,
                     item_type: 'operational_cost',
                     include_in_customer_invoice: false,
                     is_hidden_from_customer: true,
@@ -1213,18 +1325,18 @@ const addOperationalCost = () => {
         rate: 0,
         currency: 'IDR',
         amount: 0,
-    item_type: 'operational_cost',
-    include_in_customer_invoice: false,
-    is_hidden_from_customer: true,
-    category_id: '',
-    category_name: '',
-    category_source: '',
-    category: '',
-    auto_generated: false,
-    source: 'manual_input',
-    item_ref: `manual_${Date.now()}`,
-    vendor_id: ''
-  });
+        item_type: 'operational_cost',
+        include_in_customer_invoice: false,
+        is_hidden_from_customer: true,
+        category_id: '',
+        category_name: '',
+        category_source: '',
+        category: '',
+        auto_generated: false,
+        source: 'manual_input',
+        item_ref: `manual_${Date.now()}`,
+        vendor_id: ''
+    });
 };
 
 const removeOperationalCost = (index) => {
@@ -1383,10 +1495,10 @@ const submit = () => {
         ...operationalCosts.value.map(cost => ({
             ...cost,
             type: 'operational',
-            item_ref: 'operational_cost',
+            item_ref: cost.item_ref || 'operational_cost',
             item_type: 'operational_cost',
-            include_in_customer_invoice: false,
-            is_hidden_from_customer: true
+            include_in_customer_invoice: cost.include_in_customer_invoice ?? false,
+            is_hidden_from_customer: cost.is_hidden_from_customer ?? true
         }))
     ];
 
