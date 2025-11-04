@@ -12,10 +12,10 @@
                 </div>
                 <div>
                   <h1 class="text-2xl font-semibold text-gray-900">
-                    Sales Order: {{ salesOrder.order_number }}
+                    Shipping Orderr: {{ salesOrder.order_number }}
                   </h1>
                   <p class="mt-1 text-sm text-gray-600">
-                    Detail informasi sales order
+                    Detail informasi Shipping Order
                   </p>
                 </div>
               </div>
@@ -33,7 +33,7 @@
                   v-else
                   disabled
                   class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed"
-                  title="Sales order harus dirilis terlebih dahulu untuk dapat dicetak"
+                  title="Shipping Order harus dirilis terlebih dahulu untuk dapat dicetak"
                 >
                   <FileDown class="w-4 h-4 mr-2" />
                   Export PDF
@@ -50,7 +50,7 @@
                   v-else
                   disabled
                   class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed"
-                  title="Sales order tidak dapat diedit (sudah dirilis)"
+                  title="Shipping Order tidak dapat diedit (sudah dirilis)"
                 >
                   <Pencil class="w-4 h-4 mr-2" />
                   Edit
@@ -73,7 +73,7 @@
           <!-- SO Information -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h3 class="text-lg font-semibold text-gray-900">Informasi Sales Order</h3>
+              <h3 class="text-lg font-semibold text-gray-900">Informasi Shipping Order</h3>
             </div>
             <div class="p-6">
               <!-- Primary Information - Two Columns -->
@@ -516,7 +516,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <p class="text-gray-500">No vouchers created for this sales order</p>
+                <p class="text-gray-500">No vouchers created for this Shipping Order</p>
               </div>
 
             </div>

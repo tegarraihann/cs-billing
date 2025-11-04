@@ -149,7 +149,7 @@
                 <div v-if="vendorSummaryRows.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ringkasan per Vendor</h3>
-                        <div class="overflow-x-auto">
+                        <div ref="vendorSummaryContainer" class="overflow-x-auto" style="overflow-x: auto;">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -168,8 +168,21 @@
                                 class="hover:bg-gray-50"
                             >
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">
-                                        {{ vendor.vendor_name }}
+                                    <div
+                                        class="inline-flex items-center space-x-1 text-sm font-medium text-gray-900 cursor-pointer select-none"
+                                        data-vendor-popover-trigger="true" :data-vendor-popover-trigger-key="vendor.key"
+                                        @mouseenter="showVendorSummaryPopover(vendor)"
+                                        @mouseleave="scheduleHideVendorSummaryPopover"
+                                        @focus="showVendorSummaryPopover(vendor)"
+                                        @blur="scheduleHideVendorSummaryPopover"
+                                        @click="toggleVendorSummaryPopover(vendor)"
+                                        tabindex="0"
+                                    >
+                                        <span>{{ vendor.vendor_name }}</span>
+                                        <svg class="w-4 h-4 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M12 18a6 6 0 100-12 6 6 0 000 12z" />
+                                        </svg>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
@@ -196,7 +209,70 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+                </div>
+
+                <Teleport to="body">
+                    <transition name="fade">
+                        <div
+                            v-if="activeVendorPopover"
+                            ref="vendorPopoverElement"
+                            class="absolute z-50 w-72 rounded-lg border border-sage-200 bg-white shadow-xl p-4"
+                            :style="{ top: popoverPosition.top + 'px', left: popoverPosition.left + 'px', transform: 'translateX(-50%)' }"
+                            @mouseenter="cancelVendorPopoverHide"
+                            @mouseleave="scheduleHideVendorSummaryPopover"
+                        >
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900">{{ activeVendorPopover.vendor_name }}</h4>
+                                    <p class="text-xs text-gray-500">
+                                        Summary for outstanding payables
+                                    </p>
+                                </div>
+                                <span
+                                    class="px-2 py-0.5 text-xs font-medium rounded-full"
+                                    :class="activeVendorPopover.total_outstanding > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'"
+                                >
+                                    {{ activeVendorPopover.total_outstanding > 0 ? 'Outstanding' : 'Cleared' }}
+                                </span>
+                            </div>
+                            <div class="mt-3 space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Amount</span>
+                                    <span class="font-medium text-gray-900">{{ formatCurrency(activeVendorPopover.total_amount) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Paid</span>
+                                    <span class="font-medium text-green-600">{{ formatCurrency(activeVendorPopover.total_paid) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Outstanding</span>
+                                    <span :class="activeVendorPopover.total_outstanding > 0 ? 'font-medium text-red-600' : 'font-medium text-green-600'">
+                                        {{ formatCurrency(activeVendorPopover.total_outstanding) }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Invoices</span>
+                                    <span class="font-medium text-gray-900">{{ activeVendorPopover.count_invoices }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Overdue</span>
+                                    <span :class="activeVendorPopover.count_overdue > 0 ? 'font-medium text-red-600' : 'font-medium text-gray-500'">
+                                        {{ activeVendorPopover.count_overdue }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button
+                                    type="button"
+                                    class="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-sage-600 hover:bg-sage-700 rounded-md transition"
+                                    @click="goToVendorSummaryDetail()"
+                                >
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </transition>
+                </Teleport>
 
             <!-- Table Section -->
             <div class="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -371,7 +447,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import ReimbursementPaymentModal from '@/Components/ReimbursementPaymentModal.vue'
@@ -462,6 +538,135 @@ const vendorSummaryRows = computed(() => {
     })
 
     return Array.from(groups.values())
+})
+
+const activeVendorPopover = ref(null)
+const vendorSummaryContainer = ref(null)
+const vendorPopoverElement = ref(null)
+
+const popoverPosition = reactive({
+    top: 0,
+    left: 0
+})
+const POPOVER_WIDTH = 288
+const POPOVER_MARGIN = 16
+let hidePopoverTimeout = null
+
+const cancelVendorPopoverHide = () => {
+    if (hidePopoverTimeout) {
+        clearTimeout(hidePopoverTimeout)
+        hidePopoverTimeout = null
+    }
+}
+
+const updatePopoverPosition = () => {
+    if (!activeVendorPopover.value || typeof window === 'undefined') {
+        return
+    }
+
+    const triggerEl = document.querySelector(`[data-vendor-popover-trigger-key="${activeVendorPopover.value.key}"]`)
+    if (!triggerEl) {
+        return
+    }
+
+    const rect = triggerEl.getBoundingClientRect()
+    const scrollX = window.scrollX
+    const scrollY = window.scrollY
+
+    const center = rect.left + scrollX + rect.width / 2
+    const viewportWidth = window.innerWidth
+    const minCenter = scrollX + POPOVER_MARGIN + POPOVER_WIDTH / 2
+    const maxCenter = scrollX + viewportWidth - POPOVER_MARGIN - POPOVER_WIDTH / 2
+
+    popoverPosition.left = Math.max(minCenter, Math.min(maxCenter, center))
+    popoverPosition.top = rect.bottom + scrollY + 12
+}
+
+const scheduleHideVendorSummaryPopover = () => {
+    cancelVendorPopoverHide()
+    hidePopoverTimeout = setTimeout(() => {
+        activeVendorPopover.value = null
+    }, 120)
+}
+
+const showVendorSummaryPopover = (vendor) => {
+    cancelVendorPopoverHide()
+    activeVendorPopover.value = vendor ?? null
+    nextTick(() => updatePopoverPosition())
+}
+
+const toggleVendorSummaryPopover = (vendor) => {
+    if (activeVendorPopover.value?.key === vendor.key) {
+        activeVendorPopover.value = null
+    } else {
+        showVendorSummaryPopover(vendor)
+    }
+}
+
+const goToVendorSummaryDetail = (vendor = activeVendorPopover.value) => {
+    if (!vendor) return
+
+    const params = {
+        search: vendor.vendor_id ? '' : (vendor.vendor_name || ''),
+        status: searchForm.status,
+        vendor_id: vendor.vendor_id ?? '',
+        date_from: searchForm.date_from,
+        date_to: searchForm.date_to
+    }
+
+    searchForm.vendor_id = params.vendor_id
+    searchForm.search = params.search
+
+    router.get(route('admin-keuangan.account-payables.index'), params, {
+        preserveState: true,
+        replace: true
+    })
+
+    activeVendorPopover.value = null
+}
+
+const handleDocumentClick = (event) => {
+    if (!activeVendorPopover.value) return
+
+    const trigger = event.target.closest('[data-vendor-popover-trigger="true"]')
+    if (trigger && trigger.getAttribute('data-vendor-popover-trigger-key') === activeVendorPopover.value.key) {
+        return
+    }
+
+    if (vendorPopoverElement.value?.contains(event.target)) {
+        return
+    }
+
+    activeVendorPopover.value = null
+}
+
+const handleViewportChange = () => {
+    if (activeVendorPopover.value) {
+        updatePopoverPosition()
+    }
+}
+
+onMounted(() => {
+    if (typeof window !== 'undefined') {
+        document.addEventListener('click', handleDocumentClick, true)
+        window.addEventListener('scroll', handleViewportChange, true)
+        window.addEventListener('resize', handleViewportChange)
+    }
+    if (vendorSummaryContainer.value) {
+        vendorSummaryContainer.value.addEventListener('scroll', handleViewportChange)
+    }
+})
+
+onBeforeUnmount(() => {
+    cancelVendorPopoverHide()
+    if (typeof window !== 'undefined') {
+        document.removeEventListener('click', handleDocumentClick, true)
+        window.removeEventListener('scroll', handleViewportChange, true)
+        window.removeEventListener('resize', handleViewportChange)
+    }
+    if (vendorSummaryContainer.value) {
+        vendorSummaryContainer.value.removeEventListener('scroll', handleViewportChange)
+    }
 })
 
 const selectedComponent = computed(() => selectedRow.value?.component || null)
@@ -686,7 +891,7 @@ const closePaymentModal = () => {
 
 const markPayment = () => {
     processing.value = true
-    
+
     router.post(
         route('admin-keuangan.account-payables.mark-as-paid', selectedPayable.value.id),
         paymentForm,
@@ -709,3 +914,32 @@ const visitPage = (url) => {
     })
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -168,17 +168,43 @@
                                         </div>
                                     </div>
                                     
-                                    <div v-if="reportData.expenses.operational.length > 0">
-                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Beban Operasional</h4>
-                                        <div class="space-y-2">
-                                            <div v-for="entry in reportData.expenses.operational" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
-                                                <div>
-                                                    <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
-                                                    <div class="text-xs text-gray-500">{{ entry.description }}</div>
+                                    <div v-if="operationalEntries.length > 0" class="border border-gray-200 rounded-lg">
+                                        <button
+                                            type="button"
+                                            class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition rounded-lg"
+                                            @click="showOperationalDetails = !showOperationalDetails"
+                                        >
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">Beban Operasional</div>
+                                                <div class="text-xs text-gray-500">
+                                                    {{ operationalEntries.length }} item &middot; {{ formatCurrency(operationalExpensesTotal) }}
                                                 </div>
-                                                <div class="text-sm font-medium text-red-600">{{ formatCurrency(entry.amount) }}</div>
                                             </div>
-                                        </div>
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-sm font-semibold text-red-600 hidden sm:inline">
+                                                    {{ formatCurrency(operationalExpensesTotal) }}
+                                                </span>
+                                                <ChevronDown
+                                                    class="w-4 h-4 text-gray-500 transition-transform duration-200"
+                                                    :class="{ 'transform rotate-180': showOperationalDetails }"
+                                                />
+                                            </div>
+                                        </button>
+                                        <transition name="fade">
+                                            <div v-if="showOperationalDetails" class="border-t border-gray-200 divide-y divide-gray-100">
+                                                <div
+                                                    v-for="entry in operationalEntries"
+                                                    :key="entry.id"
+                                                    class="flex justify-between items-center px-4 py-3 bg-gray-50"
+                                                >
+                                                    <div>
+                                                        <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
+                                                        <div class="text-xs text-gray-500">{{ entry.description }}</div>
+                                                    </div>
+                                                    <div class="text-sm font-medium text-red-600">{{ formatCurrency(entry.amount) }}</div>
+                                                </div>
+                                            </div>
+                                        </transition>
                                     </div>
                                     
                                     <div v-if="reportData.expenses.admin.length > 0">
@@ -307,14 +333,18 @@
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ArrowLeft, Edit, RefreshCw, CheckCircle, Download } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { ArrowLeft, Edit, RefreshCw, CheckCircle, Download, ChevronDown } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
     period: Object,
     reportData: Object,
     accounts: Object,
 })
+
+const operationalEntries = computed(() => Array.isArray(props.reportData?.expenses?.operational) ? props.reportData.expenses.operational : [])
+const operationalExpensesTotal = computed(() => operationalEntries.value.reduce((sum, entry) => sum + Number(entry.amount || 0), 0))
+const showOperationalDetails = ref(false)
 
 const loading = ref(false)
 const isExporting = ref(false)
@@ -406,3 +436,14 @@ const exportPdf = async () => {
     }
 }
 </script>
+
+
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+    transition: all 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+</style>

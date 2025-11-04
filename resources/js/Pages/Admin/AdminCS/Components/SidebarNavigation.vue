@@ -45,7 +45,7 @@
                         : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
                     ">
                 <FileText class="w-5 h-5" />
-                <span class="font-medium">Sales Orders</span>
+                <span class="font-medium">Shipping Order</span>
             </a>
 
             <!-- Quick Actions -->
@@ -56,7 +56,7 @@
                 <a :href="route('admin-cs.sales-orders.create')"
                     class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200">
                     <CirclePlus class="w-5 h-5" />
-                    <span class="font-medium">New Sales Order</span>
+                    <span class="font-medium">New Shipping Order</span>
                 </a>
             </div>
         </nav>

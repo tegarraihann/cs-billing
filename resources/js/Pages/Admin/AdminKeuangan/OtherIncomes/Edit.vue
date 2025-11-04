@@ -64,14 +64,17 @@
                                 v-model="form.category"
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                                 :class="{ 'border-red-300': form.errors.category }"
-                                :disabled="otherIncome.posted_to_profit_loss"
+                                :disabled="otherIncome.posted_to_profit_loss || categoryOptions.length === 0"
                                 required
                             >
-                                <option value="">Pilih Kategori</option>
-                                <option v-for="category in categories" :key="category" :value="category">
+                                <option value="" disabled>Pilih Kategori</option>
+                                <option v-for="category in categoryOptions" :key="category" :value="category">
                                     {{ category }}
                                 </option>
                             </select>
+                            <p v-if="!otherIncome.posted_to_profit_loss && categoryOptions.length === 0" class="mt-1 text-xs text-sage-500">
+                                Tidak ada kategori aktif. Tambahkan kategori di master Operational Cost Categories.
+                            </p>
                             <p v-if="form.errors.category" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.category }}
                             </p>
@@ -194,7 +197,7 @@
                         <button
                             v-if="!otherIncome.posted_to_profit_loss"
                             type="submit"
-                            :disabled="form.processing"
+                            :disabled="form.processing || categoryOptions.length === 0"
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition disabled:opacity-50"
                         >
                             <Save class="w-4 h-4 mr-2" />
@@ -210,12 +213,18 @@
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ArrowLeft, Save, Upload, X, AlertTriangle, FileText } from 'lucide-vue-next'
 
 const props = defineProps({
-    otherIncome: Object,
-    categories: Array,
+    otherIncome: {
+        type: Object,
+        required: true,
+    },
+    categories: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const form = useForm({
@@ -228,10 +237,25 @@ const form = useForm({
 })
 
 const filePreview = ref('')
+const categoryOptions = computed(() => props.categories ?? [])
 
 const today = computed(() => {
     return new Date().toISOString().split('T')[0]
 })
+
+watch(
+    categoryOptions,
+    (options) => {
+        if (!options.length) {
+            return
+        }
+
+        if (!options.includes(form.category)) {
+            form.category = options[0]
+        }
+    },
+    { immediate: true }
+)
 
 const handleFileUpload = (event) => {
     const file = event.target.files[0]

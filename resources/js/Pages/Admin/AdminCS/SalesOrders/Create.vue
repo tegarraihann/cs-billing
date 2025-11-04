@@ -11,8 +11,8 @@
                                     <Plus class="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 class="text-2xl font-semibold text-gray-900">Buat Sales Order Baru</h1>
-                                    <p class="mt-1 text-sm text-gray-600">Buat dokumen sales order untuk pelanggan</p>
+                                    <h1 class="text-2xl font-semibold text-gray-900">Buat Shiping Order Baru</h1>
+                                    <p class="mt-1 text-sm text-gray-600">Buat dokumen shipping order untuk pelanggan</p>
                                 </div>
                             </div>
                             <div class="mt-4 sm:mt-0 flex space-x-3">
@@ -29,8 +29,8 @@
                 <!-- Form Container -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Form Sales Order Baru</h3>
-                        <p class="mt-1 text-sm text-gray-600">Lengkapi informasi sales order dengan benar</p>
+                        <h3 class="text-lg font-medium text-gray-900">Form Shipping Order Baru</h3>
+                        <p class="mt-1 text-sm text-gray-600">Lengkapi informasi shipping order dengan benar</p>
                     </div>
 
                     <div class="p-6">
@@ -599,20 +599,27 @@
                                                     <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
-                                                        <select v-model="item.category"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
-                                                            <option value="">Pilih Kategori</option>
-                                                            <option value="transport">Transportasi</option>
-                                                            <option value="accommodation">Akomodasi</option>
-                                                            <option value="meal">Makan & Minum</option>
-                                                            <option value="fuel">BBM</option>
-                                                            <option value="parking">Parkir</option>
-                                                            <option value="toll">Tol</option>
-                                                            <option value="admin">Administrasi</option>
-                                                            <option value="communication">Komunikasi</option>
-                                                            <option value="equipment">Peralatan</option>
-                                                            <option value="general">Lain-lain</option>
+                                                        <select
+                                                            v-model="item.category"
+                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                                                            :disabled="reimbursementCategoryOptions.length === 0"
+                                                        >
+                                                            <option value="" disabled>Pilih Kategori</option>
+                                                            <option
+                                                                v-for="category in reimbursementCategoryOptions"
+                                                                :key="category.value"
+                                                                :value="category.value"
+                                                                :title="category.description"
+                                                            >
+                                                                {{ category.label }}
+                                                            </option>
                                                         </select>
+                                                        <p
+                                                            v-if="reimbursementCategoryOptions.length === 0"
+                                                            class="text-xs text-purple-600 mt-1"
+                                                        >
+                                                            Kategori belum tersedia. Silakan tambah master Operational Cost Categories terlebih dahulu.
+                                                        </p>
                                                     </div>
                                                     <div class="col-span-3">
                                                         <label
@@ -691,7 +698,7 @@
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">NOTE</label>
                                         <textarea v-model="form.note" rows="3"
-                                            placeholder="Catatan tambahan untuk sales order ini"
+                                            placeholder="Catatan tambahan untuk shipping order ini"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
                                         <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{
                                             form.errors.note }}</div>
@@ -1035,7 +1042,7 @@
                                         </path>
                                     </svg>
                                     <span v-if="form.processing">Menyimpan...</span>
-                                    <span v-else>Simpan Sales Order</span>
+                                    <span v-else>Simpan shipping order</span>
                                 </button>
                             </div>
                         </form>
@@ -1358,6 +1365,30 @@ const normalizeNumber = (value) => {
 // Reimbursement items management
 const reimbursementItems = ref([]);
 
+const baseOperationalCostCategoryOptions = computed(() => {
+    return (props.operationalCostCategories ?? []).map(category => ({
+        value: category.name,
+        label: category.name,
+        description: category.description || "",
+    }));
+});
+
+const reimbursementCategoryOptions = computed(() => {
+    const optionMap = new Map(baseOperationalCostCategoryOptions.value.map(option => [option.value, option]));
+
+    reimbursementItems.value.forEach(item => {
+        if (item.category && !optionMap.has(item.category)) {
+            optionMap.set(item.category, {
+                value: item.category,
+                label: item.category,
+                description: "",
+            });
+        }
+    });
+
+    return Array.from(optionMap.values());
+});
+
 const addReimbursementItem = () => {
     reimbursementItems.value.push({
         description: '',
@@ -1485,10 +1516,10 @@ const submit = () => {
             if (page.component === 'Admin/AdminCS/SalesOrders/Index') {
                 console.log('Successfully redirected to index page');
                 // We're already on the index page, no need for additional redirect
-                showAlert("success", "Berhasil", "Sales Order berhasil dibuat.");
+                showAlert("success", "Berhasil", "Shipping Order berhasil dibuat.");
             } else {
                 console.log('Not redirected to index, component:', page.component);
-                showAlert("success", "Berhasil", "Sales Order berhasil dibuat.", "OK", "", () => {
+                showAlert("success", "Berhasil", "Shipping Order berhasil dibuat.", "OK", "", () => {
                     // Redirect to index page after user acknowledges success
                     window.location.href = route('admin-cs.sales-orders.index');
                 });
@@ -1516,7 +1547,7 @@ const submit = () => {
 
                 showAlert("error", "Gagal Menyimpan", errorMessage);
             } else {
-                showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat menyimpan sales order. Silakan coba lagi.");
+                showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat menyimpan shipping order. Silakan coba lagi.");
             }
         },
         onFinish: () => {

@@ -697,9 +697,27 @@
                                             <div class="col-span-2">
                                                 <label
                                                     class="block text-xs font-medium text-sage-700 mb-1">Kategori</label>
-                                                <input v-model="item.category" type="text"
-                                                    placeholder="Kategori reimbursement"
-                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                                <select
+                                                    v-model="item.category"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                                                    :disabled="reimbursementCategoryOptions.length === 0"
+                                                >
+                                                    <option value="" disabled>Pilih Kategori</option>
+                                                    <option
+                                                        v-for="category in reimbursementCategoryOptions"
+                                                        :key="category.value"
+                                                        :value="category.value"
+                                                        :title="category.description"
+                                                    >
+                                                        {{ category.label }}
+                                                    </option>
+                                                </select>
+                                                <p
+                                                    v-if="reimbursementCategoryOptions.length === 0"
+                                                    class="text-xs text-sage-500 mt-1"
+                                                >
+                                                    Kategori belum tersedia. Tambahkan master Operational Cost Categories terlebih dahulu.
+                                                </p>
                                             </div>
                                             <div class="col-span-2">
                                                 <label
@@ -841,6 +859,14 @@ const parseReceiptInfo = (info) => {
     return info;
 };
 
+const baseOperationalCostCategoryOptions = computed(() => {
+    return (props.operationalCostCategories ?? []).map(category => ({
+        value: category.name,
+        label: category.name,
+        description: category.description || ''
+    }));
+});
+
 const reimbursementItems = ref(
     rawReimbursementItems.length > 0
         ? rawReimbursementItems.map(item => {
@@ -869,6 +895,22 @@ const reimbursementItems = ref(
         })
         : [{ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "" }]
 );
+
+const reimbursementCategoryOptions = computed(() => {
+    const optionMap = new Map(baseOperationalCostCategoryOptions.value.map(option => [option.value, option]));
+
+    reimbursementItems.value.forEach(item => {
+        if (item.category && !optionMap.has(item.category)) {
+            optionMap.set(item.category, {
+                value: item.category,
+                label: item.category,
+                description: ""
+            });
+        }
+    });
+
+    return Array.from(optionMap.values());
+});
 
 const serviceTypeOptions = computed(() => {
     return (props.serviceTypes ?? []).map(type => ({

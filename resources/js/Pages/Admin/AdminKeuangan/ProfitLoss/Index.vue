@@ -1,20 +1,20 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Laporan Laba Rugi" />
+        <Head title="Income Statement" />
         
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Laporan Laba Rugi</h1>
-                        <p class="mt-1 text-sm text-gray-600">Kelola periode laporan laba rugi perusahaan</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Income Statement</h1>
+                        <p class="mt-1 text-sm text-gray-600">Manage the company’s income statement periods</p>
                     </div>
                     <Link 
                         :href="route('admin-keuangan.profit-loss.create')"
                         class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
                     >
                         <Plus class="w-4 h-4 mr-2" />
-                        Tambah Periode
+                        Add Period
                     </Link>
                 </div>
 
@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Periode</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Periods</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ stats.total_periods }}</dd>
                                     </dl>
                                 </div>
@@ -43,7 +43,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Periode Tertutup</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Closed Periods</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ stats.closed_periods }}</dd>
                                     </dl>
                                 </div>
@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Pendapatan Bulan Ini</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Revenue This Month</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(stats.current_revenue) }}</dd>
                                     </dl>
                                 </div>
@@ -75,7 +75,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Laba Bersih Bulan Ini</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Net Profit This Month</dt>
                                         <dd :class="stats.current_profit >= 0 ? 'text-lg font-medium text-green-600' : 'text-lg font-medium text-red-600'">
                                             {{ formatCurrency(stats.current_profit) }}
                                         </dd>
@@ -93,22 +93,22 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tanggal
+                                            Dates
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Total Pendapatan
+                                            Total Revenue
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Laba Bersih
+                                            Net Profit
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Dibuat Oleh
+                                            Created By
                                         </th>
                                         <th scope="col" class="relative px-6 py-3">
                                             <span class="sr-only">Actions</span>
@@ -146,7 +146,7 @@
                                                 <Link 
                                                     :href="route('admin-keuangan.profit-loss.show', period.id)"
                                                     class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
-                                                    title="Lihat Detail"
+                                                title="View Details"
                                                 >
                                                     <Eye class="w-4 h-4" />
                                                 </Link>
@@ -162,7 +162,7 @@
                                                     v-if="period.status !== 'closed'"
                                                     @click="deletePeriod(period)"
                                                     class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
-                                                    title="Hapus"
+                                                    title="Delete"
                                                 >
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
@@ -175,8 +175,8 @@
 
                         <div v-if="periods.data.length === 0" class="text-center py-12">
                             <Calendar class="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada periode laporan</h3>
-                            <p class="mt-1 text-sm text-gray-500">Mulai dengan membuat periode laporan laba rugi pertama</p>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No periods available</h3>
+                            <p class="mt-1 text-sm text-gray-500">Start by creating the first income statement period</p>
                         </div>
 
                         <div v-if="periods.links" class="mt-6">
@@ -201,14 +201,14 @@ defineProps({
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR'
     }).format(amount || 0)
 }
 
 const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('id-ID', {
+    return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
@@ -234,7 +234,7 @@ const getStatusText = (status) => {
 }
 
 const deletePeriod = (period) => {
-    if (confirm('Apakah Anda yakin ingin menghapus periode ini? Semua data terkait akan ikut terhapus.')) {
+    if (confirm('Are you sure you want to delete this period? All related data will also be removed.')) {
         router.delete(route('admin-keuangan.profit-loss.destroy', period.id))
     }
 }

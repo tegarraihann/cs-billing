@@ -5,8 +5,8 @@
         <!-- Header Section -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Manajemen Sales Order</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola dokumen sales order dan penawaran harga</p>
+            <h1 class="text-2xl font-bold text-gray-900">Manajemen Shipping Order</h1>
+            <p class="mt-1 text-sm text-gray-600">Kelola dokumen Shipping Order dan penawaran harga</p>
           </div>
           <div class="mt-4 sm:mt-0 flex space-x-2">
             <Link
@@ -14,7 +14,7 @@
               class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 hover:bg-sage-900"
             >
               <Plus class="w-4 h-4 mr-2" />
-              Buat Sales Order
+              Buat Shipping Order
             </Link>
           </div>
         </div>
@@ -65,7 +65,7 @@
           <div class="px-4 py-5 sm:p-6">
             <div class="sm:flex sm:items-center sm:justify-between mb-4">
               <div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Sales Order</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Shipping Order</h3>
                 <p class="mt-1 text-sm text-gray-600">Total: {{ salesOrders?.total || 0 }} data</p>
               </div>
             </div>
@@ -191,7 +191,7 @@
                           :class="isProcessedStatus(salesOrder.status)
                             ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                             : 'text-sage-600 hover:text-sage-900 hover:bg-sage-100'"
-                          :title="isProcessedStatus(salesOrder.status) ? 'Sudah Diproses' : 'Rilis Sales Order'"
+                          :title="isProcessedStatus(salesOrder.status) ? 'Sudah Diproses' : 'Rilis Shipping Order'"
                         >
                           <Send class="w-4 h-4" />
                         </button>
@@ -215,7 +215,7 @@
                         <span
                           v-else
                           class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                          title="Tidak dapat diedit (Sales Order sudah diproses)"
+                          title="Tidak dapat diedit (Shipping Order sudah diproses)"
                         >
                           <Pencil class="w-4 h-4" />
                         </span>
@@ -231,7 +231,7 @@
                         <span
                           v-else
                           class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                          title="Tidak dapat dihapus (Sales Order sudah diproses)"
+                          title="Tidak dapat dihapus (Shipping Order sudah diproses)"
                         >
                           <Trash2 class="w-4 h-4" />
                         </span>
@@ -246,7 +246,7 @@
                         <FileText class="w-12 h-12 text-gray-300 mb-4" />
                         <p class="text-lg font-medium mb-2">Tidak ada data</p>
                         <p class="text-sm text-gray-400">
-                          Belum ada sales order yang tersedia
+                          Belum ada Shipping Order yang tersedia
                         </p>
                       </div>
                     </td>
@@ -271,8 +271,8 @@
     <AlertDialog
       :show="showReleaseDialog"
       type="confirm"
-      title="Konfirmasi Rilis Sales Order"
-      message="Apakah Anda yakin ingin merilis sales order ini? Sales order yang sudah dirilis akan dikirim ke admin keuangan dan tidak dapat diubah lagi."
+      title="Konfirmasi Rilis Shipping Order"
+      message="Apakah Anda yakin ingin merilis Shipping Order ini? Shipping Order yang sudah dirilis akan dikirim ke admin keuangan dan tidak dapat diubah lagi."
       confirm-text="Ya, Rilis"
       cancel-text="Batal"
       @confirm="confirmRelease"
@@ -284,8 +284,8 @@
     <AlertDialog
       :show="showDeleteDialog"
       type="confirm"
-      title="Konfirmasi Hapus Sales Order"
-      message="Apakah Anda yakin ingin menghapus sales order ini? Tindakan ini tidak dapat dibatalkan."
+      title="Konfirmasi Hapus Shipping Orderr"
+      message="Apakah Anda yakin ingin menghapus Shipping Order ini? Tindakan ini tidak dapat dibatalkan."
       confirm-text="Ya, Hapus"
       cancel-text="Batal"
       @confirm="confirmDelete"
@@ -346,7 +346,7 @@ const confirmRelease = () => {
   router.post(route("admin-cs.sales-orders.release", currentSalesOrderId.value), {}, {
     onSuccess: () => applyFilters(),
     onError: (errors) => {
-      alert("Terjadi kesalahan saat merilis sales order: " + Object.values(errors).join(", "));
+      alert("Terjadi kesalahan saat merilis Shipping Order: " + Object.values(errors).join(", "));
     },
     onFinish: () => {
       showReleaseDialog.value = false;
@@ -371,7 +371,7 @@ const confirmDelete = () => {
   router.delete(route("admin-cs.sales-orders.destroy", currentSalesOrderId.value), {
     onSuccess: () => applyFilters(),
     onError: (errors) => {
-      alert("Terjadi kesalahan saat menghapus sales order: " + Object.values(errors).join(", "));
+      alert("Terjadi kesalahan saat menghapus Shipping Order: " + Object.values(errors).join(", "));
     },
     onFinish: () => {
       showDeleteDialog.value = false;

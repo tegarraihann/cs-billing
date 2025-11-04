@@ -11,9 +11,9 @@
                                     <Pen class="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 class="text-2xl font-semibold text-gray-900">Edit Sales Order: {{
+                                    <h1 class="text-2xl font-semibold text-gray-900">Edit Shipping: {{
                                         salesOrder.order_number }}</h1>
-                                    <p class="mt-1 text-sm text-gray-600">Perbarui informasi sales order untuk pelanggan
+                                    <p class="mt-1 text-sm text-gray-600">Perbarui informasi shipping order untuk pelanggan
                                     </p>
                                 </div>
                             </div>
@@ -381,7 +381,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-sage-700 mb-2">NOTE</label>
                                 <textarea v-model="form.note" rows="3"
-                                    placeholder="Catatan tambahan untuk sales order ini"
+                                    placeholder="Catatan tambahan untuk Shipping Order ini"
                                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
                                 <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{ form.errors.note }}
                                 </div>
@@ -648,20 +648,27 @@
                                             <div class="col-span-2">
                                                 <label
                                                     class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
-                                                <select v-model="item.category"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
-                                                    <option value="">Pilih Kategori</option>
-                                                    <option value="transport">Transportasi</option>
-                                                    <option value="accommodation">Akomodasi</option>
-                                                    <option value="meal">Makan & Minum</option>
-                                                    <option value="fuel">BBM</option>
-                                                    <option value="parking">Parkir</option>
-                                                    <option value="toll">Tol</option>
-                                                    <option value="admin">Administrasi</option>
-                                                    <option value="communication">Komunikasi</option>
-                                                    <option value="equipment">Peralatan</option>
-                                                    <option value="general">Lain-lain</option>
+                                                <select
+                                                    v-model="item.category"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                                                    :disabled="reimbursementCategoryOptions.length === 0"
+                                                >
+                                                    <option value="" disabled>Pilih Kategori</option>
+                                                    <option
+                                                        v-for="category in reimbursementCategoryOptions"
+                                                        :key="category.value"
+                                                        :value="category.value"
+                                                        :title="category.description"
+                                                    >
+                                                        {{ category.label }}
+                                                    </option>
                                                 </select>
+                                                <p
+                                                    v-if="reimbursementCategoryOptions.length === 0"
+                                                    class="text-xs text-purple-600 mt-1"
+                                                >
+                                                    Kategori belum tersedia. Tambahkan master Operational Cost Categories terlebih dahulu.
+                                                </p>
                                             </div>
                                             <div class="col-span-3">
                                                 <label
@@ -733,7 +740,7 @@
                             class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                             <Loader2 v-if="form.processing" class="animate-spin -ml-1 mr-3 h-4 w-4" />
                             <span v-if="form.processing">Menyimpan...</span>
-                            <span v-else>Update Sales Order</span>
+                            <span v-else>Update Shipping Order</span>
                         </button>
                     </div>
                 </form>
@@ -937,7 +944,31 @@ const form = useForm({
 });
 
 // Initialize reimbursement items from props
+const baseOperationalCostCategoryOptions = computed(() => {
+    return (props.operationalCostCategories ?? []).map(category => ({
+        value: category.name,
+        label: category.name,
+        description: category.description || "",
+    }));
+});
+
 const reimbursementItems = ref(initializeReimbursementItems());
+
+const reimbursementCategoryOptions = computed(() => {
+    const optionMap = new Map(baseOperationalCostCategoryOptions.value.map(option => [option.value, option]));
+
+    reimbursementItems.value.forEach(item => {
+        if (item.category && !optionMap.has(item.category)) {
+            optionMap.set(item.category, {
+                value: item.category,
+                label: item.category,
+                description: "",
+            });
+        }
+    });
+
+    return Array.from(optionMap.values());
+});
 
 const toggleSection = (section) => {
     sections.value[section] = !sections.value[section];
@@ -1226,16 +1257,16 @@ const submit = () => {
             // Check if this is actually the index page (successful redirect)
             if (page.component === 'Admin/AdminCS/SalesOrders/Index') {
                 console.log('Successfully redirected to index page');
-                showAlert("success", "Berhasil", "Sales Order berhasil diperbarui.");
+                showAlert("success", "Berhasil", "Shipping Order berhasil diperbarui.");
             } else {
                 console.log('Not redirected to index, component:', page.component);
-                showAlert("success", "Berhasil", "Sales Order berhasil diperbarui.", "OK", "", () => {
+                showAlert("success", "Berhasil", "Shipping Order berhasil diperbarui.", "OK", "", () => {
                     window.location.href = route('admin-cs.sales-orders.index');
                 });
             }
         },
         onError: (errors) => {
-            console.error('Sales Order Update Error:', errors);
+            console.error('Shipping Order Update Error:', errors);
 
             // Handle specific validation errors
             if (errors && Object.keys(errors).length > 0) {
@@ -1256,7 +1287,7 @@ const submit = () => {
 
                 showAlert("error", "Gagal Menyimpan", errorMessage);
             } else {
-                showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat memperbarui sales order. Silakan coba lagi.");
+                showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat memperbarui Shipping Order. Silakan coba lagi.");
             }
         },
         onFinish: () => {

@@ -19,14 +19,14 @@ class ProfitReportController extends Controller
      */
     public function index(Request $request)
     {
-        $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
-        $dateTo = $request->input('date_to', now()->endOfMonth()->toDateString());
+        $filters = $this->resolveFilterParameters($request);
+        [$rangeStart, $rangeEnd] = $filters['range'];
         $customerId = $request->input('customer_id');
         
         // Base query for sales orders
         $query = SalesOrder::query()
             ->with(['customer', 'invoices.items', 'accountReceivables', 'accountPayables', 'reimbursementItems'])
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->whereBetween('created_at', [$rangeStart, $rangeEnd])
             ->where('status', 'approved');
 
         if ($customerId) {
@@ -83,7 +83,15 @@ class ProfitReportController extends Controller
         return Inertia::render('Admin/AdminKeuangan/Reports/ProfitShipment', [
             'profitData' => $profitData->values(),
             'summary' => $summary,
-            'filters' => compact('dateFrom', 'dateTo', 'customerId'),
+            'filters' => [
+                'dateFrom' => $filters['dateFrom'],
+                'dateTo' => $filters['dateTo'],
+                'period' => $filters['period'],
+                'month' => $filters['month'],
+                'quarter' => $filters['quarter'],
+                'year' => $filters['year'],
+                'customerId' => $customerId
+            ],
             'customers' => $customers
         ]);
     }
@@ -93,14 +101,14 @@ class ProfitReportController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
-        $dateTo = $request->input('date_to', now()->endOfMonth()->toDateString());
+        $filters = $this->resolveFilterParameters($request);
+        [$rangeStart, $rangeEnd] = $filters['range'];
         $customerId = $request->input('customer_id');
         
         // Get the same data as index
         $query = SalesOrder::query()
             ->with(['customer', 'invoices.items', 'accountReceivables', 'accountPayables', 'reimbursementItems'])
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->whereBetween('created_at', [$rangeStart, $rangeEnd])
             ->where('status', 'approved');
 
         if ($customerId) {
@@ -251,6 +259,80 @@ class ProfitReportController extends Controller
             'top_customers' => $topCustomers,
             'monthly_trend' => $monthlyTrend
         ]);
+    }
+
+    private function resolveFilterParameters(Request $request): array
+    {
+        $now = now();
+        $allowedPeriods = ['monthly', 'quarterly', 'yearly', 'custom'];
+        $period = $request->input('period');
+
+        if (!in_array($period, $allowedPeriods, true)) {
+            $period = 'monthly';
+        }
+
+        $year = (int) $request->input('year', $now->year);
+
+        $monthInput = $request->input('month');
+        $monthInt = (int) $monthInput;
+        if ($monthInt < 1 || $monthInt > 12) {
+            $monthInt = $now->month;
+        }
+        $month = str_pad((string) $monthInt, 2, '0', STR_PAD_LEFT);
+
+        $allowedQuarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+        $quarterInput = strtoupper((string) $request->input('quarter', ''));
+        if (!in_array($quarterInput, $allowedQuarters, true)) {
+            $quarterInput = 'Q' . (int) ceil($monthInt / 3);
+        }
+        $quarter = $quarterInput;
+
+        switch ($period) {
+            case 'monthly':
+                $start = Carbon::create($year, $monthInt, 1)->startOfDay();
+                $end = (clone $start)->endOfMonth()->endOfDay();
+                break;
+            case 'quarterly':
+                $quarterStartMonthMap = [
+                    'Q1' => 1,
+                    'Q2' => 4,
+                    'Q3' => 7,
+                    'Q4' => 10,
+                ];
+                $startMonth = $quarterStartMonthMap[$quarter] ?? 1;
+                $start = Carbon::create($year, $startMonth, 1)->startOfDay();
+                $end = (clone $start)->addMonths(3)->subDay()->endOfDay();
+                break;
+            case 'yearly':
+                $start = Carbon::create($year, 1, 1)->startOfDay();
+                $end = Carbon::create($year, 12, 31)->endOfDay();
+                break;
+            case 'custom':
+            default:
+                $dateFromInput = $request->input('date_from');
+                $dateToInput = $request->input('date_to');
+                $start = $dateFromInput
+                    ? Carbon::parse($dateFromInput)->startOfDay()
+                    : $now->copy()->startOfMonth();
+                $end = $dateToInput
+                    ? Carbon::parse($dateToInput)->endOfDay()
+                    : $now->copy()->endOfMonth();
+                break;
+        }
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end->copy(), $start->copy()];
+        }
+
+        return [
+            'range' => [$start, $end],
+            'dateFrom' => $start->toDateString(),
+            'dateTo' => $end->toDateString(),
+            'period' => $period,
+            'month' => $month,
+            'quarter' => $quarter,
+            'year' => (string) $year,
+        ];
     }
 
     private function getProfitStatus($profit, $profitMargin)

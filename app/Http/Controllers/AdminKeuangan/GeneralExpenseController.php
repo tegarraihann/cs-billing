@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\GeneralExpense;
 use App\Models\GeneralExpenseItem;
+use App\Models\OperationalCostCategory;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class GeneralExpenseController extends Controller
 {
@@ -68,7 +70,14 @@ class GeneralExpenseController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/AdminKeuangan/GeneralExpenses/Create');
+        $categories = OperationalCostCategory::active()
+            ->orderBy('name')
+            ->pluck('name')
+            ->values();
+
+        return Inertia::render('Admin/AdminKeuangan/GeneralExpenses/Create', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -76,9 +85,15 @@ class GeneralExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'expense_date' => 'required|date',
-            'category' => 'required|string|max:255',
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('operational_cost_categories', 'name')->where('is_active', true),
+            ],
+            'status' => 'required|in:draft,approved',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
@@ -87,17 +102,31 @@ class GeneralExpenseController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($request) {
+            DB::transaction(function () use ($validated) {
+                $totalAmount = collect($validated['items'])->sum(function ($item) {
+                    return (float) $item['amount'];
+                });
+
+                $approverData = [];
+                if ($validated['status'] === 'approved') {
+                    $approverData = [
+                        'approved_by' => auth()->id(),
+                        'approved_at' => now(),
+                    ];
+                }
+
                 // Create general expense
                 $expense = GeneralExpense::create([
-                    'expense_date' => $request->expense_date,
-                    'category' => $request->category,
-                    'notes' => $request->notes,
+                    'expense_date' => $validated['expense_date'],
+                    'category' => $validated['category'],
+                    'status' => $validated['status'],
+                    'notes' => $validated['notes'] ?? null,
+                    'total_amount' => $totalAmount,
                     'created_by' => auth()->id(),
-                ]);
+                ] + $approverData);
 
                 // Create items
-                foreach ($request->items as $itemData) {
+                foreach ($validated['items'] as $itemData) {
                     GeneralExpenseItem::create([
                         'expense_id' => $expense->id,
                         'description' => $itemData['description'],
@@ -105,6 +134,9 @@ class GeneralExpenseController extends Controller
                         'notes' => $itemData['notes'] ?? null,
                     ]);
                 }
+
+                // Ensure persisted total amount reflects latest item sum
+                $expense->update(['total_amount' => $totalAmount]);
             });
 
             return redirect()->route('admin-keuangan.general-expenses.index')
@@ -134,8 +166,19 @@ class GeneralExpenseController extends Controller
     {
         $generalExpense->load('items');
 
+        $categories = OperationalCostCategory::orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
+
+        if ($generalExpense->category && !$categories->contains($generalExpense->category)) {
+            $categories = $categories->push($generalExpense->category)->unique()->sort()->values();
+        }
+
         return Inertia::render('Admin/AdminKeuangan/GeneralExpenses/Edit', [
             'expense' => $generalExpense,
+            'generalExpense' => $generalExpense,
+            'categories' => $categories,
         ]);
     }
 
@@ -149,9 +192,18 @@ class GeneralExpenseController extends Controller
             return back()->withErrors(['error' => 'Cannot edit approved expense.']);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'expense_date' => 'required|date',
-            'category' => 'required|string|max:255',
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('operational_cost_categories', 'name')->where(function ($query) use ($generalExpense) {
+                    $query->where('is_active', true)
+                        ->orWhere('name', $generalExpense->category);
+                }),
+            ],
+            'status' => 'required|in:draft,approved',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
@@ -160,19 +212,22 @@ class GeneralExpenseController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($request, $generalExpense) {
+            DB::transaction(function () use ($validated, $generalExpense) {
                 // Update general expense
                 $generalExpense->update([
-                    'expense_date' => $request->expense_date,
-                    'category' => $request->category,
-                    'notes' => $request->notes,
+                    'expense_date' => $validated['expense_date'],
+                    'category' => $validated['category'],
+                    'status' => $validated['status'],
+                    'notes' => $validated['notes'] ?? null,
+                    'approved_by' => $validated['status'] === 'approved' ? auth()->id() : null,
+                    'approved_at' => $validated['status'] === 'approved' ? now() : null,
                 ]);
 
                 // Delete existing items
                 $generalExpense->items()->delete();
 
                 // Create new items
-                foreach ($request->items as $itemData) {
+                foreach ($validated['items'] as $itemData) {
                     GeneralExpenseItem::create([
                         'expense_id' => $generalExpense->id,
                         'description' => $itemData['description'],
@@ -180,6 +235,11 @@ class GeneralExpenseController extends Controller
                         'notes' => $itemData['notes'] ?? null,
                     ]);
                 }
+
+                $totalAmount = collect($validated['items'])->sum(function ($item) {
+                    return (float) $item['amount'];
+                });
+                $generalExpense->update(['total_amount' => $totalAmount]);
             });
 
             return redirect()->route('admin-keuangan.general-expenses.index')

@@ -49,14 +49,20 @@
                 v-model="form.category"
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                 :class="{ 'border-red-300': errors.category }"
+                :disabled="categoryOptions.length === 0"
               >
-                <option value="">Pilih Kategori</option>
-                <option value="Salary Staff">Gaji Staff</option>
-                <option value="Bank Admin">Biaya Admin Bank</option>
-                <option value="Reimbursements">Reimbursements</option>
-                <option value="Office Expenses">Biaya Kantor</option>
-                <option value="Other">Lainnya</option>
+                <option value="" disabled>Pilih Kategori</option>
+                <option
+                  v-for="category in categoryOptions"
+                  :key="category"
+                  :value="category"
+                >
+                  {{ category }}
+                </option>
               </select>
+              <p v-if="categoryOptions.length === 0" class="mt-1 text-sm text-sage-500">
+                Tidak ada kategori aktif. Silakan tambah kategori di master Operational Cost Categories terlebih dahulu.
+              </p>
               <p v-if="errors.category" class="mt-1 text-sm text-red-600">
                 {{ errors.category }}
               </p>
@@ -220,7 +226,7 @@
             </Link>
             <button
               type="submit"
-              :disabled="processing || form.items.length === 0"
+              :disabled="processing || form.items.length === 0 || categoryOptions.length === 0"
               class="px-4 py-2 text-sm font-medium text-white bg-sage-600 rounded-lg hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <span v-if="processing">Menyimpan...</span>
@@ -234,13 +240,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { Plus, Trash2, DollarSign } from 'lucide-vue-next'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 // Props
 const props = defineProps({
+  categories: {
+    type: Array,
+    default: () => []
+  },
   errors: {
     type: Object,
     default: () => ({})
@@ -269,6 +279,17 @@ const form = useForm({
 
 const processing = ref(false)
 const errors = ref(props.errors)
+const categoryOptions = computed(() => props.categories ?? [])
+
+watch(
+  categoryOptions,
+  (options) => {
+    if (!form.category && options.length > 0) {
+      form.category = options[0]
+    }
+  },
+  { immediate: true }
+)
 
 // Computed properties
 const calculatedTotal = computed(() => {
@@ -327,9 +348,9 @@ const submitForm = () => {
     onSuccess: () => {
       processing.value = false
     },
-    onError: (errors) => {
+    onError: (formErrors) => {
       processing.value = false
-      errors.value = errors
+      errors.value = formErrors
     }
   })
 }

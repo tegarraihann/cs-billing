@@ -648,20 +648,27 @@
                                                     <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
-                                                        <select v-model="item.category"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
-                                                            <option value="">Pilih Kategori</option>
-                                                            <option value="transport">Transport</option>
-                                                            <option value="accommodation">Akomodasi</option>
-                                                            <option value="meal">Makan</option>
-                                                            <option value="fuel">BBM</option>
-                                                            <option value="parking">Parkir</option>
-                                                            <option value="toll">Tol</option>
-                                                            <option value="admin">Admin</option>
-                                                            <option value="communication">Komunikasi</option>
-                                                            <option value="equipment">Peralatan</option>
-                                                            <option value="general">Umum</option>
+                                                        <select
+                                                            v-model="item.category"
+                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                                                            :disabled="reimbursementCategoryOptions.length === 0"
+                                                        >
+                                                            <option value="" disabled>Pilih Kategori</option>
+                                                            <option
+                                                                v-for="category in reimbursementCategoryOptions"
+                                                                :key="category.value"
+                                                                :value="category.value"
+                                                                :title="category.description"
+                                                            >
+                                                                {{ category.label }}
+                                                            </option>
                                                         </select>
+                                                        <p
+                                                            v-if="reimbursementCategoryOptions.length === 0"
+                                                            class="text-xs text-purple-600 mt-1"
+                                                        >
+                                                            Kategori belum tersedia. Silakan tambah master Operational Cost Categories terlebih dahulu.
+                                                        </p>
                                                     </div>
                                                     <div class="col-span-3">
                                                         <label
@@ -1192,6 +1199,30 @@ const isKnownServiceType = (code) => {
 const paymentVouchers = ref([]);
 const receiptVouchers = ref([]);
 const reimbursementItems = ref([{ description: '', amount: 0, category: '', notes: '', vendor_id: '' }]);
+
+const baseOperationalCostCategoryOptions = computed(() => {
+    return (props.operationalCostCategories ?? []).map(category => ({
+        value: category.name,
+        label: category.name,
+        description: category.description || ''
+    }));
+});
+
+const reimbursementCategoryOptions = computed(() => {
+    const optionMap = new Map(baseOperationalCostCategoryOptions.value.map(option => [option.value, option]));
+
+    reimbursementItems.value.forEach(item => {
+        if (item.category && !optionMap.has(item.category)) {
+            optionMap.set(item.category, {
+                value: item.category,
+                label: item.category,
+                description: ''
+            });
+        }
+    });
+
+    return Array.from(optionMap.values());
+});
 
 // Collapseable sections state
 const sections = ref({

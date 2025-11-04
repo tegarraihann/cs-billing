@@ -5,9 +5,11 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\OtherIncome;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\OperationalCostCategory;
 
 class OtherIncomeController extends Controller
 {
@@ -53,10 +55,19 @@ class OtherIncomeController extends Controller
             'total_not_posted' => OtherIncome::notPosted()->sum('amount'),
         ];
 
+        $masterCategories = OperationalCostCategory::orderBy('name')->pluck('name');
+        $existingCategories = OtherIncome::select('category')->distinct()->pluck('category');
+        $categories = $masterCategories
+            ->merge($existingCategories)
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
         return Inertia::render('Admin/AdminKeuangan/OtherIncomes/Index', [
             'otherIncomes' => $otherIncomes,
             'summary' => $summary,
-            'categories' => OtherIncome::getCategories(),
+            'categories' => $categories,
             'filters' => $request->only(['start_date', 'end_date', 'category', 'posted']),
         ]);
     }
@@ -66,8 +77,12 @@ class OtherIncomeController extends Controller
      */
     public function create()
     {
+        $categories = OperationalCostCategory::orderBy('name')
+            ->pluck('name')
+            ->values();
+
         return Inertia::render('Admin/AdminKeuangan/OtherIncomes/Create', [
-            'categories' => OtherIncome::getCategories(),
+            'categories' => $categories,
         ]);
     }
 
@@ -78,18 +93,23 @@ class OtherIncomeController extends Controller
     {
         $validated = $request->validate([
             'transaction_date' => 'required|date',
-            'category' => 'required|string|in:Bunga Bank Mandiri,Bunga Bank BCA,Lainnya',
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('operational_cost_categories', 'name')->where('is_active', true),
+            ],
             'description' => 'required|string|max:500',
             'amount' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string|max:1000',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($request, $validated) {
             // Handle file upload
             $receiptFile = null;
-            if (request()->hasFile('receipt_file')) {
-                $receiptFile = request()->file('receipt_file')->store('other-income-receipts', 'public');
+            if ($request->hasFile('receipt_file')) {
+                $receiptFile = $request->file('receipt_file')->store('other-income-receipts', 'public');
             }
 
             OtherIncome::create([
@@ -124,9 +144,18 @@ class OtherIncomeController extends Controller
      */
     public function edit(OtherIncome $otherIncome)
     {
+        $categories = OperationalCostCategory::orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
+
+        if ($otherIncome->category && !$categories->contains($otherIncome->category)) {
+            $categories = $categories->push($otherIncome->category)->unique()->sort()->values();
+        }
+
         return Inertia::render('Admin/AdminKeuangan/OtherIncomes/Edit', [
             'otherIncome' => $otherIncome,
-            'categories' => OtherIncome::getCategories(),
+            'categories' => $categories,
         ]);
     }
 
@@ -143,18 +172,26 @@ class OtherIncomeController extends Controller
 
         $validated = $request->validate([
             'transaction_date' => 'required|date',
-            'category' => 'required|string|in:Bunga Bank Mandiri,Bunga Bank BCA,Lainnya',
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('operational_cost_categories', 'name')->where(function ($query) use ($otherIncome) {
+                    $query->where('is_active', true)
+                        ->orWhere('name', $otherIncome->category);
+                }),
+            ],
             'description' => 'required|string|max:500',
             'amount' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string|max:1000',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        DB::transaction(function () use ($validated, $otherIncome) {
+        DB::transaction(function () use ($request, $validated, $otherIncome) {
             // Handle file upload
             $receiptFile = $otherIncome->receipt_file;
-            if (request()->hasFile('receipt_file')) {
-                $receiptFile = request()->file('receipt_file')->store('other-income-receipts', 'public');
+            if ($request->hasFile('receipt_file')) {
+                $receiptFile = $request->file('receipt_file')->store('other-income-receipts', 'public');
             }
 
             $otherIncome->update([
