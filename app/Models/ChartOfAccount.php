@@ -116,4 +116,23 @@ class ChartOfAccount extends Model
         
         return $accounts->groupBy('account_category')->toArray();
     }
+
+    /**
+     * Cache account lookups by code to avoid repeated queries.
+     */
+    public static function idByCode(string $code): ?int
+    {
+        static $cache = [];
+
+        if (!array_key_exists($code, $cache)) {
+            $cache[$code] = self::where('account_code', $code)->value('id');
+        }
+
+        return $cache[$code];
+    }
+
+    public static function findByCode(string $code): ?self
+    {
+        return self::where('account_code', $code)->first();
+    }
 }

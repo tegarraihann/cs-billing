@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\SalesOrder;
 use App\Models\Customer;
-use App\Models\Voucher;
 use App\Models\ShipmentType;
 use App\Models\MasterServiceType;
 use App\Models\ReimbursementItem;
@@ -163,27 +162,6 @@ class SalesOrderController extends Controller
                 'vendor_details.*.nama_rekening' => 'required_with:vendor_details|string|max:255',
                 'vendor_details.*.rcvd_inv' => 'nullable|string|max:255',
 
-                // Voucher data
-                'payment_vouchers' => 'nullable|array',
-                'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
-                'payment_vouchers.*.date' => 'required_with:payment_vouchers|date',
-                'payment_vouchers.*.description' => 'required_with:payment_vouchers|string',
-                'payment_vouchers.*.amount' => 'required_with:payment_vouchers|numeric|min:0',
-                'payment_vouchers.*.prepared_by' => 'nullable|string|max:255',
-                'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
-                'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
-                'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
-
-                'receipt_vouchers' => 'nullable|array',
-                'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
-                'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
-                'receipt_vouchers.*.description' => 'required_with:receipt_vouchers|string',
-                'receipt_vouchers.*.amount' => 'required_with:receipt_vouchers|numeric|min:0',
-                'receipt_vouchers.*.prepared_by' => 'nullable|string|max:255',
-                'receipt_vouchers.*.authorized_by' => 'nullable|string|max:255',
-                'receipt_vouchers.*.finance_by' => 'nullable|string|max:255',
-                'receipt_vouchers.*.receipt_by' => 'nullable|string|max:255',
-
                 // Reimbursement items validation
                 'reimbursement_items' => 'nullable|array',
                 'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
@@ -236,19 +214,14 @@ class SalesOrderController extends Controller
             }
 
             // Remove voucher data and reimbursement items from sales order data
-            $paymentVouchers = $validated['payment_vouchers'] ?? [];
-            $receiptVouchers = $validated['receipt_vouchers'] ?? [];
             $reimbursementItems = $validated['reimbursement_items'] ?? [];
-            unset($validated['payment_vouchers'], $validated['receipt_vouchers'], $validated['reimbursement_items']);
+            unset($validated['reimbursement_items']);
 
 
             $salesOrder = SalesOrder::create($validated);
 
 
             // Create vouchers
-            $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
-            $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
-
             // Create reimbursement items
             $this->createReimbursementItems($salesOrder, $reimbursementItems);
 
@@ -276,12 +249,10 @@ class SalesOrderController extends Controller
      */
     public function show(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['creator', 'vouchers', 'reimbursementItems']);
+        $salesOrder->load(['creator', 'reimbursementItems']);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Show', [
             'salesOrder' => $salesOrder,
-            'paymentVouchers' => $salesOrder->paymentVouchers,
-            'receiptVouchers' => $salesOrder->receiptVouchers,
         ]);
     }
 
@@ -493,15 +464,6 @@ class SalesOrderController extends Controller
             'released_by' => Auth::id(),
         ]);
 
-        // Release all vouchers associated with this sales order
-        $unreleasedVouchers = $salesOrder->vouchers()->where('status', \App\Models\Voucher::STATUS_DRAFT)->get();
-        foreach ($unreleasedVouchers as $voucher) {
-            $voucher->update([
-                'status' => \App\Models\Voucher::STATUS_RELEASED,
-                'released_at' => now(),
-            ]);
-        }
-
         // Log successful release for debugging
         \Log::info('CS Sales Order Released Successfully', [
             'sales_order_id' => $salesOrder->id,
@@ -586,64 +548,9 @@ class SalesOrderController extends Controller
     /**
      * Create vouchers for a sales order
      */
-    private function createVouchers(SalesOrder $salesOrder, array $vouchers, string $type)
-    {
-        foreach ($vouchers as $voucherData) {
-            if (empty($voucherData['voucher_no']) || empty($voucherData['description']) || empty($voucherData['amount'])) {
-                continue; // Skip empty vouchers
-            }
-
-            $salesOrder->vouchers()->create([
-                'type' => $type,
-                'voucher_no' => $voucherData['voucher_no'],
-                'date' => $voucherData['date'],
-                'description' => $voucherData['description'],
-                'amount' => $voucherData['amount'],
-                'total' => $voucherData['amount'], // For now, total = amount (will be calculated later if needed)
-                'status' => Voucher::STATUS_DRAFT,
-                'prepared_by' => $voucherData['prepared_by'] ?? Auth::user()->name,
-                'authorized_by' => $voucherData['authorized_by'] ?? null,
-                'finance_by' => $voucherData['finance_by'] ?? null,
-                'receipt_by' => $voucherData['receipt_by'] ?? null,
-            ]);
-        }
-    }
-
     /**
      * Release vouchers for a sales order
      */
-    public function releaseVouchers(SalesOrder $salesOrder)
-    {
-        $unreleasedVouchers = $salesOrder->vouchers()->where('status', Voucher::STATUS_DRAFT)->get();
-
-        foreach ($unreleasedVouchers as $voucher) {
-            $voucher->update([
-                'status' => Voucher::STATUS_RELEASED,
-                'released_at' => now(),
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Vouchers berhasil dirilis.');
-    }
-
-    /**
-     * Update voucher status (for Admin Finance)
-     */
-    public function approveVoucher(Voucher $voucher)
-    {
-        if (!$voucher->canBeApproved()) {
-            return redirect()->back()->withErrors(['error' => 'Voucher tidak dapat disetujui pada status saat ini.']);
-        }
-
-        $voucher->update([
-            'status' => Voucher::STATUS_APPROVED,
-            'approved_at' => now(),
-            'finance_by' => Auth::user()->name,
-        ]);
-
-        return redirect()->back()->with('success', 'Voucher berhasil disetujui.');
-    }
-
     /**
      * Create reimbursement items for sales order
      */
@@ -937,24 +844,6 @@ class SalesOrderController extends Controller
             }
         }
         $request->merge(['reimbursement_items' => $reimbursementItems]);
-
-        // Normalize payment vouchers amounts
-        $paymentVouchers = $request->input('payment_vouchers', []);
-        foreach ($paymentVouchers as $index => $voucher) {
-            if (isset($voucher['amount'])) {
-                $paymentVouchers[$index]['amount'] = $this->normalizeIndonesianNumber($voucher['amount']);
-            }
-        }
-        $request->merge(['payment_vouchers' => $paymentVouchers]);
-
-        // Normalize receipt vouchers amounts
-        $receiptVouchers = $request->input('receipt_vouchers', []);
-        foreach ($receiptVouchers as $index => $voucher) {
-            if (isset($voucher['amount'])) {
-                $receiptVouchers[$index]['amount'] = $this->normalizeIndonesianNumber($voucher['amount']);
-            }
-        }
-        $request->merge(['receipt_vouchers' => $receiptVouchers]);
 
         // Normalize other numeric fields
         $numericFields = ['exchange_rate', 'qty', 'net_weight', 'gross_weight', 'measurement'];

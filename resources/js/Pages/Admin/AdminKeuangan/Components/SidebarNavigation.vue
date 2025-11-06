@@ -133,19 +133,6 @@
                 <span class="font-medium">Profit Reports</span>
             </a>
 
-            <!-- Payment Monitoring -->
-            <a :href="route('admin-keuangan.invoices.payment-history')"
-                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.payment-history')
-                        ? 'bg-sage-100 text-sage-800 shadow-sm'
-                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
-                    ">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m-4-3.5c0-1.55 1.88-2.75 4-2.75s4 1.2 4 2.75" />
-                </svg>
-                <span class="font-medium">Payment Monitoring</span>
-            </a>
-
             <!-- Petty Cash -->
             <a :href="route('admin-keuangan.petty-cash.index')"
                 class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.petty-cash')
@@ -196,6 +183,19 @@
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 <span class="font-medium">Income Statement</span>
+            </a>
+
+            <!-- Financial Position -->
+            <a :href="route('admin-keuangan.financial-position.index')"
+                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.financial-position')
+                        ? 'bg-sage-100 text-sage-800 shadow-sm'
+                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                    ">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 4H6a2 2 0 00-2 2v2m0 0v10a2 2 0 002 2h2m-2-12h2m8-4h2a2 2 0 012 2v2m0 0v10a2 2 0 01-2 2h-2m2-12h-2M9 16h6m-6-4h6" />
+                </svg>
+                <span class="font-medium">Financial Position</span>
             </a>
 
             <!-- Bank Balance -->
@@ -347,7 +347,6 @@ const route = window.route || function (name, params) {
         'admin-keuangan.vendors.create': '/admin-keuangan/vendors/create',
         'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
         'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
-        'admin-keuangan.invoices.payment-history': '/admin-keuangan/invoices/payment-history',
         'admin-keuangan.account-receivables.index': '/admin-keuangan/account-receivables',
         'admin-keuangan.account-payables.index': '/admin-keuangan/account-payables',
         'admin-keuangan.profit-reports.index': '/admin-keuangan/profit-reports',
@@ -355,6 +354,7 @@ const route = window.route || function (name, params) {
         'admin-keuangan.general-expenses.index': '/admin-keuangan/general-expenses',
         'admin-keuangan.other-incomes.index': '/admin-keuangan/other-incomes',
         'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
+        'admin-keuangan.financial-position.index': '/admin-keuangan/financial-position',
         'admin-keuangan.bank-balance.index': '/admin-keuangan/bank-balance',
         'admin-keuangan.bank-balance.create': '/admin-keuangan/bank-balance/create',
         'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
@@ -404,7 +404,6 @@ const isActive = (routePattern) => {
         'admin-keuangan.vendors': '/admin-keuangan/vendors',
         'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
         'admin-keuangan.invoices': '/admin-keuangan/invoices',
-        'admin-keuangan.payment-history': '/admin-keuangan/invoices/payment-history',
         'admin-keuangan.account-receivables': '/admin-keuangan/account-receivables',
         'admin-keuangan.account-payables': '/admin-keuangan/account-payables',
         'admin-keuangan.profit-reports': '/admin-keuangan/profit-reports',
@@ -412,6 +411,7 @@ const isActive = (routePattern) => {
         'admin-keuangan.general-expenses': '/admin-keuangan/general-expenses',
         'admin-keuangan.other-incomes': '/admin-keuangan/other-incomes',
         'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
+        'admin-keuangan.financial-position': '/admin-keuangan/financial-position',
         'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
         'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',
         'admin-keuangan.shipment-types': '/admin-keuangan/shipment-types',

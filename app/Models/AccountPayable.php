@@ -30,7 +30,8 @@ class AccountPayable extends Model
         'vendor_account_name',
         'days_overdue',
         'created_by',
-        'paid_by'
+        'paid_by',
+        'account_id',
     ];
 
     protected $casts = [
@@ -40,8 +41,22 @@ class AccountPayable extends Model
         'amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'outstanding_amount' => 'decimal:2',
-        'days_overdue' => 'integer'
+        'days_overdue' => 'integer',
+        'account_id' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $payable) {
+            $payable->account_id = $payable->account_id ?: ChartOfAccount::idByCode('2100');
+        });
+
+        static::saving(function (self $payable) {
+            if (!$payable->account_id) {
+                $payable->account_id = ChartOfAccount::idByCode('2100');
+            }
+        });
+    }
 
     // Relationships
     public function salesOrder(): BelongsTo
@@ -62,6 +77,11 @@ class AccountPayable extends Model
     public function paidByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'paid_by');
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class);
     }
 
     public function components(): HasMany

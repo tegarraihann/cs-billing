@@ -143,22 +143,6 @@ class SalesOrder extends Model
         return $this->belongsTo(User::class, 'rejected_by');
     }
 
-    // Relationship with Vouchers
-    public function vouchers(): HasMany
-    {
-        return $this->hasMany(Voucher::class);
-    }
-
-    public function paymentVouchers(): HasMany
-    {
-        return $this->hasMany(Voucher::class)->where('type', Voucher::TYPE_PAYMENT);
-    }
-
-    public function receiptVouchers(): HasMany
-    {
-        return $this->hasMany(Voucher::class)->where('type', Voucher::TYPE_RECEIPT);
-    }
-
     public function packageUnit()
     {
         return $this->belongsTo(MasterPackageUnit::class, 'package_unit', 'code');
@@ -167,22 +151,6 @@ class SalesOrder extends Model
     public function reimbursementItems(): HasMany
     {
         return $this->hasMany(ReimbursementItem::class);
-    }
-
-    // Helper methods for vouchers
-    public function getTotalPaymentVouchers(): float
-    {
-        return $this->paymentVouchers()->sum('total');
-    }
-
-    public function getTotalReceiptVouchers(): float
-    {
-        return $this->receiptVouchers()->sum('total');
-    }
-
-    public function hasUnreleasedVouchers(): bool
-    {
-        return $this->vouchers()->where('status', Voucher::STATUS_DRAFT)->exists();
     }
 
     public function customer(): BelongsTo

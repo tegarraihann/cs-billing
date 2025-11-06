@@ -54,31 +54,44 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => '1110', 'name' => 'Kas Kecil', 'type' => 'asset', 'category' => 'asset_cash', 'parent' => '1100', 'sort' => 52],
             ['code' => '1120', 'name' => 'Bank Mandiri', 'type' => 'asset', 'category' => 'asset_bank', 'parent' => '1100', 'sort' => 53],
             ['code' => '1130', 'name' => 'Bank BCA', 'type' => 'asset', 'category' => 'asset_bank', 'parent' => '1100', 'sort' => 54],
+            ['code' => '1140', 'name' => 'Emergency Fund', 'type' => 'asset', 'category' => 'asset_bank', 'parent' => '1100', 'sort' => 55],
 
             ['code' => '1200', 'name' => 'Piutang Usaha', 'type' => 'asset', 'category' => 'asset_receivable', 'parent' => '1000', 'sort' => 60],
+            ['code' => '1210', 'name' => 'Other Receivables', 'type' => 'asset', 'category' => 'asset_receivable', 'parent' => '1000', 'sort' => 61],
+            ['code' => '1300', 'name' => 'Supplies', 'type' => 'asset', 'category' => 'asset_inventory', 'parent' => '1000', 'sort' => 70],
+            ['code' => '1400', 'name' => 'Prepaid Rent', 'type' => 'asset', 'category' => 'asset_prepaid', 'parent' => '1000', 'sort' => 80],
+
+            ['code' => '1500', 'name' => 'ASET TETAP', 'type' => 'asset', 'category' => 'asset_fixed', 'parent' => null, 'sort' => 90],
+            ['code' => '1510', 'name' => 'Equipment', 'type' => 'asset', 'category' => 'asset_fixed', 'parent' => '1500', 'sort' => 91],
+            ['code' => '1515', 'name' => 'Accumulated Depreciation - Equipment', 'type' => 'asset', 'category' => 'asset_fixed_contra', 'parent' => '1510', 'sort' => 92],
 
             // LIABILITY ACCOUNTS
             ['code' => '2000', 'name' => 'KEWAJIBAN', 'type' => 'liability', 'category' => 'liability_payable', 'parent' => null, 'sort' => 70],
             ['code' => '2100', 'name' => 'Hutang Usaha', 'type' => 'liability', 'category' => 'liability_payable', 'parent' => '2000', 'sort' => 71],
             ['code' => '2200', 'name' => 'Hutang Gaji', 'type' => 'liability', 'category' => 'liability_payable', 'parent' => '2000', 'sort' => 72],
+            ['code' => '2110', 'name' => 'VAT Payable 11%', 'type' => 'liability', 'category' => 'liability_tax', 'parent' => '2000', 'sort' => 74],
+            ['code' => '2111', 'name' => 'VAT Payable 1.1%', 'type' => 'liability', 'category' => 'liability_tax', 'parent' => '2000', 'sort' => 75],
 
             // EQUITY ACCOUNTS
             ['code' => '3000', 'name' => 'MODAL', 'type' => 'equity', 'category' => 'equity_capital', 'parent' => null, 'sort' => 80],
             ['code' => '3100', 'name' => 'Modal Disetor', 'type' => 'equity', 'category' => 'equity_capital', 'parent' => '3000', 'sort' => 81],
             ['code' => '3200', 'name' => 'Laba Ditahan', 'type' => 'equity', 'category' => 'equity_retained', 'parent' => '3000', 'sort' => 82],
+            ['code' => '3300', 'name' => 'Laba Tahun Berjalan', 'type' => 'equity', 'category' => 'equity_current', 'parent' => '3000', 'sort' => 83],
         ];
 
         foreach ($accounts as $account) {
-            ChartOfAccount::create([
-                'account_code' => $account['code'],
-                'account_name' => $account['name'],
-                'account_type' => $account['type'],
-                'account_category' => $account['category'],
-                'parent_code' => $account['parent'],
-                'sort_order' => $account['sort'],
-                'is_active' => true,
-                'description' => 'Chart of account untuk ' . $account['name']
-            ]);
+            ChartOfAccount::updateOrCreate(
+                ['account_code' => $account['code']],
+                [
+                    'account_name' => $account['name'],
+                    'account_type' => $account['type'],
+                    'account_category' => $account['category'],
+                    'parent_code' => $account['parent'],
+                    'sort_order' => $account['sort'],
+                    'is_active' => true,
+                    'description' => $account['description'] ?? 'Chart of account untuk ' . $account['name'],
+                ]
+            );
         }
 
         $this->command->info('Chart of Account seeder completed successfully!');

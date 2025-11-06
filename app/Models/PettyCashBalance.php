@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 
 class PettyCashBalance extends Model
@@ -18,6 +19,7 @@ class PettyCashBalance extends Model
         'closing_balance',
         'transaction_count',
         'notes',
+        'account_id',
     ];
 
     protected $casts = [
@@ -26,7 +28,26 @@ class PettyCashBalance extends Model
         'total_in' => 'decimal:2',
         'total_out' => 'decimal:2',
         'closing_balance' => 'decimal:2',
+        'account_id' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $balance) {
+            $balance->account_id = $balance->account_id ?: ChartOfAccount::idByCode('1110');
+        });
+
+        static::updating(function (self $balance) {
+            if (!$balance->account_id) {
+                $balance->account_id = ChartOfAccount::idByCode('1110');
+            }
+        });
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class);
+    }
 
     public function scopeByDate($query, $date)
     {
@@ -120,7 +141,8 @@ class PettyCashBalance extends Model
                 'total_out' => $totalOut,
                 'closing_balance' => $closingBalance,
                 'transaction_count' => $dailyTransactions->count(),
-                'notes' => 'Auto-calculated from transactions'
+                'notes' => 'Auto-calculated from transactions',
+                'account_id' => ChartOfAccount::idByCode('1110'),
             ]
         );
     }

@@ -1051,40 +1051,6 @@ class InvoiceController extends Controller
         }
     }
 
-    public function paymentHistory(Request $request)
-    {
-        $query = Invoice::with(['salesOrder', 'customer', 'confirmedBy'])
-            ->where('status', 'paid');
-
-        // Filter by date range
-        if ($request->filled('date_from')) {
-            $query->where('paid_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->where('paid_date', '<=', $request->date_to);
-        }
-
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function($customerQuery) use ($search) {
-                      $customerQuery->where('company_name', 'like', "%{$search}%")
-                                  ;
-                  });
-            });
-        }
-
-        $payments = $query->orderBy('payment_confirmed_at', 'desc')->paginate(15);
-
-        return Inertia::render('Admin/AdminKeuangan/Invoices/PaymentHistory', [
-            'payments' => $payments,
-            'filters' => $request->only(['search', 'date_from', 'date_to'])
-        ]);
-    }
-
     public function overdueReport()
     {
         $overdueInvoices = Invoice::with(['salesOrder', 'customer'])

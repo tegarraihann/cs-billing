@@ -890,209 +890,6 @@
                                 </div>
                             </div>
 
-                            <!-- Voucher Section -->
-                            <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
-                                <div @click="toggleSection('voucher')"
-                                    class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Voucher Management</h3>
-                                    <svg :class="{ 'rotate-180': !sections.voucher }"
-                                        class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                                <div v-show="sections.voucher" class="p-6 space-y-6">
-
-                                    <!-- Payment Vouchers -->
-                                    <div class="space-y-4">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-md font-semibold text-sage-700">Payment Vouchers</h4>
-                                            <button type="button" @click="addPaymentVoucher"
-                                                class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                Add Payment
-                                            </button>
-                                        </div>
-
-                                        <div v-if="paymentVouchers.length === 0"
-                                            class="text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
-                                            No payment vouchers added yet
-                                        </div>
-
-                                        <div v-for="(voucher, index) in paymentVouchers" :key="'payment-' + index"
-                                            class="border border-gray-200 rounded-lg p-4 space-y-3">
-                                            <div class="flex justify-between items-center">
-                                                <h5 class="font-medium text-gray-700">Payment Voucher #{{ index + 1 }}
-                                                </h5>
-                                                <button type="button" @click="removePaymentVoucher(index)"
-                                                    class="text-red-600 hover:text-red-800">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Voucher
-                                                        No</label>
-                                                    <input v-model="voucher.voucher_no" type="text"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                                        placeholder="e.g., PAY-001" />
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                                    <input v-model="voucher.date" type="date"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label
-                                                    class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                                <textarea v-model="voucher.description" rows="2"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
-                                                    placeholder="e.g., Biaya Driver"></textarea>
-                                            </div>
-
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                                                    <input v-model="voucher.amount" type="number" step="0.01" min="0"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                                        placeholder="500000" />
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Prepared
-                                                        By</label>
-                                                    <input v-model="voucher.prepared_by" type="text"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                                        placeholder="Staff name" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Bottom Add Button for Payment Vouchers -->
-                                        <div v-if="paymentVouchers.length > 0"
-                                            class="flex justify-center mt-6 pt-4 border-t border-blue-200">
-                                            <button type="button" @click="addPaymentVoucher"
-                                                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                Add Payment Lagi
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Receipt Vouchers -->
-                                    <div class="space-y-4">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-md font-semibold text-sage-700">Receipt Vouchers</h4>
-                                            <button type="button" @click="addReceiptVoucher"
-                                                class="inline-flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                Add Receipt
-                                            </button>
-                                        </div>
-
-                                        <div v-if="receiptVouchers.length === 0"
-                                            class="text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
-                                            No receipt vouchers added yet
-                                        </div>
-
-                                        <div v-for="(voucher, index) in receiptVouchers" :key="'receipt-' + index"
-                                            class="border border-gray-200 rounded-lg p-4 space-y-3">
-                                            <div class="flex justify-between items-center">
-                                                <h5 class="font-medium text-gray-700">Receipt Voucher #{{ index + 1 }}
-                                                </h5>
-                                                <button type="button" @click="removeReceiptVoucher(index)"
-                                                    class="text-red-600 hover:text-red-800">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Voucher
-                                                        No</label>
-                                                    <input v-model="voucher.voucher_no" type="text"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                                        placeholder="e.g., REC-001" />
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                                    <input v-model="voucher.date" type="date"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label
-                                                    class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                                <textarea v-model="voucher.description" rows="2"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
-                                                    placeholder="e.g., Payment received from client"></textarea>
-                                            </div>
-
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                                                    <input v-model="voucher.amount" type="number" step="0.01" min="0"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                                        placeholder="1000000" />
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Prepared
-                                                        By</label>
-                                                    <input v-model="voucher.prepared_by" type="text"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                                        placeholder="Staff name" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Bottom Add Button for Receipt Vouchers -->
-                                        <div v-if="receiptVouchers.length > 0"
-                                            class="flex justify-center mt-6 pt-4 border-t border-green-200">
-                                            <button type="button" @click="addReceiptVoucher"
-                                                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                Add Receipt Lagi
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
                             <!-- Submit Buttons -->
                             <div
                                 class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
@@ -1195,9 +992,6 @@ const isKnownServiceType = (code) => {
     return Object.prototype.hasOwnProperty.call(serviceTypeMap.value, code);
 };
 
-// Voucher data
-const paymentVouchers = ref([]);
-const receiptVouchers = ref([]);
 const reimbursementItems = ref([{ description: '', amount: 0, category: '', notes: '', vendor_id: '' }]);
 
 const baseOperationalCostCategoryOptions = computed(() => {
@@ -1233,7 +1027,6 @@ const sections = ref({
     reimbursement: false,
     goods: false,
     invoice: false,
-    voucher: false,
 });
 
 const form = useForm({
@@ -1314,35 +1107,6 @@ const onVendorSelect = (index) => {
         vendorItem.no_rekening = "";
         vendorItem.nama_rekening = "";
     }
-};
-
-// Voucher management methods
-const addPaymentVoucher = () => {
-    paymentVouchers.value.push({
-        voucher_no: '',
-        date: '',
-        description: '',
-        amount: 0,
-        prepared_by: ''
-    });
-};
-
-const removePaymentVoucher = (index) => {
-    paymentVouchers.value.splice(index, 1);
-};
-
-const addReceiptVoucher = () => {
-    receiptVouchers.value.push({
-        voucher_no: '',
-        date: '',
-        description: '',
-        amount: 0,
-        prepared_by: ''
-    });
-};
-
-const removeReceiptVoucher = (index) => {
-    receiptVouchers.value.splice(index, 1);
 };
 
 // Other costs management methods
@@ -1490,7 +1254,6 @@ const closeAlert = () => {
 };
 
 const submit = () => {
-    // Add voucher data and reimbursement items to form
     const sanitizedReimbursements = reimbursementItems.value
         .filter(r => r.description && r.amount && r.amount > 0)
         .map(r => ({
@@ -1512,10 +1275,6 @@ const submit = () => {
 
     const formData = {
         ...form.data(),
-        payment_vouchers: paymentVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-        receipt_vouchers: receiptVouchers.value.filter(v => v.voucher_no && v.description && v.amount),
-        reimbursement_items: sanitizedReimbursements,
-        other_costs: sanitizedOtherCosts
     };
 
     form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"), {
@@ -1625,3 +1384,4 @@ const submit = () => {
     border-color: #8db580;
 }
 </style>
+

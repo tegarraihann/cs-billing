@@ -5,7 +5,6 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
-use App\Models\Voucher;
 use App\Models\ReimbursementItem;
 use App\Models\InvoiceItem;
 use App\Models\AccountPayableComponent;
@@ -20,7 +19,7 @@ class SalesOrderController extends Controller
     public function index(Request $request)
     {
         // Force fresh query untuk memastikan data terbaru
-        $query = SalesOrder::with(['creator', 'releasedBy', 'vouchers'])
+        $query = SalesOrder::with(['creator', 'releasedBy', ])
             ->whereIn('status', ['released', 'approved', 'rejected'])
             ->whereNotNull('released_at')
             ->orderBy('released_at', 'desc');
@@ -45,7 +44,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         // Fresh query to ensure we have the latest data from database
-        $salesOrder = $salesOrder->fresh(['creator', 'releasedBy', 'vouchers', 'invoices', 'reimbursementItems']);
+        $salesOrder = $salesOrder->fresh(['creator', 'releasedBy', 'invoices', 'reimbursementItems']);
 
         // EMERGENCY DEBUG: Print raw data for troubleshooting
         if (request()->has('debug')) {
@@ -178,7 +177,7 @@ class SalesOrderController extends Controller
 
         // Force fresh data reload
         $freshSalesOrder = SalesOrder::where('id', $salesOrder->id)
-            ->with(['creator', 'releasedBy', 'vouchers'])
+            ->with(['creator', 'releasedBy', ])
             ->first();
 
         \Log::info('Force Refresh Sales Order Data', [
@@ -210,57 +209,6 @@ class SalesOrderController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Sales order berhasil ditolak.');
-    }
-
-    public function approveVoucher(Request $request, SalesOrder $salesOrder, Voucher $voucher)
-    {
-        if (!in_array($salesOrder->status, ['released', 'approved']) || $salesOrder->released_at === null) {
-            return redirect()->back()->withErrors(['error' => 'Sales order belum dirilis.']);
-        }
-
-        if ($voucher->sales_order_id !== $salesOrder->id) {
-            return redirect()->back()->withErrors(['error' => 'Voucher tidak terkait dengan sales order ini.']);
-        }
-
-        if ($voucher->status !== Voucher::STATUS_RELEASED) {
-            return redirect()->back()->withErrors(['error' => 'Voucher belum dirilis atau sudah diproses.']);
-        }
-
-        $voucher->update([
-            'status' => Voucher::STATUS_APPROVED,
-            'approved_at' => now(),
-            'approved_by' => auth()->id(),
-        ]);
-
-        return redirect()->back()->with('success', 'Voucher berhasil disetujui.');
-    }
-
-    public function rejectVoucher(Request $request, SalesOrder $salesOrder, Voucher $voucher)
-    {
-        $request->validate([
-            'rejection_reason' => 'required|string|max:500'
-        ]);
-
-        if (!in_array($salesOrder->status, ['released', 'approved']) || $salesOrder->released_at === null) {
-            return redirect()->back()->withErrors(['error' => 'Sales order belum dirilis.']);
-        }
-
-        if ($voucher->sales_order_id !== $salesOrder->id) {
-            return redirect()->back()->withErrors(['error' => 'Voucher tidak terkait dengan sales order ini.']);
-        }
-
-        if ($voucher->status !== Voucher::STATUS_RELEASED) {
-            return redirect()->back()->withErrors(['error' => 'Voucher belum dirilis atau sudah diproses.']);
-        }
-
-        $voucher->update([
-            'status' => 'rejected',
-            'rejected_at' => now(),
-            'rejected_by' => auth()->id(),
-            'rejection_reason' => $request->rejection_reason,
-        ]);
-
-        return redirect()->back()->with('success', 'Voucher berhasil ditolak.');
     }
 
     /**
@@ -380,26 +328,7 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
 
-            // Voucher data
-            'payment_vouchers' => 'nullable|array',
-            'payment_vouchers.*.voucher_no' => 'required_with:payment_vouchers|string|max:255',
-            'payment_vouchers.*.date' => 'required_with:payment_vouchers|date',
-            'payment_vouchers.*.description' => 'required_with:payment_vouchers|string',
-            'payment_vouchers.*.amount' => 'required_with:payment_vouchers|numeric|min:0',
-            'payment_vouchers.*.prepared_by' => 'nullable|string|max:255',
-            'payment_vouchers.*.authorized_by' => 'nullable|string|max:255',
-            'payment_vouchers.*.finance_by' => 'nullable|string|max:255',
-            'payment_vouchers.*.receipt_by' => 'nullable|string|max:255',
 
-            'receipt_vouchers' => 'nullable|array',
-            'receipt_vouchers.*.voucher_no' => 'required_with:receipt_vouchers|string|max:255',
-            'receipt_vouchers.*.date' => 'required_with:receipt_vouchers|date',
-            'receipt_vouchers.*.description' => 'required_with:receipt_vouchers|string',
-            'receipt_vouchers.*.amount' => 'required_with:receipt_vouchers|numeric|min:0',
-            'receipt_vouchers.*.prepared_by' => 'nullable|string|max:255',
-            'receipt_vouchers.*.authorized_by' => 'nullable|string|max:255',
-            'receipt_vouchers.*.finance_by' => 'nullable|string|max:255',
-            'receipt_vouchers.*.receipt_by' => 'nullable|string|max:255',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -458,19 +387,10 @@ class SalesOrderController extends Controller
         $reimbursementItems = $validated['reimbursement_items'] ?? [];
         unset($validated['reimbursement_items']);
 
-        // Remove voucher data from sales order data
-        $paymentVouchers = $validated['payment_vouchers'] ?? [];
-        $receiptVouchers = $validated['receipt_vouchers'] ?? [];
-        unset($validated['payment_vouchers'], $validated['receipt_vouchers']);
-
         $salesOrder = SalesOrder::create($validated);
 
         // Create reimbursement items
         $this->createReimbursementItems($salesOrder, $reimbursementItems);
-
-        // Create vouchers
-        $this->createVouchers($salesOrder, $paymentVouchers, Voucher::TYPE_PAYMENT);
-        $this->createVouchers($salesOrder, $receiptVouchers, Voucher::TYPE_RECEIPT);
 
         return redirect()
             ->route('admin-keuangan.sales-orders.index')
@@ -683,8 +603,6 @@ class SalesOrderController extends Controller
      */
     public function destroy(SalesOrder $salesOrder)
     {
-        // Delete related vouchers
-        $salesOrder->vouchers()->delete();
 
         $salesOrder->delete();
 
@@ -763,69 +681,6 @@ class SalesOrderController extends Controller
     /**
      * Generate PDF for the specified voucher
      */
-    public function printVoucher(SalesOrder $salesOrder, Voucher $voucher)
-    {
-        // Check if voucher belongs to the sales order
-        if ($voucher->sales_order_id !== $salesOrder->id) {
-            return redirect()->back()->withErrors(['error' => 'Voucher tidak terkait dengan sales order ini.']);
-        }
-
-        // Check if voucher has been released
-        if ($voucher->status === 'draft') {
-            return redirect()->back()->withErrors(['error' => 'Voucher harus dirilis terlebih dahulu sebelum dapat dicetak.']);
-        }
-
-        // Load the sales order relationship
-        $voucher->load(['salesOrder']);
-
-        try {
-            // Generate PDF using the voucher template
-            $pdf = Pdf::loadView('admin.admin-cs.vouchers.pdf', compact('voucher', 'salesOrder'))
-                ->setPaper('a4', 'portrait')
-                ->setOptions([
-                    'defaultFont' => 'Arial',
-                    'isRemoteEnabled' => true,
-                    'isHtml5ParserEnabled' => true,
-                    'isPhpEnabled' => true,
-                ]);
-
-            return $pdf->download('voucher-' . $voucher->voucher_no . '.pdf');
-
-        } catch (\Exception $e) {
-            \Log::error('PDF Voucher Generation Error: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Gagal membuat PDF voucher: ' . $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Preview voucher in browser (for editing/reviewing before print)
-     */
-    public function previewVoucher(SalesOrder $salesOrder, Voucher $voucher)
-    {
-        // Check if voucher belongs to the sales order
-        if ($voucher->sales_order_id !== $salesOrder->id) {
-            return redirect()->back()->withErrors(['error' => 'Voucher tidak terkait dengan sales order ini.']);
-        }
-
-        // Check if voucher has been released (allow draft for preview purposes)
-        if ($voucher->status === 'draft') {
-            // Show warning but allow preview
-            session()->flash('warning', 'Voucher masih dalam status draft. Preview ini hanya untuk review sebelum release.');
-        }
-
-        // Load the sales order relationship
-        $voucher->load(['salesOrder']);
-
-        try {
-            // Return the HTML view directly for browser preview (no PDF generation)
-            return view('admin.admin-cs.vouchers.preview', compact('voucher', 'salesOrder'));
-
-        } catch (\Exception $e) {
-            \Log::error('Voucher Preview Error: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Gagal menampilkan preview voucher: ' . $e->getMessage()]);
-        }
-    }
-
     /**
      * Hydrate other costs with vendor information from finance records
      */
@@ -962,30 +817,7 @@ class SalesOrderController extends Controller
     }
 
     /**
-     * Helper method to create vouchers
      */
-    private function createVouchers(SalesOrder $salesOrder, array $vouchers, string $type)
-    {
-        foreach ($vouchers as $voucherData) {
-            if (!empty($voucherData['voucher_no'])) {
-                Voucher::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'voucher_no' => $voucherData['voucher_no'],
-                    'type' => $type,
-                    'date' => $voucherData['date'],
-                    'description' => $voucherData['description'],
-                    'amount' => $voucherData['amount'],
-                    'prepared_by' => $voucherData['prepared_by'],
-                    'authorized_by' => $voucherData['authorized_by'],
-                    'finance_by' => $voucherData['finance_by'],
-                    'receipt_by' => $voucherData['receipt_by'],
-                    'status' => Voucher::STATUS_DRAFT,
-                    'created_by' => Auth::id(),
-                ]);
-            }
-        }
-    }
-
     /**
      * Create reimbursement items for a sales order
      */

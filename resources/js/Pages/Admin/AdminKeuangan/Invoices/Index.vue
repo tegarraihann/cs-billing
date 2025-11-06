@@ -11,13 +11,6 @@
           </div>
           <div class="flex gap-3">
             <Link
-              :href="route('admin-keuangan.invoices.payment-history')"
-              class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
-            >
-              <DollarSign class="w-4 h-4 mr-2" />
-              Payment History
-            </Link>
-            <Link
               :href="route('admin-keuangan.invoices.create')"
               class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
             >
@@ -268,7 +261,6 @@ const route = window.route || function(name, params) {
     'admin-keuangan.invoices.create': '/admin-keuangan/invoices/create',
     'admin-keuangan.invoices.show': (id) => `/admin-keuangan/invoices/${id}`,
     'admin-keuangan.invoices.edit': (id) => `/admin-keuangan/invoices/${id}/edit`,
-    'admin-keuangan.invoices.payment-history': '/admin-keuangan/invoices/payment-history',
   };
   return routes[name] ? (typeof routes[name] === 'function' ? routes[name](params) : routes[name]) : '#';
 };

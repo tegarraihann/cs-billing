@@ -40,7 +40,6 @@ class DatabaseSeeder extends Seeder
             SalesOrderSeeder::class,
             InvoiceSeeder::class,
             InvoiceItemSeeder::class,
-            VoucherSeeder::class,
         ]);
         $this->command->info('✅ Business transaction data completed');
         $this->command->newLine();

@@ -14,7 +14,7 @@ class ServiceTypeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = MasterServiceType::query()->withTrashed();
+        $query = MasterServiceType::query();
 
         // Search
         if ($request->has('search') && $request->search) {
@@ -26,11 +26,15 @@ class ServiceTypeController extends Controller
         }
 
         // Filter by status
-        if ($request->has('status') && $request->status !== '') {
-            if ($request->status === 'deleted') {
-                $query->onlyTrashed();
-            } elseif (in_array($request->status, ['0', '1'], true)) {
-                $query->where('is_active', $request->status === '1');
+        if ($request->filled('status')) {
+            switch ($request->status) {
+                case 'deleted':
+                    $query->onlyTrashed();
+                    break;
+                case '0':
+                case '1':
+                    $query->where('is_active', $request->status === '1');
+                    break;
             }
         }
 

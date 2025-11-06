@@ -26,7 +26,8 @@ class AccountReceivable extends Model
         'last_payment_date',
         'days_overdue',
         'notes',
-        'created_by'
+        'created_by',
+        'account_id',
     ];
 
     protected $casts = [
@@ -37,8 +38,22 @@ class AccountReceivable extends Model
         'paid_amount' => 'decimal:2',
         'outstanding_amount' => 'decimal:2',
         'payment_terms_days' => 'integer',
-        'days_overdue' => 'integer'
+        'days_overdue' => 'integer',
+        'account_id' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $receivable) {
+            $receivable->account_id = $receivable->account_id ?: ChartOfAccount::idByCode('1200');
+        });
+
+        static::saving(function (self $receivable) {
+            if (!$receivable->account_id) {
+                $receivable->account_id = ChartOfAccount::idByCode('1200');
+            }
+        });
+    }
 
     // Relationships
     public function invoice(): BelongsTo
@@ -64,6 +79,11 @@ class AccountReceivable extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class);
     }
 
     // Scopes
@@ -196,7 +216,7 @@ class AccountReceivable extends Model
             'outstanding_amount' => $invoice->total,
             'status' => 'outstanding',
             'payment_terms_days' => $invoice->term_days,
-            'created_by' => auth()->id()
+            'created_by' => auth()->id(),
         ]);
 
         $receivable->syncComponentsFromInvoice($invoice);

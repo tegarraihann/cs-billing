@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Examples\PerformanceExampleController;
 use App\Http\Controllers\Admin\MasterAdmin\WebsiteSettingsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminKeuangan\FinancialPositionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -489,6 +490,11 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         ]);
     })->name('dashboard');
 
+    Route::get('/financial-position', [FinancialPositionController::class, 'index'])
+        ->name('financial-position.index');
+    Route::get('/financial-position/pdf', [FinancialPositionController::class, 'downloadPdf'])
+        ->name('financial-position.pdf');
+
     // Customer Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\CustomerController::class)->prefix('customers')->name('customers.')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -529,11 +535,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::delete('/{salesOrder}', 'destroy')->name('destroy');
         Route::post('/{salesOrder}/approve', 'approve')->name('approve');
         Route::post('/{salesOrder}/reject', 'reject')->name('reject');
-        Route::post('/{salesOrder}/vouchers/{voucher}/approve', 'approveVoucher')->name('vouchers.approve');
-        Route::post('/{salesOrder}/vouchers/{voucher}/reject', 'rejectVoucher')->name('vouchers.reject');
         Route::get('/{salesOrder}/print', 'print')->name('print');
-        Route::get('/{salesOrder}/vouchers/{voucher}/print', 'printVoucher')->name('vouchers.print');
-        Route::get('/{salesOrder}/vouchers/{voucher}/preview', 'previewVoucher')->name('vouchers.preview');
         Route::post('/{salesOrder}/force-refresh', 'forceRefresh')->name('force-refresh');
     });
 
@@ -541,7 +543,6 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
     Route::controller(\App\Http\Controllers\AdminKeuangan\InvoiceController::class)->prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
-        Route::get('/payment-history', 'paymentHistory')->name('payment-history');
         Route::get('/overdue-report', 'overdueReport')->name('overdue-report');
         Route::get('/profit-loss-periods', 'getProfitLossPeriods')->name('profit-loss-periods');
         Route::post('/', 'store')->name('store');
