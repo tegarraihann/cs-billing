@@ -544,11 +544,11 @@
                                             <div class="col-span-2">
                                                 <label
                                                     class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
-                                                <select v-model="cost.category"
+                                                <select v-model="cost.category_id" @change="onOtherCostCategoryChange(cost)"
                                                     class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
                                                     <option value="">Pilih kategori</option>
                                                     <option v-for="category in operationalCostCategories"
-                                                        :key="category.id" :value="category.name"
+                                                        :key="category.id" :value="category.id"
                                                         :title="category.description">
                                                         {{ category.name }}
                                                     </option>
@@ -755,7 +755,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
@@ -794,6 +794,8 @@ const sections = ref({
     reimbursement: false,
 });
 
+const operationalCostCategories = computed(() => props.operationalCostCategories ?? []);
+
 // Initialize form with existing data
 const initializeVendorBreakdown = () => {
     if (props.salesOrder.vendor_breakdown && Array.isArray(props.salesOrder.vendor_breakdown)) {
@@ -829,12 +831,14 @@ const initializeOtherCosts = () => {
                 description: cost.description || '',
                 amount: cost.amount ?? 0,
                 category: cost.category || '',
+                category_id: cost.category_id || '',
+                category_name: cost.category_name || cost.category || '',
                 vendor_id: cost.vendor_id ?? ''
             }))
-            : [{ description: '', amount: 0, category: '', vendor_id: '' }];
+            : [{ description: '', amount: 0, category: '', category_id: '', category_name: '', vendor_id: '' }];
     }
 
-    return [{ description: '', amount: 0, category: '', vendor_id: '' }];
+    return [{ description: '', amount: 0, category: '', category_id: '', category_name: '', vendor_id: '' }];
 };
 
 const parseReceiptInfo = (info) => {
@@ -1030,6 +1034,8 @@ const addOtherCost = () => {
         description: "",
         amount: 0,
         category: "",
+        category_id: "",
+        category_name: "",
         vendor_id: ""
     });
 };
@@ -1039,6 +1045,62 @@ const removeOtherCost = (index) => {
         form.other_costs.splice(index, 1);
     }
 };
+
+const onOtherCostCategoryChange = (cost) => {
+    if (!cost) {
+        return;
+    }
+
+    const categories = operationalCostCategories.value ?? [];
+    const selected = categories.find(
+        (category) => String(category.id) === String(cost.category_id)
+    );
+
+    cost.category_name = selected?.name || cost.category_name || "";
+    cost.category = cost.category_name || cost.category || "";
+};
+
+const syncOtherCostCategorySelections = () => {
+    if (!Array.isArray(form.other_costs)) {
+        return;
+    }
+
+    const categories = operationalCostCategories.value ?? [];
+
+    form.other_costs.forEach((cost) => {
+        if (!cost) return;
+
+        const currentLabel = (cost.category_name || cost.category || "").toString().trim();
+
+        if (cost.category_id) {
+            const match = categories.find(
+                (category) => String(category.id) === String(cost.category_id)
+            );
+            if (match) {
+                cost.category_name = match.name;
+                cost.category = match.name;
+            }
+        } else if (currentLabel !== "") {
+            const labelLower = currentLabel.toLowerCase();
+            const match = categories.find(
+                (category) => (category.name || "").toLowerCase() === labelLower
+            );
+            if (match) {
+                cost.category_id = String(match.id);
+                cost.category_name = match.name;
+                cost.category = match.name;
+            }
+        }
+    });
+};
+
+watch(
+    () => props.operationalCostCategories,
+    () => {
+        syncOtherCostCategorySelections();
+    },
+    { immediate: true }
+);
 
 // Format cost amount input to handle Indonesian number format
 const formatCostAmount = (cost, event) => {
@@ -1206,7 +1268,7 @@ const submit = () => {
         .filter(cost => {
             const description = (cost.description || '').toString().trim();
             const amount = normalizeNumber(cost.amount);
-            const category = (cost.category || '').toString().trim();
+            const category = (cost.category_name || cost.category || '').toString().trim();
             const vendor = cost.vendor_id !== undefined && cost.vendor_id !== null
                 ? cost.vendor_id.toString().trim()
                 : '';
@@ -1216,7 +1278,9 @@ const submit = () => {
         .map(cost => ({
             description: cost.description || '',
             amount: normalizeNumber(cost.amount),
-            category: cost.category || '',
+            category_id: cost.category_id || '',
+            category_name: cost.category_name || cost.category || '',
+            category: cost.category_name || cost.category || '',
             vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
         }));
 

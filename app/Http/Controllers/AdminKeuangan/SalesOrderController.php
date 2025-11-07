@@ -333,15 +333,8 @@ class SalesOrderController extends Controller
 
         $validated['created_by'] = Auth::id();
 
-        // Convert container_no to array format
-        if (isset($validated['container_no'])) {
-            if (is_string($validated['container_no'])) {
-                // Handle multiple containers separated by comma, space, or newline
-                $containers = preg_split('/[,\s\n\r]+/', trim($validated['container_no']));
-                $validated['container_no'] = array_filter($containers, 'strlen'); // Remove empty values
-            } elseif (!is_array($validated['container_no'])) {
-                $validated['container_no'] = [$validated['container_no']];
-            }
+        if (array_key_exists('container_no', $validated)) {
+            $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no']);
         }
 
         // Set legacy fields for backward compatibility
@@ -541,15 +534,8 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
         ]);
 
-        // Convert container_no to array format
-        if (isset($validated['container_no'])) {
-            if (is_string($validated['container_no'])) {
-                // Handle multiple containers separated by comma, space, or newline
-                $containers = preg_split('/[,\s\n\r]+/', trim($validated['container_no']));
-                $validated['container_no'] = array_filter($containers, 'strlen'); // Remove empty values
-            } elseif (!is_array($validated['container_no'])) {
-                $validated['container_no'] = [$validated['container_no']];
-            }
+        if (array_key_exists('container_no', $validated)) {
+            $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no']);
         }
 
         // Prepare multiple vendors data for storage
@@ -1126,6 +1112,40 @@ class SalesOrderController extends Controller
         }
 
         return $value;
+    }
+
+    private function sanitizeContainerNumbers($value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = [$value];
+        }
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $results = [];
+        foreach ($value as $entry) {
+            if ($entry === null) {
+                continue;
+            }
+
+            $entry = is_string($entry) ? $entry : (string) $entry;
+
+            $parts = preg_split('/[\r\n,;]+/', $entry);
+            foreach ($parts as $part) {
+                $clean = trim($part);
+                if ($clean !== '') {
+                    $results[] = $clean;
+                }
+            }
+        }
+
+        return array_values(array_unique($results));
     }
 }
     

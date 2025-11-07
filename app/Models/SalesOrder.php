@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Arr;
 
 class SalesOrder extends Model
 {
@@ -120,6 +121,8 @@ class SalesOrder extends Model
         'vendors' => 'array',
         'container_no' => 'array',
         'other_costs' => 'array',
+        'cs_snapshot' => 'array',
+        'cs_snapshot_generated_at' => 'datetime',
     ];
 
     // Relationships
@@ -273,6 +276,34 @@ class SalesOrder extends Model
     {
         $this->updateTotals();
         return parent::save($options);
+    }
+
+    /**
+     * Capture a snapshot of CS-submitted data before finance edits.
+     */
+    public function captureCsSnapshot(): void
+    {
+        $this->loadMissing(['reimbursementItems']);
+
+        $snapshot = $this->attributesToArray();
+        $snapshot['reimbursement_items'] = $this->reimbursementItems
+            ? $this->reimbursementItems->map(function ($item) {
+                return Arr::only($item->toArray(), [
+                    'id',
+                    'description',
+                    'amount',
+                    'category',
+                    'notes',
+                    'vendor_id',
+                    'status',
+                ]);
+            })->all()
+            : [];
+
+        $this->forceFill([
+            'cs_snapshot' => $snapshot,
+            'cs_snapshot_generated_at' => now(),
+        ])->save();
     }
 
     /**

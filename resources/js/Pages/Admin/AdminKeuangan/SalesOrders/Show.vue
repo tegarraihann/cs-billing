@@ -375,7 +375,24 @@
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">CONTAINER
                                                     NO</label>
-                                                <p class="text-gray-900">{{ salesOrder.container_no || '-' }}</p>
+                                                <div v-if="Array.isArray(salesOrder.container_no) && salesOrder.container_no.length"
+                                                    class="space-y-2">
+                                                    <div class="flex flex-wrap gap-2">
+                                                        <span v-for="(container, index) in salesOrder.container_no"
+                                                            :key="index"
+                                                            class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                                                            {{ container }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-xs text-gray-500">
+                                                        Total: {{ salesOrder.container_no.length }} container
+                                                    </p>
+                                                </div>
+                                                <p v-else-if="salesOrder.container_no"
+                                                    class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                                                    {{ salesOrder.container_no }}
+                                                </p>
+                                                <p v-else class="text-gray-500">-</p>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">INVOICE

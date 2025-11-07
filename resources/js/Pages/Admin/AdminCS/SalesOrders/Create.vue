@@ -501,11 +501,12 @@
                                                     <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
-                                                        <select v-model="cost.category"
+                                                        <select v-model="cost.category_id"
+                                                            @change="onOtherCostCategoryChange(cost)"
                                                             class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
                                                             <option value="">Pilih kategori</option>
                                                             <option v-for="category in operationalCostCategories"
-                                                                :key="category.id" :value="category.name"
+                                                                :key="category.id" :value="category.id"
                                                                 :title="category.description">
                                                                 {{ category.name }}
                                                             </option>
@@ -886,7 +887,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
@@ -941,6 +942,8 @@ const serviceTypeOptions = computed(() => {
         label: type.code,
     }));
 });
+
+const operationalCostCategories = computed(() => props.operationalCostCategories ?? []);
 
 const serviceTypeMap = computed(() => {
     return (props.serviceTypes ?? []).reduce((acc, type) => {
@@ -1090,6 +1093,8 @@ const addOtherCost = () => {
         description: '',
         amount: 0,
         category: '',
+        category_id: '',
+        category_name: '',
         vendor_id: '' // Vendor/penerima pembayaran
     });
 };
@@ -1099,6 +1104,64 @@ const removeOtherCost = (index) => {
         form.other_costs.splice(index, 1);
     }
 };
+
+const onOtherCostCategoryChange = (cost) => {
+    if (!cost) {
+        return;
+    }
+
+    const categories = operationalCostCategories.value ?? [];
+    const selected = categories.find(
+        (category) => String(category.id) === String(cost.category_id)
+    );
+
+    cost.category_name = selected?.name || cost.category_name || '';
+    cost.category = cost.category_name || cost.category || '';
+};
+
+const syncOtherCostCategorySelections = () => {
+    if (!Array.isArray(form.other_costs)) {
+        return;
+    }
+
+    const categories = operationalCostCategories.value ?? [];
+
+    form.other_costs.forEach((cost) => {
+        if (!cost) {
+            return;
+        }
+
+        const currentLabel = (cost.category_name || cost.category || '').toString().trim();
+
+        if (cost.category_id) {
+            const match = categories.find(
+                (category) => String(category.id) === String(cost.category_id)
+            );
+            if (match) {
+                cost.category_name = match.name;
+                cost.category = match.name;
+            }
+        } else if (currentLabel !== '') {
+            const labelLower = currentLabel.toLowerCase();
+            const match = categories.find(
+                (category) => (category.name || '').toLowerCase() === labelLower
+            );
+            if (match) {
+                cost.category_id = String(match.id);
+                cost.category_name = match.name;
+                cost.category = match.name;
+            }
+        }
+    });
+};
+
+watch(
+    () => props.operationalCostCategories,
+    () => {
+        syncOtherCostCategorySelections();
+    },
+    { immediate: true }
+);
 
 // Format cost amount input to handle Indonesian number format
 const formatCostAmount = (cost, event) => {
@@ -1290,8 +1353,56 @@ const submit = () => {
     console.log('Order number in form:', form.order_number);
     console.log('Form data before submit:', form.data());
 
+    const sanitizedOtherCosts = (form.other_costs || [])
+        .filter(cost => {
+            const description = (cost.description || '').toString().trim();
+            const amount = normalizeNumber(cost.amount);
+            const category = (cost.category || cost.category_name || '').toString().trim();
+            const vendor = cost.vendor_id !== undefined && cost.vendor_id !== null
+                ? cost.vendor_id.toString().trim()
+                : '';
+
+            return description !== '' || amount > 0 || category !== '' || vendor !== '';
+        })
+        .map(cost => ({
+            description: cost.description || '',
+            amount: normalizeNumber(cost.amount),
+            category_id: cost.category_id || '',
+            category_name: cost.category_name || cost.category || '',
+            category: cost.category_name || cost.category || '',
+            vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
+        }));
+
+    const sanitizedReimbursements = (reimbursementItems.value || [])
+        .filter(item => {
+            const description = (item.description || '').toString().trim();
+            const amount = normalizeNumber(item.amount);
+            const category = (item.category || '').toString().trim();
+            const vendor = item.vendor_id !== undefined && item.vendor_id !== null
+                ? item.vendor_id.toString().trim()
+                : '';
+
+            return description !== '' || amount > 0 || category !== '' || vendor !== '';
+        })
+        .map(item => ({
+            description: item.description || '',
+            amount: normalizeNumber(item.amount),
+            category: item.category || '',
+            notes: item.notes || '',
+            vendor_id: item.vendor_id === '' ? null : item.vendor_id,
+        }));
+
+    const cleanedVendorBreakdown = form.vendor_breakdown.map(item => ({
+        ...item,
+        buying_amount: normalizeNumber(item.buying_amount),
+        selling_amount: normalizeNumber(item.selling_amount),
+    }));
+
     const formData = {
         ...form.data(),
+        vendor_breakdown: cleanedVendorBreakdown,
+        other_costs: sanitizedOtherCosts,
+        reimbursement_items: sanitizedReimbursements,
     };
 
     console.log('Final form data to submit:', formData);

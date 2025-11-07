@@ -162,12 +162,21 @@
                 </div>
             </div>
 
-            <!-- Components Breakdown -->
-            <div v-if="visibleComponents.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Rincian Komponen Hutang</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+        <!-- Components Breakdown -->
+        <div v-if="visibleComponents.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Rincian Komponen Hutang</h2>
+                <button
+                    @click="openAdditionalCostModal"
+                    class="inline-flex items-center px-4 py-2 border border-red-200 text-red-700 text-sm font-medium rounded-md bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
+                >
+                    <Plus class="w-4 h-4 mr-2" />
+                    Tambah Biaya
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Komponen
@@ -190,12 +199,35 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="component in visibleComponents" :key="component.id">
+                            <template v-for="component in visibleComponents" :key="component.id">
+                            <tr>
                                 <td class="px-4 py-3 text-sm text-gray-900">
-                                    {{ getComponentLabel(component.component_type) }}
+                                    <div class="flex items-start gap-2">
+                                        <button
+                                            type="button"
+                                            class="text-gray-400 hover:text-gray-600 mt-0.5"
+                                            @click="toggleComponentDetails(component.id)"
+                                        >
+                                            <ChevronDown
+                                                class="w-4 h-4 transition-transform duration-150"
+                                                :class="{ 'rotate-180': isComponentOpen(component.id) }"
+                                            />
+                                        </button>
+                                        <div>
+                                            <div class="font-medium text-gray-900">
+                                                {{ getComponentLabel(component.component_type) }}
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ component.description || 'Tidak ada deskripsi' }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-900">
-                                    {{ component.recipient_name || '-' }}
+                                    <div>{{ component.recipient_name || '-' }}</div>
+                                    <div v-if="getComponentCategory(component)" class="text-xs text-gray-500 mt-1">
+                                        Kategori: {{ getComponentCategory(component) }}
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-900 text-right">
                                     Rp {{ formatNumber(component.amount) }}
@@ -213,10 +245,72 @@
                                     </span>
                                 </td>
                             </tr>
+                            <tr
+                                v-if="isComponentOpen(component.id)"
+                                class="bg-gray-50"
+                            >
+                                <td colspan="6" class="px-6 py-4 text-sm text-gray-700">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Kategori</div>
+                                            <div class="font-medium text-gray-900">
+                                                {{ getComponentCategory(component) || '-' }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Vendor / Penerima</div>
+                                            <div class="font-medium text-gray-900">
+                                                {{ component.recipient_name || '-' }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Sumber</div>
+                                            <div class="font-medium text-gray-900">
+                                                {{ component.related_items?.source || 'Manual' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="getComponentNotes(component)" class="mt-3">
+                                        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Catatan</div>
+                                        <div class="bg-white rounded-md border border-gray-200 px-3 py-2">
+                                            {{ getComponentNotes(component) }}
+                                        </div>
+                                    </div>
+                                    <div
+                                        v-if="getComponentReimbursements(component).length"
+                                        class="mt-4"
+                                    >
+                                        <div class="text-xs text-gray-500 uppercase tracking-wide mb-2">
+                                            Item Reimbursement ({{ getComponentReimbursements(component).length }})
+                                        </div>
+                                        <div class="divide-y divide-gray-200 bg-white border border-gray-200 rounded-md">
+                                            <div
+                                                v-for="item in getComponentReimbursements(component)"
+                                                :key="item.id"
+                                                class="flex items-center justify-between px-3 py-2"
+                                            >
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                                                    <div class="text-xs text-gray-500">
+                                                        Status: {{ item.status }}
+                                                        <span v-if="item.invoice_number">
+                                                            · Invoice {{ item.invoice_number }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm font-semibold text-gray-900">
+                                                    Rp {{ formatNumber(item.amount) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </template>
                         </tbody>
-                    </table>
-                </div>
+                </table>
             </div>
+        </div>
 
             <!-- Payment Information -->
             <div v-if="payable.payment_method || payable.payment_notes" class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -440,6 +534,126 @@
                 </div>
             </div>
         </div>
+
+        <!-- Additional Cost Modal -->
+        <div v-if="showAdditionalCostModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-[420px] shadow-lg rounded-md bg-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Tambah Biaya</h3>
+                    <button @click="closeAdditionalCostModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+                <form @submit.prevent="submitAdditionalCost">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Biaya *</label>
+                        <select
+                            v-model="additionalCostForm.component_type"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                        >
+                            <option value="operational_cost">Biaya Operasional (Internal)</option>
+                            <option value="reimbursement">Reimbursement (Ter-tagih)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Biaya operasional hanya memengaruhi profit. Reimbursement akan otomatis masuk ke invoice reimbursement.
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi *</label>
+                        <input
+                            v-model="additionalCostForm.description"
+                            type="text"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                            placeholder="Contoh: Admin Bank"
+                            required
+                        />
+                        <p v-if="additionalCostForm.errors.description" class="text-sm text-red-600 mt-1">
+                            {{ additionalCostForm.errors.description }}
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nominal *</label>
+                        <input
+                            v-model="additionalCostForm.amount"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                            placeholder="0"
+                            required
+                        />
+                        <p v-if="additionalCostForm.errors.amount" class="text-sm text-red-600 mt-1">
+                            {{ additionalCostForm.errors.amount }}
+                        </p>
+                    </div>
+                    <div v-if="requiresCategory" class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Biaya *</label>
+                        <select
+                            v-model="additionalCostForm.category_id"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                            :required="requiresCategory"
+                        >
+                            <option value="">-- Pilih Kategori --</option>
+                            <option
+                                v-for="category in operationalCostCategories"
+                                :key="category.id"
+                                :value="String(category.id)"
+                            >
+                                {{ category.name }}
+                            </option>
+                        </select>
+                        <p v-if="additionalCostForm.errors.category_id" class="text-sm text-red-600 mt-1">
+                            {{ additionalCostForm.errors.category_id }}
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Vendor / Penerima</label>
+                        <select
+                            v-model="additionalCostForm.vendor_id"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                        >
+                            <option value="">-- Internal (Divisi Operational) --</option>
+                            <option
+                                v-for="vendor in vendors"
+                                :key="vendor.id"
+                                :value="String(vendor.id)"
+                            >
+                                {{ vendor.nama_vendor }}
+                            </option>
+                        </select>
+                        <p v-if="additionalCostForm.errors.vendor_id" class="text-sm text-red-600 mt-1">
+                            {{ additionalCostForm.errors.vendor_id }}
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                        <textarea
+                            v-model="additionalCostForm.notes"
+                            rows="3"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                            placeholder="Catatan tambahan"
+                        ></textarea>
+                        <p v-if="additionalCostForm.errors.notes" class="text-sm text-red-600 mt-1">
+                            {{ additionalCostForm.errors.notes }}
+                        </p>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button
+                            type="button"
+                            @click="closeAdditionalCostModal"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            :disabled="additionalCostForm.processing"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                        >
+                            {{ additionalCostForm.processing ? 'Menyimpan...' : 'Simpan Biaya' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
             </div>
         </div>
     </AdminKeuanganLayout>
@@ -447,9 +661,9 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { router, Head } from '@inertiajs/vue3'
+import { router, Head, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import { ArrowLeft, CreditCard, Edit } from 'lucide-vue-next'
+import { ArrowLeft, CreditCard, Edit, Plus, ChevronDown } from 'lucide-vue-next'
 
 const props = defineProps({
     payable: Object,
@@ -460,11 +674,25 @@ const props = defineProps({
     selectedComponentId: {
         type: [Number, String, null],
         default: null
+    },
+    reimbursementItems: {
+        type: Array,
+        default: () => []
+    },
+    operationalCostCategories: {
+        type: Array,
+        default: () => []
+    },
+    vendors: {
+        type: Array,
+        default: () => []
     }
 })
 
 const showPaymentModal = ref(false)
 const showEditModal = ref(false)
+const showAdditionalCostModal = ref(false)
+const componentDetailsOpen = ref({})
 const processing = ref(false)
 
 const paymentForm = reactive({
@@ -480,6 +708,15 @@ const editForm = reactive({
     vendor_invoice_number: props.payable.vendor_invoice_number || '',
     vendor_invoice_date: props.payable.vendor_invoice_date || '',
     service_remarks: props.payable.service_remarks || ''
+})
+
+const additionalCostForm = useForm({
+    component_type: 'operational_cost',
+    description: '',
+    amount: '',
+    category_id: '',
+    vendor_id: props.payable.vendor_id ? String(props.payable.vendor_id) : '',
+    notes: ''
 })
 
 // Computed properties for components
@@ -498,6 +735,10 @@ const selectedComponentIdProp = computed(() => {
     const numeric = Number(props.selectedComponentId)
     return Number.isNaN(numeric) ? null : numeric
 })
+
+const operationalCostCategories = computed(() => props.operationalCostCategories ?? [])
+const reimbursementItems = computed(() => props.reimbursementItems ?? [])
+const requiresCategory = computed(() => additionalCostForm.component_type === 'operational_cost')
 
 const visibleComponents = computed(() => {
     if (!componentOptions.value.length) {
@@ -553,6 +794,15 @@ watch(
     { immediate: true, deep: true }
 )
 
+watch(
+    () => additionalCostForm.component_type,
+    (type) => {
+        if (type !== 'operational_cost') {
+            additionalCostForm.category_id = ''
+        }
+    }
+)
+
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)
 }
@@ -573,6 +823,36 @@ const formatDateTime = (datetime) => {
         hour: '2-digit',
         minute: '2-digit'
     })
+}
+
+const formatCurrency = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR'
+    }).format(number || 0)
+}
+
+const toggleComponentDetails = (id) => {
+    componentDetailsOpen.value[id] = !componentDetailsOpen.value[id]
+}
+
+const isComponentOpen = (id) => !!componentDetailsOpen.value[id]
+
+const getComponentCategory = (component) => component?.related_items?.category_name || ''
+
+const getComponentNotes = (component) => component?.related_items?.notes || ''
+
+const getComponentReimbursements = (component) => {
+    if (!component) {
+        return []
+    }
+
+    const componentId = Number(component.id)
+    if (!componentId) {
+        return []
+    }
+
+    return reimbursementItems.value.filter((item) => Number(item.component_id) === componentId)
 }
 
 const getStatusClass = (status) => {
@@ -630,6 +910,23 @@ const closeEditModal = () => {
     showEditModal.value = false
 }
 
+const resetAdditionalCostForm = () => {
+    additionalCostForm.reset()
+    additionalCostForm.component_type = 'operational_cost'
+    additionalCostForm.vendor_id = props.payable.vendor_id ? String(props.payable.vendor_id) : ''
+    additionalCostForm.clearErrors()
+}
+
+const openAdditionalCostModal = () => {
+    resetAdditionalCostForm()
+    showAdditionalCostModal.value = true
+}
+
+const closeAdditionalCostModal = () => {
+    showAdditionalCostModal.value = false
+    resetAdditionalCostForm()
+}
+
 const markPayment = () => {
     processing.value = true
     
@@ -643,6 +940,18 @@ const markPayment = () => {
             },
             onError: () => {
                 processing.value = false
+            }
+        }
+    )
+}
+
+const submitAdditionalCost = () => {
+    additionalCostForm.post(
+        route('admin-keuangan.account-payables.components.store', props.payable.id),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeAdditionalCostModal()
             }
         }
     )

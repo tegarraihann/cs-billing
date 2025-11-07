@@ -7,9 +7,11 @@ use App\Models\AccountPayable;
 use App\Models\Vendor;
 use App\Models\ReimbursementItem;
 use App\Models\BankAccount;
+use App\Models\OperationalCostCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AccountPayableController extends Controller
 {
@@ -177,6 +179,11 @@ class AccountPayableController extends Controller
             'bankAccounts' => $bankAccounts,
             'reimbursementItems' => $reimbursementItems,
             'selectedComponentId' => $selectedComponentId,
+            'operationalCostCategories' => OperationalCostCategory::active()
+                ->orderBy('name')
+                ->get(['id', 'name', 'description']),
+            'vendors' => Vendor::orderBy('nama_vendor')
+                ->get(['id', 'nama_vendor']),
         ]);
     }
 
@@ -366,6 +373,112 @@ class AccountPayableController extends Controller
         return redirect()->back()->with('success', 'Vendor invoice details updated');
     }
 
+    public function storeAdditionalComponent(Request $request, AccountPayable $accountPayable)
+    {
+        $validated = $request->validate([
+            'component_type' => ['required', Rule::in(['operational_cost', 'reimbursement'])],
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'category_id' => 'nullable|exists:operational_cost_categories,id',
+            'vendor_id' => 'nullable|exists:vendors,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        if ($validated['component_type'] === 'operational_cost' && empty($validated['category_id'])) {
+            return redirect()->back()
+                ->withErrors(['category_id' => 'Kategori biaya wajib diisi untuk biaya operasional.'])
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($validated, $accountPayable) {
+            $category = !empty($validated['category_id'])
+                ? OperationalCostCategory::find($validated['category_id'])
+                : null;
+
+            $vendor = !empty($validated['vendor_id'])
+                ? Vendor::find($validated['vendor_id'])
+                : $accountPayable->vendor;
+
+            $amount = (float) $validated['amount'];
+
+            $component = $accountPayable->components()->create([
+                'component_type' => $validated['component_type'],
+                'description' => $validated['description'],
+                'amount' => $amount,
+                'paid_amount' => 0,
+                'outstanding_amount' => $amount,
+                'status' => 'unpaid',
+                'due_date' => $accountPayable->payment_due_date,
+                'recipient_name' => $vendor->nama_vendor
+                    ?? $accountPayable->vendor_name
+                    ?? 'Divisi Operational',
+                'vendor_id' => $vendor->id ?? null,
+                'related_items' => [
+                    'category_id' => $category?->id,
+                    'category_name' => $category?->name,
+                    'notes' => $validated['notes'] ?? null,
+                    'source' => 'account_payable_manual_entry',
+                ],
+            ]);
+
+            $salesOrder = $accountPayable->salesOrder;
+
+            if ($validated['component_type'] === 'operational_cost' && $salesOrder) {
+                $otherCosts = $salesOrder->other_costs ?? [];
+                $otherCosts = collect($otherCosts)
+                    ->reject(fn ($item) => data_get($item, 'component_id') === $component->id)
+                    ->values()
+                    ->toArray();
+
+                $otherCosts[] = [
+                    'id' => 'ap_component_' . $component->id,
+                    'description' => $validated['description'],
+                    'amount' => $amount,
+                    'category_id' => $category?->id ? (string) $category->id : '',
+                    'category_name' => $category?->name ?? '',
+                    'category' => $category?->name ?? '',
+                    'vendor_id' => $vendor->id ?? null,
+                    'source' => 'account_payable_component',
+                    'component_id' => $component->id,
+                    'auto_generated' => false,
+                ];
+
+                $salesOrder->other_costs = $otherCosts;
+                $salesOrder->save();
+            }
+
+            if ($validated['component_type'] === 'reimbursement' && $salesOrder) {
+                $reimbursementItem = ReimbursementItem::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'description' => $validated['description'],
+                    'amount' => $amount,
+                    'vendor_id' => $vendor->id ?? null,
+                    'category' => $category?->name ?? 'Reimbursement',
+                    'status' => 'pending',
+                    'created_by' => auth()->id(),
+                    'receipt_info' => [
+                        'source' => 'account_payable_component',
+                        'component_id' => null,
+                    ],
+                ]);
+
+                $receiptInfo = $reimbursementItem->receipt_info ?? [];
+                $receiptInfo['component_id'] = $component->id;
+                $reimbursementItem->receipt_info = $receiptInfo;
+                $reimbursementItem->save();
+
+                $relatedItems = $component->related_items ?? [];
+                $relatedItems['reimbursement_item_id'] = $reimbursementItem->id;
+                $component->related_items = $relatedItems;
+                $component->save();
+            }
+
+            $accountPayable->recalculateTotals();
+        });
+
+        return redirect()->back()->with('success', 'Biaya tambahan berhasil ditambahkan.');
+    }
+
     private function mapReimbursementItems(AccountPayable $accountPayable)
     {
         return ReimbursementItem::query()
@@ -392,6 +505,7 @@ class AccountPayableController extends Controller
                     'invoice_number' => $item->invoice?->invoice_number,
                     'invoice_type' => $item->invoice?->invoice_type,
                     'vendor_name' => data_get($receiptInfo, 'vendor_name'),
+                    'component_id' => data_get($receiptInfo, 'component_id'),
                 ];
             });
     }

@@ -604,14 +604,19 @@
                                         'block text-sm font-medium mb-2',
                                         cost.auto_generated ? 'text-blue-700' : 'text-red-700'
                                     ]">
-                                        Kategori Biaya *
+                                        Kategori Biaya
+                                        <span v-if="cost.source !== 'vendor_breakdown_buying'">*</span>
                                     </label>
-                                    <select v-model="cost.category_id" @change="onCategoryChange(index)" :class="[
+                                    <div v-if="cost.source === 'vendor_breakdown_buying'"
+                                        class="px-3 py-2 border border-blue-200 rounded-lg bg-blue-50 text-sm text-blue-800">
+                                        Biaya beli (COGS) otomatis dari Sales Order. Kategori tidak diperlukan.
+                                    </div>
+                                    <select v-else v-model="cost.category_id" @change="onCategoryChange(index)" :class="[
                                         'w-full px-3 py-2 border rounded-lg focus:ring-2',
                                         cost.auto_generated
                                             ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
                                             : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    ]" required>
+                                    ]" :required="cost.source !== 'vendor_breakdown_buying'">
                                         <option value="">-- Pilih Kategori Biaya --</option>
                                         <option v-for="category in operationalCostCategories" :key="category.id"
                                             :value="category.id">

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Arr;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPDF;
 
@@ -174,9 +175,7 @@ class SalesOrderController extends Controller
             $validated['created_by'] = Auth::id();
 
             // Convert container_no string to array if needed
-            if (isset($validated['container_no']) && is_string($validated['container_no'])) {
-                $validated['container_no'] = [$validated['container_no']];
-            }
+            $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no'] ?? null);
 
             // Set legacy fields for backward compatibility
             $validated['so_number'] = $validated['order_number'];
@@ -252,7 +251,7 @@ class SalesOrderController extends Controller
         $salesOrder->load(['creator', 'reimbursementItems']);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Show', [
-            'salesOrder' => $salesOrder,
+            'salesOrder' => $this->prepareSalesOrderForCsView($salesOrder),
         ]);
     }
 
@@ -283,9 +282,10 @@ class SalesOrderController extends Controller
         // Load reimbursement items for editing
         $salesOrder->load(['reimbursementItems']);
         $this->hydrateOtherCostsWithVendors($salesOrder);
+        $salesOrderPayload = $this->prepareSalesOrderForCsView($salesOrder);
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
-            'salesOrder' => $salesOrder,
+            'salesOrder' => $salesOrderPayload,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
             'serviceTypes' => $serviceTypes,
@@ -373,9 +373,7 @@ class SalesOrderController extends Controller
         ]);
 
         // Convert container_no string to array if needed
-        if (isset($validated['container_no']) && is_string($validated['container_no'])) {
-            $validated['container_no'] = [$validated['container_no']];
-        }
+        $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no'] ?? null);
 
         // Prepare multiple vendors data for storage
         $vendorDetails = $validated['vendor_details'] ?? [];
@@ -458,6 +456,8 @@ class SalesOrderController extends Controller
         }
 
         // Update status to released and set release timestamp
+        $salesOrder->captureCsSnapshot();
+
         $salesOrder->update([
             'status' => 'released',
             'released_at' => now(),
@@ -897,5 +897,103 @@ class SalesOrderController extends Controller
         return $value;
     }
 
+    private function sanitizeContainerNumbers($value): array
+    {
+        if ($value === null) {
+            return [];
+        }
 
+        if (is_string($value)) {
+            $value = [$value];
+        }
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $results = [];
+        foreach ($value as $entry) {
+            if ($entry === null) {
+                continue;
+            }
+
+            $entry = is_string($entry) ? $entry : (string) $entry;
+
+            $parts = preg_split('/[\r\n,;]+/', $entry);
+            foreach ($parts as $part) {
+                $clean = trim($part);
+                if ($clean !== '') {
+                    $results[] = $clean;
+                }
+            }
+        }
+
+        return array_values(array_unique($results));
+    }
+
+    private function prepareSalesOrderForCsView(SalesOrder $salesOrder): array
+    {
+        $data = $salesOrder->toArray();
+
+        $snapshot = $salesOrder->cs_snapshot ?? null;
+        if ($snapshot) {
+            $overrideKeys = [
+                'order_number',
+                'ref_no',
+                'so_date',
+                'customer',
+                'shipper',
+                'bl_awb',
+                'liner',
+                'vessel',
+                'eta',
+                'etd',
+                'aju',
+                'sppb_date',
+                'shipment_type',
+                'pol',
+                'pod',
+                'gudang_utc',
+                'party_lcl',
+                'prepared_by',
+                'exchange_rate',
+                'vendor_breakdown',
+                'other_costs',
+                'remarks',
+                'note',
+                'commodity',
+                'qty',
+                'package_unit',
+                'net_weight',
+                'gross_weight',
+                'measurement',
+                'container_no',
+                'invoice_number',
+                'invoice_date',
+                'top',
+                'vendors',
+                'vendor_details',
+                'total_buying',
+                'total_selling',
+                'total_revenue',
+                'total_amount',
+                'buying_breakdown',
+                'selling_breakdown',
+            ];
+
+            foreach ($overrideKeys as $key) {
+                if (array_key_exists($key, $snapshot)) {
+                    $data[$key] = $snapshot[$key];
+                }
+            }
+
+            $data['reimbursement_items'] = $snapshot['reimbursement_items'] ?? [];
+        } else {
+            $data['reimbursement_items'] = $salesOrder->reimbursementItems
+                ? $salesOrder->reimbursementItems->toArray()
+                : [];
+        }
+
+        return $data;
+    }
 }

@@ -99,8 +99,51 @@ class ProfitLossPeriod extends Model
     {
         $entries = $this->entries()->with('account')->get()->groupBy('account.account_type');
 
-        $revenue_entries = $entries->get('revenue', collect())->groupBy('account.account_category');
-        $expense_entries = $entries->get('expense', collect())->groupBy('account.account_category');
+        $revenue_entries = collect(($entries->get('revenue', collect()))->all())->groupBy('account.account_category');
+        $expense_entries = collect(($entries->get('expense', collect()))->all())->groupBy('account.account_category');
+
+        $serializeEntries = function ($collection) {
+            return $collection->map(function ($entry) {
+                $data = $entry->toArray();
+                if ($entry->relationLoaded('account') && $entry->account) {
+                    $data['account'] = $entry->account->toArray();
+                }
+                return $data;
+            })->values()->all();
+        };
+
+        $operationalEntries = $expense_entries
+            ->only([
+                'expense_operational',
+                'expense_utilities',
+                'expense_travel',
+                'expense_equipment',
+                'expense_marketing',
+                'expense_admin',
+                'expense_other',
+            ])
+            ->flatten();
+
+        $operationalByCategory = $operationalEntries->groupBy(function ($entry) {
+            $categoryId = data_get($entry->additional_data, 'category_id');
+            $categoryName = data_get($entry->additional_data, 'category_name') ?? $entry->account?->account_name ?? 'Lainnya';
+
+            return $categoryId
+                ? "{$categoryId}|{$categoryName}"
+                : "uncategorized|{$categoryName}";
+        })->map(function ($group, $key) use ($serializeEntries) {
+            [$categoryId, $categoryName] = explode('|', $key, 2);
+
+            return [
+                'category_id' => $categoryId === 'uncategorized' ? null : $categoryId,
+                'category_name' => $categoryName,
+                'entries' => $serializeEntries($group),
+                'total' => $group->sum('amount'),
+            ];
+        })->values()->map(function ($category) {
+            $category['entries'] = array_values($category['entries']);
+            return $category;
+        })->values()->all();
 
         // Separate other income by category for detailed reporting
         $other_income_entries = $revenue_entries->get('revenue_other', collect());
@@ -124,35 +167,32 @@ class ProfitLossPeriod extends Model
         return [
             'period' => $this,
             'revenues' => [
-                'main' => $revenue_entries->get('revenue_main', collect()),
-                'other' => $other_income_entries,
+                'main' => $serializeEntries($revenue_entries->get('revenue_main', collect())),
+                'other' => $serializeEntries($other_income_entries),
                 'other_income_breakdown' => [
                     'bunga_mandiri' => [
-                        'entries' => $other_income_breakdown['bunga_mandiri'],
+                        'entries' => $serializeEntries($other_income_breakdown['bunga_mandiri']),
                         'total' => $other_income_breakdown['bunga_mandiri']->sum('amount')
                     ],
                     'bunga_bca' => [
-                        'entries' => $other_income_breakdown['bunga_bca'],
+                        'entries' => $serializeEntries($other_income_breakdown['bunga_bca']),
                         'total' => $other_income_breakdown['bunga_bca']->sum('amount')
                     ],
                     'lainnya' => [
-                        'entries' => $other_income_breakdown['lainnya'],
+                        'entries' => $serializeEntries($other_income_breakdown['lainnya']),
                         'total' => $other_income_breakdown['lainnya']->sum('amount')
                     ],
                 ],
                 'total' => $this->total_revenue
             ],
             'expenses' => [
-                'salary' => $expense_entries->get('expense_salary', collect()),
-                'operational' => $expense_entries->get('expense_operational', collect())->merge(
-                    $expense_entries->get('expense_utilities', collect())
-                )->merge(
-                    $expense_entries->get('expense_travel', collect())
-                )->merge(
-                    $expense_entries->get('expense_equipment', collect())
-                ),
-                'admin' => $expense_entries->get('expense_admin', collect()),
-                'other' => $expense_entries->get('expense_other', collect()),
+                'salary' => $serializeEntries($expense_entries->get('expense_salary', collect())),
+                'operational' => [
+                    'grouped' => $operationalByCategory,
+                    'total' => collect($operationalByCategory)->sum('total'),
+                ],
+                'admin' => $serializeEntries($expense_entries->get('expense_admin', collect())),
+                'other' => $serializeEntries($expense_entries->get('expense_other', collect())),
                 'total' => $this->total_expenses
             ],
             'summary' => [

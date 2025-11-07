@@ -589,6 +589,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{accountPayable}/mark-as-paid', 'markAsPaid')->name('mark-as-paid');
         Route::post('/{accountPayable}/update-due-date', 'updateDueDate')->name('update-due-date');
         Route::post('/{accountPayable}/update-vendor-invoice', 'updateVendorInvoice')->name('update-vendor-invoice');
+        Route::post('/{accountPayable}/components', 'storeAdditionalComponent')->name('components.store');
         Route::get('/vendors/{vendor}/payables', 'getByVendor')->name('get-by-vendor');
         Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');
         Route::get('/export', 'export')->name('export');

@@ -168,40 +168,61 @@
                                         </div>
                                     </div>
                                     
-                                    <div v-if="operationalEntries.length > 0" class="border border-gray-200 rounded-lg">
-                                        <button
-                                            type="button"
-                                            class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition rounded-lg"
-                                            @click="showOperationalDetails = !showOperationalDetails"
-                                        >
+                                    <div v-if="operationalCategories.length > 0" class="space-y-3">
+                                        <div class="flex items-center justify-between">
                                             <div>
                                                 <div class="text-sm font-medium text-gray-900">Beban Operasional</div>
                                                 <div class="text-xs text-gray-500">
-                                                    {{ operationalEntries.length }} item &middot; {{ formatCurrency(operationalExpensesTotal) }}
+                                                    {{ operationalCategories.length }} kategori &middot; {{ formatCurrency(operationalExpensesTotal) }}
                                                 </div>
                                             </div>
-                                            <div class="flex items-center space-x-3">
-                                                <span class="text-sm font-semibold text-red-600 hidden sm:inline">
-                                                    {{ formatCurrency(operationalExpensesTotal) }}
-                                                </span>
+                                            <button
+                                                type="button"
+                                                class="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                                                @click="showOperationalDetails = !showOperationalDetails"
+                                            >
+                                                {{ showOperationalDetails ? 'Tutup' : 'Detail' }}
                                                 <ChevronDown
-                                                    class="w-4 h-4 text-gray-500 transition-transform duration-200"
-                                                    :class="{ 'transform rotate-180': showOperationalDetails }"
+                                                    class="w-4 h-4 ml-1 transform transition-transform duration-150"
+                                                    :class="{ 'rotate-180': showOperationalDetails }"
                                                 />
-                                            </div>
-                                        </button>
+                                            </button>
+                                        </div>
                                         <transition name="fade">
-                                            <div v-if="showOperationalDetails" class="border-t border-gray-200 divide-y divide-gray-100">
+                                            <div v-if="showOperationalDetails" class="space-y-3">
                                                 <div
-                                                    v-for="entry in operationalEntries"
-                                                    :key="entry.id"
-                                                    class="flex justify-between items-center px-4 py-3 bg-gray-50"
+                                                    v-for="category in operationalCategories"
+                                                    :key="category.category_name"
+                                                    class="border border-gray-200 rounded-lg"
                                                 >
-                                                    <div>
-                                                        <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
-                                                        <div class="text-xs text-gray-500">{{ entry.description }}</div>
+                                                    <div class="px-4 py-3 bg-gray-50 flex justify-between items-center">
+                                                        <div>
+                                                            <div class="text-sm font-medium text-gray-900">
+                                                                {{ category.category_name || 'Kategori Lainnya' }}
+                                                            </div>
+                                                            <div class="text-xs text-gray-500">
+                                                                {{ category.entries.length }} transaksi
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-sm font-semibold text-red-600">
+                                                            {{ formatCurrency(category.total) }}
+                                                        </div>
                                                     </div>
-                                                    <div class="text-sm font-medium text-red-600">{{ formatCurrency(entry.amount) }}</div>
+                                                    <div class="divide-y divide-gray-100">
+                                                        <div
+                                                            v-for="entry in category.entries"
+                                                            :key="entry.id"
+                                                            class="flex justify-between items-center px-4 py-3 bg-white"
+                                                        >
+                                                            <div>
+                                                                <div class="text-sm font-medium text-gray-900">{{ entry.description }}</div>
+                                                                <div v-if="entry.transaction_date" class="text-xs text-gray-500">
+                                                                    {{ formatDate(entry.transaction_date) }}
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-sm font-medium text-red-600">{{ formatCurrency(entry.amount) }}</div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </transition>
@@ -342,8 +363,9 @@ const props = defineProps({
     accounts: Object,
 })
 
-const operationalEntries = computed(() => Array.isArray(props.reportData?.expenses?.operational) ? props.reportData.expenses.operational : [])
-const operationalExpensesTotal = computed(() => operationalEntries.value.reduce((sum, entry) => sum + Number(entry.amount || 0), 0))
+const operationalGroup = computed(() => props.reportData?.expenses?.operational || { grouped: [], total: 0 })
+const operationalCategories = computed(() => Array.isArray(operationalGroup.value.grouped) ? operationalGroup.value.grouped : [])
+const operationalExpensesTotal = computed(() => Number(operationalGroup.value.total || 0))
 const showOperationalDetails = ref(false)
 
 const loading = ref(false)
