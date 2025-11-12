@@ -407,6 +407,25 @@ class AccountPayable extends Model
         $payloads = [];
         $existingComponents = $existingComponents ?? collect();
 
+        // Preserve manual components (created via AP detail modal)
+        $manualComponents = $existingComponents->filter(function ($component) {
+            $related = $component->related_items;
+            return is_array($related) && ($related['source'] ?? null) === 'account_payable_manual_entry';
+        });
+
+        foreach ($manualComponents as $component) {
+            $payloads[] = [
+                'component_type' => $component->component_type,
+                'description' => $component->description,
+                'amount' => (float) $component->amount,
+                'recipient_name' => $component->recipient_name,
+                'vendor_id' => $component->vendor_id,
+                'related_items' => $component->related_items,
+                'lookup_reference' => 'manual_component_' . $component->id,
+                'paid_amount' => (float) $component->paid_amount,
+            ];
+        }
+
         $vendorPaymentEntries = $this->collectVendorPaymentEntries();
 
         $existingVendorComponents = $existingComponents->filter(function ($component) {
@@ -631,6 +650,12 @@ class AccountPayable extends Model
 
         if (is_array($relatedItems) && !empty($relatedItems['lookup_ref'])) {
             $reference = (string) $relatedItems['lookup_ref'];
+        } elseif (
+            is_array($relatedItems) &&
+            ($relatedItems['source'] ?? null) === 'account_payable_manual_entry' &&
+            $component->id
+        ) {
+            $reference = 'manual_component_' . $component->id;
         }
 
         return $this->makeComponentLookupKey($component->component_type, $component->vendor_id, $reference);

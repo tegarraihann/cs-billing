@@ -855,6 +855,44 @@ const getComponentReimbursements = (component) => {
     return reimbursementItems.value.filter((item) => Number(item.component_id) === componentId)
 }
 
+const normalizeCurrencyInput = (value) => {
+    if (value === null || value === undefined) {
+        return 0
+    }
+
+    if (typeof value === 'number') {
+        return value
+    }
+
+    let normalized = value.toString().trim()
+
+    if (normalized === '') {
+        return 0
+    }
+
+    if (normalized.includes('.') && normalized.includes(',')) {
+        normalized = normalized.replace(/\./g, '').replace(',', '.')
+    } else if (normalized.includes('.') && !normalized.includes(',')) {
+        const parts = normalized.split('.')
+        if (parts.length === 2) {
+            const decimalPart = parts[1]
+            const likelyDecimal = decimalPart.length <= 2 && Number(decimalPart) < 100
+            if (!likelyDecimal) {
+                normalized = normalized.replace(/\./g, '')
+            }
+        } else {
+            normalized = normalized.replace(/\./g, '')
+        }
+    } else if (normalized.includes(',')) {
+        normalized = normalized.replace(',', '.')
+    }
+
+    normalized = normalized.replace(/\s+/g, '')
+
+    const parsed = parseFloat(normalized)
+    return Number.isNaN(parsed) ? 0 : parsed
+}
+
 const getStatusClass = (status) => {
     const classes = {
         unpaid: 'bg-red-100 text-red-800',
@@ -946,7 +984,12 @@ const markPayment = () => {
 }
 
 const submitAdditionalCost = () => {
-    additionalCostForm.post(
+    additionalCostForm
+        .transform((data) => ({
+            ...data,
+            amount: normalizeCurrencyInput(data.amount)
+        }))
+        .post(
         route('admin-keuangan.account-payables.components.store', props.payable.id),
         {
             preserveScroll: true,

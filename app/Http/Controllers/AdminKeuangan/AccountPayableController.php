@@ -421,6 +421,14 @@ class AccountPayableController extends Controller
                 ],
             ]);
 
+            // Ensure manual component has unique lookup reference for sync
+            $component->update([
+                'related_items' => array_merge(
+                    $component->related_items ?? [],
+                    ['lookup_ref' => 'manual_component_' . $component->id]
+                ),
+            ]);
+
             $salesOrder = $accountPayable->salesOrder;
 
             if ($validated['component_type'] === 'operational_cost' && $salesOrder) {
