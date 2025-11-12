@@ -309,8 +309,10 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         $totalInvoices = \App\Models\Invoice::count();
         $paidInvoices = \App\Models\Invoice::where('status', 'paid')->count();
 
-        // Profit Analytics - New calculations for operational costs feature
-        $invoicesWithItems = \App\Models\Invoice::with('items')->get();
+        // Profit Analytics - gunakan data aktual (invoice paid + biaya yang benar-benar tercatat)
+        $invoicesWithItems = \App\Models\Invoice::with('items')
+            ->where('status', 'paid')
+            ->get();
 
         // Calculate gross revenue (all billable items)
         $grossRevenue = $invoicesWithItems->sum(function($invoice) {
@@ -320,10 +322,18 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
                 ->sum('amount');
         });
 
-        // Calculate operational costs (internal costs)
-        $operationalCosts = $invoicesWithItems->sum(function($invoice) {
-            return $invoice->items->where('item_type', 'operational_cost')->sum('amount');
-        });
+        // Calculate operational costs (actual costs from AP components + approved petty cash)
+        $accountPayableOperationalCosts = \App\Models\AccountPayableComponent::where('component_type', 'operational_cost')
+            ->whereHas('accountPayable', function ($query) {
+                $query->whereNotIn('status', ['cancelled', 'rejected']);
+            })
+            ->sum('amount');
+
+        $pettyCashOperationalCosts = \App\Models\PettyCashTransaction::where('type', 'expense')
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $operationalCosts = $accountPayableOperationalCosts + $pettyCashOperationalCosts;
 
         // Calculate net profit and margin
         $netProfit = $grossRevenue - $operationalCosts;

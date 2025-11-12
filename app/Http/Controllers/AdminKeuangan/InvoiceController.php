@@ -721,10 +721,18 @@ class InvoiceController extends Controller
             });
         }
 
+        // Re-sync operational buying costs (COGS) and payable components after manual edits
+        $invoice->load('salesOrder');
+        if ($invoice->salesOrder) {
+            $this->autoGenerateBuyingCosts($invoice, $invoice->salesOrder);
+        }
+
+        $this->autoGenerateOperationalDebt($invoice);
+
         $invoice->calculateTotals();
 
         // Sync Account Receivable after invoice update
-        \App\Models\AccountReceivable::syncFromInvoice($invoice);
+        \App\Models\AccountReceivable::syncFromInvoice($invoice->refresh());
 
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil diperbarui.');

@@ -408,11 +408,26 @@
                                     form.errors.commodity }}</div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
-                                    <input v-model="form.qty" type="number" min="0" placeholder="Masukkan quantity"
-                                        class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
-                                    <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{ form.errors.qty }}
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
+                                        <input v-model="form.qty" type="number" min="0" placeholder="Masukkan quantity"
+                                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                        <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{ form.errors.qty }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-sage-700 mb-2">Package Unit</label>
+                                        <select v-model="form.package_unit"
+                                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
+                                            <option :value="null">Select Unit</option>
+                                            <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
+                                                {{ unit.name }}
+                                            </option>
+                                        </select>
+                                        <div v-if="form.errors.package_unit" class="mt-2 text-sm text-red-600">
+                                            {{ form.errors.package_unit }}
+                                        </div>
                                     </div>
                                 </div>
                                 <div>
@@ -770,6 +785,10 @@ const props = defineProps({
         default: () => [],
     },
     operationalCostCategories: Array,
+    packageUnits: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Alert Dialog State
@@ -795,6 +814,7 @@ const sections = ref({
 });
 
 const operationalCostCategories = computed(() => props.operationalCostCategories ?? []);
+const packageUnits = computed(() => props.packageUnits ?? []);
 
 // Initialize form with existing data
 const initializeVendorBreakdown = () => {
@@ -943,7 +963,7 @@ const form = useForm({
     invoice_number: props.salesOrder.invoice_number || "",
     invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : "",
     top: props.salesOrder.top || "",
-    package_unit: props.salesOrder.package_unit || "",
+    package_unit: props.salesOrder.package_unit ?? null,
     other_costs: initializeOtherCosts()
 });
 

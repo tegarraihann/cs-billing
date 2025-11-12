@@ -372,16 +372,42 @@
             border-bottom: 1px solid #000;
         }
 
+        .invoice-notes {
+            font-size: 8pt;
+            margin: 18px 0;
+            line-height: 1.4;
+            text-transform: none;
+            max-width: 90%;
+            margin-left: 40px;
+            margin-top: 100px;
+        }
+
         /* Invoice Footer */
         .invoice-footer {
             position: fixed;
             bottom: 10mm;
-            left: 15mm;
+            left: 100mm;
             right: 15mm;
             font-size: 6.5pt;
-            text-align: center;
             color: #666;
             line-height: 1.3;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-left: 120px;
+        }
+
+        .invoice-footer .footer-left {
+            text-align: right;
+            margin-left: auto;
+        }
+
+        .invoice-footer .footer-right {
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 7pt;
+            text-align: right;
+            white-space: nowrap;
         }
 
         /* Shipment Details Table Layout for proper alignment */
@@ -473,6 +499,11 @@
         <!-- Invoice Details Table (Right Side) -->
         <table class="invoice-details-table">
             <tr>
+                <td class="inv-label">INV No.</td>
+                <td class="inv-colon">:</td>
+                <td class="inv-value">{{ $invoice->invoice_number }}</td>
+            </tr>
+            <tr>
                 <td class="inv-label">INV DATE</td>
                 <td class="inv-colon">:</td>
                 <td class="inv-value">
@@ -490,13 +521,9 @@
                 <td class="inv-colon">:</td>
                 <td class="inv-value">{{ $invoice->term_days ?? 30 }} DAYS</td>
             </tr>
+
             <tr>
-                <td class="inv-label">INV No.</td>
-                <td class="inv-colon">:</td>
-                <td class="inv-value">{{ $invoice->invoice_number }}</td>
-            </tr>
-            <tr>
-                <td class="inv-label">AJU No.</td>
+                <td class="inv-label">AJU</td>
                 <td class="inv-colon">:</td>
                 <td class="inv-value">
                     @php
@@ -520,7 +547,8 @@
                     <td class="ship-label-right">VESSEL</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
-                        {{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? '-') }}</td>
+                        {{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? '-') }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="ship-label">CONSIGNEE</td>
@@ -571,7 +599,8 @@
                     <td class="ship-label">GROSS WT</td>
                     <td class="ship-colon">:</td>
                     <td class="ship-value">
-                        {{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}</td>
+                        {{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}
+                    </td>
                     <td class="ship-label-right">DEST</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
@@ -710,34 +739,34 @@
         <!-- Bank Details and Totals Table -->
         <table class="bank-totals-table">
             <tr>
-                <td class="bank-label-col">BANK NAME</td>
-                <td class="bank-value-col">: {{ $invoice->bank_name ?? 'Mandiri' }}</td>
+                <td class="bank-label-col" style="color: #0000">BANK NAME</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_name ?? 'Mandiri' }}</td>
                 <td class="total-label-col total-bold">SUB TOTAL</td>
                 <td class="total-value-col total-bold">
                     {{ number_format($calculatedSubtotal ?? $invoice->subtotal ?? 0, 2) }}
                 </td>
             </tr>
             <tr>
-                <td class="bank-label-col">BANK NUMBER</td>
-                <td class="bank-value-col">: {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
+                <td class="bank-label-col" style="color: #0000">BANK NUMBER</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
                 </td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
-                <td class="bank-label-col">ACCOUNT NAME</td>
-                <td class="bank-value-col">: {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
+                <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
                 @if($invoice->hasDownPayment())
-                    <td class="total-label-col">DOWN PAYMENT (-)</td>
-                    <td class="total-value-col">{{ number_format($invoice->down_payment_amount, 2) }}</td>
+                    <td class="total-label-col" style="color: #0000">DOWN PAYMENT (-)</td>
+                    <td class="total-value-col" style="color: #0000">{{ number_format($invoice->down_payment_amount, 2) }}</td>
                 @else
                     <td class="total-label-col"></td>
                     <td class="total-value-col"></td>
                 @endif
             </tr>
             <tr>
-                <td class="bank-label-col">SWIFT CODE</td>
-                <td class="bank-value-col">: {{ $invoice->swift_code ?? 'BMRIIDJA' }}</td>
+                <td class="bank-label-col" style="color: #0000">SWIFT CODE</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->swift_code ?? 'BMRIIDJA' }}</td>
                 <td class="total-label-col total-bold">TOTAL</td>
                 <td class="total-value-col total-bold">
                     {{ number_format($calculatedTotal ?? $invoice->total ?? 0, 2) }}
@@ -750,38 +779,56 @@
                 <td class="total-value-col"></td>
             </tr>
             <tr>
-                <td class="bank-label-col">BANK NAME</td>
-                <td class="bank-value-col">: {{ $invoice->bank_name_bca ?? 'BCA' }}</td>
+                <td class="bank-label-col" style="color: #0000">BANK NAME</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_name_bca ?? 'BCA' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
-                <td class="bank-label-col">BANK NUMBER</td>
-                <td class="bank-value-col">: {{ $invoice->bank_number_bca ?? '5445-974 975' }}</td>
+                <td class="bank-label-col" style="color: #0000">BANK NUMBER</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_number_bca ?? '5445-974 975' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
-                <td class="bank-label-col">ACCOUNT NAME</td>
-                <td class="bank-value-col">: {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
+                <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
-                <td class="bank-label-col">SWIFT CODE</td>
-                <td class="bank-value-col">: {{ $invoice->swift_code_bca ?? 'CENAIDJAXXX' }}</td>
+                <td class="bank-label-col" style="color: #0000">SWIFT CODE</td>
+                <td class="bank-value-col" style="color: #0000">: {{ $invoice->swift_code_bca ?? 'CENAIDJAXXX' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
         </table>
 
+        <div class="invoice-notes">
+            NOTE : 1. Payments made by bank transfer must be made to the company account in the name of Eshaka Wijaya
+            Logistics, PT.<br>
+            2. Payment is considered complete once the funds are confirmed to have been credited to the company account
+            in full.<br>
+            3. Objections or corrections must be submitted no later than 7 days after receipt of the invoice. Failure to
+            do so will be deemed correct or approved.<br>
+            5. Bank Name &nbsp;&ndash;&nbsp; Bank Branch &nbsp;&ndash;&nbsp; Account No. &nbsp;&ndash;&nbsp; Curr.
+            &nbsp;&ndash;&nbsp; Swift No.<br>
+            MANDIRI &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 1220012330539 &nbsp;&ndash;&nbsp; IDR
+            &nbsp;&ndash;&nbsp; BMRIIDJA<br>
+            BCA &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 5445974975 &nbsp;&ndash;&nbsp; IDR &nbsp;&ndash;&nbsp;
+            CENAIDJAXXX
+        </div>
+
         <!-- Footer -->
         <div class="invoice-footer">
-            This is system generated document, No signature is required<br>
-            Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }}<br>
-            <br>
-            Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
-            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
+            <div class="footer-left">
+                <div>
+                    This is a computer<br>
+                    generated invoice. No<br>
+                    signature and stamp<br>
+                    duty is required.
+                </div>
+            </div>
         </div>
     </div>
 </body>

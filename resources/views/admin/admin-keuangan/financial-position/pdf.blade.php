@@ -5,7 +5,7 @@
     <title>Statement of Financial Position - {{ $cutoffDate->format('d F Y') }}</title>
     <style>
         body {
-            font-family: "Helvetica", "Arial", sans-serif;
+            font-family: "Courier New", monospace;
             font-size: 10px;
             color: #000;
             margin: 20px;
@@ -20,18 +20,21 @@
         }
 
         .company-name {
+            font-family: "Helvetica", "Arial", sans-serif;
             font-size: 16px;
             font-weight: bold;
             text-transform: uppercase;
         }
 
         .report-title {
+            font-family: "Helvetica", "Arial", sans-serif;
             font-size: 14px;
             font-weight: bold;
             margin-top: 5px;
         }
 
         .period-info {
+            font-family: "Helvetica", "Arial", sans-serif;
             font-size: 10px;
             margin-top: 4px;
         }
@@ -175,9 +178,9 @@
     @endphp
 
     <div class="header">
-        <div class="company-name">{{ strtoupper($companyName) }}</div>
+        <div class="company-name">PT. ESHAKA WIJAYA LOGISTICS</div>
         <div class="report-title">STATEMENT OF FINANCIAL POSITION</div>
-        <div class="period-info">Per {{ $cutoffDate->translatedFormat('d F Y') }}</div>
+        <div class="period-info">{{ $cutoffDate->translatedFormat('d F Y') }} TRANSACTION PERIOD</div>
     </div>
 
     @foreach($sections as $sectionKey => $section)

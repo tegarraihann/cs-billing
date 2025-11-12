@@ -488,8 +488,8 @@ class SalesOrderController extends Controller
             return redirect()->back()->withErrors(['error' => 'Sales order harus dirilis terlebih dahulu sebelum dapat dicetak.']);
         }
 
-        // Load the creator relationship
-        $salesOrder->load(['creator']);
+        // Load relationships needed for PDF rendering
+        $salesOrder->load(['creator', 'packageUnit', 'reimbursementItems']);
 
         // Set current timestamp for print time
         $generatedAt = \Carbon\Carbon::now();
@@ -933,6 +933,9 @@ class SalesOrderController extends Controller
 
     private function prepareSalesOrderForCsView(SalesOrder $salesOrder): array
     {
+        // Ensure related data needed for CS view is available
+        $salesOrder->loadMissing(['packageUnit', 'reimbursementItems']);
+
         $data = $salesOrder->toArray();
 
         $snapshot = $salesOrder->cs_snapshot ?? null;
@@ -993,6 +996,9 @@ class SalesOrderController extends Controller
                 ? $salesOrder->reimbursementItems->toArray()
                 : [];
         }
+
+        $packageUnitName = optional($salesOrder->packageUnit)->name;
+        $data['package_unit_label'] = $packageUnitName ?? ($data['package_unit'] ?? null);
 
         return $data;
     }

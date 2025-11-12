@@ -354,7 +354,19 @@
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">QTY</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->qty ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">
+                                @php
+                                    $packageUnitLabel = optional($salesOrder->packageUnit)->name ?: $salesOrder->package_unit;
+                                @endphp
+                                @if($salesOrder->qty !== null && $salesOrder->qty !== '')
+                                    {{ $salesOrder->qty }}
+                                    @if($packageUnitLabel)
+                                        <span style="font-size: 8px; color: #000;">{{ $packageUnitLabel }}</span>
+                                    @endif
+                                @else
+                                    -
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NET WEIGHT</td>
@@ -467,6 +479,56 @@
             @endif
 
         </div>
+
+        @php
+            $reimbursementItems = $salesOrder->reimbursementItems ?? [];
+            if ($reimbursementItems instanceof \Illuminate\Support\Collection) {
+                $reimbursementItems = $reimbursementItems->toArray();
+            }
+            $hasReimbursementItems = !empty($reimbursementItems);
+        @endphp
+
+        @if($hasReimbursementItems)
+        <div class="section">
+            <div class="section-title">Items Reimbursement</div>
+            <div style="font-family: 'Times New Roman', serif; font-size: 9px; margin-bottom: 20px;">
+                <table style="width: 90%; border-collapse: collapse; margin: 0 auto;">
+                    <tr>
+                        <td style="width: 24%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">DESCRIPTION</td>
+                        <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">AMOUNT</td>
+                        <td style="width: 9%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REMARKS</td>
+                    </tr>
+                    @php
+                        $statusLabels = [
+                            'pending' => 'Pending',
+                            'linked' => 'Linked',
+                            'invoiced' => 'Invoiced',
+                            'paid' => 'Paid',
+                        ];
+                        $totalReimbursement = 0;
+                    @endphp
+                    @foreach($reimbursementItems as $item)
+                        @php
+                            $amount = floatval($item['amount'] ?? 0);
+                            $totalReimbursement += $amount;
+                        @endphp
+                        <tr>
+                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ $item['description'] ?? '-' }}</td>
+                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px; text-align: left;">{{ $amount > 0 ? 'Rp ' . number_format($amount, 0, '.', '.') : '-' }}</td>
+                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px; text-align: left;">
+                                {{ $item['notes'] ?? '-' }}
+                            </td>
+                        </tr>
+                    @endforeach
+                    <tr><td colspan="3" style="padding: 8px; border-top: none;"></td></tr>
+                    <tr style="font-weight: bold;">
+                        <td colspan="2" style="padding: 4px 4px 4px 8px; text-align: left;">TOTAL</td>
+                        <td style="padding: 4px 4px 4px 8px; text-align: left;">{{ 'Rp ' . number_format($totalReimbursement, 0, '.', '.') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        @endif
 
         <!-- Detail Invoice -->
         <div class="section">
