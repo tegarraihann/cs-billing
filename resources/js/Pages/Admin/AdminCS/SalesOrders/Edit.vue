@@ -814,7 +814,7 @@ const sections = ref({
 });
 
 const operationalCostCategories = computed(() => props.operationalCostCategories ?? []);
-const packageUnits = computed(() => props.packageUnits ?? []);
+const rawPackageUnits = computed(() => props.packageUnits ?? []);
 
 // Initialize form with existing data
 const initializeVendorBreakdown = () => {
@@ -965,6 +965,95 @@ const form = useForm({
     top: props.salesOrder.top || "",
     package_unit: props.salesOrder.package_unit ?? null,
     other_costs: initializeOtherCosts()
+});
+
+const parseLegacyPackageUnitValue = (value) => {
+    if (!value || typeof value !== 'string') {
+        return null;
+    }
+
+    const attemptParse = (source) => {
+        try {
+            const parsed = JSON.parse(source);
+            if (parsed && typeof parsed === 'object' && parsed.code) {
+                return {
+                    code: parsed.code,
+                    label: parsed.name || parsed.code
+                };
+            }
+        } catch (error) {
+            return null;
+        }
+        return null;
+    };
+
+    let result = attemptParse(value);
+    if (result) {
+        return result;
+    }
+
+    if (value.includes("'")) {
+        result = attemptParse(value.replace(/'/g, '"'));
+        if (result) {
+            return result;
+        }
+    }
+
+    const codeMatch = value.match(/"code"\s*:\s*"([^"]+)"/);
+    if (codeMatch) {
+        const nameMatch = value.match(/"name"\s*:\s*"([^"]+)"/);
+        return {
+            code: codeMatch[1],
+            label: nameMatch ? nameMatch[1] : codeMatch[1]
+        };
+    }
+
+    return null;
+};
+
+const packageUnits = computed(() => {
+    const units = rawPackageUnits.value ?? [];
+    let legacyUnit = form.package_unit;
+
+    if (!legacyUnit) {
+        return units;
+    }
+
+    let label = legacyUnit;
+
+    if (typeof legacyUnit === 'object') {
+        const normalized = legacyUnit.code || '';
+        if (normalized) {
+            label = legacyUnit.name || normalized;
+            legacyUnit = normalized;
+        } else {
+            legacyUnit = '';
+        }
+    }
+
+    const parsedLegacy = parseLegacyPackageUnitValue(legacyUnit);
+    if (parsedLegacy) {
+        legacyUnit = parsedLegacy.code;
+        label = parsedLegacy.label;
+    }
+
+    if (legacyUnit !== form.package_unit) {
+        form.package_unit = legacyUnit;
+    }
+
+    const exists = units.some(unit => unit.code === legacyUnit);
+    if (!exists) {
+        return [
+            {
+                code: legacyUnit,
+                name: label,
+                description: ''
+            },
+            ...units
+        ];
+    }
+
+    return units;
 });
 
 // Initialize reimbursement items from props
