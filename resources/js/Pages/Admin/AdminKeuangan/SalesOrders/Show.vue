@@ -350,7 +350,7 @@
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">QTY</label>
-                                                <p class="text-gray-900">{{ salesOrder.qty || '-' }}</p>
+                                                <p class="text-gray-900">{{ salesOrder.qty || '-' }} {{ salesOrder.package_unit_label || salesOrder.package_unit }}</p>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">NET WEIGHT
@@ -358,7 +358,7 @@
                                                 <p class="text-gray-900">{{ salesOrder.net_weight ?
                                                     formatWeight(salesOrder.net_weight) : '-' }}</p>
                                             </div>
-                                            <div>
+                                            <div>   
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">GROSS WEIGHT
                                                     (KG)</label>
                                                 <p class="text-gray-900">{{ salesOrder.gross_weight ?

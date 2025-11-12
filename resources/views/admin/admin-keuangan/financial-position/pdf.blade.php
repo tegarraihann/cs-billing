@@ -84,11 +84,6 @@
             width: 25%;
         }
 
-        td.source {
-            text-align: right;
-            width: 15%;
-            font-size: 9px;
-        }
 
         .total-row td {
             font-weight: bold;
@@ -194,8 +189,7 @@
                     <thead>
                         <tr>
                             <th>Akun</th>
-                            <th class="amount">Saldo</th>
-                            <th class="source">Sumber</th>
+                            <th class="amount" style="text-align: right;">Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -211,14 +205,6 @@
                                     <div style="font-size: 8px; color: #666;">{{ $row['account_code'] }}</div>
                                 </td>
                                 <td class="amount">{{ $formatCurrency($row['amount']) }}</td>
-                                <td class="source">
-                                    <span class="badge {{ $badgeClass }}">{{ $sourceLabel }}</span>
-                                    @if($manual && isset($row['details']['manual_override']['effective_date']))
-                                        <div style="margin-top: 2px; color: #666;">
-                                            {{ \Carbon\Carbon::parse($row['details']['manual_override']['effective_date'])->format('d/m/Y') }}
-                                        </div>
-                                    @endif
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -226,7 +212,6 @@
                         <tr class="total-row">
                             <td>Total {{ $group['title'] }}</td>
                             <td class="amount">{{ $formatCurrency($group['total']) }}</td>
-                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -236,7 +221,6 @@
                 <tr class="total-row">
                     <td>Total {{ $section['title'] }}</td>
                     <td class="amount">{{ $formatCurrency($section['total']) }}</td>
-                    <td></td>
                 </tr>
             </table>
         </div>
