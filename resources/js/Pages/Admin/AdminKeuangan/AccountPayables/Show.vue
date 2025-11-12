@@ -304,6 +304,21 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="mt-4 flex justify-end">
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 text-xs font-medium rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
+                                            @click="openAdditionalCostModal({
+                                                componentType: component.component_type,
+                                                categoryId: component.related_items?.category_id || '',
+                                                vendorId: component.vendor_id ? String(component.vendor_id) : (payable.vendor_id ? String(payable.vendor_id) : ''),
+                                                fromComponent: true
+                                            })"
+                                        >
+                                            <Plus class="w-4 h-4 mr-1" />
+                                            Tambah Biaya dari Komponen Ini
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             </template>
@@ -584,12 +599,12 @@
                             {{ additionalCostForm.errors.amount }}
                         </p>
                     </div>
-                    <div v-if="requiresCategory" class="mb-4">
+                    <div v-if="shouldShowCategoryField" class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Biaya *</label>
                         <select
                             v-model="additionalCostForm.category_id"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                            :required="requiresCategory"
+                            :required="shouldShowCategoryField"
                         >
                             <option value="">-- Pilih Kategori --</option>
                             <option
@@ -603,6 +618,13 @@
                         <p v-if="additionalCostForm.errors.category_id" class="text-sm text-red-600 mt-1">
                             {{ additionalCostForm.errors.category_id }}
                         </p>
+                    </div>
+                    <div v-else-if="isCategoryLocked && additionalCostForm.category_id" class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Biaya</label>
+                        <div class="px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-700">
+                            {{ getCategoryNameById(additionalCostForm.category_id) || 'Mengikuti komponen' }}
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Kategori mengikuti komponen yang sedang dibuka.</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Vendor / Penerima</label>
@@ -719,6 +741,13 @@ const additionalCostForm = useForm({
     notes: ''
 })
 
+const additionalCostContext = ref({
+    componentType: 'operational_cost',
+    categoryId: '',
+    vendorId: props.payable.vendor_id ? String(props.payable.vendor_id) : '',
+    categoryLocked: false
+})
+
 // Computed properties for components
 const componentOptions = computed(() => (props.payable.components || []).map(component => ({
     ...component,
@@ -738,7 +767,14 @@ const selectedComponentIdProp = computed(() => {
 
 const operationalCostCategories = computed(() => props.operationalCostCategories ?? [])
 const reimbursementItems = computed(() => props.reimbursementItems ?? [])
-const requiresCategory = computed(() => additionalCostForm.component_type === 'operational_cost')
+const isCategoryLocked = computed(() => additionalCostContext.value.categoryLocked)
+const requiresCategory = computed(() => {
+    if (additionalCostForm.component_type !== 'operational_cost') {
+        return false
+    }
+    return !additionalCostContext.value.categoryLocked
+})
+const shouldShowCategoryField = computed(() => requiresCategory.value)
 
 const visibleComponents = computed(() => {
     if (!componentOptions.value.length) {
@@ -893,6 +929,14 @@ const normalizeCurrencyInput = (value) => {
     return Number.isNaN(parsed) ? 0 : parsed
 }
 
+const getCategoryNameById = (id) => {
+    if (!id) {
+        return ''
+    }
+    const match = operationalCostCategories.value.find((category) => String(category.id) === String(id))
+    return match ? match.name : ''
+}
+
 const getStatusClass = (status) => {
     const classes = {
         unpaid: 'bg-red-100 text-red-800',
@@ -950,13 +994,37 @@ const closeEditModal = () => {
 
 const resetAdditionalCostForm = () => {
     additionalCostForm.reset()
-    additionalCostForm.component_type = 'operational_cost'
-    additionalCostForm.vendor_id = props.payable.vendor_id ? String(props.payable.vendor_id) : ''
+    additionalCostContext.value = {
+        componentType: 'operational_cost',
+        categoryId: '',
+        vendorId: props.payable.vendor_id ? String(props.payable.vendor_id) : '',
+        categoryLocked: false
+    }
+    additionalCostForm.component_type = additionalCostContext.value.componentType
+    additionalCostForm.vendor_id = additionalCostContext.value.vendorId
+    additionalCostForm.category_id = additionalCostContext.value.categoryId
     additionalCostForm.clearErrors()
 }
 
-const openAdditionalCostModal = () => {
+const openAdditionalCostModal = (context = {}) => {
     resetAdditionalCostForm()
+
+    const fromComponent = Boolean(context.fromComponent)
+    const contextCategoryId = context.categoryId ? String(context.categoryId) : ''
+
+    additionalCostContext.value = {
+        componentType: context.componentType || 'operational_cost',
+        categoryId: contextCategoryId,
+        vendorId: context.vendorId
+            ? String(context.vendorId)
+            : (props.payable.vendor_id ? String(props.payable.vendor_id) : ''),
+        categoryLocked: fromComponent
+    }
+
+    additionalCostForm.component_type = additionalCostContext.value.componentType
+    additionalCostForm.category_id = additionalCostContext.value.categoryId
+    additionalCostForm.vendor_id = additionalCostContext.value.vendorId
+
     showAdditionalCostModal.value = true
 }
 

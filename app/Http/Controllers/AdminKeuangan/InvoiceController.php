@@ -15,6 +15,7 @@ use Inertia\Inertia;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ExpenseCategorizationService;
+use App\Services\InvoiceCostSyncService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
@@ -421,8 +422,10 @@ class InvoiceController extends Controller
         }
     }
 
-    public function show(Invoice $invoice)
+    public function show(Invoice $invoice, InvoiceCostSyncService $invoiceCostSyncService)
     {
+        $invoiceCostSyncService->syncInvoiceWithAccountPayables($invoice);
+
         $invoice->load(['salesOrder', 'customer', 'items', 'reimbursementRecords']);
 
 

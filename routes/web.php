@@ -346,7 +346,8 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
             $monthEnd = now()->subMonths($i)->endOfMonth();
 
             $monthlyInvoices = \App\Models\Invoice::with('items')
-                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->where('status', 'paid')
+                ->whereBetween('payment_confirmed_at', [$monthStart, $monthEnd])
                 ->get();
 
             $monthlyGrossRevenue = $monthlyInvoices->sum(function($invoice) {
@@ -356,9 +357,19 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
                     ->sum('amount');
             });
 
-            $monthlyOperationalCosts = $monthlyInvoices->sum(function($invoice) {
-                return $invoice->items->where('item_type', 'operational_cost')->sum('amount');
-            });
+            $monthlyApOperationalCosts = \App\Models\AccountPayableComponent::where('component_type', 'operational_cost')
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->whereHas('accountPayable', function ($query) {
+                    $query->whereNotIn('status', ['cancelled', 'rejected']);
+                })
+                ->sum('amount');
+
+            $monthlyPettyCashCosts = \App\Models\PettyCashTransaction::where('type', 'expense')
+                ->where('status', 'approved')
+                ->whereBetween('transaction_date', [$monthStart, $monthEnd])
+                ->sum('amount');
+
+            $monthlyOperationalCosts = $monthlyApOperationalCosts + $monthlyPettyCashCosts;
 
             $monthlyNetProfit = $monthlyGrossRevenue - $monthlyOperationalCosts;
 

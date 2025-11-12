@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Services\InvoiceCostSyncService;
 
 class AccountPayableController extends Controller
 {
@@ -373,7 +374,11 @@ class AccountPayableController extends Controller
         return redirect()->back()->with('success', 'Vendor invoice details updated');
     }
 
-    public function storeAdditionalComponent(Request $request, AccountPayable $accountPayable)
+    public function storeAdditionalComponent(
+        Request $request,
+        AccountPayable $accountPayable,
+        InvoiceCostSyncService $invoiceCostSyncService
+    )
     {
         $validated = $request->validate([
             'component_type' => ['required', Rule::in(['operational_cost', 'reimbursement'])],
@@ -390,7 +395,7 @@ class AccountPayableController extends Controller
                 ->withInput();
         }
 
-        DB::transaction(function () use ($validated, $accountPayable) {
+        $component = DB::transaction(function () use ($validated, $accountPayable) {
             $category = !empty($validated['category_id'])
                 ? OperationalCostCategory::find($validated['category_id'])
                 : null;
@@ -482,7 +487,13 @@ class AccountPayableController extends Controller
             }
 
             $accountPayable->recalculateTotals();
+
+            return $component;
         });
+
+        if ($component) {
+            $invoiceCostSyncService->syncFromAccountPayableComponent($component);
+        }
 
         return redirect()->back()->with('success', 'Biaya tambahan berhasil ditambahkan.');
     }

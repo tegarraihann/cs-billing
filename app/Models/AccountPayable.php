@@ -681,7 +681,10 @@ class AccountPayable extends Model
             })
             ->where(function ($query) {
                 $query->whereNull('item_ref')
-                      ->orWhere('item_ref', 'not like', 'cogs_vendor_%');
+                      ->orWhere(function ($subQuery) {
+                          $subQuery->where('item_ref', 'not like', 'cogs_vendor_%')
+                                   ->where('item_ref', 'not like', 'ap_component_%');
+                      });
             })
             ->get();
     }
