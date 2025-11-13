@@ -281,13 +281,13 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Vendor
+                                    Sales Order
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Service
+                                    Vendor / Service
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Invoice/SO
+                                    Invoice
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Amount
@@ -314,18 +314,21 @@
                             >
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ row.vendorName }}
+                                        {{ row.salesOrder?.order_number || 'Tanpa Sales Order' }}
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        {{ row.salesOrder?.customer || '-' }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        {{ row.vendorInvoiceDate ? formatDate(row.vendorInvoiceDate) : '-' }}
+                                        {{ row.salesOrder?.shipper || '-' }}
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        Release: {{ row.salesOrder?.released_at ? formatDate(row.salesOrder.released_at) : '-' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ row.serviceLabel }}
-                                    </div>
-                                    <div class="text-sm text-gray-600" v-if="row.componentSummary">
-                                        {{ row.componentSummary }}
+                                        {{ row.vendorSummaryLabel || '-' }}
                                     </div>
                                     <div class="text-sm text-gray-600" v-if="row.serviceDescription">
                                         {{ row.serviceDescription }}
@@ -336,12 +339,15 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        <div v-if="row.invoiceNumber">
-                                            Invoice: {{ row.invoiceNumber }}
+                                        <div>
+                                            Invoice: {{ row.invoiceSummary || '-' }}
                                         </div>
-                                        <div v-if="row.salesOrder">
+                                        <div v-if="row.salesOrder?.order_number">
                                             SO: {{ row.salesOrder.order_number }}
                                         </div>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ row.vendorInvoiceDate ? formatDate(row.vendorInvoiceDate) : '-' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
@@ -365,28 +371,17 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <div class="flex items-center justify-center space-x-2">
-                                        <button
-                                            @click="showPayable(row)"
-                                            class="text-blue-600 hover:text-blue-900"
-                                            title="Lihat Detail"
-                                        >
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                        </button>
-                                        <button
-                                            v-if="row.status !== 'paid'"
-                                            @click="openPaymentModal(row)"
-                                            class="text-green-600 hover:text-green-900"
-                                            title="Mark Payment"
-                                        >
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
+                                    <button
+                                        @click="showPayable(row)"
+                                        class="inline-flex items-center px-3 py-2 border border-blue-200 rounded-md text-blue-600 hover:text-blue-900 hover:border-blue-400 disabled:text-gray-400 disabled:border-gray-200"
+                                        :disabled="!row.primaryPayableId"
+                                    >
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        Detail
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
@@ -424,61 +419,15 @@
             </div>
         </div>
 
-        <ReimbursementPaymentModal
-            :visible="showPaymentModal"
-            :processing="processing"
-            :form="paymentForm"
-            :bank-accounts="props.bankAccounts"
-            :reimbursement-items="reimbursementItems"
-            :max-amount="selectedComponent ? Number(selectedComponent.outstanding_amount || 0) : (selectedPayable ? Number(selectedPayable.outstanding_amount || 0) : 0)"
-            title="Mark Payment"
-            submit-label="Mark Payment"
-            @close="closePaymentModal"
-            @submit="markPayment"
-        >
-            <template #summary>
-                <div class="mb-4 bg-gray-50 p-3 rounded-md">
-                    <p class="text-sm text-gray-600">Vendor: {{ modalVendorName }}</p>
-                    <p class="text-sm text-gray-600">Komponen: {{ modalServiceLabel }}</p>
-                    <p class="text-sm text-gray-600">Outstanding: Rp {{ formatNumber(modalOutstanding) }}</p>
-                </div>
-            </template>
-            <template #before-fields>
-                <div
-                    v-if="availableComponents.length > 1"
-                    class="mb-4"
-                >
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Komponen Pembayaran *</label>
-                    <select
-                        v-model="paymentForm.component_id"
-                        required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
-                    >
-                        <option value="">Pilih komponen</option>
-                        <option
-                            v-for="component in availableComponents"
-                            :key="component.id"
-                            :value="component.id"
-                        >
-                            {{ componentDisplayName(component) }} - Outstanding Rp {{ formatNumber(component.outstanding_amount || component.amount || 0) }}
-                        </option>
-                    </select>
-                    <p class="text-xs text-gray-500 mt-1">
-                        Pilih komponen hutang yang ingin ditandai lunas.
-                    </p>
-                </div>
-            </template>
-        </ReimbursementPaymentModal>
             </div>
         </div>
     </AdminKeuanganLayout>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import ReimbursementPaymentModal from '@/Components/ReimbursementPaymentModal.vue'
 import { CreditCard, AlertTriangle, Users, Building2 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -498,69 +447,20 @@ const searchForm = reactive({
     date_to: props.filters.date_to || ''
 })
 
-const showPaymentModal = ref(false)
-const selectedPayable = ref(null)
-const processing = ref(false)
-const reimbursementItems = ref([])
-
-const paymentForm = reactive({
-    amount: '',
-    payment_date: new Date().toISOString().split('T')[0],
-    bank_account_id: '',
-    payment_method: '',
-    notes: '',
-    component_id: '',
-    reimbursement_items: [],
-    reimbursement_vendor_name: '',
-    reimbursement_paid_at: new Date().toISOString().split('T')[0],
-    reimbursement_notes: ''
-})
-
-const componentTypeLabels = {
-    vendor_payment: 'Vendor Payment',
-    operational_cost: 'Biaya Operational',
-    reimbursement: 'Reimbursement'
-}
-
-const componentLabel = (type) => {
-    return componentTypeLabels[type] || 'Komponen'
-}
-
-const componentDisplayName = (component) => {
-    if (!component) {
-        return componentLabel()
-    }
-    const label = componentLabel(component.component_type)
-    return component.recipient_name ? `${label} - ${component.recipient_name}` : label
-}
-
-const summarizeComponents = (components) => {
-    if (!Array.isArray(components) || components.length === 0) {
+const summarizeList = (items = []) => {
+    const filtered = items.filter(Boolean)
+    if (filtered.length === 0) {
         return ''
     }
-
-    const labels = components
-        .map((component) => componentDisplayName(component))
-        .filter(Boolean)
-
-    if (labels.length <= 2) {
-        return labels.join(', ')
+    if (filtered.length <= 2) {
+        return filtered.join(', ')
     }
-
-    return `${labels.slice(0, 2).join(', ')} +${labels.length - 2} lainnya`
+    return `${filtered.slice(0, 2).join(', ')} +${filtered.length - 2} lainnya`
 }
 
-const resolveVendorName = (component = null) => {
-    if (component?.recipient_name) {
-        return component.recipient_name
-    }
-    if (selectedPayable.value?.vendor?.nama_vendor) {
-        return selectedPayable.value.vendor.nama_vendor
-    }
-    if (selectedPayable.value?.vendor_name) {
-        return selectedPayable.value.vendor_name
-    }
-    return 'Eshaka Wijaya Logistics'
+const summarizeNames = (names = []) => {
+    const uniqueNames = [...new Set(names.filter(Boolean))]
+    return summarizeList(uniqueNames)
 }
 
 const vendorSummaryRows = computed(() => {
@@ -733,80 +633,6 @@ onBeforeUnmount(() => {
     }
 })
 
-const availableComponents = computed(() => selectedPayable.value?.components || [])
-
-const selectedComponent = computed(() => {
-    const components = availableComponents.value
-    if (!components.length) {
-        return null
-    }
-
-    if (paymentForm.component_id) {
-        return components.find(
-            (component) => String(component.id) === String(paymentForm.component_id)
-        ) || null
-    }
-
-    if (components.length === 1) {
-        return components[0]
-    }
-
-    return null
-})
-
-const modalOutstanding = computed(() => {
-    if (selectedComponent.value) {
-        return Number(selectedComponent.value.outstanding_amount || 0)
-    }
-    if (selectedPayable.value) {
-        return Number(selectedPayable.value.outstanding_amount || 0)
-    }
-    return 0
-})
-
-const modalServiceLabel = computed(() => {
-    if (selectedComponent.value) {
-        return componentDisplayName(selectedComponent.value)
-    }
-    return 'Total Hutang'
-})
-
-const modalVendorName = computed(() => {
-    return resolveVendorName(selectedComponent.value)
-})
-
-const updateReimbursementContext = async (component) => {
-    paymentForm.reimbursement_vendor_name = resolveVendorName(component)
-
-    if (!component || component.component_type !== 'reimbursement' || !selectedPayable.value) {
-        reimbursementItems.value = []
-        paymentForm.reimbursement_items = []
-        paymentForm.reimbursement_notes = ''
-        return
-    }
-
-    try {
-        const response = await fetch(route('admin-keuangan.account-payables.reimbursement-items', {
-            accountPayable: selectedPayable.value.id
-        }))
-
-        if (response.ok) {
-            const items = await response.json()
-            reimbursementItems.value = items
-            paymentForm.reimbursement_items = items
-                .filter((item) => item.status !== 'paid')
-                .map((item) => item.id)
-        } else {
-            reimbursementItems.value = []
-            paymentForm.reimbursement_items = []
-        }
-    } catch (error) {
-        console.error('Failed to fetch reimbursement items', error)
-        reimbursementItems.value = []
-        paymentForm.reimbursement_items = []
-    }
-}
-
 const calculateDaysOverdue = (dueDate, status) => {
     if (!dueDate || status === 'paid') {
         return 0
@@ -824,50 +650,43 @@ const calculateDaysOverdue = (dueDate, status) => {
 const tableRows = computed(() => {
     const data = props.payables?.data || []
 
-    return data.map((payable) => {
-        const vendorName = payable.vendor?.nama_vendor || payable.vendor_name
-        const vendorInvoiceDate = payable.vendor_invoice_date || null
-        const invoiceNumber = payable.vendor_invoice_number || null
-        const salesOrder = payable.sales_order || null
-        const baseRemarks = payable.service_remarks || ''
-        const baseDueDate = payable.payment_due_date || null
-        const baseStatus = payable.status || 'unpaid'
-        const baseDaysOverdue = payable.days_overdue || calculateDaysOverdue(baseDueDate, baseStatus)
-        const components = Array.isArray(payable.components) ? payable.components : []
-        const componentCount = components.length
-        const singleComponent = componentCount === 1 ? components[0] : null
+    return data.map((group, index) => {
+        const payables = Array.isArray(group.account_payables) ? group.account_payables : []
+        const vendorSummary = Array.isArray(group.vendor_summary) ? group.vendor_summary : []
+        const invoiceNumbers = Array.isArray(group.invoice_numbers) ? group.invoice_numbers : []
+        const salesOrder = group.sales_order || null
+        const firstPayable = payables[0] || {}
+        const dueDate = group.due_date || firstPayable.payment_due_date || null
+        const status = group.status || 'unpaid'
 
-        const serviceLabel = (() => {
-            if (componentCount > 1) {
-                return `${componentCount} Komponen Hutang`
-            }
-            if (singleComponent) {
-                return componentDisplayName(singleComponent)
-            }
-            return componentLabel('vendor_payment')
-        })()
+        const vendorNames = vendorSummary.length
+            ? vendorSummary.map((entry) => entry.vendor_name)
+            : payables.map((current) => current.vendor?.nama_vendor || current.vendor_name)
 
-        const serviceDescription = singleComponent
-            ? (singleComponent.description || payable.service_description || '')
-            : (payable.service_description || '')
+        const fallbackKey = salesOrder?.id
+            ? `sales-order-${salesOrder.id}`
+            : (firstPayable.id ? `payable-${firstPayable.id}` : `group-${index}`)
 
         return {
-            key: `payable-${payable.id}`,
-            payable,
-            vendorName,
-            vendorInvoiceDate,
-            invoiceNumber,
+            key: group.group_key || fallbackKey,
+            groupType: group.group_type || 'sales_order',
             salesOrder,
-            serviceLabel,
-            serviceDescription,
-            serviceRemarks: baseRemarks,
-            componentSummary: componentCount > 1 ? summarizeComponents(components) : '',
-            amount: Number(payable.amount || 0),
-            paidAmount: Number(payable.paid_amount || 0),
-            outstanding: Number(payable.outstanding_amount || 0),
-            status: baseStatus,
-            daysOverdue: baseDaysOverdue,
-            componentCount
+            accountPayables: payables,
+            primaryPayableId: firstPayable.id || null,
+            vendorSummary,
+            vendorSummaryLabel: summarizeNames(vendorNames),
+            invoiceSummary: summarizeList(
+                invoiceNumbers.length ? invoiceNumbers : payables.map((current) => current.vendor_invoice_number)
+            ),
+            vendorInvoiceDate: group.latest_vendor_invoice_date || firstPayable.vendor_invoice_date || null,
+            serviceDescription: group.service_description || firstPayable.service_description || '',
+            serviceRemarks: group.service_remarks || firstPayable.service_remarks || '',
+            amount: Number(group.totals?.amount ?? 0),
+            paidAmount: Number(group.totals?.paid ?? 0),
+            outstanding: Number(group.totals?.outstanding ?? 0),
+            status,
+            dueDate,
+            daysOverdue: calculateDaysOverdue(dueDate, status)
         }
     })
 })
@@ -928,69 +747,13 @@ const getStatusText = (status) => {
 }
 
 const showPayable = (row) => {
+    if (!row.primaryPayableId) {
+        return
+    }
+
     router.visit(route('admin-keuangan.account-payables.show', {
-        accountPayable: row.payable.id
+        accountPayable: row.primaryPayableId
     }))
-}
-
-const openPaymentModal = async (row) => {
-    selectedPayable.value = row.payable
-    paymentForm.amount = ''
-    paymentForm.bank_account_id = ''
-    paymentForm.payment_method = ''
-    paymentForm.notes = ''
-    paymentForm.component_id = ''
-    paymentForm.reimbursement_items = []
-    paymentForm.reimbursement_vendor_name = resolveVendorName(null)
-    paymentForm.reimbursement_paid_at = new Date().toISOString().split('T')[0]
-    paymentForm.reimbursement_notes = ''
-    reimbursementItems.value = []
-
-    if (availableComponents.value.length === 1) {
-        paymentForm.component_id = String(availableComponents.value[0].id)
-    }
-
-    await updateReimbursementContext(selectedComponent.value)
-
-    showPaymentModal.value = true
-}
-
-const closePaymentModal = () => {
-    showPaymentModal.value = false
-    selectedPayable.value = null
-    reimbursementItems.value = []
-    paymentForm.component_id = ''
-    paymentForm.reimbursement_items = []
-    paymentForm.reimbursement_vendor_name = ''
-    paymentForm.reimbursement_notes = ''
-}
-
-watch(
-    () => paymentForm.component_id,
-    () => {
-        if (!showPaymentModal.value) {
-            return
-        }
-        updateReimbursementContext(selectedComponent.value)
-    }
-)
-
-const markPayment = () => {
-    processing.value = true
-
-    router.post(
-        route('admin-keuangan.account-payables.mark-as-paid', selectedPayable.value.id),
-        paymentForm,
-        {
-            onSuccess: () => {
-                closePaymentModal()
-                processing.value = false
-            },
-            onError: () => {
-                processing.value = false
-            }
-        }
-    )
 }
 
 const visitPage = (url) => {
@@ -1013,8 +776,3 @@ const visitPage = (url) => {
     transform: translateY(-4px);
 }
 </style>
-
-
-
-
-

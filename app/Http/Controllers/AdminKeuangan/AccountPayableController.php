@@ -8,11 +8,15 @@ use App\Models\Vendor;
 use App\Models\ReimbursementItem;
 use App\Models\BankAccount;
 use App\Models\OperationalCostCategory;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Services\InvoiceCostSyncService;
+use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class AccountPayableController extends Controller
 {
@@ -21,58 +25,7 @@ class AccountPayableController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AccountPayable::with([
-                'vendor',
-                'salesOrder',
-                'creator',
-                'components' => function ($query) {
-                    $query->orderBy('component_type');
-                },
-            ])
-            ->orderBy('created_at', 'desc');
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('vendor_invoice_number', 'like', "%{$search}%")
-                    ->orWhere('vendor_name', 'like', "%{$search}%")
-                    ->orWhere('service_description', 'like', "%{$search}%")
-                    ->orWhereHas('vendor', function ($vendorQuery) use ($search) {
-                        $vendorQuery->where('nama_vendor', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        // Status filter
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
-
-        // Vendor filter
-        if ($request->has('vendor_id') && $request->vendor_id) {
-            $query->where('vendor_id', $request->vendor_id);
-        }
-
-        // Date range filter
-        if ($request->has('date_from') && $request->date_from) {
-            $query->where('vendor_invoice_date', '>=', $request->date_from);
-        }
-        if ($request->has('date_to') && $request->date_to) {
-            $query->where('vendor_invoice_date', '<=', $request->date_to);
-        }
-
-        $payables = $query->paginate(15);
-
-        $payables->getCollection()->each(function (AccountPayable $payable) {
-            $payable->syncComponents();
-            $payable->load([
-                'components' => function ($query) {
-                    $query->orderBy('component_type');
-                },
-                'vendor',
-            ]);
-        });
+        $payables = $this->paginatePayableGroups($request);
 
         // Calculate summary
         $summary = [
@@ -87,64 +40,21 @@ class AccountPayableController extends Controller
         ];
 
         // Calculate summary per vendor (for current filtered results)
-        $currentQuery = clone $query;
-        $currentResults = $currentQuery->get();
-        $currentResults->each(function (AccountPayable $payable) {
+        $filteredResults = $this->filteredPayablesQuery($request)
+            ->with([
+                'components' => function ($query) {
+                    $query->orderBy('component_type');
+                },
+                'vendor',
+            ])
+            ->get();
+
+        $filteredResults->each(function (AccountPayable $payable) {
             $payable->syncComponents();
             $payable->loadMissing(['components', 'vendor']);
         });
 
-        $vendorSummary = $currentResults
-            ->flatMap(function (AccountPayable $payable) {
-                $payable->loadMissing('components');
-
-                if ($payable->components->isEmpty()) {
-                    return [[
-                        'vendor_id' => $payable->vendor_id,
-                        'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
-                        'source_type' => $payable->vendor_id ? 'vendor_payment' : 'operational_cost',
-                        'source_label' => $payable->vendor_id ? 'Vendor Payment' : 'Biaya Operasional',
-                        'total_amount' => (float) $payable->amount,
-                        'total_paid' => (float) $payable->paid_amount,
-                        'total_outstanding' => (float) $payable->outstanding_amount,
-                        'count_payables' => 1,
-                        'count_overdue' => in_array($payable->status, ['unpaid', 'partial'], true) && $payable->payment_due_date && $payable->payment_due_date < now() ? 1 : 0,
-                    ]];
-                }
-
-                return $payable->components->map(function ($component) use ($payable) {
-                    return [
-                        'vendor_id' => $payable->vendor_id,
-                        'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
-                        'source_type' => $component->component_type,
-                        'source_label' => $component->getComponentLabel(),
-                        'total_amount' => (float) $component->amount,
-                        'total_paid' => (float) $component->paid_amount,
-                        'total_outstanding' => (float) $component->outstanding_amount,
-                        'count_payables' => 1,
-                        'count_overdue' => $component->due_date && $component->status !== 'paid' && $component->due_date < now() ? 1 : 0,
-                    ];
-                });
-            })
-            ->groupBy(function ($entry) {
-                return ($entry['vendor_id'] ?? 'internal') . '::' . $entry['source_type'];
-            })
-            ->map(function ($entries) {
-                $first = $entries->first();
-                return [
-                    'vendor_id' => $first['vendor_id'],
-                    'vendor_name' => $first['vendor_name'],
-                    'source_type' => $first['source_type'],
-                    'source_label' => $first['source_label'],
-                    'total_amount' => (float) $entries->sum('total_amount'),
-                    'total_paid' => (float) $entries->sum('total_paid'),
-                    'total_outstanding' => (float) $entries->sum('total_outstanding'),
-                    'count_payables' => (int) $entries->sum('count_payables'),
-                    'count_overdue' => (int) $entries->sum('count_overdue'),
-                ];
-            })
-            ->sortByDesc('total_outstanding')
-            ->values();
+        $vendorSummary = $this->buildVendorSummaryFromCollection($filteredResults);
 
         // Get vendors for filter
         $vendors = Vendor::select('id', 'nama_vendor')->orderBy('nama_vendor')->get();
@@ -165,10 +75,12 @@ class AccountPayableController extends Controller
     public function show(Request $request, AccountPayable $accountPayable)
     {
         $accountPayable->load(['vendor', 'salesOrder', 'creator', 'paidByUser']);
-
-        // Sync components to ensure they are up to date
         $accountPayable->syncComponents();
         $accountPayable->load('components');
+
+        $groupPayables = $this->getPayablesForShow($accountPayable);
+        $groupSummary = $this->buildGroupSummary($groupPayables, $accountPayable->salesOrder);
+        $formattedGroupPayables = $groupPayables->map(fn (AccountPayable $payable) => $this->formatPayable($payable));
 
         $bankAccounts = BankAccount::all();
         $reimbursementItems = $this->mapReimbursementItems($accountPayable);
@@ -176,7 +88,9 @@ class AccountPayableController extends Controller
         $selectedComponentId = $selectedComponentId !== null ? (int) $selectedComponentId : null;
 
         return Inertia::render('Admin/AdminKeuangan/AccountPayables/Show', [
-            'payable' => $accountPayable,
+            'payable' => $this->formatPayable($accountPayable),
+            'groupPayables' => $formattedGroupPayables,
+            'groupSummary' => $groupSummary,
             'bankAccounts' => $bankAccounts,
             'reimbursementItems' => $reimbursementItems,
             'selectedComponentId' => $selectedComponentId,
@@ -527,6 +441,458 @@ class AccountPayableController extends Controller
                     'component_id' => data_get($receiptInfo, 'component_id'),
                 ];
             });
+    }
+
+    private function getPayablesForShow(AccountPayable $accountPayable): Collection
+    {
+        $query = AccountPayable::with([
+            'components' => function ($query) {
+                $query->orderBy('component_type');
+            },
+            'vendor',
+            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date',
+            'creator:id,name',
+            'paidByUser:id,name',
+        ]);
+
+        if ($accountPayable->sales_order_id) {
+            $query->where('sales_order_id', $accountPayable->sales_order_id);
+        } else {
+            $query->where('id', $accountPayable->id);
+        }
+
+        return $query->orderBy('vendor_invoice_number')->orderBy('created_at')->get();
+    }
+
+    private function buildGroupSummary(Collection $payables, ?SalesOrder $salesOrder): array
+    {
+        $totalAmount = (float) $payables->sum('amount');
+        $totalPaid = (float) $payables->sum('paid_amount');
+        $totalOutstanding = (float) $payables->sum('outstanding_amount');
+
+        $dueDates = $payables->pluck('payment_due_date')->filter();
+        $vendorInvoiceDates = $payables->pluck('vendor_invoice_date')->filter();
+
+        return [
+            'total_amount' => $totalAmount,
+            'total_paid' => $totalPaid,
+            'total_outstanding' => $totalOutstanding,
+            'status' => $this->determineOverallStatus($totalOutstanding, $totalPaid),
+            'sales_order' => $this->formatSalesOrder($salesOrder),
+            'invoice_numbers' => $payables->pluck('vendor_invoice_number')->filter()->unique()->values(),
+            'vendor_names' => $payables
+                ->map(fn (AccountPayable $payable) => $payable->vendor->nama_vendor ?? $payable->vendor_name)
+                ->filter()
+                ->unique()
+                ->values(),
+            'due_date' => $this->formatDateValue($dueDates->min()),
+            'latest_vendor_invoice_date' => $this->formatDateValue($vendorInvoiceDates->max()),
+            'count' => $payables->count(),
+        ];
+    }
+
+    private function paginatePayableGroups(Request $request): LengthAwarePaginator
+    {
+        $groupingExpression = DB::raw('COALESCE(account_payables.sales_order_id, account_payables.id)');
+
+        $paginator = $this->filteredPayablesQuery($request)
+            ->selectRaw('COALESCE(account_payables.sales_order_id, account_payables.id) as grouping_key')
+            ->selectRaw('MIN(account_payables.sales_order_id) as sales_order_id')
+            ->selectRaw('SUM(account_payables.amount) as total_amount')
+            ->selectRaw('SUM(account_payables.paid_amount) as total_paid_amount')
+            ->selectRaw('SUM(account_payables.outstanding_amount) as total_outstanding_amount')
+            ->selectRaw('COUNT(*) as payable_count')
+            ->selectRaw('MIN(account_payables.payment_due_date) as earliest_due_date')
+            ->selectRaw('MAX(account_payables.payment_due_date) as latest_due_date')
+            ->selectRaw('MAX(account_payables.vendor_invoice_date) as latest_vendor_invoice_date')
+            ->selectRaw('MAX(account_payables.created_at) as latest_created_at')
+            ->selectRaw('MAX(account_payables.id) as representative_payable_id')
+            ->groupBy($groupingExpression)
+            ->orderByDesc('latest_created_at')
+            ->paginate(15);
+
+        $groupItems = collect($paginator->items());
+
+        if ($groupItems->isEmpty()) {
+            return $paginator->setCollection(collect());
+        }
+
+        $salesOrderIds = $groupItems
+            ->pluck('sales_order_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $standalonePayableIds = $groupItems
+            ->filter(fn ($group) => !$group->sales_order_id)
+            ->pluck('representative_payable_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $payablesBySalesOrder = $salesOrderIds->isNotEmpty()
+            ? $this->fetchPayablesBySalesOrder($request, $salesOrderIds->all())
+            : collect();
+
+        $standalonePayables = $standalonePayableIds->isNotEmpty()
+            ? $this->fetchStandalonePayables($request, $standalonePayableIds->all())
+            : collect();
+
+        $transformed = $groupItems
+            ->map(function ($group) use ($payablesBySalesOrder, $standalonePayables) {
+                if ($group->sales_order_id) {
+                    $payables = $payablesBySalesOrder->get($group->sales_order_id, collect());
+                    return $this->formatSalesOrderGroup($group, $payables);
+                }
+
+                $payable = $standalonePayables->get($group->representative_payable_id);
+                return $this->formatStandaloneGroup($group, $payable);
+            })
+            ->filter()
+            ->values();
+
+        return $paginator->setCollection($transformed);
+    }
+
+    private function filteredPayablesQuery(Request $request)
+    {
+        $query = AccountPayable::query();
+        $this->applyFilters($query, $request);
+
+        return $query;
+    }
+
+    private function applyFilters($query, Request $request): void
+    {
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('vendor_invoice_number', 'like', "%{$search}%")
+                    ->orWhere('vendor_name', 'like', "%{$search}%")
+                    ->orWhere('service_description', 'like', "%{$search}%")
+                    ->orWhereHas('vendor', function ($vendorQuery) use ($search) {
+                        $vendorQuery->where('nama_vendor', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('salesOrder', function ($salesOrderQuery) use ($search) {
+                        $salesOrderQuery->where('order_number', 'like', "%{$search}%")
+                            ->orWhere('customer', 'like', "%{$search}%")
+                            ->orWhere('shipper', 'like', "%{$search}%")
+                            ->orWhere('customer_name', 'like', "%{$search}%")
+                            ->orWhere('consignee_shipper', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($status = $request->get('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($vendorId = $request->get('vendor_id')) {
+            $query->where('vendor_id', $vendorId);
+        }
+
+        if ($dateFrom = $request->get('date_from')) {
+            $query->whereDate('vendor_invoice_date', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->get('date_to')) {
+            $query->whereDate('vendor_invoice_date', '<=', $dateTo);
+        }
+    }
+
+    private function fetchPayablesBySalesOrder(Request $request, array $salesOrderIds): Collection
+    {
+        return $this->filteredPayablesQuery($request)
+            ->with([
+                'components' => function ($query) {
+                    $query->orderBy('component_type');
+                },
+                'vendor',
+                'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date',
+            ])
+            ->whereIn('sales_order_id', $salesOrderIds)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('sales_order_id');
+    }
+
+    private function fetchStandalonePayables(Request $request, array $payableIds): Collection
+    {
+        return $this->filteredPayablesQuery($request)
+            ->with([
+                'components' => function ($query) {
+                    $query->orderBy('component_type');
+                },
+                'vendor',
+            ])
+            ->whereIn('id', $payableIds)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->keyBy('id');
+    }
+
+    private function formatSalesOrderGroup(object $group, Collection $payables): ?array
+    {
+        if ($payables->isEmpty()) {
+            return null;
+        }
+
+        $salesOrder = $payables->first()->salesOrder ?? null;
+        $formattedPayables = $payables
+            ->map(fn (AccountPayable $payable) => $this->formatPayable($payable))
+            ->values();
+
+        return [
+            'group_key' => $salesOrder
+                ? 'sales-order-' . $salesOrder->id
+                : 'sales-order-' . $group->grouping_key,
+            'group_type' => 'sales_order',
+            'sales_order' => $this->formatSalesOrder($salesOrder),
+            'account_payables' => $formattedPayables->toArray(),
+            'totals' => [
+                'amount' => (float) $group->total_amount,
+                'paid' => (float) $group->total_paid_amount,
+                'outstanding' => (float) $group->total_outstanding_amount,
+            ],
+            'status' => $this->determineOverallStatus(
+                (float) $group->total_outstanding_amount,
+                (float) $group->total_paid_amount
+            ),
+            'due_date' => $this->formatDateValue($group->earliest_due_date),
+            'latest_vendor_invoice_date' => $this->formatDateValue(
+                $group->latest_vendor_invoice_date ?? $formattedPayables->pluck('vendor_invoice_date')->filter()->first()
+            ),
+            'vendor_summary' => $this->buildVendorSummaryPayload($formattedPayables),
+            'invoice_numbers' => $this->collectInvoiceNumbers($formattedPayables),
+            'service_description' => $formattedPayables->pluck('service_description')->filter()->first(),
+            'service_remarks' => $formattedPayables->pluck('service_remarks')->filter()->first(),
+        ];
+    }
+
+    private function formatStandaloneGroup(object $group, ?AccountPayable $payable): ?array
+    {
+        if (!$payable) {
+            return null;
+        }
+
+        $formattedPayables = collect([$this->formatPayable($payable)]);
+        $firstPayable = $formattedPayables->first();
+
+        return [
+            'group_key' => 'payable-' . $payable->id,
+            'group_type' => 'single_payable',
+            'sales_order' => null,
+            'account_payables' => $formattedPayables->toArray(),
+            'totals' => [
+                'amount' => (float) $group->total_amount,
+                'paid' => (float) $group->total_paid_amount,
+                'outstanding' => (float) $group->total_outstanding_amount,
+            ],
+            'status' => $this->determineOverallStatus(
+                (float) $group->total_outstanding_amount,
+                (float) $group->total_paid_amount
+            ),
+            'due_date' => $this->formatDateValue(
+                $group->earliest_due_date ?? ($firstPayable['payment_due_date'] ?? null)
+            ),
+            'latest_vendor_invoice_date' => $this->formatDateValue(
+                $group->latest_vendor_invoice_date ?? ($firstPayable['vendor_invoice_date'] ?? null)
+            ),
+            'vendor_summary' => $this->buildVendorSummaryPayload($formattedPayables),
+            'invoice_numbers' => $this->collectInvoiceNumbers($formattedPayables),
+            'service_description' => $firstPayable['service_description'] ?? null,
+            'service_remarks' => $firstPayable['service_remarks'] ?? null,
+        ];
+    }
+
+    private function formatSalesOrder(?SalesOrder $salesOrder): ?array
+    {
+        if (!$salesOrder) {
+            return null;
+        }
+
+        return [
+            'id' => $salesOrder->id,
+            'order_number' => $salesOrder->order_number ?? $salesOrder->so_number,
+            'customer' => $salesOrder->customer ?? $salesOrder->customer_name,
+            'shipper' => $salesOrder->shipper ?? $salesOrder->consignee_shipper,
+            'so_date' => $this->formatDateValue($salesOrder->so_date),
+            'released_at' => optional($salesOrder->released_at)->toDateTimeString(),
+        ];
+    }
+
+    private function formatPayable(AccountPayable $payable): array
+    {
+        $payable->syncComponents();
+        $payable->loadMissing([
+            'components' => function ($query) {
+                $query->orderBy('component_type');
+            },
+            'vendor',
+            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date',
+            'creator:id,name',
+            'paidByUser:id,name',
+        ]);
+
+        return [
+            'id' => $payable->id,
+            'sales_order_id' => $payable->sales_order_id,
+            'vendor_invoice_number' => $payable->vendor_invoice_number,
+            'vendor_invoice_date' => $this->formatDateValue($payable->vendor_invoice_date),
+            'service_description' => $payable->service_description,
+            'service_remarks' => $payable->service_remarks,
+            'sales_order' => $this->formatSalesOrder($payable->salesOrder),
+            'amount' => (float) $payable->amount,
+            'paid_amount' => (float) $payable->paid_amount,
+            'outstanding_amount' => (float) $payable->outstanding_amount,
+            'status' => $payable->status,
+            'payment_due_date' => $this->formatDateValue($payable->payment_due_date),
+            'payment_date' => $this->formatDateValue($payable->payment_date),
+            'payment_method' => $payable->payment_method,
+            'payment_notes' => $payable->payment_notes,
+            'vendor_bank_account' => $payable->vendor_bank_account,
+            'vendor_account_name' => $payable->vendor_account_name,
+            'days_overdue' => $payable->days_overdue,
+            'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
+            'vendor' => $payable->vendor ? [
+                'id' => $payable->vendor->id,
+                'nama_vendor' => $payable->vendor->nama_vendor,
+            ] : null,
+            'creator' => $payable->creator ? [
+                'id' => $payable->creator->id,
+                'name' => $payable->creator->name,
+            ] : null,
+            'paid_by_user' => $payable->paidByUser ? [
+                'id' => $payable->paidByUser->id,
+                'name' => $payable->paidByUser->name,
+            ] : null,
+            'components' => $payable->components->map(function ($component) {
+                return [
+                    'id' => $component->id,
+                    'component_type' => $component->component_type,
+                    'description' => $component->description,
+                    'amount' => (float) $component->amount,
+                    'paid_amount' => (float) $component->paid_amount,
+                    'outstanding_amount' => (float) $component->outstanding_amount,
+                    'status' => $component->status,
+                    'due_date' => $this->formatDateValue($component->due_date),
+                    'recipient_name' => $component->recipient_name,
+                    'related_items' => $component->related_items,
+                ];
+            })->values()->all(),
+        ];
+    }
+
+    private function determineOverallStatus(float $outstanding, float $paid): string
+    {
+        if ($outstanding <= 0.01) {
+            return 'paid';
+        }
+
+        if ($paid > 0) {
+            return 'partial';
+        }
+
+        return 'unpaid';
+    }
+
+    private function formatDateValue($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->toDateString();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function buildVendorSummaryFromCollection(Collection $payables): Collection
+    {
+        return $payables
+            ->flatMap(function (AccountPayable $payable) {
+                $payable->loadMissing('components');
+
+                if ($payable->components->isEmpty()) {
+                    return [[
+                        'vendor_id' => $payable->vendor_id,
+                        'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
+                        'source_type' => $payable->vendor_id ? 'vendor_payment' : 'operational_cost',
+                        'source_label' => $payable->vendor_id ? 'Vendor Payment' : 'Biaya Operasional',
+                        'total_amount' => (float) $payable->amount,
+                        'total_paid' => (float) $payable->paid_amount,
+                        'total_outstanding' => (float) $payable->outstanding_amount,
+                        'count_payables' => 1,
+                        'count_overdue' => in_array($payable->status, ['unpaid', 'partial'], true)
+                            && $payable->payment_due_date
+                            && $payable->payment_due_date < now()
+                            ? 1
+                            : 0,
+                    ]];
+                }
+
+                return $payable->components->map(function ($component) use ($payable) {
+                    return [
+                        'vendor_id' => $payable->vendor_id,
+                        'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
+                        'source_type' => $component->component_type,
+                        'source_label' => $component->getComponentLabel(),
+                        'total_amount' => (float) $component->amount,
+                        'total_paid' => (float) $component->paid_amount,
+                        'total_outstanding' => (float) $component->outstanding_amount,
+                        'count_payables' => 1,
+                        'count_overdue' => $component->due_date && $component->status !== 'paid' && $component->due_date < now() ? 1 : 0,
+                    ];
+                });
+            })
+            ->groupBy(function ($entry) {
+                return ($entry['vendor_id'] ?? 'internal') . '::' . $entry['source_type'];
+            })
+            ->map(function ($entries) {
+                $first = $entries->first();
+                return [
+                    'vendor_id' => $first['vendor_id'],
+                    'vendor_name' => $first['vendor_name'],
+                    'source_type' => $first['source_type'],
+                    'source_label' => $first['source_label'],
+                    'total_amount' => (float) $entries->sum('total_amount'),
+                    'total_paid' => (float) $entries->sum('total_paid'),
+                    'total_outstanding' => (float) $entries->sum('total_outstanding'),
+                    'count_payables' => (int) $entries->sum('count_payables'),
+                    'count_overdue' => (int) $entries->sum('count_overdue'),
+                ];
+            })
+            ->sortByDesc('total_outstanding')
+            ->values();
+    }
+
+    private function buildVendorSummaryPayload(Collection $payables): array
+    {
+        return $payables->map(function ($payable) {
+            $vendorName = data_get($payable, 'vendor.nama_vendor')
+                ?? data_get($payable, 'vendor_name')
+                ?? 'Internal';
+
+            return [
+                'id' => data_get($payable, 'id'),
+                'vendor_name' => $vendorName,
+                'invoice_number' => data_get($payable, 'vendor_invoice_number'),
+                'status' => data_get($payable, 'status', 'unpaid'),
+                'outstanding' => (float) data_get($payable, 'outstanding_amount', 0),
+                'amount' => (float) data_get($payable, 'amount', 0),
+            ];
+        })->values()->all();
+    }
+
+    private function collectInvoiceNumbers(Collection $payables): array
+    {
+        return $payables
+            ->pluck('vendor_invoice_number')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

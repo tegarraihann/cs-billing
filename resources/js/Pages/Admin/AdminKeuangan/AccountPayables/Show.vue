@@ -15,23 +15,23 @@
                         </button>
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Detail Hutang</h1>
-                            <p class="mt-1 text-sm text-gray-600">Vendor {{ payable.vendor?.nama_vendor }}</p>
+                            <p class="mt-1 text-sm text-gray-600">{{ headerSubtitle }}</p>
                         </div>
                     </div>
                     
                     <div class="flex items-center space-x-3">
                         <span
-                            :class="getStatusClass(payable.status)"
+                            :class="getStatusClass(summaryStatus)"
                             class="inline-flex px-3 py-1 text-sm font-semibold rounded-full"
                         >
-                            {{ getStatusText(payable.status) }}
-                            <span v-if="payable.days_overdue > 0" class="ml-1">
-                                ({{ payable.days_overdue }} hari overdue)
+                            {{ getStatusText(summaryStatus) }}
+                            <span v-if="overdueDays > 0" class="ml-1">
+                                ({{ overdueDays }} hari overdue)
                             </span>
                         </span>
                         
                         <button
-                            v-if="payable.status !== 'paid'"
+                            v-if="payable && payable.status !== 'paid'"
                             @click="openPaymentModal"
                             class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
@@ -144,23 +144,117 @@
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                         <div class="text-sm font-medium text-blue-600 mb-1">Total Amount</div>
                         <div class="text-xl font-bold text-blue-900">
-                            Rp {{ formatNumber(payable.amount) }}
+                            Rp {{ formatNumber(summary.total_amount) }}
                         </div>
                     </div>
                     <div class="bg-green-50 p-4 rounded-lg border border-green-200">
                         <div class="text-sm font-medium text-green-600 mb-1">Paid Amount</div>
                         <div class="text-xl font-bold text-green-900">
-                            Rp {{ formatNumber(payable.paid_amount) }}
+                            Rp {{ formatNumber(summary.total_paid) }}
                         </div>
                     </div>
                     <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                         <div class="text-sm font-medium text-red-600 mb-1">Outstanding Amount</div>
                         <div class="text-xl font-bold text-red-900">
-                            Rp {{ formatNumber(payable.outstanding_amount) }}
+                            Rp {{ formatNumber(summary.total_outstanding) }}
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Breakdown -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">Rincian Hutang per Invoice</h3>
+                    <p class="text-sm text-gray-500">Semua komponen biaya (main invoice, reimbursement, operasional) ditampilkan pada daftar ini. Klik salah satu invoice untuk melihat detail lengkap di panel utama.</p>
+                </div>
+                <div class="mt-4 md:mt-0 text-right">
+                    <p class="text-sm text-gray-500">Total Outstanding</p>
+                    <p class="text-xl font-semibold text-gray-900">Rp {{ formatNumber(summary.total_outstanding) }}</p>
+                </div>
+            </div>
+            <div v-if="payablesList.length" class="divide-y divide-gray-200">
+                <div
+                    v-for="invoice in payablesList"
+                    :key="invoice.id"
+                    :class="['p-6 space-y-4', invoice.id === selectedPayableId ? 'bg-sage-50' : 'bg-white']"
+                >
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between">
+                        <div class="space-y-1">
+                            <p class="text-base font-semibold text-gray-900">
+                                {{ invoice.vendor?.nama_vendor || invoice.vendor_name || 'Internal' }}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                Invoice: {{ invoice.vendor_invoice_number || '-' }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                Jatuh tempo: {{ invoice.payment_due_date ? formatDate(invoice.payment_due_date) : '-' }}
+                            </p>
+                        </div>
+                        <div class="mt-4 md:mt-0 flex items-center space-x-3">
+                            <span
+                                :class="getStatusClass(invoice.status)"
+                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                            >
+                                {{ getStatusText(invoice.status) }}
+                            </span>
+                            <button
+                                @click="selectPayable(invoice.id)"
+                                class="inline-flex items-center px-3 py-2 text-xs font-semibold rounded-md border"
+                                :class="invoice.id === selectedPayableId
+                                    ? 'bg-sage-600 text-white border-sage-600 cursor-default'
+                                    : 'border-sage-200 text-sage-700 hover:bg-sage-50'"
+                                :disabled="invoice.id === selectedPayableId"
+                            >
+                                {{ invoice.id === selectedPayableId ? 'Sedang Ditampilkan' : 'Lihat Detail' }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <p class="text-gray-500">Total</p>
+                            <p class="text-base font-semibold text-gray-900">Rp {{ formatNumber(invoice.amount) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Dibayar</p>
+                            <p class="text-base font-semibold text-gray-900">Rp {{ formatNumber(invoice.paid_amount) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Outstanding</p>
+                            <p class="text-base font-semibold text-gray-900">Rp {{ formatNumber(invoice.outstanding_amount) }}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div
+                            v-for="component in invoice.components"
+                            :key="component.id"
+                            class="border border-gray-200 rounded-lg p-3"
+                        >
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        {{ getComponentTypeLabel(component.component_type) }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ component.description || 'Tidak ada deskripsi' }}
+                                    </p>
+                                </div>
+                                <div class="mt-2 md:mt-0 text-right text-sm text-gray-900">
+                                    <p>Total Rp {{ formatNumber(component.amount) }}</p>
+                                    <p class="text-xs text-gray-500">
+                                        Outstanding Rp {{ formatNumber(component.outstanding_amount) }}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div v-else class="p-6 text-sm text-gray-500">
+                Tidak ada data hutang yang ditemukan untuk entitas ini.
+            </div>
+        </div>
 
         <!-- Components Breakdown -->
         <div v-if="visibleComponents.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -689,6 +783,14 @@ import { ArrowLeft, CreditCard, Edit, Plus, ChevronDown } from 'lucide-vue-next'
 
 const props = defineProps({
     payable: Object,
+    groupSummary: {
+        type: Object,
+        default: () => null
+    },
+    groupPayables: {
+        type: Array,
+        default: () => []
+    },
     bankAccounts: {
         type: Array,
         default: () => []
@@ -711,6 +813,35 @@ const props = defineProps({
     }
 })
 
+const payables = computed(() => {
+    if (Array.isArray(props.groupPayables) && props.groupPayables.length) {
+        return props.groupPayables
+    }
+    return props.payable ? [props.payable] : []
+})
+
+const selectedPayableId = ref(payables.value[0]?.id || null)
+
+watch(payables, (items) => {
+    if (!items.length) {
+        selectedPayableId.value = null
+        return
+    }
+    if (!items.find((item) => item.id === selectedPayableId.value)) {
+        selectedPayableId.value = items[0].id
+    }
+})
+
+const payable = computed(() => {
+    if (!payables.value.length) {
+        return null
+    }
+    if (!selectedPayableId.value) {
+        return payables.value[0]
+    }
+    return payables.value.find((item) => item.id === selectedPayableId.value) || payables.value[0]
+})
+
 const showPaymentModal = ref(false)
 const showEditModal = ref(false)
 const showAdditionalCostModal = ref(false)
@@ -726,10 +857,71 @@ const paymentForm = reactive({
     component_id: ''
 })
 
+const payablesList = payables
+
+const summary = computed(() => {
+    if (props.groupSummary) {
+        return {
+            total_amount: props.groupSummary.total_amount ?? 0,
+            total_paid: props.groupSummary.total_paid ?? 0,
+            total_outstanding: props.groupSummary.total_outstanding ?? 0,
+            status: props.groupSummary.status ?? null,
+            sales_order: props.groupSummary.sales_order ?? null,
+            invoice_numbers: props.groupSummary.invoice_numbers ?? [],
+            vendor_names: props.groupSummary.vendor_names ?? [],
+            due_date: props.groupSummary.due_date ?? null,
+            latest_vendor_invoice_date: props.groupSummary.latest_vendor_invoice_date ?? null
+        }
+    }
+
+    const current = payable.value
+
+    return {
+        total_amount: current?.amount ?? 0,
+        total_paid: current?.paid_amount ?? 0,
+        total_outstanding: current?.outstanding_amount ?? 0,
+        status: current?.status ?? null,
+        sales_order: current?.sales_order ?? null,
+        invoice_numbers: current?.vendor_invoice_number ? [current.vendor_invoice_number] : [],
+        vendor_names: current?.vendor_name ? [current.vendor_name] : [],
+        due_date: current?.payment_due_date ?? null,
+        latest_vendor_invoice_date: current?.vendor_invoice_date ?? null
+    }
+})
+
+const summaryStatus = computed(() => summary.value.status ?? payable.value?.status ?? 'unpaid')
+const activeVendorName = computed(() => payable.value?.vendor?.nama_vendor ?? payable.value?.vendor_name ?? '-')
+const activeDaysOverdue = computed(() => payable.value?.days_overdue ?? 0)
+const overdueDays = computed(() => activeDaysOverdue.value)
+
+const headerSubtitle = computed(() => {
+    if (summary.value.sales_order?.order_number) {
+        return `SO ${summary.value.sales_order.order_number}`
+    }
+    if (summary.value.vendor_names?.length) {
+        return `Vendor ${summary.value.vendor_names[0]}`
+    }
+    return `Vendor ${activeVendorName.value}`
+})
+
+const componentTypeLabels = {
+    vendor_payment: 'Pembayaran Vendor',
+    operational_cost: 'Biaya Operational',
+    reimbursement: 'Reimbursement'
+}
+
+const getComponentTypeLabel = (type) => componentTypeLabels[type] || type
+
+const selectPayable = (payableId) => {
+    if (!payableId || selectedPayableId.value === payableId) {
+        return
+    }
+    selectedPayableId.value = payableId
+}
 const editForm = reactive({
-    vendor_invoice_number: props.payable.vendor_invoice_number || '',
-    vendor_invoice_date: props.payable.vendor_invoice_date || '',
-    service_remarks: props.payable.service_remarks || ''
+    vendor_invoice_number: '',
+    vendor_invoice_date: '',
+    service_remarks: ''
 })
 
 const additionalCostForm = useForm({
@@ -737,19 +929,29 @@ const additionalCostForm = useForm({
     description: '',
     amount: '',
     category_id: '',
-    vendor_id: props.payable.vendor_id ? String(props.payable.vendor_id) : '',
+    vendor_id: '',
     notes: ''
 })
 
 const additionalCostContext = ref({
     componentType: 'operational_cost',
     categoryId: '',
-    vendorId: props.payable.vendor_id ? String(props.payable.vendor_id) : '',
+    vendorId: '',
     categoryLocked: false
 })
 
+watch(payable, (current) => {
+    editForm.vendor_invoice_number = current?.vendor_invoice_number || ''
+    editForm.vendor_invoice_date = current?.vendor_invoice_date || ''
+    editForm.service_remarks = current?.service_remarks || ''
+
+    const vendorId = current?.vendor_id ? String(current.vendor_id) : ''
+    additionalCostContext.value.vendorId = vendorId
+    additionalCostForm.vendor_id = vendorId
+}, { immediate: true })
+
 // Computed properties for components
-const componentOptions = computed(() => (props.payable.components || []).map(component => ({
+const componentOptions = computed(() => ((payable.value?.components) || []).map(component => ({
     ...component,
     id: Number(component.id),
     amount: parseFloat(component.amount || 0),
@@ -994,10 +1196,11 @@ const closeEditModal = () => {
 
 const resetAdditionalCostForm = () => {
     additionalCostForm.reset()
+    const vendorId = payable.value?.vendor_id ? String(payable.value.vendor_id) : ''
     additionalCostContext.value = {
         componentType: 'operational_cost',
         categoryId: '',
-        vendorId: props.payable.vendor_id ? String(props.payable.vendor_id) : '',
+        vendorId,
         categoryLocked: false
     }
     additionalCostForm.component_type = additionalCostContext.value.componentType
@@ -1017,7 +1220,7 @@ const openAdditionalCostModal = (context = {}) => {
         categoryId: contextCategoryId,
         vendorId: context.vendorId
             ? String(context.vendorId)
-            : (props.payable.vendor_id ? String(props.payable.vendor_id) : ''),
+            : (payable.value?.vendor_id ? String(payable.value.vendor_id) : ''),
         categoryLocked: fromComponent
     }
 
@@ -1034,10 +1237,14 @@ const closeAdditionalCostModal = () => {
 }
 
 const markPayment = () => {
+    if (!payable.value?.id) {
+        return
+    }
+
     processing.value = true
     
     router.post(
-        route('admin-keuangan.account-payables.mark-as-paid', props.payable.id),
+        route('admin-keuangan.account-payables.mark-as-paid', payable.value.id),
         paymentForm,
         {
             onSuccess: () => {
@@ -1052,13 +1259,17 @@ const markPayment = () => {
 }
 
 const submitAdditionalCost = () => {
+    if (!payable.value?.id) {
+        return
+    }
+
     additionalCostForm
         .transform((data) => ({
             ...data,
             amount: normalizeCurrencyInput(data.amount)
         }))
         .post(
-        route('admin-keuangan.account-payables.components.store', props.payable.id),
+        route('admin-keuangan.account-payables.components.store', payable.value.id),
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -1069,10 +1280,14 @@ const submitAdditionalCost = () => {
 }
 
 const updateDetails = () => {
+    if (!payable.value?.id) {
+        return
+    }
+
     processing.value = true
     
     router.post(
-        route('admin-keuangan.account-payables.update-vendor-invoice', props.payable.id),
+        route('admin-keuangan.account-payables.update-vendor-invoice', payable.value.id),
         editForm,
         {
             onSuccess: () => {
