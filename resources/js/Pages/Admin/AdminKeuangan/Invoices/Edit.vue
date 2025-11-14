@@ -130,9 +130,17 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Gross Weight</label>
-                            <input type="number" step="0.01" v-model="form.gross_weight"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Gross Weight (KG)</label>
+                            <input type="number" step="0.01" min="0" v-model="form.gross_weight"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Net Weight (KG)</label>
+                            <input type="number" step="0.0001" min="0" v-model="form.net_weight"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                            <div v-if="errors.net_weight" class="text-red-500 text-sm mt-1">
+                                {{ errors.net_weight }}
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Volume</label>
@@ -687,6 +695,7 @@ const form = useForm({
     etd: formatDateForInput(props.invoice.etd),
     eta: formatDateForInput(props.invoice.eta),
     gross_weight: props.invoice.gross_weight || '',
+    net_weight: props.invoice.net_weight || '',
     volume: props.invoice.volume || '',
     no_of_packages: props.invoice.no_of_packages || '',
     package_unit: props.invoice.package_unit || 'BAG',

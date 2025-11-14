@@ -546,8 +546,9 @@ class Invoice extends Model
     // Check if can be posted
     public function canBePostedToProfitLoss(): bool
     {
-        return $this->status === 'sent' &&
-               !$this->posted_to_profit_loss &&
+        $eligibleStatuses = ['draft', 'sent', 'paid'];
+
+        return in_array($this->status, $eligibleStatuses, true) &&
                ($this->calculateGrossRevenue() > 0 || $this->calculateOperationalCosts() > 0);
     }
 }

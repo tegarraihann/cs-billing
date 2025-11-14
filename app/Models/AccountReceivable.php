@@ -466,6 +466,7 @@ class AccountReceivable extends Model
                 $this->fill($summary)->save();
             }
 
+            $this->syncInvoicePaymentStatus($summary);
             return $summary;
         }
 
@@ -494,6 +495,27 @@ class AccountReceivable extends Model
             $this->fill($summary)->save();
         }
 
+        $this->syncInvoicePaymentStatus($summary);
+
         return $summary;
+    }
+
+    protected function syncInvoicePaymentStatus(array $summary): void
+    {
+        if ($summary['status'] !== 'paid') {
+            return;
+        }
+
+        $invoice = $this->relationLoaded('invoice') ? $this->invoice : $this->invoice()->first();
+        if (!$invoice || $invoice->status === 'paid') {
+            return;
+        }
+
+        $invoice->update([
+            'status' => 'paid',
+            'paid_amount' => $summary['paid_amount'],
+            'paid_date' => $this->last_payment_date ?? $invoice->paid_date ?? now(),
+        ]);
+        app(\App\Services\InvoicePostingService::class)->sync($invoice->fresh());
     }
 }

@@ -541,16 +541,26 @@ class AccountPayable extends Model
             }
 
             $reimbursementItems = $invoiceItems->where('item_type', 'reimbursement');
-            $totalReimbursement = (float) $reimbursementItems->sum('amount');
+            foreach ($reimbursementItems as $reimbursementItem) {
+                $amount = (float) ($reimbursementItem->amount ?? 0);
+                if ($amount <= 0) {
+                    continue;
+                }
 
-            if ($totalReimbursement > 0) {
+                $itemId = $reimbursementItem->id ?? null;
+                $lookupRef = $itemId ? 'invoice_item_' . $itemId : 'invoice_item_' . uniqid();
+
                 $payloads[] = [
                     'component_type' => 'reimbursement',
-                    'description' => 'Reimbursement',
-                    'amount' => $totalReimbursement,
+                    'description' => $reimbursementItem->description ?: 'Reimbursement',
+                    'amount' => $amount,
                     'recipient_name' => $this->vendor_name,
                     'vendor_id' => $this->vendor_id,
-                    'related_items' => $reimbursementItems->pluck('id')->toArray(),
+                    'related_items' => [
+                        'source' => 'invoice_item',
+                        'invoice_item_id' => $itemId,
+                    ],
+                    'lookup_reference' => $lookupRef,
                 ];
             }
         }

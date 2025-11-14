@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ExpenseCategorizationService;
 use App\Services\InvoiceCostSyncService;
+use App\Services\InvoicePostingService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
@@ -394,6 +395,8 @@ class InvoiceController extends Controller
         // Auto-generate Account Receivable
         \App\Models\AccountReceivable::createFromInvoice($invoice);
 
+        $this->autoPostInvoice($invoice);
+
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil dibuat.');
 
@@ -622,6 +625,37 @@ class InvoiceController extends Controller
             'down_payment_notes' => 'nullable|string|max:1000',
         ]);
 
+        $optionalFields = [
+            'shipper',
+            'consignee',
+            'awb_bl_no',
+            'mawb_obl_no',
+            'gross_weight',
+            'net_weight',
+            'volume',
+            'no_of_packages',
+            'package_unit',
+            'vessel',
+            'flight_voy',
+            'pol_pod',
+            'origin',
+            'destination',
+            'etd',
+            'eta',
+            'container_no',
+            'container_size',
+            'remarks',
+            'down_payment_amount',
+            'down_payment_date',
+            'down_payment_notes',
+        ];
+
+        foreach ($optionalFields as $field) {
+            if (!array_key_exists($field, $validated)) {
+                $validated[$field] = null;
+            }
+        }
+
         $invoiceDate = Carbon::parse($validated['invoice_date']);
         $dueDate = $invoiceDate->copy()->addDays($validated['term_days']);
 
@@ -736,6 +770,8 @@ class InvoiceController extends Controller
 
         // Sync Account Receivable after invoice update
         \App\Models\AccountReceivable::syncFromInvoice($invoice->refresh());
+
+        $this->autoPostInvoice($invoice);
 
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Invoice berhasil diperbarui.');
@@ -1047,6 +1083,8 @@ class InvoiceController extends Controller
             // Auto-generate or sync Account Receivable when marking as sent
             \App\Models\AccountReceivable::syncFromInvoice($invoice);
 
+            $this->autoPostInvoice($invoice);
+
             return redirect()->route('admin-keuangan.invoices.show', $invoice)
                 ->with('success', 'Invoice berhasil ditandai sebagai terkirim dan piutang telah dibuat.');
         } catch (\Exception $e) {
@@ -1152,6 +1190,18 @@ class InvoiceController extends Controller
             'invoice' => $filteredInvoice,
             'generatedAt' => $generatedAt
         ]);
+    }
+
+    protected function autoPostInvoice(Invoice $invoice): void
+    {
+        try {
+            app(InvoicePostingService::class)->sync($invoice->fresh());
+        } catch (\Throwable $th) {
+            \Log::error('Invoice auto posting failed', [
+                'invoice_id' => $invoice->id,
+                'error_message' => $th->getMessage(),
+            ]);
+        }
     }
 
     private function generateInvoiceNumberByType(SalesOrder $salesOrder, string $type): string

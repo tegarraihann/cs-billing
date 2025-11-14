@@ -120,7 +120,7 @@ class AccountPayableController extends Controller
 
         // Prepare validation rules
         $rules = [
-            'amount' => 'required|numeric|min:0.01|max:' . $accountPayable->outstanding_amount,
+            'amount' => 'required|numeric|min:0.01',
             'payment_method' => 'required|string|max:100',
             'bank_account_id' => 'required|exists:bank_accounts,id',
             'payment_date' => 'required|date',

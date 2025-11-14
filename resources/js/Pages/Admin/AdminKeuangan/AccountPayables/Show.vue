@@ -18,7 +18,7 @@
                             <p class="mt-1 text-sm text-gray-600">{{ headerSubtitle }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center space-x-3">
                         <span
                             :class="getStatusClass(summaryStatus)"
@@ -29,9 +29,9 @@
                                 ({{ overdueDays }} hari overdue)
                             </span>
                         </span>
-                        
+
                         <button
-                            v-if="payable && payable.status !== 'paid'"
+                            v-if="summary.total_outstanding > 0"
                             @click="openPaymentModal"
                             class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
@@ -128,7 +128,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div v-if="payable.service_remarks" class="mt-4">
                     <label class="text-sm font-medium text-gray-500">Service Remarks</label>
                     <div class="mt-1 bg-gray-50 p-3 rounded-md">
@@ -162,104 +162,13 @@
             </div>
         </div>
 
-        <!-- Invoice Breakdown -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-            <div class="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900">Rincian Hutang per Invoice</h3>
-                    <p class="text-sm text-gray-500">Semua komponen biaya (main invoice, reimbursement, operasional) ditampilkan pada daftar ini. Klik salah satu invoice untuk melihat detail lengkap di panel utama.</p>
-                </div>
-                <div class="mt-4 md:mt-0 text-right">
-                    <p class="text-sm text-gray-500">Total Outstanding</p>
-                    <p class="text-xl font-semibold text-gray-900">Rp {{ formatNumber(summary.total_outstanding) }}</p>
-                </div>
-            </div>
-            <div v-if="payablesList.length" class="divide-y divide-gray-200">
-                <div
-                    v-for="invoice in payablesList"
-                    :key="invoice.id"
-                    :class="['p-6 space-y-4', invoice.id === selectedPayableId ? 'bg-sage-50' : 'bg-white']"
-                >
-                    <div class="flex flex-col md:flex-row md:items-start md:justify-between">
-                        <div class="space-y-1">
-                            <p class="text-base font-semibold text-gray-900">
-                                {{ invoice.vendor?.nama_vendor || invoice.vendor_name || 'Internal' }}
-                            </p>
-                            <p class="text-sm text-gray-600">
-                                Invoice: {{ invoice.vendor_invoice_number || '-' }}
-                            </p>
-                            <p class="text-xs text-gray-500">
-                                Jatuh tempo: {{ invoice.payment_due_date ? formatDate(invoice.payment_due_date) : '-' }}
-                            </p>
-                        </div>
-                        <div class="mt-4 md:mt-0 flex items-center space-x-3">
-                            <span
-                                :class="getStatusClass(invoice.status)"
-                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                            >
-                                {{ getStatusText(invoice.status) }}
-                            </span>
-                            <button
-                                @click="selectPayable(invoice.id)"
-                                class="inline-flex items-center px-3 py-2 text-xs font-semibold rounded-md border"
-                                :class="invoice.id === selectedPayableId
-                                    ? 'bg-sage-600 text-white border-sage-600 cursor-default'
-                                    : 'border-sage-200 text-sage-700 hover:bg-sage-50'"
-                                :disabled="invoice.id === selectedPayableId"
-                            >
-                                {{ invoice.id === selectedPayableId ? 'Sedang Ditampilkan' : 'Lihat Detail' }}
-                            </button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <p class="text-gray-500">Total</p>
-                            <p class="text-base font-semibold text-gray-900">Rp {{ formatNumber(invoice.amount) }}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">Dibayar</p>
-                            <p class="text-base font-semibold text-gray-900">Rp {{ formatNumber(invoice.paid_amount) }}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">Outstanding</p>
-                            <p class="text-base font-semibold text-gray-900">Rp {{ formatNumber(invoice.outstanding_amount) }}</p>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div
-                            v-for="component in invoice.components"
-                            :key="component.id"
-                            class="border border-gray-200 rounded-lg p-3"
-                        >
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">
-                                        {{ getComponentTypeLabel(component.component_type) }}
-                                    </p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ component.description || 'Tidak ada deskripsi' }}
-                                    </p>
-                                </div>
-                                <div class="mt-2 md:mt-0 text-right text-sm text-gray-900">
-                                    <p>Total Rp {{ formatNumber(component.amount) }}</p>
-                                    <p class="text-xs text-gray-500">
-                                        Outstanding Rp {{ formatNumber(component.outstanding_amount) }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div v-else class="p-6 text-sm text-gray-500">
-                Tidak ada data hutang yang ditemukan untuk entitas ini.
-            </div>
-        </div>
-
         <!-- Components Breakdown -->
         <div v-if="visibleComponents.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-900">Rincian Komponen Hutang</h2>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Rincian Komponen Hutang</h2>
+                    <p class="text-sm text-gray-500">Semua komponen biaya (main invoice, reimbursement, operasional) ditampilkan di tabel ini.</p>
+                </div>
                 <button
                     @click="openAdditionalCostModal"
                     class="inline-flex items-center px-4 py-2 border border-red-200 text-red-700 text-sm font-medium rounded-md bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
@@ -274,6 +183,9 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Komponen
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Kategori
                                 </th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Penerima
@@ -294,127 +206,34 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <template v-for="component in visibleComponents" :key="component.id">
-                            <tr>
-                                <td class="px-4 py-3 text-sm text-gray-900">
-                                    <div class="flex items-start gap-2">
-                                        <button
-                                            type="button"
-                                            class="text-gray-400 hover:text-gray-600 mt-0.5"
-                                            @click="toggleComponentDetails(component.id)"
-                                        >
-                                            <ChevronDown
-                                                class="w-4 h-4 transition-transform duration-150"
-                                                :class="{ 'rotate-180': isComponentOpen(component.id) }"
-                                            />
-                                        </button>
-                                        <div>
-                                            <div class="font-medium text-gray-900">
-                                                {{ getComponentLabel(component.component_type) }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">
-                                                {{ component.description || 'Tidak ada deskripsi' }}
-                                            </div>
+                                <tr>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        <div class="font-medium text-gray-900">
+                                            {{ component.description || 'Tidak ada deskripsi' }}
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-900">
-                                    <div>{{ component.recipient_name || '-' }}</div>
-                                    <div v-if="getComponentCategory(component)" class="text-xs text-gray-500 mt-1">
-                                        Kategori: {{ getComponentCategory(component) }}
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                                    Rp {{ formatNumber(component.amount) }}
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                                    Rp {{ formatNumber(component.paid_amount) }}
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                                    Rp {{ formatNumber(component.outstanding_amount) }}
-                                </td>
-                                <td class="px-4 py-3 text-sm text-right">
-                                    <span :class="getStatusClass(component.status)"
-                                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
-                                        {{ getStatusText(component.status) }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr
-                                v-if="isComponentOpen(component.id)"
-                                class="bg-gray-50"
-                            >
-                                <td colspan="6" class="px-6 py-4 text-sm text-gray-700">
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Kategori</div>
-                                            <div class="font-medium text-gray-900">
-                                                {{ getComponentCategory(component) || '-' }}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Vendor / Penerima</div>
-                                            <div class="font-medium text-gray-900">
-                                                {{ component.recipient_name || '-' }}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Sumber</div>
-                                            <div class="font-medium text-gray-900">
-                                                {{ component.related_items?.source || 'Manual' }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div v-if="getComponentNotes(component)" class="mt-3">
-                                        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Catatan</div>
-                                        <div class="bg-white rounded-md border border-gray-200 px-3 py-2">
-                                            {{ getComponentNotes(component) }}
-                                        </div>
-                                    </div>
-                                    <div
-                                        v-if="getComponentReimbursements(component).length"
-                                        class="mt-4"
-                                    >
-                                        <div class="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                                            Item Reimbursement ({{ getComponentReimbursements(component).length }})
-                                        </div>
-                                        <div class="divide-y divide-gray-200 bg-white border border-gray-200 rounded-md">
-                                            <div
-                                                v-for="item in getComponentReimbursements(component)"
-                                                :key="item.id"
-                                                class="flex items-center justify-between px-3 py-2"
-                                            >
-                                                <div>
-                                                    <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
-                                                    <div class="text-xs text-gray-500">
-                                                        Status: {{ item.status }}
-                                                        <span v-if="item.invoice_number">
-                                                            · Invoice {{ item.invoice_number }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="text-sm font-semibold text-gray-900">
-                                                    Rp {{ formatNumber(item.amount) }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-4 flex justify-end">
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 text-xs font-medium rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
-                                            @click="openAdditionalCostModal({
-                                                componentType: component.component_type,
-                                                categoryId: component.related_items?.category_id || '',
-                                                vendorId: component.vendor_id ? String(component.vendor_id) : (payable.vendor_id ? String(payable.vendor_id) : ''),
-                                                fromComponent: true
-                                            })"
-                                        >
-                                            <Plus class="w-4 h-4 mr-1" />
-                                            Tambah Biaya dari Komponen Ini
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        {{ getComponentCategory(component) || '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        {{ component.recipient_name || '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                        Rp {{ formatNumber(component.amount) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                        Rp {{ formatNumber(component.paid_amount) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                        Rp {{ formatNumber(component.outstanding_amount) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-right">
+                                        <span :class="getStatusClass(component.status)"
+                                            class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                                            {{ getStatusText(component.status) }}
+                                        </span>
+                                    </td>
+                                </tr>
                             </template>
                         </tbody>
                 </table>
@@ -434,7 +253,7 @@
                         <p class="text-sm text-gray-900">{{ payable.paid_by_user.name }}</p>
                     </div>
                 </div>
-                
+
                 <div v-if="payable.payment_notes" class="mt-4">
                     <label class="text-sm font-medium text-gray-500">Payment Notes</label>
                     <div class="mt-1 bg-gray-50 p-3 rounded-md">
@@ -500,10 +319,11 @@
                                 v-model="paymentForm.component_id"
                                 required
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :class="paymentForm.errors.component_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
                             >
                                 <option value="">Pilih Komponen</option>
                                 <option
-                                    v-for="component in componentOptions"
+                                    v-for="component in payableComponentOptions"
                                     :key="component.id"
                                     :value="component.id"
                                 >
@@ -512,18 +332,24 @@
                                     - Outstanding Rp {{ formatNumber(component.outstanding_amount) }}
                                 </option>
                             </select>
+                            <p v-if="paymentForm.errors.component_id" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.component_id }}
+                            </p>
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
                             <input
                                 v-model="paymentForm.amount"
-                                type="number"
-                                step="0.01"
-                                :max="selectedComponent ? selectedComponent.outstanding_amount : payable.outstanding_amount"
+                                type="text"
+                                inputmode="decimal"
                                 required
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="Enter payment amount"
+                                :class="paymentForm.errors.amount ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
+                                placeholder="Masukkan nominal pembayaran (mis. 120000 atau 120.000)"
                             />
+                            <p v-if="paymentForm.errors.amount" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.amount }}
+                            </p>
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
@@ -532,7 +358,11 @@
                                 type="date"
                                 required
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :class="paymentForm.errors.payment_date ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
                             />
+                            <p v-if="paymentForm.errors.payment_date" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.payment_date }}
+                            </p>
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account *</label>
@@ -540,12 +370,16 @@
                                 v-model="paymentForm.bank_account_id"
                                 required
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :class="paymentForm.errors.bank_account_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
                             >
                                 <option value="">Select Bank Account</option>
                                 <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
                                     {{ bank.bank_name }} - {{ bank.account_number }}
                                 </option>
                             </select>
+                            <p v-if="paymentForm.errors.bank_account_id" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.bank_account_id }}
+                            </p>
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
@@ -553,6 +387,7 @@
                                 v-model="paymentForm.payment_method"
                                 required
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :class="paymentForm.errors.payment_method ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
                             >
                                 <option value="">Select Payment Method</option>
                                 <option value="Transfer Bank">Transfer Bank</option>
@@ -560,6 +395,9 @@
                                 <option value="Check">Check</option>
                                 <option value="Other">Other</option>
                             </select>
+                            <p v-if="paymentForm.errors.payment_method" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.payment_method }}
+                            </p>
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -820,35 +658,19 @@ const payables = computed(() => {
     return props.payable ? [props.payable] : []
 })
 
-const selectedPayableId = ref(payables.value[0]?.id || null)
-
-watch(payables, (items) => {
-    if (!items.length) {
-        selectedPayableId.value = null
-        return
-    }
-    if (!items.find((item) => item.id === selectedPayableId.value)) {
-        selectedPayableId.value = items[0].id
-    }
-})
-
 const payable = computed(() => {
-    if (!payables.value.length) {
-        return null
+    if (props.payable) {
+        return props.payable
     }
-    if (!selectedPayableId.value) {
-        return payables.value[0]
-    }
-    return payables.value.find((item) => item.id === selectedPayableId.value) || payables.value[0]
+    return payables.value[0] || null
 })
 
 const showPaymentModal = ref(false)
 const showEditModal = ref(false)
 const showAdditionalCostModal = ref(false)
-const componentDetailsOpen = ref({})
 const processing = ref(false)
 
-const paymentForm = reactive({
+const paymentForm = useForm({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
     bank_account_id: '',
@@ -856,8 +678,6 @@ const paymentForm = reactive({
     notes: '',
     component_id: ''
 })
-
-const payablesList = payables
 
 const summary = computed(() => {
     if (props.groupSummary) {
@@ -904,20 +724,6 @@ const headerSubtitle = computed(() => {
     return `Vendor ${activeVendorName.value}`
 })
 
-const componentTypeLabels = {
-    vendor_payment: 'Pembayaran Vendor',
-    operational_cost: 'Biaya Operational',
-    reimbursement: 'Reimbursement'
-}
-
-const getComponentTypeLabel = (type) => componentTypeLabels[type] || type
-
-const selectPayable = (payableId) => {
-    if (!payableId || selectedPayableId.value === payableId) {
-        return
-    }
-    selectedPayableId.value = payableId
-}
 const editForm = reactive({
     vendor_invoice_number: '',
     vendor_invoice_date: '',
@@ -951,13 +757,33 @@ watch(payable, (current) => {
 }, { immediate: true })
 
 // Computed properties for components
-const componentOptions = computed(() => ((payable.value?.components) || []).map(component => ({
-    ...component,
-    id: Number(component.id),
-    amount: parseFloat(component.amount || 0),
-    paid_amount: parseFloat(component.paid_amount || 0),
-    outstanding_amount: parseFloat(component.outstanding_amount || 0)
-})))
+const componentOptions = computed(() => {
+    const items = []
+
+    payables.value.forEach((payableItem = {}, payableIndex) => {
+        const components = Array.isArray(payableItem.components) ? payableItem.components : []
+        const fallbackBase = Number(payableItem.id) || payableIndex + 1
+
+        components.forEach((component = {}, componentIndex) => {
+            const fallbackId = Number(`${fallbackBase}${String(componentIndex).padStart(4, '0')}`)
+            const numericId = Number(component.id ?? component.component_id ?? fallbackId)
+            const resolvedId = Number.isNaN(numericId) ? fallbackId : numericId
+
+            items.push({
+                ...component,
+                parent_payable_id: payableItem.id ?? component.account_payable_id ?? null,
+                parent_vendor_name: payableItem.vendor?.nama_vendor || payableItem.vendor_name || component.recipient_name || '',
+                parent_invoice_number: payableItem.vendor_invoice_number || null,
+                id: resolvedId,
+                amount: parseFloat(component.amount || 0),
+                paid_amount: parseFloat(component.paid_amount || 0),
+                outstanding_amount: parseFloat(component.outstanding_amount || 0)
+            })
+        })
+    })
+
+    return items
+})
 
 const selectedComponentIdProp = computed(() => {
     if (props.selectedComponentId === null || props.selectedComponentId === undefined || props.selectedComponentId === '') {
@@ -993,14 +819,19 @@ const visibleComponents = computed(() => {
     return componentOptions.value
 })
 
-const hasMultipleComponents = computed(() => componentOptions.value.length > 1)
+const payableComponentOptions = computed(() =>
+    componentOptions.value.filter(component => parseFloat(component.outstanding_amount || 0) > 0.01)
+)
+
+const hasMultipleComponents = computed(() => payableComponentOptions.value.length > 1)
 
 const selectedComponent = computed(() => {
+    const options = payableComponentOptions.value.length ? payableComponentOptions.value : componentOptions.value
     const id = paymentForm.component_id ? Number(paymentForm.component_id) : null
-    if (!id && componentOptions.value.length === 1) {
-        return componentOptions.value[0]
+    if (!id && options.length === 1) {
+        return options[0]
     }
-    return componentOptions.value.find(component => component.id === id) || null
+    return options.find(component => component.id === id) || null
 })
 
 // Watch for component selection
@@ -1012,8 +843,9 @@ watch(() => paymentForm.component_id, () => {
 
 // Initialize component selection
 watch(
-    () => [selectedComponentIdProp.value, componentOptions.value],
-    ([selectedId, options]) => {
+    () => [selectedComponentIdProp.value, payableComponentOptions.value, componentOptions.value],
+    ([selectedId, payableOptions, allOptions]) => {
+        const options = payableOptions.length ? payableOptions : allOptions
         if (!options.length) {
             paymentForm.component_id = ''
             return
@@ -1025,7 +857,11 @@ watch(
         }
 
         if (!paymentForm.component_id) {
-            const defaultComponent = options.find(component => parseFloat(component.outstanding_amount || 0) > 0) || options[0]
+            const defaultComponent =
+                payableOptions.find(component => parseFloat(component.outstanding_amount || 0) > 0) ||
+                payableOptions[0] ||
+                allOptions.find(component => parseFloat(component.outstanding_amount || 0) > 0) ||
+                allOptions[0]
             paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
         }
     },
@@ -1070,28 +906,7 @@ const formatCurrency = (number) => {
     }).format(number || 0)
 }
 
-const toggleComponentDetails = (id) => {
-    componentDetailsOpen.value[id] = !componentDetailsOpen.value[id]
-}
-
-const isComponentOpen = (id) => !!componentDetailsOpen.value[id]
-
 const getComponentCategory = (component) => component?.related_items?.category_name || ''
-
-const getComponentNotes = (component) => component?.related_items?.notes || ''
-
-const getComponentReimbursements = (component) => {
-    if (!component) {
-        return []
-    }
-
-    const componentId = Number(component.id)
-    if (!componentId) {
-        return []
-    }
-
-    return reimbursementItems.value.filter((item) => Number(item.component_id) === componentId)
-}
 
 const normalizeCurrencyInput = (value) => {
     if (value === null || value === undefined) {
@@ -1170,14 +985,17 @@ const goBack = () => {
     router.visit(route('admin-keuangan.account-payables.index'))
 }
 
+const resetPaymentForm = () => {
+    paymentForm.reset()
+    paymentForm.payment_date = new Date().toISOString().split('T')[0]
+}
+
 const openPaymentModal = () => {
-    paymentForm.amount = ''
-    paymentForm.bank_account_id = ''
-    paymentForm.payment_method = ''
-    paymentForm.notes = ''
-    const defaultComponent = visibleComponents.value.length === 1
-        ? visibleComponents.value[0]
-        : (componentOptions.value.find(component => parseFloat(component.outstanding_amount || 0) > 0) || componentOptions.value[0])
+    resetPaymentForm()
+    const availableOptions = payableComponentOptions.value.length ? payableComponentOptions.value : componentOptions.value
+    const defaultComponent = availableOptions.length === 1
+        ? availableOptions[0]
+        : (availableOptions.find(component => parseFloat(component.outstanding_amount || 0) > 0) || availableOptions[0])
     paymentForm.component_id = defaultComponent ? String(defaultComponent.id) : ''
     showPaymentModal.value = true
 }
@@ -1237,25 +1055,32 @@ const closeAdditionalCostModal = () => {
 }
 
 const markPayment = () => {
-    if (!payable.value?.id) {
+    processing.value = true
+
+    const targetComponent = selectedComponent.value
+    const targetPayableId = targetComponent?.parent_payable_id || payable.value?.id
+
+    if (!targetPayableId) {
+        processing.value = false
         return
     }
-
-    processing.value = true
-    
-    router.post(
-        route('admin-keuangan.account-payables.mark-as-paid', payable.value.id),
-        paymentForm,
-        {
-            onSuccess: () => {
-                closePaymentModal()
-                processing.value = false
-            },
-            onError: () => {
-                processing.value = false
+    paymentForm
+        .transform((data) => ({
+            ...data,
+            amount: normalizeCurrencyInput(data.amount)
+        }))
+        .post(
+            route('admin-keuangan.account-payables.mark-as-paid', targetPayableId),
+            {
+                onSuccess: () => {
+                    closePaymentModal()
+                    processing.value = false
+                },
+                onError: () => {
+                    processing.value = false
+                }
             }
-        }
-    )
+        )
 }
 
 const submitAdditionalCost = () => {
@@ -1285,7 +1110,7 @@ const updateDetails = () => {
     }
 
     processing.value = true
-    
+
     router.post(
         route('admin-keuangan.account-payables.update-vendor-invoice', payable.value.id),
         editForm,
