@@ -13,7 +13,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <!-- Total Sales Orders This Month -->
           <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
@@ -65,22 +65,6 @@
             </div>
           </div>
 
-          <!-- Revenue This Month -->
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <DollarSign class="h-6 w-6 text-purple-400" />
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Revenue This Month</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(stats.revenueThisMonth) }}</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Recent Sales Orders -->
@@ -246,7 +230,6 @@ import {
   FileText,
   Clock,
   AlertTriangle,
-  DollarSign,
   Plus
 } from 'lucide-vue-next';
 

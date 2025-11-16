@@ -172,6 +172,7 @@
                 <span class="font-medium">Pendapatan Lain-lain</span>
             </a>
 
+
             <!-- Profit Loss Reports -->
             <a :href="route('admin-keuangan.profit-loss.index')"
                 class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.profit-loss')

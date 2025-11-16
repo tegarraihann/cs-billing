@@ -219,6 +219,12 @@
                                                         >
                                                             {{ formatDate(row.details.manual_override.effective_date) }}
                                                         </span>
+                                                        <span
+                                                            v-else-if="row.source === 'manual'"
+                                                            class="text-[11px] text-amber-700 text-right"
+                                                        >
+                                                            Input via Financial Position Adjustments
+                                                        </span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -364,19 +370,31 @@ const formatDateTime = (value) => {
     })
 }
 
+const hasManualOverride = (row) => !!row.details?.manual_override
+
 const sourceBadgeClass = (row) => {
-    const isManual = !!row.details?.manual_override
-    return isManual
-        ? 'bg-amber-100 text-amber-800'
-        : row.source === 'auto'
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-gray-100 text-gray-800'
+    if (row.source === 'manual') {
+        return hasManualOverride(row)
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-amber-50 text-amber-700 border border-amber-200'
+    }
+
+    if (row.source === 'auto') {
+        return 'bg-blue-100 text-blue-800'
+    }
+
+    return 'bg-gray-100 text-gray-800'
 }
 
 const sourceLabel = (row) => {
-    if (row.details?.manual_override) {
-        return 'Manual'
+    if (row.source === 'manual') {
+        return hasManualOverride(row) ? 'Manual' : 'Manual (Pending)'
     }
-    return row.source === 'auto' ? 'Auto' : 'Unknown'
+
+    if (row.source === 'auto') {
+        return 'Auto'
+    }
+
+    return 'Unknown'
 }
 </script>

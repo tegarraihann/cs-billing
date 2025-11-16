@@ -779,10 +779,22 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice)
     {
-        $invoice->delete();
+        try {
+            \DB::transaction(function () use ($invoice) {
+                $invoice->delete();
+            });
 
-        return redirect()->route('admin-keuangan.invoices.index')
-            ->with('success', 'Invoice berhasil dihapus.');
+            return redirect()->route('admin-keuangan.invoices.index')
+                ->with('success', 'Invoice berhasil dihapus.');
+        } catch (\Throwable $e) {
+            \Log::error('Gagal menghapus invoice', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal menghapus invoice. Silakan coba lagi.']);
+        }
     }
 
     /**

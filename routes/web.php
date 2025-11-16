@@ -602,6 +602,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/export', 'export')->name('export');
     });
 
+
     // Account Payables Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\AccountPayableController::class)->prefix('account-payables')->name('account-payables.')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -656,6 +657,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{otherIncome}/edit', 'edit')->name('edit');
         Route::put('/{otherIncome}', 'update')->name('update');
         Route::delete('/{otherIncome}', 'destroy')->name('destroy');
+        Route::post('/{otherIncome}/record-payment', 'recordPayment')->name('record-payment');
         Route::post('/{otherIncome}/post-to-profit-loss', 'postToProfitLoss')->name('post-to-profit-loss');
         Route::post('/{otherIncome}/unpost-from-profit-loss', 'unpostFromProfitLoss')->name('unpost-from-profit-loss');
         Route::get('/api/summary-by-category', 'summaryByCategory')->name('summary-by-category');

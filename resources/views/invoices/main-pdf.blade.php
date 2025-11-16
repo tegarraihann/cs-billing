@@ -29,13 +29,13 @@
         .logo-section {
             position: absolute;
             top: -10mm;
-            right: -5mm;
+            right: 6mm;
             width: 100px;
             text-align: center;
         }
 
         .logo-image {
-            width: 80px;
+            width: 120px;
             height: auto;
             margin-bottom: 3px;
         }
@@ -380,6 +380,7 @@
             max-width: 90%;
             margin-left: 40px;
             margin-top: 100px;
+            text-align: justify;
         }
 
         /* Invoice Footer */
@@ -388,13 +389,15 @@
             bottom: 10mm;
             left: 100mm;
             right: 15mm;
-            font-size: 6.5pt;
+            font-size: 7pt;
             color: #666;
-            line-height: 1.3;
+            line-height: 1.5;
             display: flex;
             justify-content: space-between;
             gap: 12px;
-            margin-left: 120px;
+            margin-left: 190px;
+            margin-right: -70px;
+            text-align: justify;
         }
 
         .invoice-footer .footer-left {
@@ -748,17 +751,20 @@
             </tr>
             <tr>
                 <td class="bank-label-col" style="color: #0000">BANK NUMBER</td>
-                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
+                <td class="bank-value-col" style="color: #0000">:
+                    {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
                 </td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
-                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
+                <td class="bank-value-col" style="color: #0000">:
+                    {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
                 @if($invoice->hasDownPayment())
                     <td class="total-label-col" style="color: #0000">DOWN PAYMENT (-)</td>
-                    <td class="total-value-col" style="color: #0000">{{ number_format($invoice->down_payment_amount, 2) }}</td>
+                    <td class="total-value-col" style="color: #0000">{{ number_format($invoice->down_payment_amount, 2) }}
+                    </td>
                 @else
                     <td class="total-label-col"></td>
                     <td class="total-value-col"></td>
@@ -792,7 +798,8 @@
             </tr>
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
-                <td class="bank-value-col" style="color: #0000">: {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
+                <td class="bank-value-col" style="color: #0000">:
+                    {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
@@ -805,7 +812,7 @@
         </table>
 
         <div class="invoice-notes">
-            NOTE : 1. Payments made by bank transfer must be made to the company account in the name of Eshaka Wijaya
+            NOTE : <br>1. Payments made by bank transfer must be made to the company account in the name of Eshaka Wijaya
             Logistics, PT.<br>
             2. Payment is considered complete once the funds are confirmed to have been credited to the company account
             in full.<br>
@@ -820,9 +827,13 @@
         </div>
 
         <!-- Footer -->
+        <div style="text-align: center; font-size: 8pt;">
+            Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
+            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
+        </div>
         <div class="invoice-footer">
             <div class="footer-left">
-                <div>
+                <div style="text-align: left;">
                     This is a computer<br>
                     generated invoice. No<br>
                     signature and stamp<br>

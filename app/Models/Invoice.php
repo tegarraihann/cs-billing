@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\ReimbursementItem;
+use App\Models\AccountReceivable;
+use App\Models\BankTransaction;
 
 class Invoice extends Model
 {
@@ -81,6 +83,25 @@ class Invoice extends Model
         'profit_loss_entries' => 'array'
     ];
 
+    protected static function booted()
+    {
+        static::deleting(function (self $invoice) {
+            $accountReceivable = $invoice->accountReceivable()->first();
+
+            if (!$accountReceivable) {
+                return;
+            }
+
+            $transactions = BankTransaction::where('reference_type', 'customer_payment')
+                ->where('reference_id', $accountReceivable->id)
+                ->get();
+
+            foreach ($transactions as $transaction) {
+                $transaction->delete();
+            }
+        });
+    }
+
     public function salesOrder()
     {
         return $this->belongsTo(SalesOrder::class);
@@ -125,6 +146,11 @@ class Invoice extends Model
     public function customerVisibleItems()
     {
         return $this->hasMany(InvoiceItem::class)->customerVisible();
+    }
+
+    public function accountReceivable()
+    {
+        return $this->hasOne(AccountReceivable::class);
     }
 
     /**

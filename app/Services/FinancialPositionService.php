@@ -7,6 +7,7 @@ use App\Models\AccountReceivable;
 use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
+use App\Models\OtherIncome;
 use App\Models\PettyCashBalance;
 use App\Models\ProfitLossPeriod;
 use Carbon\Carbon;
@@ -177,6 +178,7 @@ class FinancialPositionService
             '1120', '1130', '1140' => $this->calculateBankBalance($accountCode, $cutoff),
             '1110' => $this->calculatePettyCashBalance($cutoff),
             '1200' => $this->calculateAccountsReceivableBalance($cutoff),
+            '1210' => $this->calculateOtherIncomeReceivablesBalance($cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
             default => [
@@ -263,6 +265,29 @@ class FinancialPositionService
             'source' => 'auto',
             'meta' => [
                 'records' => (clone $query)->count(),
+            ],
+        ];
+    }
+
+    private function calculateOtherIncomeReceivablesBalance(Carbon $cutoff): array
+    {
+        $query = OtherIncome::query()
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->whereIn('status', [
+                OtherIncome::STATUS_OUTSTANDING,
+                OtherIncome::STATUS_PARTIAL,
+            ]);
+
+        $amount = (float) $query->sum('outstanding_amount');
+
+        return [
+            'amount' => $amount,
+            'source' => 'auto',
+            'meta' => [
+                'records' => (clone $query)->count(),
+                'overdue' => (clone $query)->whereNotNull('due_date')
+                    ->where('due_date', '<', $cutoff->toDateString())
+                    ->count(),
             ],
         ];
     }

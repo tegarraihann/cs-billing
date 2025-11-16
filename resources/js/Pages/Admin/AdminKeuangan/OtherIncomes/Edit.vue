@@ -36,6 +36,74 @@
             <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
                 <form @submit.prevent="submitForm" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-sage-700 mb-2">
+                                Nomor Referensi
+                            </label>
+                            <input
+                                v-model="form.reference_number"
+                                type="text"
+                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                :disabled="otherIncome.posted_to_profit_loss"
+                            />
+                            <p v-if="form.errors.reference_number" class="mt-1 text-sm text-red-600">
+                                {{ form.errors.reference_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-sage-700 mb-2">
+                                Jatuh Tempo
+                            </label>
+                            <input
+                                v-model="form.due_date"
+                                type="date"
+                                :min="form.transaction_date"
+                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                :class="{ 'border-red-300': form.errors.due_date }"
+                                :disabled="otherIncome.posted_to_profit_loss"
+                            />
+                            <p v-if="form.errors.due_date" class="mt-1 text-sm text-red-600">
+                                {{ form.errors.due_date }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-sage-700 mb-2">
+                                Customer
+                            </label>
+                            <select
+                                v-model="form.customer_id"
+                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                :disabled="otherIncome.posted_to_profit_loss"
+                            >
+                                <option value="">- Tanpa Customer -</option>
+                                <option v-for="customer in customers" :key="customer.id" :value="customer.id">
+                                    {{ customer.company_name }}
+                                </option>
+                            </select>
+                            <p v-if="form.errors.customer_id" class="mt-1 text-sm text-red-600">
+                                {{ form.errors.customer_id }}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-sage-700 mb-2">
+                                Nama Customer (opsional)
+                            </label>
+                            <input
+                                v-model="form.customer_name"
+                                type="text"
+                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                :disabled="otherIncome.posted_to_profit_loss"
+                            />
+                            <p v-if="form.errors.customer_name" class="mt-1 text-sm text-red-600">
+                                {{ form.errors.customer_name }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Tanggal -->
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
@@ -44,7 +112,7 @@
                             <input
                                 v-model="form.transaction_date"
                                 type="date"
-                                :max="today"
+                                :max="todayDate"
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                                 :class="{ 'border-red-300': form.errors.transaction_date }"
                                 :disabled="otherIncome.posted_to_profit_loss"
@@ -225,10 +293,20 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    customers: {
+        type: Array,
+        default: () => [],
+    },
 })
 
+const todayDate = new Date().toISOString().split('T')[0]
+
 const form = useForm({
+    reference_number: props.otherIncome.reference_number || '',
+    customer_id: props.otherIncome.customer_id || '',
+    customer_name: props.otherIncome.customer_name || '',
     transaction_date: props.otherIncome.transaction_date,
+    due_date: props.otherIncome.due_date || '',
     category: props.otherIncome.category,
     description: props.otherIncome.description,
     amount: props.otherIncome.amount,
@@ -238,10 +316,7 @@ const form = useForm({
 
 const filePreview = ref('')
 const categoryOptions = computed(() => props.categories ?? [])
-
-const today = computed(() => {
-    return new Date().toISOString().split('T')[0]
-})
+const customers = computed(() => props.customers ?? [])
 
 watch(
     categoryOptions,
@@ -252,6 +327,19 @@ watch(
 
         if (!options.includes(form.category)) {
             form.category = options[0]
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+    () => form.customer_id,
+    (value) => {
+        if (value) {
+            const found = customers.value.find((customer) => customer.id === value)
+            if (found) {
+                form.customer_name = found.company_name
+            }
         }
     },
     { immediate: true }

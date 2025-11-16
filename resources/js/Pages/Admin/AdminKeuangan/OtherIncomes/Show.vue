@@ -41,6 +41,25 @@
                     </span>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white border border-sage-200 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Outstanding</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ formatCurrency(otherIncome.outstanding_amount) }}</p>
+                    </div>
+                    <div class="bg-white border border-sage-200 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Status Piutang</p>
+                        <span :class="['inline-flex px-2 py-1 text-xs font-semibold rounded-full', receivableStatusBadge(otherIncome.status)]">
+                            {{ formatStatus(otherIncome.status) }}
+                        </span>
+                    </div>
+                    <div class="bg-white border border-sage-200 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Jatuh Tempo</p>
+                        <p class="text-sm font-medium text-gray-900">
+                            {{ otherIncome.due_date ? formatDate(otherIncome.due_date) : '-' }}
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Main Info -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
                     <div class="px-4 py-5 sm:px-6 bg-sage-50">
@@ -58,6 +77,18 @@
                                 </dd>
                             </div>
                             <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Nomor Referensi</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ otherIncome.reference_number || '-' }}
+                                </dd>
+                            </div>
+                            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Customer</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ otherIncome.customer_name || otherIncome.customer?.company_name || '-' }}
+                                </dd>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <Tag class="w-4 h-4 mr-2 text-gray-400" />
                                     Kategori
@@ -66,6 +97,12 @@
                                     <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full" :class="getCategoryBadge(otherIncome.category)">
                                         {{ otherIncome.category }}
                                     </span>
+                                </dd>
+                            </div>
+                            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Outstanding Sekarang</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">
+                                    {{ formatCurrency(otherIncome.outstanding_amount) }}
                                 </dd>
                             </div>
                             <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -136,6 +173,146 @@
                     </div>
                 </div>
 
+                <!-- Payments -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                    <div class="px-4 py-5 sm:px-6 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Pembayaran Piutang</h3>
+                            <p class="mt-1 text-sm text-gray-500">Catat penerimaan kas untuk pendapatan ini.</p>
+                        </div>
+                        <span v-if="!canRecordPayment" class="text-xs text-gray-500">Piutang sudah lunas</span>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <div class="p-4 space-y-6">
+                            <div v-if="otherIncome.payments?.length" class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
+                                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Adjustment</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr v-for="payment in otherIncome.payments" :key="payment.id">
+                                            <td class="px-4 py-2 text-sm text-gray-900">{{ formatDate(payment.payment_date) }}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">
+                                                {{ paymentMethodLabel(payment.payment_method) }}
+                                                <div v-if="payment.bank_account" class="text-xs text-gray-500">
+                                                    {{ payment.bank_account.bank_name }} - {{ payment.bank_account.account_number }}
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-2 text-sm text-gray-900 text-right">{{ formatCurrency(payment.amount) }}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900 text-right">
+                                                <div>{{ formatCurrency(payment.adjustment_amount) }}</div>
+                                                <div class="text-xs text-gray-500">{{ adjustmentLabel(payment.adjustment_type) }}</div>
+                                            </td>
+                                            <td class="px-4 py-2 text-sm text-gray-600">
+                                                {{ payment.notes || '-' }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div v-else class="text-sm text-gray-500">Belum ada pembayaran yang tercatat.</div>
+
+                            <form v-if="canRecordPayment" @submit.prevent="recordPayment" class="space-y-4 border-t border-gray-200 pt-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pembayaran</label>
+                                        <input
+                                            v-model="paymentForm.payment_date"
+                                            type="date"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                                        <select
+                                            v-model="paymentForm.payment_method"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                            required
+                                        >
+                                            <option value="bank">Transfer Bank</option>
+                                            <option value="petty_cash">Petty Cash</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Pembayaran</label>
+                                        <input
+                                            v-model="paymentForm.amount"
+                                            type="number"
+                                            step="0.01"
+                                            min="0.01"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div v-if="paymentForm.payment_method === 'bank'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Akun Bank</label>
+                                        <select
+                                            v-model="paymentForm.bank_account_id"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                            required
+                                        >
+                                            <option value="">Pilih Akun Bank</option>
+                                            <option v-for="bank in bankOptions" :key="bank.id" :value="bank.id">
+                                                {{ bank.bank_name }} - {{ bank.account_number }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Adjustment</label>
+                                        <div class="flex space-x-2">
+                                            <input
+                                                v-model="paymentForm.adjustment_amount"
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                            />
+                                            <select
+                                                v-model="paymentForm.adjustment_type"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                            >
+                                                <option value="">-</option>
+                                                <option value="tax_expense">Beban Pajak</option>
+                                                <option value="other_expense">Beban Lain-lain</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                                        <textarea
+                                            v-model="paymentForm.notes"
+                                            rows="2"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
+                                        ></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition"
+                                    >
+                                        Catat Pembayaran
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div class="px-4 py-5 sm:px-6">
@@ -175,7 +352,8 @@
 
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
+import { computed, watch } from 'vue'
 import {
     ArrowLeft,
     Edit,
@@ -193,13 +371,56 @@ import {
 
 const props = defineProps({
     otherIncome: Object,
+    bankAccounts: {
+        type: Array,
+        default: () => [],
+    },
 })
+
+const paymentForm = useForm({
+    payment_date: new Date().toISOString().split('T')[0],
+    payment_method: 'bank',
+    bank_account_id: '',
+    amount: '',
+    adjustment_amount: '',
+    adjustment_type: '',
+    notes: '',
+})
+
+const bankOptions = computed(() => props.bankAccounts ?? [])
+const outstandingAmount = computed(() => Number(props.otherIncome.outstanding_amount || 0))
+const canRecordPayment = computed(() => outstandingAmount.value > 0)
+
+watch(
+    () => paymentForm.payment_method,
+    (method) => {
+        if (method !== 'bank') {
+            paymentForm.bank_account_id = ''
+        }
+    }
+)
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR'
     }).format(amount || 0)
+}
+
+const formatStatus = (status) => {
+    if (!status) return '-'
+    return status.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+const receivableStatusBadge = (status) => {
+    switch (status) {
+        case 'paid':
+            return 'bg-green-100 text-green-800'
+        case 'partial':
+            return 'bg-blue-100 text-blue-800'
+        default:
+            return 'bg-yellow-100 text-yellow-800'
+    }
 }
 
 const formatDate = (date) => {
@@ -211,6 +432,7 @@ const formatDate = (date) => {
 }
 
 const formatDateTime = (dateTime) => {
+    if (!dateTime) return '-'
     return new Date(dateTime).toLocaleDateString('id-ID', {
         year: 'numeric',
         month: 'short',
@@ -229,6 +451,23 @@ const getCategoryBadge = (category) => {
     return badges[category] || 'bg-gray-100 text-gray-800'
 }
 
+const recordPayment = () => {
+    paymentForm.post(route('admin-keuangan.other-incomes.record-payment', props.otherIncome.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            paymentForm.reset({
+                payment_date: new Date().toISOString().split('T')[0],
+                payment_method: 'bank',
+                bank_account_id: '',
+                amount: '',
+                adjustment_amount: '',
+                adjustment_type: '',
+                notes: '',
+            })
+        },
+    })
+}
+
 const postToProfitLoss = () => {
     if (confirm(`Posting pendapatan ini ke Laba Rugi?`)) {
         router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', props.otherIncome.id))
@@ -245,5 +484,15 @@ const deleteIncome = () => {
     if (confirm(`Apakah Anda yakin ingin menghapus pendapatan ini?`)) {
         router.delete(route('admin-keuangan.other-incomes.destroy', props.otherIncome.id))
     }
+}
+
+const paymentMethodLabel = (method) => {
+    return method === 'petty_cash' ? 'Petty Cash' : 'Transfer Bank'
+}
+
+const adjustmentLabel = (type) => {
+    if (type === 'tax_expense') return 'Beban Pajak'
+    if (type === 'other_expense') return 'Beban Lain-lain'
+    return '-'
 }
 </script>

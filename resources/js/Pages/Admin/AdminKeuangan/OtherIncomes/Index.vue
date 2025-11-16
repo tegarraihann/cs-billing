@@ -19,7 +19,7 @@
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="p-5">
                             <div class="flex items-center">
@@ -40,60 +40,28 @@
                         <div class="p-5">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
-                                    <Calendar class="h-6 w-6 text-green-400" />
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Bulan Ini</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_this_month) }}</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <CalendarDays class="h-6 w-6 text-purple-400" />
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Tahun Ini</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_this_year) }}</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <CheckCircle class="h-6 w-6 text-green-500" />
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Posted</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_posted) }}</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
                                     <Clock class="h-6 w-6 text-yellow-400" />
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_not_posted) }}</dd>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Outstanding Receivable</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_outstanding) }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <AlertCircle class="h-6 w-6 text-red-400" />
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Overdue Receivable</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ summary.overdue_count }}</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -104,7 +72,7 @@
                 <!-- Filters -->
                 <div class="bg-white shadow rounded-lg mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
                                 <input
@@ -134,12 +102,36 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status Piutang</label>
+                                <select
+                                    v-model="filterForm.status"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                >
+                                    <option value="">Semua</option>
+                                    <option v-for="status in statusOptions" :key="status" :value="status">
+                                        {{ formatStatus(status) }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                                <select
+                                    v-model="filterForm.customer_id"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                >
+                                    <option value="">Semua Customer</option>
+                                    <option v-for="customer in customers" :key="customer.id" :value="customer.id">
+                                        {{ customer.company_name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status Posting</label>
                                 <select
                                     v-model="filterForm.posted"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
                                 >
-                                    <option value="">Semua Status</option>
+                                    <option value="">Semua</option>
                                     <option value="yes">Posted</option>
                                     <option value="no">Pending</option>
                                 </select>
@@ -172,16 +164,16 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tanggal
+                                            Tanggal / Due
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Kategori
+                                            Referensi / Customer
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Deskripsi
+                                            Kategori & Deskripsi
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Jumlah
+                                            Nilai
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Status
@@ -198,20 +190,33 @@
                                     <tr v-for="income in otherIncomes.data" :key="income.id" class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900">{{ formatDate(income.transaction_date) }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" :class="getCategoryBadge(income.category)">
-                                                {{ income.category }}
-                                            </span>
+                                            <div v-if="income.due_date" class="text-xs text-gray-500">
+                                                Due: {{ formatDate(income.due_date) }}
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4">
-                                            <div class="text-sm text-gray-900">{{ income.description }}</div>
-                                            <div v-if="income.notes" class="text-sm text-gray-500">{{ income.notes }}</div>
+                                            <div class="text-sm font-semibold text-gray-900">{{ income.reference_number || '-' }}</div>
+                                            <div class="text-sm text-gray-600">
+                                                {{ income.customer_name || income.customer?.company_name || '-' }}
+                                            </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                                            <div class="text-sm font-medium text-green-600">{{ formatCurrency(income.amount) }}</div>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center space-x-2">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" :class="getCategoryBadge(income.category)">
+                                {{ income.category }}
+                            </span>
+                                                <span class="text-sm text-gray-900">{{ income.description }}</span>
+                                            </div>
+                                            <div v-if="income.notes" class="text-xs text-gray-500 mt-1">{{ income.notes }}</div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="text-sm font-semibold text-green-600">{{ formatCurrency(income.amount) }}</div>
+                                            <div class="text-xs text-gray-500">Outstanding: {{ formatCurrency(income.outstanding_amount) }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap space-y-1">
+                                            <span :class="['inline-flex px-2 py-1 text-xs font-semibold rounded-full', receivableStatusBadge(income.status)]">
+                                                {{ formatStatus(income.status) }}
+                                            </span>
                                             <span :class="income.posted_to_profit_loss ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
                                                 {{ income.posted_to_profit_loss ? 'Posted' : 'Pending' }}
                                             </span>
@@ -309,13 +314,16 @@ import {
     Trash2,
     Filter,
     X,
-    XCircle
+    XCircle,
+    AlertCircle
 } from 'lucide-vue-next'
 
 const props = defineProps({
     otherIncomes: Object,
     summary: Object,
     categories: Array,
+    customers: Array,
+    statusOptions: Array,
     filters: Object,
 })
 
@@ -324,6 +332,8 @@ const filterForm = ref({
     end_date: props.filters?.end_date || '',
     category: props.filters?.category || '',
     posted: props.filters?.posted || '',
+    status: props.filters?.status || '',
+    customer_id: props.filters?.customer_id || '',
 })
 
 const formatCurrency = (amount) => {
@@ -339,6 +349,22 @@ const formatDate = (date) => {
         month: 'short',
         day: 'numeric'
     })
+}
+
+const formatStatus = (status) => {
+    if (!status) return '-'
+    return status.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+const receivableStatusBadge = (status) => {
+    switch (status) {
+        case 'paid':
+            return 'bg-green-100 text-green-800'
+        case 'partial':
+            return 'bg-blue-100 text-blue-800'
+        default:
+            return 'bg-yellow-100 text-yellow-800'
+    }
 }
 
 const getCategoryBadge = (category) => {
@@ -363,6 +389,8 @@ const resetFilters = () => {
         end_date: '',
         category: '',
         posted: '',
+        status: '',
+        customer_id: '',
     }
     router.get(route('admin-keuangan.other-incomes.index'))
 }

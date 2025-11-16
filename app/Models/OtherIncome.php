@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Customer;
+use App\Models\User;
 
 /**
  * Other Income Model
@@ -18,11 +23,25 @@ use Carbon\Carbon;
  */
 class OtherIncome extends Model
 {
+    public const STATUS_OUTSTANDING = 'outstanding';
+    public const STATUS_PARTIAL = 'partial';
+    public const STATUS_PAID = 'paid';
+
     protected $fillable = [
+        'reference_number',
+        'customer_id',
+        'customer_name',
         'transaction_date',
         'category',
         'description',
         'amount',
+        'due_date',
+        'status',
+        'paid_amount',
+        'outstanding_amount',
+        'tax_adjustment_amount',
+        'other_adjustment_amount',
+        'last_payment_date',
         'notes',
         'receipt_file',
         'posted_to_profit_loss',
@@ -35,20 +54,51 @@ class OtherIncome extends Model
     protected $casts = [
         'transaction_date' => 'date',
         'amount' => 'decimal:2',
+        'due_date' => 'date',
+        'paid_amount' => 'decimal:2',
+        'outstanding_amount' => 'decimal:2',
+        'tax_adjustment_amount' => 'decimal:2',
+        'other_adjustment_amount' => 'decimal:2',
+        'last_payment_date' => 'date',
         'posted_to_profit_loss' => 'boolean',
         'posted_at' => 'datetime',
         'approved_at' => 'datetime',
     ];
 
     // Relationships
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver()
+    public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(OtherIncomePayment::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $income) {
+            $income->status = $income->status ?: self::STATUS_OUTSTANDING;
+            $income->paid_amount = $income->paid_amount ?? 0;
+            $income->tax_adjustment_amount = $income->tax_adjustment_amount ?? 0;
+            $income->other_adjustment_amount = $income->other_adjustment_amount ?? 0;
+            $income->outstanding_amount = $income->amount;
+        });
+
+        static::saving(function (self $income) {
+            $income->recalculateStatus(false);
+        });
     }
 
     // Scopes
@@ -134,5 +184,57 @@ class OtherIncome extends Model
         ]);
 
         return true;
+    }
+    public function recordPayment(array $payload): OtherIncomePayment
+    {
+        return DB::transaction(function () use ($payload) {
+            $payment = $this->payments()->create([
+                'payment_date' => $payload['payment_date'],
+                'payment_method' => $payload['payment_method'],
+                'bank_account_id' => $payload['bank_account_id'] ?? null,
+                'amount' => $payload['amount'],
+                'adjustment_amount' => $payload['adjustment_amount'] ?? 0,
+                'adjustment_type' => $payload['adjustment_type'] ?? null,
+                'notes' => $payload['notes'] ?? null,
+                'created_by' => $payload['created_by'] ?? auth()->id(),
+            ]);
+
+            $this->paid_amount = ($this->paid_amount ?? 0) + $payment->amount;
+
+            if ($payment->adjustment_type === 'tax_expense') {
+                $this->tax_adjustment_amount += $payment->adjustment_amount;
+            } elseif ($payment->adjustment_type === 'other_expense') {
+                $this->other_adjustment_amount += $payment->adjustment_amount;
+            }
+
+            $this->last_payment_date = $payment->payment_date;
+            $this->recalculateStatus();
+
+            if ($this->status === self::STATUS_PAID && !$this->posted_to_profit_loss) {
+                $this->postToProfitLoss($payment->created_by);
+            }
+
+            return $payment;
+        });
+    }
+
+    public function recalculateStatus(bool $save = true): void
+    {
+        $totalAdjustments = ($this->tax_adjustment_amount ?? 0) + ($this->other_adjustment_amount ?? 0);
+        $outstanding = max(0, (float) $this->amount - (float) $this->paid_amount - $totalAdjustments);
+        $this->outstanding_amount = $outstanding;
+
+        if ($outstanding <= 0.01) {
+            $this->status = self::STATUS_PAID;
+            $this->outstanding_amount = 0;
+        } elseif ($this->paid_amount > 0 || $totalAdjustments > 0) {
+            $this->status = self::STATUS_PARTIAL;
+        } else {
+            $this->status = self::STATUS_OUTSTANDING;
+        }
+
+        if ($save) {
+            $this->saveQuietly();
+        }
     }
 }
