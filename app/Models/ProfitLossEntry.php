@@ -361,4 +361,45 @@ class ProfitLossEntry extends Model
 
         return $entry;
     }
+
+    /**
+     * Create entry from prepaid rent amortization transaction.
+     */
+    public static function createFromPrepaidRent(PrepaidRentTransaction $transaction, $period_id, $created_by)
+    {
+        $expense_account = ChartOfAccount::where('account_code', '5330')->first()
+            ?? ChartOfAccount::where('account_type', 'expense')
+                ->where('account_category', 'expense_operational')
+                ->first();
+
+        if (!$expense_account) {
+            throw new \Exception('Expense account for prepaid rent not found (expected account code 5330).');
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'prepaid_rent_transaction',
+            'reference_id' => $transaction->id,
+        ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = $transaction->description
+            ? 'Penyusutan Prepaid Rent - ' . $transaction->description
+            : 'Penyusutan Prepaid Rent';
+        $entry->amount = $transaction->amount;
+        $entry->entry_type = 'auto_prepaid_rent';
+        $entry->transaction_date = $transaction->transaction_date;
+        $entry->additional_data = [
+            'reference_number' => $transaction->reference_number,
+            'notes' => $transaction->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
 }

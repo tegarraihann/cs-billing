@@ -9,6 +9,7 @@ use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
 use App\Models\OtherIncome;
 use App\Models\PettyCashBalance;
+use App\Models\PrepaidRentTransaction;
 use App\Models\ProfitLossPeriod;
 use App\Models\SupplyTransaction;
 use Carbon\Carbon;
@@ -181,6 +182,7 @@ class FinancialPositionService
             '1200' => $this->calculateAccountsReceivableBalance($cutoff),
             '1210' => $this->calculateOtherIncomeReceivablesBalance($cutoff),
             '1300' => $this->calculateSuppliesBalance($cutoff),
+            '1400' => $this->calculatePrepaidRentBalance($cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
             default => [
@@ -312,6 +314,28 @@ class FinancialPositionService
             'meta' => [
                 'topups' => (float) $topups,
                 'consumptions' => (float) $consumptions,
+            ],
+        ];
+    }
+
+    private function calculatePrepaidRentBalance(Carbon $cutoff): array
+    {
+        $topups = PrepaidRentTransaction::where('transaction_type', 'topup')
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
+        $amortizations = PrepaidRentTransaction::where('transaction_type', 'amortization')
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
+        $balance = (float) $topups - (float) $amortizations;
+
+        return [
+            'amount' => max(0, $balance),
+            'source' => 'auto',
+            'meta' => [
+                'topups' => (float) $topups,
+                'amortizations' => (float) $amortizations,
             ],
         ];
     }

@@ -669,6 +669,12 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/usage', 'storeUsage')->name('usage');
     });
 
+    Route::controller(\App\Http\Controllers\AdminKeuangan\PrepaidRentController::class)->prefix('prepaid-rent')->name('prepaid-rent.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/topup', 'storeTopup')->name('topup');
+        Route::post('/amortization', 'storeAmortization')->name('amortization');
+    });
+
     // Expense Template API Routes for Auto-Categorization
     Route::controller(\App\Http\Controllers\Api\ExpenseTemplateController::class)->prefix('api/expense-templates')->name('api.expense-templates.')->group(function () {
         Route::get('/by-category', 'getTemplatesByCategory')->name('by-category');

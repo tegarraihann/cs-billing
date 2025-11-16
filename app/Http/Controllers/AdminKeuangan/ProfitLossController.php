@@ -7,6 +7,7 @@ use App\Models\ProfitLossPeriod;
 use App\Models\ChartOfAccount;
 use App\Models\ProfitLossEntry;
 use App\Models\EmployeeSalary;
+use App\Models\PrepaidRentTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -363,6 +364,7 @@ class ProfitLossController extends Controller
             'petty_cash' => 0,
             'employee_salaries' => 0,
             'other_incomes' => 0,
+            'prepaid_rent' => 0,
         ];
 
         if (class_exists('App\Models\SalesOrder')) {
@@ -413,6 +415,19 @@ class ProfitLossController extends Controller
             $entry = ProfitLossEntry::createFromEmployeeSalary($salary, $period->id, Auth::id());
             if ($entry?->wasRecentlyCreated) {
                 $summary['employee_salaries']++;
+            }
+        }
+
+        if (class_exists(PrepaidRentTransaction::class)) {
+            $amortizations = PrepaidRentTransaction::where('transaction_type', 'amortization')
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->get();
+
+            foreach ($amortizations as $transaction) {
+                $entry = ProfitLossEntry::createFromPrepaidRent($transaction, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['prepaid_rent']++;
+                }
             }
         }
 
