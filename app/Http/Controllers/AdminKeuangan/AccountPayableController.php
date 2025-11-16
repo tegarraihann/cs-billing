@@ -9,6 +9,9 @@ use App\Models\ReimbursementItem;
 use App\Models\BankAccount;
 use App\Models\OperationalCostCategory;
 use App\Models\SalesOrder;
+use App\Models\PettyCashCategory;
+use App\Models\PettyCashTransaction;
+use App\Models\PettyCashBalance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +102,9 @@ class AccountPayableController extends Controller
                 ->get(['id', 'name', 'description']),
             'vendors' => Vendor::orderBy('nama_vendor')
                 ->get(['id', 'nama_vendor']),
+            'pettyCashCategories' => PettyCashCategory::active()
+                ->ordered()
+                ->get(['id', 'name', 'description']),
         ]);
     }
 
@@ -122,8 +128,10 @@ class AccountPayableController extends Controller
         $rules = [
             'amount' => 'required|numeric|min:0.01',
             'payment_method' => 'required|string|max:100',
-            'bank_account_id' => 'required|exists:bank_accounts,id',
             'payment_date' => 'required|date',
+            'payment_source' => ['required', Rule::in(['bank', 'petty_cash'])],
+            'bank_account_id' => ['nullable', 'exists:bank_accounts,id'],
+            'petty_cash_category_id' => ['nullable', 'exists:petty_cash_categories,id'],
             'notes' => 'nullable|string|max:500',
             'reimbursement_items' => 'nullable|array',
             'reimbursement_items.*' => 'integer|exists:reimbursement_items,id',
@@ -131,6 +139,12 @@ class AccountPayableController extends Controller
             'reimbursement_paid_at' => 'nullable|date',
             'reimbursement_notes' => 'nullable|string|max:500'
         ];
+
+        if ($request->input('payment_source', 'bank') === 'bank') {
+            $rules['bank_account_id'][] = 'required';
+        } else {
+            $rules['petty_cash_category_id'][] = 'required';
+        }
 
         // Add component_id validation if multiple components
         if ($requiresComponent) {
@@ -181,14 +195,40 @@ class AccountPayableController extends Controller
                 ? $component->getComponentLabel() . ' - ' . $component->recipient_name
                 : $accountPayable->vendor_name;
 
-            // Record bank transaction (Vendor Payment = Debit from bank)
-            \App\Models\BankTransaction::recordVendorPayment(
-                $validated['bank_account_id'],
-                $validated['amount'],
-                "Payment for {$componentLabel}: {$accountPayable->service_description}",
-                $accountPayable->id,
-                $validated['payment_date']
-            );
+            $description = "Payment for {$componentLabel}: {$accountPayable->service_description}";
+
+            if ($validated['payment_source'] === 'bank') {
+                // Record bank transaction (Vendor Payment = Debit from bank)
+                \App\Models\BankTransaction::recordVendorPayment(
+                    $validated['bank_account_id'],
+                    $validated['amount'],
+                    $description,
+                    $accountPayable->id,
+                    $validated['payment_date']
+                );
+            } else {
+                $balanceBefore = PettyCashBalance::calculateBalanceUpToDate($validated['payment_date'], false);
+                $balanceAfter = $balanceBefore - $validated['amount'];
+
+                PettyCashTransaction::create([
+                    'transaction_date' => $validated['payment_date'],
+                    'description' => $description,
+                    'category_id' => $validated['petty_cash_category_id'],
+                    'amount' => $validated['amount'],
+                    'type' => 'expense',
+                    'so_number' => $accountPayable->salesOrder->order_number ?? null,
+                    'balance_after' => $balanceAfter,
+                    'notes' => $validated['notes'] ?? null,
+                    'status' => 'approved',
+                    'user_id' => auth()->id(),
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                    'auto_generated' => false,
+                    'categorization_method' => 'manual',
+                ]);
+
+                PettyCashBalance::updateBalanceForDate($validated['payment_date']);
+            }
 
             // If component is reimbursement, mark related reimbursement items as paid
             if ($component && $component->component_type === 'reimbursement' && !empty($validated['reimbursement_items'])) {

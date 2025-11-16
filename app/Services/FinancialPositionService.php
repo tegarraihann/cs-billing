@@ -10,6 +10,7 @@ use App\Models\FinancialPositionAdjustment;
 use App\Models\OtherIncome;
 use App\Models\PettyCashBalance;
 use App\Models\ProfitLossPeriod;
+use App\Models\SupplyTransaction;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -179,6 +180,7 @@ class FinancialPositionService
             '1110' => $this->calculatePettyCashBalance($cutoff),
             '1200' => $this->calculateAccountsReceivableBalance($cutoff),
             '1210' => $this->calculateOtherIncomeReceivablesBalance($cutoff),
+            '1300' => $this->calculateSuppliesBalance($cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
             default => [
@@ -288,6 +290,28 @@ class FinancialPositionService
                 'overdue' => (clone $query)->whereNotNull('due_date')
                     ->where('due_date', '<', $cutoff->toDateString())
                     ->count(),
+            ],
+        ];
+    }
+
+    private function calculateSuppliesBalance(Carbon $cutoff): array
+    {
+        $topups = SupplyTransaction::where('transaction_type', 'topup')
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
+        $consumptions = SupplyTransaction::whereIn('transaction_type', ['usage', 'depreciation'])
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
+        $balance = (float) $topups - (float) $consumptions;
+
+        return [
+            'amount' => max(0, $balance),
+            'source' => 'auto',
+            'meta' => [
+                'topups' => (float) $topups,
+                'consumptions' => (float) $consumptions,
             ],
         ];
     }

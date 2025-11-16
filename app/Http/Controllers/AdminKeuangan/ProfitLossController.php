@@ -325,13 +325,16 @@ class ProfitLossController extends Controller
 
         DB::beginTransaction();
         try {
-            $profitLoss->entries()->where('entry_type', '!=', 'manual')->delete();
-            
-            $this->autoGenerateEntries($profitLoss);
+            $summary = $this->autoGenerateEntries($profitLoss);
             
             DB::commit();
             
-            return redirect()->back()->with('success', 'Entry otomatis berhasil di-regenerate');
+            $totalCreated = $summary['total_new'] ?? 0;
+            $message = $totalCreated > 0
+                ? "Sinkronisasi selesai. {$totalCreated} entry baru ditambahkan atau diperbarui."
+                : 'Sinkronisasi selesai. Tidak ada entry baru yang perlu ditambahkan.';
+            
+            return redirect()->back()->with('success', $message);
             
         } catch (\Exception $e) {
             DB::rollback();
@@ -351,10 +354,16 @@ class ProfitLossController extends Controller
         };
     }
 
-    private function autoGenerateEntries(ProfitLossPeriod $period): void
+    private function autoGenerateEntries(ProfitLossPeriod $period): array
     {
         $startDate = $period->start_date;
         $endDate = $period->end_date;
+        $summary = [
+            'sales_orders' => 0,
+            'petty_cash' => 0,
+            'employee_salaries' => 0,
+            'other_incomes' => 0,
+        ];
 
         if (class_exists('App\Models\SalesOrder')) {
             $salesOrders = app('App\Models\SalesOrder')
@@ -363,7 +372,10 @@ class ProfitLossController extends Controller
                 ->get();
                 
             foreach ($salesOrders as $so) {
-                ProfitLossEntry::createFromSalesOrder($so, $period->id, Auth::id());
+                $entry = ProfitLossEntry::createFromSalesOrder($so, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['sales_orders']++;
+                }
             }
         }
 
@@ -384,6 +396,11 @@ class ProfitLossController extends Controller
                     \Log::warning('Petty Cash entry skipped (no category)', [
                         'petty_cash_id' => $pct->id
                     ]);
+                    continue;
+                }
+
+                if ($entry->wasRecentlyCreated) {
+                    $summary['petty_cash']++;
                 }
             }
         }
@@ -393,7 +410,10 @@ class ProfitLossController extends Controller
                                         ->get();
 
         foreach ($employeeSalaries as $salary) {
-            ProfitLossEntry::createFromEmployeeSalary($salary, $period->id, Auth::id());
+            $entry = ProfitLossEntry::createFromEmployeeSalary($salary, $period->id, Auth::id());
+            if ($entry?->wasRecentlyCreated) {
+                $summary['employee_salaries']++;
+            }
         }
 
         // Generate entries from Other Income (Pendapatan Lain-lain)
@@ -404,11 +424,18 @@ class ProfitLossController extends Controller
                 ->get();
 
             foreach ($otherIncomes as $income) {
-                ProfitLossEntry::createFromOtherIncome($income, $period->id, Auth::id());
+                $entry = ProfitLossEntry::createFromOtherIncome($income, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['other_incomes']++;
+                }
             }
         }
 
         $period->calculateTotals();
+
+        $summary['total_new'] = array_sum($summary);
+
+        return $summary;
     }
 
     /**

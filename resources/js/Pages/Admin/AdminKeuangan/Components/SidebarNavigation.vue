@@ -172,6 +172,18 @@
                 <span class="font-medium">Pendapatan Lain-lain</span>
             </a>
 
+            <a :href="route('admin-keuangan.supplies.index')"
+                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.supplies')
+                        ? 'bg-sage-100 text-sage-800 shadow-sm'
+                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                    ">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17v-2H5a2 2 0 01-2-2v-1a2 2 0 012-2h4V8a3 3 0 016 0v2h4a2 2 0 012 2v1a2 2 0 01-2 2h-4v2a3 3 0 01-6 0z" />
+                </svg>
+                <span class="font-medium">Supplies</span>
+            </a>
+
 
             <!-- Profit Loss Reports -->
             <a :href="route('admin-keuangan.profit-loss.index')"
@@ -412,6 +424,7 @@ const isActive = (routePattern) => {
         'admin-keuangan.general-expenses': '/admin-keuangan/general-expenses',
         'admin-keuangan.other-incomes': '/admin-keuangan/other-incomes',
         'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
+        'admin-keuangan.supplies': '/admin-keuangan/supplies',
         'admin-keuangan.financial-position': '/admin-keuangan/financial-position',
         'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
         'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',

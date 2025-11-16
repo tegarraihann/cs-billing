@@ -108,22 +108,30 @@ class ProfitLossEntry extends Model
             throw new \Exception('Revenue account (4001) not found');
         }
 
-        return self::create([
+        $entry = self::firstOrNew([
             'period_id' => $period_id,
-            'account_id' => $revenue_account->id,
-            'description' => 'Pendapatan dari SO #' . $sales_order->so_number,
-            'amount' => $sales_order->grand_total,
-            'entry_type' => 'auto_so',
             'reference_type' => 'sales_order',
             'reference_id' => $sales_order->id,
-            'transaction_date' => $sales_order->created_at->format('Y-m-d'),
-            'additional_data' => [
-                'so_number' => $sales_order->so_number,
-                'customer' => $sales_order->customer_name ?? $sales_order->customer_company,
-                'total_amount' => $sales_order->grand_total,
-            ],
-            'created_by' => $created_by,
         ]);
+
+        $entry->account_id = $revenue_account->id;
+        $entry->description = 'Pendapatan dari SO #' . $sales_order->so_number;
+        $entry->amount = $sales_order->grand_total;
+        $entry->entry_type = 'auto_so';
+        $entry->transaction_date = $sales_order->created_at->format('Y-m-d');
+        $entry->additional_data = [
+            'so_number' => $sales_order->so_number,
+            'customer' => $sales_order->customer_name ?? $sales_order->customer_company,
+            'total_amount' => $sales_order->grand_total,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
     }
 
     public static function createFromPettyCash($petty_cash, $period_id, $created_by)
@@ -228,22 +236,30 @@ class ProfitLossEntry extends Model
             throw new \Exception('Expense account not found for category: ' . $petty_cash->category->name . '. Please create expense account in Chart of Accounts first.');
         }
 
-        return self::create([
+        $entry = self::firstOrNew([
             'period_id' => $period_id,
-            'account_id' => $expense_account->id,
-            'description' => 'Beban ' . $petty_cash->category->name . ' - ' . $petty_cash->description,
-            'amount' => $petty_cash->amount,
-            'entry_type' => 'auto_petty_cash',
             'reference_type' => 'petty_cash_transaction',
             'reference_id' => $petty_cash->id,
-            'transaction_date' => $petty_cash->transaction_date,
-            'additional_data' => [
-                'category' => $petty_cash->category->name,
-                'description' => $petty_cash->description,
-                'amount' => $petty_cash->amount,
-            ],
-            'created_by' => $created_by,
         ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = 'Beban ' . $petty_cash->category->name . ' - ' . $petty_cash->description;
+        $entry->amount = $petty_cash->amount;
+        $entry->entry_type = 'auto_petty_cash';
+        $entry->transaction_date = $petty_cash->transaction_date;
+        $entry->additional_data = [
+            'category' => $petty_cash->category->name,
+            'description' => $petty_cash->description,
+            'amount' => $petty_cash->amount,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
     }
 
     public static function createFromEmployeeSalary($employee_salary, $period_id, $created_by)
@@ -254,28 +270,36 @@ class ProfitLossEntry extends Model
             throw new \Exception('Salary expense account (5001) not found');
         }
 
-        return self::create([
+        $entry = self::firstOrNew([
             'period_id' => $period_id,
-            'account_id' => $salary_account->id,
-            'description' => 'Gaji ' . $employee_salary->employee_name . ' - ' . $employee_salary->period_month,
-            'amount' => $employee_salary->total_salary,
-            'entry_type' => 'auto_salary',
             'reference_type' => 'employee_salary',
             'reference_id' => $employee_salary->id,
-            'transaction_date' => $employee_salary->salary_date,
-            'additional_data' => [
-                'employee_name' => $employee_salary->employee_name,
-                'employee_id' => $employee_salary->employee_id,
-                'division' => $employee_salary->division,
-                'position' => $employee_salary->position,
-                'basic_salary' => $employee_salary->basic_salary,
-                'allowances' => $employee_salary->allowances,
-                'deductions' => $employee_salary->deductions,
-                'total_salary' => $employee_salary->total_salary,
-                'period_month' => $employee_salary->period_month,
-            ],
-            'created_by' => $created_by,
         ]);
+
+        $entry->account_id = $salary_account->id;
+        $entry->description = 'Gaji ' . $employee_salary->employee_name . ' - ' . $employee_salary->period_month;
+        $entry->amount = $employee_salary->total_salary;
+        $entry->entry_type = 'auto_salary';
+        $entry->transaction_date = $employee_salary->salary_date;
+        $entry->additional_data = [
+            'employee_name' => $employee_salary->employee_name,
+            'employee_id' => $employee_salary->employee_id,
+            'division' => $employee_salary->division,
+            'position' => $employee_salary->position,
+            'basic_salary' => $employee_salary->basic_salary,
+            'allowances' => $employee_salary->allowances,
+            'deductions' => $employee_salary->deductions,
+            'total_salary' => $employee_salary->total_salary,
+            'period_month' => $employee_salary->period_month,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
     }
 
     /**
@@ -311,22 +335,30 @@ class ProfitLossEntry extends Model
             throw new \Exception('Revenue account not found for Other Income category: ' . $other_income->category);
         }
 
-        return self::create([
+        $entry = self::firstOrNew([
             'period_id' => $period_id,
-            'account_id' => $revenue_account->id,
-            'description' => 'Pendapatan Lain-lain (' . $other_income->category . ') - ' . $other_income->description,
-            'amount' => $other_income->amount,
-            'entry_type' => 'auto_other_income',
             'reference_type' => 'other_income',
             'reference_id' => $other_income->id,
-            'transaction_date' => $other_income->transaction_date,
-            'additional_data' => [
-                'category' => $other_income->category,
-                'description' => $other_income->description,
-                'amount' => $other_income->amount,
-                'notes' => $other_income->notes,
-            ],
-            'created_by' => $created_by,
         ]);
+
+        $entry->account_id = $revenue_account->id;
+        $entry->description = 'Pendapatan Lain-lain (' . $other_income->category . ') - ' . $other_income->description;
+        $entry->amount = $other_income->amount;
+        $entry->entry_type = 'auto_other_income';
+        $entry->transaction_date = $other_income->transaction_date;
+        $entry->additional_data = [
+            'category' => $other_income->category,
+            'description' => $other_income->description,
+            'amount' => $other_income->amount,
+            'notes' => $other_income->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
     }
 }

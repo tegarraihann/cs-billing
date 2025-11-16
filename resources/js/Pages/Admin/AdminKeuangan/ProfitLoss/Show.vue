@@ -47,7 +47,7 @@
                                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                             >
                                 <RefreshCw class="w-4 h-4 mr-2" />
-                                Regenerate Data
+                                Sinkron Data Terbaru
                             </button>
 
                             <Link
@@ -415,7 +415,7 @@ const getStatusText = (status) => {
 }
 
 const regenerateEntries = () => {
-    if (confirm('Regenerate akan menghapus semua entry otomatis dan membuat ulang berdasarkan data terbaru. Lanjutkan?')) {
+    if (confirm('Sinkronisasi akan menambahkan atau memperbarui entry otomatis sesuai data terbaru tanpa menghapus data yang ada. Lanjutkan?')) {
         loading.value = true
         router.post(route('admin-keuangan.profit-loss.regenerate', props.period.id), {}, {
             onFinish: () => loading.value = false

@@ -365,10 +365,25 @@
                             </p>
                         </div>
                         <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Sumber Pembayaran *</label>
+                            <select
+                                v-model="paymentForm.payment_source"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :class="paymentForm.errors.payment_source ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
+                            >
+                                <option value="bank">Bank</option>
+                                <option value="petty_cash">Petty Cash</option>
+                            </select>
+                            <p v-if="paymentForm.errors.payment_source" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.payment_source }}
+                            </p>
+                        </div>
+                        <div class="mb-4" v-if="paymentForm.payment_source === 'bank'">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account *</label>
                             <select
                                 v-model="paymentForm.bank_account_id"
-                                required
+                                :required="paymentForm.payment_source === 'bank'"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 :class="paymentForm.errors.bank_account_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
                             >
@@ -379,6 +394,27 @@
                             </select>
                             <p v-if="paymentForm.errors.bank_account_id" class="text-sm text-red-600 mt-1">
                                 {{ paymentForm.errors.bank_account_id }}
+                            </p>
+                        </div>
+                        <div class="mb-4" v-if="paymentForm.payment_source === 'petty_cash'">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Petty Cash *</label>
+                            <select
+                                v-model="paymentForm.petty_cash_category_id"
+                                :required="paymentForm.payment_source === 'petty_cash'"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :class="paymentForm.errors.petty_cash_category_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
+                            >
+                                <option value="">Pilih Kategori</option>
+                                <option
+                                    v-for="category in pettyCashCategories"
+                                    :key="category.id"
+                                    :value="category.id"
+                                >
+                                    {{ category.name }}
+                                </option>
+                            </select>
+                            <p v-if="paymentForm.errors.petty_cash_category_id" class="text-sm text-red-600 mt-1">
+                                {{ paymentForm.errors.petty_cash_category_id }}
                             </p>
                         </div>
                         <div class="mb-4">
@@ -648,8 +684,15 @@ const props = defineProps({
     vendors: {
         type: Array,
         default: () => []
+    },
+    pettyCashCategories: {
+        type: Array,
+        default: () => []
     }
 })
+
+const bankAccounts = computed(() => props.bankAccounts ?? [])
+const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
 
 const payables = computed(() => {
     if (Array.isArray(props.groupPayables) && props.groupPayables.length) {
@@ -673,7 +716,9 @@ const processing = ref(false)
 const paymentForm = useForm({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
+    payment_source: 'bank',
     bank_account_id: '',
+    petty_cash_category_id: '',
     payment_method: '',
     notes: '',
     component_id: ''
@@ -841,6 +886,23 @@ watch(() => paymentForm.component_id, () => {
     }
 })
 
+watch(() => paymentForm.payment_source, (source) => {
+    if (source === 'bank') {
+        if (!paymentForm.bank_account_id && bankAccounts.value.length) {
+            paymentForm.bank_account_id = String(bankAccounts.value[0].id)
+        }
+        paymentForm.petty_cash_category_id = ''
+        if (!paymentForm.payment_method || paymentForm.payment_method === 'Petty Cash') {
+            paymentForm.payment_method = 'Transfer Bank'
+        }
+    } else if (source === 'petty_cash') {
+        paymentForm.bank_account_id = ''
+        if (!paymentForm.payment_method || paymentForm.payment_method === 'Transfer Bank') {
+            paymentForm.payment_method = 'Petty Cash'
+        }
+    }
+})
+
 // Initialize component selection
 watch(
     () => [selectedComponentIdProp.value, payableComponentOptions.value, componentOptions.value],
@@ -988,6 +1050,11 @@ const goBack = () => {
 const resetPaymentForm = () => {
     paymentForm.reset()
     paymentForm.payment_date = new Date().toISOString().split('T')[0]
+    paymentForm.payment_source = 'bank'
+    paymentForm.petty_cash_category_id = ''
+    paymentForm.payment_method = 'Transfer Bank'
+    const defaultBank = bankAccounts.value.length ? bankAccounts.value[0] : null
+    paymentForm.bank_account_id = defaultBank ? String(defaultBank.id) : ''
 }
 
 const openPaymentModal = () => {
@@ -1067,7 +1134,9 @@ const markPayment = () => {
     paymentForm
         .transform((data) => ({
             ...data,
-            amount: normalizeCurrencyInput(data.amount)
+            amount: normalizeCurrencyInput(data.amount),
+            bank_account_id: data.bank_account_id || null,
+            petty_cash_category_id: data.petty_cash_category_id || null
         }))
         .post(
             route('admin-keuangan.account-payables.mark-as-paid', targetPayableId),
