@@ -54,6 +54,11 @@ class EmployeeSalaryController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'allowances' => $this->normalizeAmount($request->allowances),
+            'deductions' => $this->normalizeAmount($request->deductions),
+        ]);
+
         $request->validate([
             'employee_name' => 'required|string|max:255',
             'employee_id' => 'nullable|string|max:50',
@@ -70,6 +75,8 @@ class EmployeeSalaryController extends Controller
 
         DB::beginTransaction();
         try {
+            $totalSalary = ($request->basic_salary + $request->allowances) - $request->deductions;
+
             $salary = EmployeeSalary::create([
                 'employee_name' => $request->employee_name,
                 'employee_id' => $request->employee_id,
@@ -78,6 +85,7 @@ class EmployeeSalaryController extends Controller
                 'basic_salary' => $request->basic_salary,
                 'allowances' => $request->allowances ?? 0,
                 'deductions' => $request->deductions ?? 0,
+                'total_salary' => $totalSalary,
                 'salary_date' => $request->salary_date,
                 'period_month' => $request->period_month,
                 'notes' => $request->notes,
@@ -85,7 +93,8 @@ class EmployeeSalaryController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            $salary->calculateTotalSalary();
+            // Ensure aggregate fields are consistent
+            $salary->refresh();
             
             DB::commit();
             
@@ -127,6 +136,11 @@ class EmployeeSalaryController extends Controller
             return redirect()->back()->withErrors(['error' => 'Gaji yang sudah dibayar tidak dapat diedit']);
         }
 
+        $request->merge([
+            'allowances' => $this->normalizeAmount($request->allowances),
+            'deductions' => $this->normalizeAmount($request->deductions),
+        ]);
+
         $request->validate([
             'employee_name' => 'required|string|max:255',
             'employee_id' => 'nullable|string|max:50',
@@ -143,6 +157,8 @@ class EmployeeSalaryController extends Controller
 
         DB::beginTransaction();
         try {
+            $totalSalary = ($request->basic_salary + $request->allowances) - $request->deductions;
+
             $employeeSalary->update([
                 'employee_name' => $request->employee_name,
                 'employee_id' => $request->employee_id,
@@ -151,14 +167,13 @@ class EmployeeSalaryController extends Controller
                 'basic_salary' => $request->basic_salary,
                 'allowances' => $request->allowances ?? 0,
                 'deductions' => $request->deductions ?? 0,
+                'total_salary' => $totalSalary,
                 'salary_date' => $request->salary_date,
                 'period_month' => $request->period_month,
                 'notes' => $request->notes,
                 'details' => $request->details,
             ]);
 
-            $employeeSalary->calculateTotalSalary();
-            
             DB::commit();
             
             return redirect()->route('admin-keuangan.employee-salary.index')
@@ -253,6 +268,14 @@ class EmployeeSalaryController extends Controller
 
     public function bulkStore(Request $request)
     {
+        $normalizedEmployees = collect($request->input('employees', []))->map(function ($employee) {
+            $employee['allowances'] = $this->normalizeAmount($employee['allowances'] ?? null);
+            $employee['deductions'] = $this->normalizeAmount($employee['deductions'] ?? null);
+            return $employee;
+        })->toArray();
+
+        $request->merge(['employees' => $normalizedEmployees]);
+
         $request->validate([
             'period_month' => 'required|string|size:7',
             'salary_date' => 'required|date',
@@ -271,20 +294,25 @@ class EmployeeSalaryController extends Controller
             $created_count = 0;
             
             foreach ($request->employees as $employeeData) {
+                $basicSalary = $employeeData['basic_salary'];
+                $allowances = $employeeData['allowances'] ?? 0;
+                $deductions = $employeeData['deductions'] ?? 0;
+                $totalSalary = ($basicSalary + $allowances) - $deductions;
+
                 $salary = EmployeeSalary::create([
                     'employee_name' => $employeeData['employee_name'],
                     'employee_id' => $employeeData['employee_id'] ?? null,
                     'division' => $employeeData['division'],
                     'position' => $employeeData['position'],
-                    'basic_salary' => $employeeData['basic_salary'],
-                    'allowances' => $employeeData['allowances'] ?? 0,
-                    'deductions' => $employeeData['deductions'] ?? 0,
+                    'basic_salary' => $basicSalary,
+                    'allowances' => $allowances,
+                    'deductions' => $deductions,
+                    'total_salary' => $totalSalary,
                     'salary_date' => $request->salary_date,
                     'period_month' => $request->period_month,
                     'created_by' => Auth::id(),
                 ]);
 
-                $salary->calculateTotalSalary();
                 $created_count++;
             }
             
@@ -303,6 +331,11 @@ class EmployeeSalaryController extends Controller
 
     public function allInStore(Request $request)
     {
+        $request->merge([
+            'allowances' => $this->normalizeAmount($request->allowances),
+            'deductions' => $this->normalizeAmount($request->deductions),
+        ]);
+
         $request->validate([
             'target_type' => 'required|in:all_staff,all_division,all_position',
             'target_value' => 'nullable|string|max:255',
@@ -335,8 +368,8 @@ class EmployeeSalaryController extends Controller
             }
 
             $created_count = 0;
-            $allowances = $request->allowances ?? 0;
-            $deductions = $request->deductions ?? 0;
+            $allowances = $this->normalizeAmount($request->allowances);
+            $deductions = $this->normalizeAmount($request->deductions);
             $total_salary = $request->basic_salary + $allowances - $deductions;
 
             foreach ($targetEmployees as $employee) {
@@ -445,5 +478,10 @@ class EmployeeSalaryController extends Controller
             'divisions' => $divisionStats,
             'positions' => $positionStats->toArray()
         ];
+    }
+
+    private function normalizeAmount($value, $default = 0)
+    {
+        return ($value === null || $value === '') ? $default : $value;
     }
 }

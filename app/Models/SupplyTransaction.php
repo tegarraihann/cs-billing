@@ -19,6 +19,7 @@ class SupplyTransaction extends Model
         'reference_number',
         'description',
         'amount',
+        'quantity',
         'source_type',
         'bank_account_id',
         'petty_cash_transaction_id',
@@ -31,6 +32,7 @@ class SupplyTransaction extends Model
     protected $casts = [
         'transaction_date' => 'date',
         'amount' => 'decimal:2',
+        'quantity' => 'decimal:2',
     ];
 
     public function bankAccount(): BelongsTo

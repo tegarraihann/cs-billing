@@ -5,6 +5,7 @@
     <title>Laporan Laba Rugi - {{ $period->period_name }}</title>
     <style>
         body {
+            font-family: "Courier New", monospace;
             font-size: 10px;
             line-height: 1.4;
             margin: 20px;
@@ -22,12 +23,14 @@
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 5px;
+            font-family: "Helvetica", "Arial", sans-serif;
         }
 
         .report-title {
             font-size: 14px;
             font-weight: bold;
             margin: 10px 0;
+            font-family: "Helvetica", "Arial", sans-serif;
         }
 
         .period-info {
@@ -165,7 +168,7 @@
             @foreach($reportData['revenues']['main'] as $entry)
             <div class="item">
                 <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format($entry['amount'], 0, ',', '.') }}</span>
+                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
             </div>
             @endforeach
         @endif
@@ -175,7 +178,7 @@
             @foreach($reportData['revenues']['other'] as $entry)
             <div class="item">
                 <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format($entry['amount'], 0, ',', '.') }}</span>
+                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
             </div>
             @endforeach
         @endif
@@ -202,7 +205,7 @@
             @foreach($reportData['expenses']['operational'] as $entry)
             <div class="item">
                 <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format($entry['amount'], 0, ',', '.') }}</span>
+                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
             </div>
             @endforeach
         @endif
@@ -212,7 +215,7 @@
             @foreach($reportData['expenses']['administrative'] as $entry)
             <div class="item">
                 <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format($entry['amount'], 0, ',', '.') }}</span>
+                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
             </div>
             @endforeach
         @endif
@@ -222,7 +225,7 @@
             @foreach($reportData['expenses']['other'] as $entry)
             <div class="item">
                 <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format($entry['amount'], 0, ',', '.') }}</span>
+                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
             </div>
             @endforeach
         @endif

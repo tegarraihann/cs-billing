@@ -110,7 +110,7 @@
                                             </label>
                                             <input
                                                 id="basic_salary"
-                                                v-model="form.basic_salary"
+                                                v-model.number="form.basic_salary"
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -129,7 +129,7 @@
                                             </label>
                                             <input
                                                 id="allowances"
-                                                v-model="form.allowances"
+                                                v-model.number="form.allowances"
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -148,7 +148,7 @@
                                             </label>
                                             <input
                                                 id="deductions"
-                                                v-model="form.deductions"
+                                                v-model.number="form.deductions"
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -284,9 +284,9 @@ const form = useForm({
     employee_id: props.salary.employee_id || '',
     division: props.salary.division,
     position: props.salary.position,
-    basic_salary: props.salary.basic_salary,
-    allowances: props.salary.allowances,
-    deductions: props.salary.deductions,
+    basic_salary: Number(props.salary.basic_salary ?? 0),
+    allowances: Number(props.salary.allowances ?? 0),
+    deductions: Number(props.salary.deductions ?? 0),
     salary_date: props.salary.salary_date,
     period_month: props.salary.period_month,
     notes: props.salary.notes || '',

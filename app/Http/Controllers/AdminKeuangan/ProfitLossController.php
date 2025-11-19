@@ -7,6 +7,7 @@ use App\Models\ProfitLossPeriod;
 use App\Models\ChartOfAccount;
 use App\Models\ProfitLossEntry;
 use App\Models\EmployeeSalary;
+use App\Models\EquipmentTransaction;
 use App\Models\PrepaidRentTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -365,6 +366,7 @@ class ProfitLossController extends Controller
             'employee_salaries' => 0,
             'other_incomes' => 0,
             'prepaid_rent' => 0,
+            'equipment' => 0,
         ];
 
         if (class_exists('App\Models\SalesOrder')) {
@@ -427,6 +429,19 @@ class ProfitLossController extends Controller
                 $entry = ProfitLossEntry::createFromPrepaidRent($transaction, $period->id, Auth::id());
                 if ($entry?->wasRecentlyCreated) {
                     $summary['prepaid_rent']++;
+                }
+            }
+        }
+
+        if (class_exists(EquipmentTransaction::class)) {
+            $depreciations = EquipmentTransaction::where('transaction_type', 'depreciation')
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->get();
+
+            foreach ($depreciations as $equipmentTransaction) {
+                $entry = ProfitLossEntry::createFromEquipmentDepreciation($equipmentTransaction, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['equipment']++;
                 }
             }
         }

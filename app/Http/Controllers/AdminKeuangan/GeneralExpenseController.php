@@ -23,9 +23,31 @@ class GeneralExpenseController extends Controller
             ->orderBy('expense_date', 'desc')
             ->orderBy('created_at', 'desc');
 
-        // Filter by period
+        // Normalise requested period (accepts month-year string or separate month/year params)
+        $filterMonth = null;
+        $filterYear = null;
+        if ($request->filled('period')) {
+            try {
+                $period = Carbon::createFromFormat('Y-m', $request->period);
+                $filterMonth = $period->month;
+                $filterYear = $period->year;
+            } catch (\Exception $e) {
+                // ignore invalid period, fall back to other filters
+            }
+        }
         if ($request->filled('month') && $request->filled('year')) {
-            $query->byPeriod($request->month, $request->year);
+            $filterMonth = $request->month;
+            $filterYear = $request->year;
+        }
+
+        // Filter by period
+        if ($filterMonth && $filterYear) {
+            $query->byPeriod($filterMonth, $filterYear);
+        }
+
+        // Filter by exact expense date
+        if ($request->filled('expense_date')) {
+            $query->whereDate('expense_date', $request->expense_date);
         }
 
         // Filter by category
@@ -155,7 +177,7 @@ class GeneralExpenseController extends Controller
         $generalExpense->load(['items', 'creator', 'approver']);
 
         return Inertia::render('Admin/AdminKeuangan/GeneralExpenses/Show', [
-            'expense' => $generalExpense,
+            'generalExpense' => $generalExpense,
         ]);
     }
 
@@ -290,8 +312,21 @@ class GeneralExpenseController extends Controller
      */
     public function export(Request $request)
     {
-        $month = $request->month ?? now()->month;
-        $year = $request->year ?? now()->year;
+        $month = null;
+        $year = null;
+
+        if ($request->filled('period')) {
+            try {
+                $period = Carbon::createFromFormat('Y-m', $request->period);
+                $month = $period->month;
+                $year = $period->year;
+            } catch (\Exception $e) {
+                // ignore invalid input, fall back to month/year params
+            }
+        }
+
+        $month = $month ?? $request->month ?? now()->month;
+        $year = $year ?? $request->year ?? now()->year;
 
         $expenses = GeneralExpense::with('items')
             ->byPeriod($month, $year)

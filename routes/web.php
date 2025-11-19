@@ -675,6 +675,12 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/amortization', 'storeAmortization')->name('amortization');
     });
 
+    Route::controller(\App\Http\Controllers\AdminKeuangan\EquipmentTransactionController::class)->prefix('equipment')->name('equipment.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/purchase', 'storePurchase')->name('purchase');
+        Route::post('/depreciation', 'storeDepreciation')->name('depreciation');
+    });
+
     // Expense Template API Routes for Auto-Categorization
     Route::controller(\App\Http\Controllers\Api\ExpenseTemplateController::class)->prefix('api/expense-templates')->name('api.expense-templates.')->group(function () {
         Route::get('/by-category', 'getTemplatesByCategory')->name('by-category');

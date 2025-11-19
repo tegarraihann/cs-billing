@@ -402,4 +402,45 @@ class ProfitLossEntry extends Model
 
         return $entry;
     }
+
+    /**
+     * Create entry from equipment depreciation transaction.
+     */
+    public static function createFromEquipmentDepreciation(EquipmentTransaction $transaction, $period_id, $created_by)
+    {
+        $expense_account = ChartOfAccount::where('account_code', '5300')->first()
+            ?? ChartOfAccount::where('account_type', 'expense')->orderBy('account_code')->first();
+
+        if (!$expense_account) {
+            throw new \Exception('Expense account for equipment depreciation not found (expected account code 5300).');
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'equipment_transaction',
+            'reference_id' => $transaction->id,
+        ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = $transaction->description
+            ? 'Depresiasi Equipment - ' . $transaction->description
+            : 'Depresiasi Equipment';
+        $entry->amount = $transaction->amount;
+        $entry->entry_type = 'auto_equipment_depreciation';
+        $entry->transaction_date = $transaction->transaction_date;
+        $entry->additional_data = [
+            'asset_name' => $transaction->asset_name,
+            'category' => $transaction->category,
+            'reference_number' => $transaction->reference_number,
+            'notes' => $transaction->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
 }

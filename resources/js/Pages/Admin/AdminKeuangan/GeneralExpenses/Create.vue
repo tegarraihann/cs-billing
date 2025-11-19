@@ -123,7 +123,7 @@
               <div
                 v-for="(item, index) in form.items"
                 :key="index"
-                class="p-4 border border-sage-200 rounded-lg bg-sage-50"
+                class="p-4 border border-sage-200 rounded-lg bg-white"
               >
                 <div class="flex justify-between items-start mb-4">
                   <h4 class="text-sm font-medium text-sage-700">Item #{{ index + 1 }}</h4>
@@ -204,7 +204,7 @@
             </div>
 
             <!-- Total Summary -->
-            <div v-if="form.items.length > 0" class="mt-6 p-4 bg-sage-100 rounded-lg">
+            <div v-if="form.items.length > 0" class="mt-6 p-4 bg-white border border-sage-200 rounded-lg">
               <div class="flex justify-between items-center">
                 <span class="text-sm font-medium text-sage-700">Total Keseluruhan:</span>
                 <span class="text-lg font-bold text-sage-800">{{ formatCurrency(calculatedTotal) }}</span>

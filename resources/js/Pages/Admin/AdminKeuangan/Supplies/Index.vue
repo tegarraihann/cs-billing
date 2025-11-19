@@ -111,18 +111,28 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="entry in transactions.data" :key="entry.id" class="hover:bg-gray-50">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Barang</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Harga / pcs</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr v-for="entry in transactions.data" :key="entry.id" class="hover:bg-gray-50">
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ formatDate(entry.transaction_date) }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ entry.category }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">
                                         <div>{{ entry.description || '-' }}</div>
                                         <div v-if="entry.notes" class="text-xs text-gray-500">{{ entry.notes }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 text-right">
+                                        <span v-if="entry.quantity">{{ entry.quantity }}</span>
+                                        <span v-else>-</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 text-right">
+                                        <span v-if="pricePerPcs(entry)">{{ formatCurrency(pricePerPcs(entry)) }}</span>
+                                        <span v-else>-</span>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900 text-right">
                                         {{ formatCurrency(entry.amount) }}
@@ -134,7 +144,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="transactions.data.length === 0">
-                                    <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
+                                    <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
                                         Belum ada transaksi supplies.
                                     </td>
                                 </tr>
@@ -193,11 +203,22 @@
                                 class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
                             ></textarea>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah (Rp)</label>
                                 <input
                                     v-model="topupForm.amount"
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Barang</label>
+                                <input
+                                    v-model="topupForm.quantity"
                                     type="number"
                                     step="0.01"
                                     min="0.01"
@@ -215,6 +236,7 @@
                                     <option value="bank">Bank</option>
                                     <option value="petty_cash">Petty Cash</option>
                                 </select>
+                                <p class="text-xs text-gray-500 mt-1">Harga per pcs: <span class="font-semibold">{{ topupUnitPrice ? formatCurrency(topupUnitPrice) : '-' }}</span></p>
                             </div>
                         </div>
                         <div v-if="topupForm.source_type === 'bank'">
@@ -287,7 +309,7 @@
                                 />
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Jenis</label>
                                 <select
@@ -308,6 +330,17 @@
                                     class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
                                     required
                                 />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Barang</label>
+                                <input
+                                    v-model="usageForm.quantity"
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">Harga per pcs: <span class="font-semibold">{{ usageUnitPrice ? formatCurrency(usageUnitPrice) : '-' }}</span></p>
                             </div>
                         </div>
                         <div>
@@ -370,6 +403,7 @@ const topupForm = useForm({
     category: '',
     description: '',
     amount: '',
+    quantity: '',
     source_type: 'other',
     bank_account_id: '',
     petty_cash_category_id: '',
@@ -382,6 +416,7 @@ const usageForm = useForm({
     category: '',
     description: '',
     amount: '',
+    quantity: '',
     transaction_type: 'usage',
     notes: '',
 })
@@ -404,6 +439,17 @@ const formatCurrency = (value) => {
         minimumFractionDigits: 0,
     }).format(amount)
 }
+
+const calculateUnitPrice = (amount, qty) => {
+    const total = parseFloat(amount)
+    const quantity = parseFloat(qty)
+    if (!total || !quantity) return null
+    return total / quantity
+}
+
+const pricePerPcs = (entry) => calculateUnitPrice(entry.amount, entry.quantity)
+const topupUnitPrice = computed(() => calculateUnitPrice(topupForm.amount, topupForm.quantity))
+const usageUnitPrice = computed(() => calculateUnitPrice(usageForm.amount, usageForm.quantity))
 
 const formatDate = (value) => {
     if (!value) return '-'

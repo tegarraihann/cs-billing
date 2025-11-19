@@ -65,7 +65,7 @@ class PrepaidRentController extends Controller
             'amortization_months' => ['nullable', 'integer', 'min:1', 'max:60'],
         ]);
 
-        PrepaidRentTransaction::create([
+        $topup = PrepaidRentTransaction::create([
             'transaction_date' => $validated['transaction_date'],
             'transaction_type' => 'topup',
             'amount' => $validated['amount'],
@@ -80,6 +80,9 @@ class PrepaidRentController extends Controller
             'notes' => $validated['notes'] ?? null,
             'created_by' => Auth::id(),
         ]);
+
+        // Prepare amortization schedules for automation
+        $topup->ensureSchedules();
 
         return redirect()->route('admin-keuangan.prepaid-rent.index')
             ->with('success', 'Pembayaran sewa berhasil dicatat.');

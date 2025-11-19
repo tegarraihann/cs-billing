@@ -196,6 +196,18 @@
                 <span class="font-medium">Prepaid Rent</span>
             </a>
 
+            <a :href="route('admin-keuangan.equipment.index')"
+                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.equipment')
+                        ? 'bg-sage-100 text-sage-800 shadow-sm'
+                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                    ">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 7h16M4 12h8m-8 5h16M6 7V5a2 2 0 012-2h8a2 2 0 012 2v2" />
+                </svg>
+                <span class="font-medium">Equipment</span>
+            </a>
+
 
             <!-- Profit Loss Reports -->
             <a :href="route('admin-keuangan.profit-loss.index')"
@@ -438,6 +450,7 @@ const isActive = (routePattern) => {
         'admin-keuangan.profit-loss': '/admin-keuangan/profit-loss',
         'admin-keuangan.supplies': '/admin-keuangan/supplies',
         'admin-keuangan.prepaid-rent': '/admin-keuangan/prepaid-rent',
+        'admin-keuangan.equipment': '/admin-keuangan/equipment',
         'admin-keuangan.financial-position': '/admin-keuangan/financial-position',
         'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
         'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',

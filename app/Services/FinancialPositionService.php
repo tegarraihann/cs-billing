@@ -6,6 +6,7 @@ use App\Models\AccountPayable;
 use App\Models\AccountReceivable;
 use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
+use App\Models\EquipmentTransaction;
 use App\Models\FinancialPositionAdjustment;
 use App\Models\OtherIncome;
 use App\Models\PettyCashBalance;
@@ -182,6 +183,8 @@ class FinancialPositionService
             '1200' => $this->calculateAccountsReceivableBalance($cutoff),
             '1210' => $this->calculateOtherIncomeReceivablesBalance($cutoff),
             '1300' => $this->calculateSuppliesBalance($cutoff),
+            '1510' => $this->calculateEquipmentBalance($cutoff),
+            '1515' => $this->calculateEquipmentAccumulatedBalance($cutoff),
             '1400' => $this->calculatePrepaidRentBalance($cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
@@ -336,6 +339,36 @@ class FinancialPositionService
             'meta' => [
                 'topups' => (float) $topups,
                 'amortizations' => (float) $amortizations,
+            ],
+        ];
+    }
+
+    private function calculateEquipmentBalance(Carbon $cutoff): array
+    {
+        $purchases = EquipmentTransaction::where('transaction_type', 'purchase')
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
+        return [
+            'amount' => (float) $purchases,
+            'source' => 'auto',
+            'meta' => [
+                'purchases' => (float) $purchases,
+            ],
+        ];
+    }
+
+    private function calculateEquipmentAccumulatedBalance(Carbon $cutoff): array
+    {
+        $depreciations = EquipmentTransaction::where('transaction_type', 'depreciation')
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
+        return [
+            'amount' => -(float) $depreciations,
+            'source' => 'auto',
+            'meta' => [
+                'depreciations' => (float) $depreciations,
             ],
         ];
     }

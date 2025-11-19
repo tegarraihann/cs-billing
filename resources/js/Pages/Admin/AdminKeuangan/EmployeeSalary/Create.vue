@@ -110,7 +110,7 @@
                                             </label>
                                             <input
                                                 id="basic_salary"
-                                                v-model="form.basic_salary"
+                                                v-model.number="form.basic_salary"
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -129,7 +129,7 @@
                                             </label>
                                             <input
                                                 id="allowances"
-                                                v-model="form.allowances"
+                                                v-model.number="form.allowances"
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -148,7 +148,7 @@
                                             </label>
                                             <input
                                                 id="deductions"
-                                                v-model="form.deductions"
+                                                v-model.number="form.deductions"
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -283,9 +283,9 @@ const form = useForm({
     employee_id: '',
     division: '',
     position: '',
-    basic_salary: '',
-    allowances: '',
-    deductions: '',
+    basic_salary: 0,
+    allowances: 0,
+    deductions: 0,
     salary_date: new Date().toISOString().split('T')[0],
     period_month: new Date().toISOString().substr(0, 7),
     notes: '',
