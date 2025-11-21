@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\ReimbursementItem;
 use App\Models\InvoiceItem;
 use App\Models\AccountPayableComponent;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
@@ -445,6 +446,7 @@ class SalesOrderController extends Controller
         // Load reimbursement items with vendor relationship for editing
         $salesOrder->load(['reimbursementItems.vendor']);
         $this->hydrateOtherCostsWithVendors($salesOrder);
+        $this->hydrateVendorBreakdownFromInvoices($salesOrder);
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
@@ -578,6 +580,11 @@ class SalesOrderController extends Controller
 
         // Update reimbursement items
         $this->updateReimbursementItems($salesOrder, $reimbursementItems);
+
+        // Re-sync vendor COGS items on related invoices and regenerate hutang vendor
+        $salesOrder->refresh();
+        $this->syncVendorBreakdownToInvoices($salesOrder);
+        \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
 
         return redirect()
             ->route('admin-keuangan.sales-orders.index')
@@ -721,6 +728,168 @@ class SalesOrderController extends Controller
         }
 
         $salesOrder->setAttribute('other_costs', $normalizedCosts);
+    }
+
+    /**
+     * Isi kembali vendor_breakdown yang kosong dengan data dari invoice (billable & COGS).
+     */
+    private function hydrateVendorBreakdownFromInvoices(SalesOrder $salesOrder): void
+    {
+        $vendorBreakdown = $salesOrder->vendor_breakdown;
+        if (!is_array($vendorBreakdown) || empty($vendorBreakdown)) {
+            return;
+        }
+
+        $invoices = $salesOrder->invoices()->with('items')->get();
+        if ($invoices->isEmpty()) {
+            return;
+        }
+
+        $billableItems = $invoices->flatMap->items->filter(function ($item) {
+            return is_string($item->item_ref) && str_starts_with($item->item_ref, 'vendor_');
+        })->values();
+
+        $cogsItems = $invoices->flatMap->items->filter(function ($item) {
+            return is_string($item->item_ref) && str_starts_with($item->item_ref, 'cogs_vendor_');
+        })->values();
+
+        $extractKey = function ($itemRef, $prefix) {
+            $trimmed = substr($itemRef, strlen($prefix));
+            return trim((string) $trimmed);
+        };
+
+        foreach ($vendorBreakdown as $index => &$vendor) {
+            $keyCandidates = [];
+            if (!empty($vendor['vendor_id'])) {
+                $keyCandidates[] = (string) $vendor['vendor_id'];
+            }
+            $keyCandidates[] = (string) $index;
+
+            $matchedBillable = $billableItems->first(function ($item) use ($extractKey, $keyCandidates) {
+                $key = $extractKey($item->item_ref, 'vendor_');
+                return in_array($key, $keyCandidates, true);
+            });
+
+            $matchedCogs = $cogsItems->first(function ($item) use ($extractKey, $keyCandidates) {
+                $key = $extractKey($item->item_ref, 'cogs_vendor_');
+                return in_array($key, $keyCandidates, true);
+            });
+
+            // Isi selling/description dari item billable jika kosong
+            if ($matchedBillable) {
+                if (empty($vendor['description']) && !empty($matchedBillable->description)) {
+                    $vendor['description'] = $matchedBillable->description;
+                }
+                if ((empty($vendor['selling_amount']) || $vendor['selling_amount'] == 0) && $matchedBillable->amount) {
+                    $vendor['selling_amount'] = (float) $matchedBillable->amount;
+                }
+                if (empty($vendor['vendor_id']) && !empty($matchedBillable->vendor_id)) {
+                    $vendor['vendor_id'] = (int) $matchedBillable->vendor_id;
+                }
+            }
+
+            // Isi buying dari item COGS jika kosong
+            if ($matchedCogs && (empty($vendor['buying_amount']) || $vendor['buying_amount'] == 0)) {
+                $vendor['buying_amount'] = (float) $matchedCogs->amount;
+            }
+
+            // Lengkapi data vendor dari master
+            if (!empty($vendor['vendor_id']) && empty($vendor['nama_vendor'])) {
+                $v = Vendor::find($vendor['vendor_id']);
+                if ($v) {
+                    $vendor['nama_vendor'] = $v->nama_vendor;
+                    $vendor['no_rekening'] = $vendor['no_rekening'] ?? $v->nomor_rekening;
+                    $vendor['nama_rekening'] = $vendor['nama_rekening'] ?? $v->nama_rekening;
+                }
+            }
+
+            // Default nama vendor internal jika ada nominal tapi identitas kosong
+            if (empty($vendor['vendor_id']) && empty($vendor['nama_vendor']) && (!empty($vendor['buying_amount']) || !empty($vendor['selling_amount']))) {
+                $vendor['nama_vendor'] = 'Divisi Operational';
+            }
+        }
+        unset($vendor);
+
+        $salesOrder->setAttribute('vendor_breakdown', $vendorBreakdown);
+    }
+
+    /**
+     * Sinkronisasi item COGS vendor di invoice dengan vendor_breakdown terbaru.
+     */
+    private function syncVendorBreakdownToInvoices(SalesOrder $salesOrder): void
+    {
+        $salesOrder->loadMissing('invoices');
+
+        if ($salesOrder->invoices->isEmpty()) {
+            return;
+        }
+
+        $vendorBreakdown = $salesOrder->vendor_breakdown;
+        $hasVendorData = is_array($vendorBreakdown) && !empty($vendorBreakdown);
+
+        foreach ($salesOrder->invoices as $invoice) {
+            // Hapus item billable & COGS lama berbasis vendor_breakdown
+            InvoiceItem::where('invoice_id', $invoice->id)
+                ->where('item_ref', 'like', 'vendor_%')
+                ->delete();
+
+            InvoiceItem::where('invoice_id', $invoice->id)
+                ->where('item_ref', 'like', 'cogs_vendor_%')
+                ->delete();
+
+            if ($hasVendorData) {
+                foreach ($vendorBreakdown as $index => $vendor) {
+                    $rawVendorId = $vendor['vendor_id'] ?? null;
+                    $vendorId = is_numeric($rawVendorId) ? (int) $rawVendorId : null;
+
+                    // Billable line (selling)
+                    $sellingAmount = floatval($vendor['selling_amount'] ?? 0);
+                    if ($sellingAmount > 0) {
+                        $billRef = 'vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
+                        InvoiceItem::create([
+                            'invoice_id' => $invoice->id,
+                            'description' => $vendor['description'] ?? 'Service',
+                            'quantity' => 1,
+                            'unit' => 'SET',
+                            'rate' => $sellingAmount,
+                            'currency' => 'IDR',
+                            'amount' => $sellingAmount,
+                            'item_ref' => $billRef,
+                            'item_type' => 'billable',
+                            'vendor_id' => $vendorId,
+                            'include_in_customer_invoice' => true,
+                            'is_hidden_from_customer' => false,
+                        ]);
+                    }
+
+                    // COGS (buying)
+                    $buyingAmount = floatval($vendor['buying_amount'] ?? 0);
+                    if ($buyingAmount <= 0) {
+                        continue;
+                    }
+
+                    $itemRef = 'cogs_vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
+
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => ($vendor['description'] ?? 'Service') . ' - Buying Cost (COGS)',
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $buyingAmount,
+                        'currency' => 'IDR',
+                        'amount' => $buyingAmount,
+                        'item_ref' => $itemRef,
+                        'item_type' => 'operational_cost',
+                        'vendor_id' => $vendorId,
+                        'include_in_customer_invoice' => false,
+                        'is_hidden_from_customer' => true,
+                    ]);
+                }
+            }
+
+            // COGS tidak mempengaruhi subtotal pelanggan tapi hitung ulang untuk konsistensi
+            $invoice->calculateTotals();
+        }
     }
 
     /**

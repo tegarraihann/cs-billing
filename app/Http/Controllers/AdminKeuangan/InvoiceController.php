@@ -431,6 +431,10 @@ class InvoiceController extends Controller
 
         $invoice->load(['salesOrder', 'customer', 'items', 'reimbursementRecords']);
 
+        if ($invoice->salesOrder) {
+            $this->syncVendorItemsFromSalesOrder($invoice, $invoice->salesOrder);
+        }
+
 
         // Get all invoices from the same Sales Order
         $relatedInvoices = collect();
@@ -1783,6 +1787,74 @@ class InvoiceController extends Controller
             ]);
             // Don't throw exception to prevent blocking invoice creation
         }
+    }
+
+    /**
+     * Sinkronisasi item vendor (billable & COGS) pada invoice berdasarkan vendor_breakdown SO.
+     */
+    private function syncVendorItemsFromSalesOrder(Invoice $invoice, SalesOrder $salesOrder): void
+    {
+        $vendorBreakdown = $salesOrder->vendor_breakdown;
+        if (!is_array($vendorBreakdown) || empty($vendorBreakdown)) {
+            return;
+        }
+
+        // Hapus entri lama yang berasal dari vendor_breakdown
+        InvoiceItem::where('invoice_id', $invoice->id)
+            ->where(function ($q) {
+                $q->where('item_ref', 'like', 'vendor_%')
+                  ->orWhere('item_ref', 'like', 'cogs_vendor_%');
+            })
+            ->delete();
+
+        foreach ($vendorBreakdown as $index => $vendor) {
+            $rawVendorId = $vendor['vendor_id'] ?? null;
+            $vendorId = is_numeric($rawVendorId) ? (int) $rawVendorId : null;
+            $description = $vendor['description'] ?? 'Service';
+
+            // Billable (selling)
+            $sellingAmount = floatval($vendor['selling_amount'] ?? 0);
+            if ($sellingAmount > 0) {
+                $billRef = 'vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'description' => $description,
+                    'quantity' => 1,
+                    'unit' => 'SET',
+                    'rate' => $sellingAmount,
+                    'currency' => 'IDR',
+                    'amount' => $sellingAmount,
+                    'item_ref' => $billRef,
+                    'item_type' => 'billable',
+                    'vendor_id' => $vendorId,
+                    'include_in_customer_invoice' => true,
+                    'is_hidden_from_customer' => false,
+                ]);
+            }
+
+            // COGS (buying)
+            $buyingAmount = floatval($vendor['buying_amount'] ?? 0);
+            if ($buyingAmount > 0) {
+                $cogsRef = 'cogs_vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'description' => $description . ' - Buying Cost (COGS)',
+                    'quantity' => 1,
+                    'unit' => 'SET',
+                    'rate' => $buyingAmount,
+                    'currency' => 'IDR',
+                    'amount' => $buyingAmount,
+                    'item_ref' => $cogsRef,
+                    'item_type' => 'operational_cost',
+                    'vendor_id' => $vendorId,
+                    'include_in_customer_invoice' => false,
+                    'is_hidden_from_customer' => true,
+                ]);
+            }
+        }
+
+        // Recalculate customer-facing totals (COGS tidak mempengaruhi subtotal)
+        $invoice->calculateTotals();
     }
 
     /**
