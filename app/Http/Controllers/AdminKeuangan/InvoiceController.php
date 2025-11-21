@@ -8,6 +8,8 @@ use App\Models\InvoiceItem;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
+use App\Models\ChartOfAccount;
+use App\Models\FinancialPositionAdjustment;
 use App\Models\OperationalCostCategory;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -1086,6 +1088,12 @@ class InvoiceController extends Controller
             $validated['payment_method'],
             $validated['payment_notes']
         );
+
+        // Jika pembayaran kurang dari total, catat selisih sebagai adjustment VAT Payable (2110)
+        $difference = round(max(0, ($invoice->total ?? 0) - $validated['paid_amount']), 2);
+        if ($difference > 0) {
+            $this->recordVatPayableAdjustment($difference, $validated['paid_date'], $invoice);
+        }
 
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Pembayaran berhasil dikonfirmasi.');

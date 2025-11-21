@@ -186,7 +186,10 @@ class FinancialPositionService
             '1510' => $this->calculateEquipmentBalance($cutoff),
             '1515' => $this->calculateEquipmentAccumulatedBalance($cutoff),
             '1400' => $this->calculatePrepaidRentBalance($cutoff),
+            '2110', '2111' => $this->calculateVatPayableBalance($accountCode, $cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
+            '3100' => $this->calculatePaidInCapitalBalance($accountCode, $cutoff),
+            '3200' => $this->calculateRetainedEarningsBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
             default => [
                 'amount' => $this->getManualValue($accountCode, $cutoff) ?? 0.0,
@@ -272,6 +275,32 @@ class FinancialPositionService
             'source' => 'auto',
             'meta' => [
                 'records' => (clone $query)->count(),
+            ],
+        ];
+    }
+
+    /**
+     * Calculate VAT Payable (PPN Keluaran) balance from adjustments (akun 2110/2111).
+     * Prioritas: manual override bila ada, otherwise sum FinancialPositionAdjustment s/d cutoff.
+     */
+    private function calculateVatPayableBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $query = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('amount');
+        $records = $query->count();
+
+        return [
+            'amount' => round($amount, 2),
+            'source' => 'auto',
+            'meta' => [
+                'records' => $records,
             ],
         ];
     }
@@ -374,6 +403,32 @@ class FinancialPositionService
     }
 
     /**
+     * Calculate Paid-in Capital (Modal Disetor) balance from adjustments (contoh akun 3200).
+     * Prioritas: manual override bila ada, otherwise sum FinancialPositionAdjustment s/d cutoff.
+     */
+    private function calculatePaidInCapitalBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $query = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('amount');
+        $records = $query->count();
+
+        return [
+            'amount' => round($amount, 2),
+            'source' => 'auto',
+            'meta' => [
+                'records' => $records,
+            ],
+        ];
+    }
+
+    /**
      * Calculate current year earnings using published profit & loss periods.
      */
     private function calculateCurrentYearEarnings(Carbon $cutoff): array
@@ -409,6 +464,26 @@ class FinancialPositionService
             'source' => 'auto',
             'meta' => [
                 'period_type' => 'monthly_aggregate',
+            ],
+        ];
+    }
+
+    /**
+     * Calculate Retained Earnings (Laba Ditahan, ex: 3200) sampai cut-off dari periode P&L published/closed.
+     */
+    private function calculateRetainedEarningsBalance(Carbon $cutoff): array
+    {
+        $query = ProfitLossPeriod::whereIn('status', ['published', 'closed'])
+            ->whereDate('end_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('net_profit');
+        $records = $query->count();
+
+        return [
+            'amount' => $amount,
+            'source' => 'auto',
+            'meta' => [
+                'periods_count' => $records,
             ],
         ];
     }

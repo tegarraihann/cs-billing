@@ -152,7 +152,7 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="flex space-x-4 mb-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:space-x-4 space-y-4 lg:space-y-0 mb-6">
                     <Link
                         :href="route('admin-keuangan.bank-balance.history', bank.id)"
                         class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
@@ -167,6 +167,33 @@
                         <Plus class="w-4 h-4 mr-2" />
                         Input Opening Balance
                     </Link>
+                    <form @submit.prevent="submitCapitalDeposit" class="bg-white border border-sage-200 rounded-lg shadow-sm p-4 w-full lg:w-auto">
+                        <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-3 space-y-3 sm:space-y-0">
+                            <div class="w-full sm:w-32">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
+                                <input v-model="capitalForm.transaction_date" type="date" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" required />
+                            </div>
+                            <div class="w-full sm:w-40">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Setoran</label>
+                                <input v-model="capitalForm.amount" type="number" step="0.01" min="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" required />
+                            </div>
+                            <div class="w-full sm:w-48">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Catatan (opsional)</label>
+                                <input v-model="capitalForm.notes" type="text" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" placeholder="Mis: Setor modal pemegang saham" />
+                            </div>
+                            <div>
+                                <button type="submit" :disabled="capitalForm.processing" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+                                    <Loader2 v-if="capitalForm.processing" class="w-4 h-4 mr-2 animate-spin" />
+                                    <Download v-else class="w-4 h-4 mr-2" />
+                                    Setor Modal
+                                </button>
+                            </div>
+                        </div>
+                        <div v-if="capitalForm.errors.amount" class="text-xs text-red-600 mt-2">{{ capitalForm.errors.amount }}</div>
+                        <div v-if="capitalForm.errors.transaction_date" class="text-xs text-red-600 mt-1">{{ capitalForm.errors.transaction_date }}</div>
+                        <div v-if="capitalForm.errors.notes" class="text-xs text-red-600 mt-1">{{ capitalForm.errors.notes }}</div>
+                        <div v-if="capitalForm.errors.error" class="text-xs text-red-600 mt-1">{{ capitalForm.errors.error }}</div>
+                    </form>
                 </div>
 
                 <!-- Recent Transactions -->
@@ -236,11 +263,11 @@
 </template>
 
 <script setup>
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
     ArrowLeft, CreditCard, DollarSign, TrendingUp, TrendingDown,
-    Activity, History, Plus
+    Activity, History, Plus, Download, Loader2
 } from 'lucide-vue-next'
 
 defineProps({
@@ -282,6 +309,21 @@ const formatDate = (date) => {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
+    })
+}
+
+const capitalForm = useForm({
+    amount: '',
+    transaction_date: new Date().toISOString().slice(0, 10),
+    notes: ''
+})
+
+const submitCapitalDeposit = () => {
+    capitalForm.post(route('admin-keuangan.bank-balance.capital-deposit', props.bank.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            capitalForm.reset('amount', 'notes')
+        }
     })
 }
 </script>

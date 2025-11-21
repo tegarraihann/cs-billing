@@ -5,6 +5,9 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
 use App\Models\BankBalance;
+use App\Models\BankTransaction;
+use App\Models\ChartOfAccount;
+use App\Models\FinancialPositionAdjustment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -140,6 +143,56 @@ class BankBalanceController extends Controller
             'transactions' => $transactions,
             'currentBalance' => $bank->getCurrentBalance()
         ]);
+    }
+
+    /**
+     * Catat setoran modal: tambah transaksi kredit bank dan adjustment modal disetor (3200).
+     */
+    public function capitalDeposit(Request $request, BankAccount $bank)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'transaction_date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $modalAccountId = ChartOfAccount::idByCode('3100');
+        if (!$modalAccountId) {
+            return back()->withErrors(['error' => 'Akun Modal Disetor (3200) tidak ditemukan. Siapkan COA terlebih dahulu.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            BankTransaction::create([
+                'bank_account_id' => $bank->id,
+                'transaction_date' => $validated['transaction_date'],
+                'transaction_type' => 'credit',
+                'amount' => $validated['amount'],
+                'description' => 'Setor Modal: ' . ($validated['notes'] ?? 'Modal disetor'),
+                'reference_type' => 'capital_deposit',
+                'reference_id' => null,
+                'created_by' => Auth::id(),
+            ]);
+
+            FinancialPositionAdjustment::create([
+                'account_id' => $modalAccountId,
+                'effective_date' => $validated['transaction_date'],
+                'amount' => $validated['amount'],
+                'notes' => 'Setor Modal ke ' . $bank->bank_name . ' - ' . ($validated['notes'] ?? 'Modal disetor'),
+                'created_by' => Auth::id(),
+            ]);
+
+            \DB::commit();
+
+            return redirect()
+                ->route('admin-keuangan.bank-balance.show', $bank->id)
+                ->with('success', 'Setor modal berhasil dicatat.');
+        } catch (\Throwable $th) {
+            \DB::rollBack();
+
+            return back()->withErrors(['error' => 'Gagal mencatat setor modal: ' . $th->getMessage()]);
+        }
     }
 
     private function getStats(): array

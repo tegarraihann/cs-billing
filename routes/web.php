@@ -731,6 +731,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/{bankBalance}', 'show')->name('show');
+        Route::post('/{bank}/capital-deposit', 'capitalDeposit')->name('capital-deposit');
         Route::get('/{bank}/history', 'history')->name('history');
     });
 
