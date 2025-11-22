@@ -125,4 +125,9 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeDocumentStatus::class);
     }
+
+    public function documents()
+    {
+        return $this->hasMany(EmployeeDocument::class);
+    }
 }

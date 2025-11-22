@@ -579,74 +579,21 @@
           <div class="px-6 py-4 border-b border-sage-200">
             <h3 class="text-lg font-semibold text-sage-800">Status Dokumen</h3>
           </div>
-          <div class="p-6">
+          <div class="p-6 space-y-4">
             <div v-for="docStatus in employee.document_statuses" :key="docStatus.id">
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                <div class="flex items-center">
-                  <span :class="docStatus.surat_lamaran ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.surat_lamaran ? '✓' : '✗' }}
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div
+                  v-for="field in documentStatusFields"
+                  :key="field.key"
+                  class="flex items-center justify-between border border-sage-200 rounded px-3 py-2"
+                >
+                  <span class="text-sm">{{ field.label }}</span>
+                  <span
+                    class="text-xs font-semibold"
+                    :class="docStatus[field.key] ? 'text-green-700' : 'text-red-700'"
+                  >
+                    {{ docStatus[field.key] ? 'Ada' : 'Belum ada' }}
                   </span>
-                  <span class="text-sm">Surat Lamaran</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.cv ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.cv ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">CV</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.akte_kelahiran ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.akte_kelahiran ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">Akte Kelahiran</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.kartu_keluarga ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.kartu_keluarga ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">Kartu Keluarga</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.surat_pengalaman_kerja ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.surat_pengalaman_kerja ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">Surat Pengalaman Kerja</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.ktp_sim ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.ktp_sim ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">KTP/SIM</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.skck ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.skck ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">SKCK</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.pas_foto ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.pas_foto ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">Pas Foto</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.ijazah ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.ijazah ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">Ijazah</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.surat_sehat ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.surat_sehat ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">Surat Sehat</span>
-                </div>
-                <div class="flex items-center">
-                  <span :class="docStatus.npwp ? 'text-green-600' : 'text-red-600'" class="mr-2">
-                    {{ docStatus.npwp ? '✓' : '✗' }}
-                  </span>
-                  <span class="text-sm">NPWP</span>
                 </div>
               </div>
             </div>
@@ -660,6 +607,35 @@
           </div>
           <div class="p-6">
             <p class="text-gray-500 text-center py-4">Tidak ada status dokumen yang tercatat.</p>
+          </div>
+        </div>
+
+        <!-- Document Attachments -->
+        <div class="bg-white rounded-lg shadow-sm border border-sage-200 mt-6" v-if="employee?.documents?.length">
+          <div class="px-6 py-4 border-b border-sage-200">
+            <h3 class="text-lg font-semibold text-sage-800">Lampiran Dokumen</h3>
+          </div>
+          <div class="p-6 space-y-3">
+            <div
+              v-for="doc in employee.documents"
+              :key="doc.id"
+              class="flex items-start justify-between border border-sage-200 rounded px-3 py-2"
+            >
+              <div>
+                <p class="text-sm font-semibold text-gray-900">{{ formatDocumentLabel(doc.type) }}</p>
+                <p class="text-xs text-gray-600">
+                  {{ doc.original_name || 'File' }} <span v-if="doc.size">({{ formatFileSize(doc.size) }})</span>
+                </p>
+              </div>
+              <a
+                :href="`/storage/${doc.path}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sage-700 text-sm font-semibold hover:text-sage-900"
+              >
+                Lihat
+              </a>
+            </div>
           </div>
         </div>
 
@@ -746,6 +722,47 @@ const formatCurrency = (amount) => {
     currency: 'IDR',
     minimumFractionDigits: 0
   }).format(amount);
+};
+
+const documentStatusFields = [
+  { key: 'surat_lamaran', label: 'Surat Lamaran' },
+  { key: 'cv', label: 'CV' },
+  { key: 'akte_kelahiran', label: 'Akte Kelahiran' },
+  { key: 'kartu_keluarga', label: 'Kartu Keluarga' },
+  { key: 'surat_pengalaman_kerja', label: 'Surat Pengalaman Kerja' },
+  { key: 'ktp_sim', label: 'KTP/SIM' },
+  { key: 'skck', label: 'SKCK' },
+  { key: 'pas_foto', label: 'Pas Foto' },
+  { key: 'ijazah', label: 'Ijazah' },
+  { key: 'surat_sehat', label: 'Surat Sehat' },
+  { key: 'npwp', label: 'NPWP' },
+  { key: 'bpjs_kesehatan', label: 'BPJS Kesehatan' },
+  { key: 'bpjs_ketenagakerjaan', label: 'BPJS Ketenagakerjaan' },
+];
+
+const formatDocumentLabel = (type) => {
+  const map = {
+    ktp: 'KTP',
+    kartu_keluarga: 'Kartu Keluarga',
+    npwp: 'NPWP',
+    bpjs_kesehatan: 'BPJS Kesehatan',
+    bpjs_ketenagakerjaan: 'BPJS Ketenagakerjaan',
+    skck: 'SKCK',
+    cv: 'CV',
+    surat_lamaran: 'Surat Lamaran',
+    surat_pengalaman_kerja: 'Surat Pengalaman Kerja',
+  };
+
+  return map[type] || 'Dokumen';
+};
+
+const formatFileSize = (size) => {
+  if (!size) return '-';
+  const kb = size / 1024;
+  if (kb < 1024) {
+    return `${kb.toFixed(0)} KB`;
+  }
+  return `${(kb / 1024).toFixed(2)} MB`;
 };
 </script>
 

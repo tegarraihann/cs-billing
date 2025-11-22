@@ -271,39 +271,43 @@
         </div>
     </div>
 
-    <!-- INFORMASI KEUANGAN TERKINI -->
+    <!-- POSISI KEUANGAN RINGKAS (LAYOUT MIRIP FINANCIAL POSITION) -->
     <div class="section" style="margin-top: 30px;">
-        <div class="section-title">INFORMASI KEUANGAN TERKINI</div>
+        <div class="section-title">POSISI KEUANGAN RINGKAS</div>
 
+        <!-- ASET LANCAR -->
+        <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa;">Aset Lancar</div>
         <div class="item">
             <span class="item-name">Saldo Bank Mandiri</span>
             <span class="item-amount">Rp {{ number_format($financialInfo['bank_mandiri_balance'] ?? 0, 0, ',', '.') }}</span>
         </div>
-
         <div class="item">
             <span class="item-name">Saldo Bank BCA</span>
             <span class="item-amount">Rp {{ number_format($financialInfo['bank_bca_balance'] ?? 0, 0, ',', '.') }}</span>
         </div>
-
-        <div class="item" style="font-weight: bold; background-color: #f8f9fa;">
-            <span class="item-name">Total Saldo Bank</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['total_bank_balance'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-
         @if(isset($financialInfo['bank_balance']) && $financialInfo['bank_balance'] > 0)
         <div class="item">
             <span class="item-name">Kas Kecil</span>
             <span class="item-amount">Rp {{ number_format($financialInfo['bank_balance'] ?? 0, 0, ',', '.') }}</span>
         </div>
         @endif
-
+        <div class="item" style="font-weight: bold; background-color: #f8f9fa;">
+            <span class="item-name">Total Saldo Bank</span>
+            <span class="item-amount">Rp {{ number_format($financialInfo['total_bank_balance'] ?? 0, 0, ',', '.') }}</span>
+        </div>
         <div class="item">
             <span class="item-name">Total Piutang</span>
             <span class="item-amount">Rp {{ number_format($financialInfo['total_receivables'] ?? 0, 0, ',', '.') }}</span>
         </div>
 
+        <!-- LIABILITAS / HUTANG -->
+        <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa; margin-top: 12px;">Liabilitas / Hutang</div>
         <div class="item">
             <span class="item-name">Total Hutang</span>
+            <span class="item-amount">Rp {{ number_format($financialInfo['total_payables'] ?? 0, 0, ',', '.') }}</span>
+        </div>
+        <div class="item" style="font-weight: bold; background-color: #f8f9fa;">
+            <span class="item-name">Total Liabilitas</span>
             <span class="item-amount">Rp {{ number_format($financialInfo['total_payables'] ?? 0, 0, ',', '.') }}</span>
         </div>
     </div>

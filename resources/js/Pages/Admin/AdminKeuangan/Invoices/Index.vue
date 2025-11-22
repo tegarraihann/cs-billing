@@ -207,12 +207,6 @@
                         >
                           View
                         </Link>
-                        <Link
-                          :href="route('admin-keuangan.invoices.edit', invoice.id)"
-                          class="text-sage-600 hover:text-sage-900"
-                        >
-                          Edit
-                        </Link>
                       </div>
                     </td>
                   </tr>
@@ -260,7 +254,6 @@ const route = window.route || function(name, params) {
     'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
     'admin-keuangan.invoices.create': '/admin-keuangan/invoices/create',
     'admin-keuangan.invoices.show': (id) => `/admin-keuangan/invoices/${id}`,
-    'admin-keuangan.invoices.edit': (id) => `/admin-keuangan/invoices/${id}/edit`,
   };
   return routes[name] ? (typeof routes[name] === 'function' ? routes[name](params) : routes[name]) : '#';
 };

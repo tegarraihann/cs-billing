@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
 use App\Models\EquipmentTransaction;
 use App\Models\PettyCashCategory;
+use App\Models\BankTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -77,7 +78,7 @@ class EquipmentTransactionController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        EquipmentTransaction::create([
+        $purchase = EquipmentTransaction::create([
             'transaction_date' => $validated['transaction_date'],
             'transaction_type' => 'purchase',
             'asset_name' => $validated['asset_name'],
@@ -93,6 +94,17 @@ class EquipmentTransactionController extends Controller
             'notes' => $validated['notes'] ?? null,
             'created_by' => Auth::id(),
         ]);
+
+        // Jika sumber bank, catat pengeluaran bank
+        if ($validated['source_type'] === 'bank' && !empty($validated['bank_account_id'])) {
+            BankTransaction::recordVendorPayment(
+                $validated['bank_account_id'],
+                $validated['amount'],
+                'Pembelian Equipment - ' . ($validated['asset_name'] ?? 'Aset'),
+                $purchase->id,
+                $validated['transaction_date']
+            );
+        }
 
         return redirect()->route('admin-keuangan.equipment.index')
             ->with('success', 'Pembelian equipment berhasil dicatat.');

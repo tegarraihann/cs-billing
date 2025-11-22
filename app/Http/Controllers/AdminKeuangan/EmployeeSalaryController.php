@@ -4,6 +4,8 @@ namespace App\Http\Controllers\AdminKeuangan;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeSalary;
+use App\Models\BankTransaction;
+use App\Models\BankAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -211,7 +213,27 @@ class EmployeeSalaryController extends Controller
         }
 
         try {
+            // Approve salary (mark as paid)
             $employeeSalary->approve(Auth::id());
+
+            // Catat transaksi bank (debit) jika ada akun bank yang tersedia
+            $bankAccountId = request('bank_account_id');
+            if (!$bankAccountId) {
+                $bankAccountId = BankAccount::value('id'); // default ke akun pertama jika tidak dipilih
+            }
+
+            if ($bankAccountId) {
+                BankTransaction::create([
+                    'bank_account_id' => $bankAccountId,
+                    'transaction_date' => $employeeSalary->salary_date ?? now()->toDateString(),
+                    'transaction_type' => 'debit',
+                    'amount' => $employeeSalary->total_salary,
+                    'description' => 'Pembayaran gaji ' . $employeeSalary->employee_name,
+                    'reference_type' => 'salary_payment',
+                    'reference_id' => $employeeSalary->id,
+                    'created_by' => Auth::id(),
+                ]);
+            }
             
             return redirect()->back()->with('success', 'Gaji karyawan berhasil disetujui dan dibayar');
             

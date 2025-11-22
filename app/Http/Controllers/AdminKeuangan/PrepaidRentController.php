@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
 use App\Models\PettyCashCategory;
 use App\Models\PrepaidRentTransaction;
+use App\Models\BankTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -83,6 +84,17 @@ class PrepaidRentController extends Controller
 
         // Prepare amortization schedules for automation
         $topup->ensureSchedules();
+
+        // Jika sumbernya bank, catat pengeluaran bank
+        if ($validated['source_type'] === 'bank' && !empty($validated['bank_account_id'])) {
+            BankTransaction::recordVendorPayment(
+                $validated['bank_account_id'],
+                $validated['amount'],
+                'Pembayaran Prepaid Rent - ' . ($validated['description'] ?? 'Topup'),
+                $topup->id,
+                $validated['transaction_date']
+            );
+        }
 
         return redirect()->route('admin-keuangan.prepaid-rent.index')
             ->with('success', 'Pembayaran sewa berhasil dicatat.');

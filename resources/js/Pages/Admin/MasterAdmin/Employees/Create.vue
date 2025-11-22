@@ -190,7 +190,7 @@
                 Section 1: Data Pribadi
               </h3>
               
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="grid grid-cols-1 gap-6">
                 <!-- Nama -->
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">
@@ -322,7 +322,7 @@
               </div>
 
               <!-- Address Details -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              <div class="grid grid-cols-1 gap-4 mt-4">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">RT <span class="text-red-500">*</span></label>
                   <input
@@ -365,7 +365,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div class="grid grid-cols-1 gap-4 mt-4">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">Kota <span class="text-red-500">*</span></label>
                   <input
@@ -389,7 +389,7 @@
               </div>
 
               <!-- Contact Information -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div class="grid grid-cols-1 gap-4 mt-6">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">Nomor Telp Rumah</label>
                   <input
@@ -432,7 +432,7 @@
               <!-- Emergency Contact -->
               <div class="mt-6 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <h4 class="text-md font-semibold text-yellow-800 mb-3">Emergency Contact (Kontak Darurat)</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-sage-700 mb-2">Nama Kontak Darurat</label>
                     <input
@@ -499,7 +499,7 @@
               </div>
 
               <!-- Address Details Orang Tua -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div class="grid grid-cols-1 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">RT</label>
                   <input
@@ -534,7 +534,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="grid grid-cols-1 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">Kota</label>
                   <input
@@ -553,7 +553,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">Nomor Telp</label>
                   <input
@@ -579,7 +579,7 @@
                 Additional Information
               </h3>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-sage-700 mb-2">Tanggal Masuk</label>
                   <input
@@ -633,7 +633,7 @@
                 <!-- Ayah -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                   <h4 class="font-semibold text-gray-700 mb-3">Data Ayah</h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="grid grid-cols-1 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-sage-700 mb-2">Nama Ayah</label>
                       <input
@@ -680,7 +680,7 @@
                 <!-- Ibu -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                   <h4 class="font-semibold text-gray-700 mb-3">Data Ibu</h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="grid grid-cols-1 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-sage-700 mb-2">Nama Ibu</label>
                       <input
@@ -754,7 +754,7 @@
                     </svg>
                   </button>
                   <h4 class="font-semibold text-gray-700 mb-3">Pengalaman Kerja {{ index + 1 }}</h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="grid grid-cols-1 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-sage-700 mb-2">Nama Perusahaan</label>
                       <input
@@ -812,100 +812,122 @@
               </div>
             </div>
 
-            <!-- Section 6: Status Dokumen -->
+            <!-- Section 6: Lampiran Dokumen -->
             <div class="mb-8">
               <h3 class="text-lg font-semibold text-sage-800 mb-4 pb-2 border-b border-sage-200">
-                Section 6: Status Dokumen
+                Section 6: Lampiran Dokumen
               </h3>
+              <p class="text-sm text-sage-600 mb-3">
+                Unggah dokumen (PDF/JPG/PNG, maks 5MB per file).
+              </p>
               
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <div class="flex items-center">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">KTP</label>
                   <input
-                    v-model="form.document_status.surat_lamaran"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('ktp', $event)"
                   />
-                  <label class="text-sm">Surat Lamaran</label>
+                  <p v-if="documents.ktp" class="text-xs text-gray-600 mt-1">{{ documents.ktp.name }}</p>
+                  <span v-if="errors['documents.ktp']" class="text-red-500 text-xs mt-1">{{ errors['documents.ktp'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Kartu Keluarga</label>
                   <input
-                    v-model="form.document_status.cv"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('kartu_keluarga', $event)"
                   />
-                  <label class="text-sm">CV</label>
+                  <p v-if="documents.kartu_keluarga" class="text-xs text-gray-600 mt-1">{{ documents.kartu_keluarga.name }}</p>
+                  <span v-if="errors['documents.kartu_keluarga']" class="text-red-500 text-xs mt-1">{{ errors['documents.kartu_keluarga'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">NPWP</label>
                   <input
-                    v-model="form.document_status.akte_kelahiran"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('npwp', $event)"
                   />
-                  <label class="text-sm">Akte Kelahiran</label>
+                  <p v-if="documents.npwp" class="text-xs text-gray-600 mt-1">{{ documents.npwp.name }}</p>
+                  <span v-if="errors['documents.npwp']" class="text-red-500 text-xs mt-1">{{ errors['documents.npwp'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">BPJS Kesehatan</label>
                   <input
-                    v-model="form.document_status.kartu_keluarga"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('bpjs_kesehatan', $event)"
                   />
-                  <label class="text-sm">Kartu Keluarga</label>
+                  <p v-if="documents.bpjs_kesehatan" class="text-xs text-gray-600 mt-1">{{ documents.bpjs_kesehatan.name }}</p>
+                  <span v-if="errors['documents.bpjs_kesehatan']" class="text-red-500 text-xs mt-1">{{ errors['documents.bpjs_kesehatan'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">BPJS Ketenagakerjaan</label>
                   <input
-                    v-model="form.document_status.surat_pengalaman_kerja"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('bpjs_ketenagakerjaan', $event)"
                   />
-                  <label class="text-sm">Surat Pengalaman Kerja</label>
+                  <p v-if="documents.bpjs_ketenagakerjaan" class="text-xs text-gray-600 mt-1">{{ documents.bpjs_ketenagakerjaan.name }}</p>
+                  <span v-if="errors['documents.bpjs_ketenagakerjaan']" class="text-red-500 text-xs mt-1">{{ errors['documents.bpjs_ketenagakerjaan'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">SKCK</label>
                   <input
-                    v-model="form.document_status.ktp_sim"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('skck', $event)"
                   />
-                  <label class="text-sm">KTP/SIM</label>
+                  <p v-if="documents.skck" class="text-xs text-gray-600 mt-1">{{ documents.skck.name }}</p>
+                  <span v-if="errors['documents.skck']" class="text-red-500 text-xs mt-1">{{ errors['documents.skck'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">CV</label>
                   <input
-                    v-model="form.document_status.skck"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('cv', $event)"
                   />
-                  <label class="text-sm">SKCK</label>
+                  <p v-if="documents.cv" class="text-xs text-gray-600 mt-1">{{ documents.cv.name }}</p>
+                  <span v-if="errors['documents.cv']" class="text-red-500 text-xs mt-1">{{ errors['documents.cv'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Surat Lamaran</label>
                   <input
-                    v-model="form.document_status.pas_foto"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('surat_lamaran', $event)"
                   />
-                  <label class="text-sm">Pas Foto</label>
+                  <p v-if="documents.surat_lamaran" class="text-xs text-gray-600 mt-1">{{ documents.surat_lamaran.name }}</p>
+                  <span v-if="errors['documents.surat_lamaran']" class="text-red-500 text-xs mt-1">{{ errors['documents.surat_lamaran'][0] }}</span>
                 </div>
-                <div class="flex items-center">
+
+                <div>
+                  <label class="block text-sm font-medium text-sage-700 mb-2">Surat Pengalaman Kerja / Rekomendasi</label>
                   <input
-                    v-model="form.document_status.ijazah"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="w-full text-sm text-gray-700"
+                    @change="handleFileChange('surat_pengalaman_kerja', $event)"
                   />
-                  <label class="text-sm">Ijazah</label>
-                </div>
-                <div class="flex items-center">
-                  <input
-                    v-model="form.document_status.surat_sehat"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
-                  />
-                  <label class="text-sm">Surat Sehat</label>
-                </div>
-                <div class="flex items-center">
-                  <input
-                    v-model="form.document_status.npwp"
-                    type="checkbox"
-                    class="mr-2 w-4 h-4 text-sage-600 border-gray-300 rounded focus:ring-sage-500"
-                  />
-                  <label class="text-sm">NPWP</label>
+                  <p v-if="documents.surat_pengalaman_kerja" class="text-xs text-gray-600 mt-1">{{ documents.surat_pengalaman_kerja.name }}</p>
+                  <span v-if="errors['documents.surat_pengalaman_kerja']" class="text-red-500 text-xs mt-1">{{ errors['documents.surat_pengalaman_kerja'][0] }}</span>
                 </div>
               </div>
             </div>
@@ -931,18 +953,37 @@
       </div>
     </main>
   </div>
+
+  <AlertDialog
+    :show="showAlert"
+    :type="alertType"
+    :title="alertTitle"
+    :message="alertMessageText"
+    confirm-text="OK"
+    @confirm="showAlert = false"
+    @close="showAlert = false"
+    @cancel="showAlert = false"
+  />
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import SidebarNavigation from "@/Pages/Admin/MasterAdmin/Components/SidebarNavigation.vue";
+import AlertDialog from "@/Components/AlertDialog.vue";
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
 const processing = ref(false);
 const errors = ref({});
+const alertMessages = ref([]);
+const showAlert = ref(false);
+const alertTitle = ref("Form belum lengkap");
+const alertType = ref("error");
+const alertMessageText = computed(() =>
+  alertMessages.value.length ? alertMessages.value.join("\n") : "Terjadi kesalahan."
+);
 
 const form = reactive({
   nama: '',
@@ -1013,8 +1054,22 @@ const form = reactive({
     pas_foto: false,
     ijazah: false,
     surat_sehat: false,
-    npwp: false
+    npwp: false,
+    bpjs_kesehatan: false,
+    bpjs_ketenagakerjaan: false
   }
+});
+
+const documents = reactive({
+  ktp: null,
+  kartu_keluarga: null,
+  npwp: null,
+  bpjs_kesehatan: null,
+  bpjs_ketenagakerjaan: null,
+  skck: null,
+  cv: null,
+  surat_lamaran: null,
+  surat_pengalaman_kerja: null,
 });
 
 // Methods
@@ -1052,31 +1107,164 @@ const removeWorkExperience = (index) => {
   form.work_experiences.splice(index, 1);
 };
 
+const handleFileChange = (key, event) => {
+  const file = event.target.files[0] || null;
+  documents[key] = file;
+
+  const statusKeyMap = {
+    ktp: 'ktp_sim',
+    kartu_keluarga: 'kartu_keluarga',
+    npwp: 'npwp',
+    bpjs_kesehatan: 'bpjs_kesehatan',
+    bpjs_ketenagakerjaan: 'bpjs_ketenagakerjaan',
+    skck: 'skck',
+    cv: 'cv',
+    surat_lamaran: 'surat_lamaran',
+    surat_pengalaman_kerja: 'surat_pengalaman_kerja',
+  };
+
+  const statusKey = statusKeyMap[key];
+  if (statusKey) {
+    form.document_status[statusKey] = !!file;
+  }
+};
+
+const appendFormData = (formData, data, parentKey = '') => {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    const fieldKey = parentKey ? `${parentKey}[${key}]` : key;
+
+    if (typeof value === 'boolean') {
+      formData.append(fieldKey, value ? 1 : 0);
+    } else if (Array.isArray(value)) {
+      value.forEach((item, index) => appendFormData(formData, item, `${fieldKey}[${index}]`));
+    } else if (typeof value === 'object' && !(value instanceof File)) {
+      appendFormData(formData, value, fieldKey);
+    } else {
+      formData.append(fieldKey, value);
+    }
+  });
+};
+
+const openAlert = (messages, title = "Form belum lengkap", type = "error") => {
+  alertMessages.value = messages && messages.length ? messages : ["Terjadi kesalahan. Periksa kembali isian."];
+  alertTitle.value = title;
+  alertType.value = type;
+  showAlert.value = true;
+};
+
+const validateForm = () => {
+  const localErrors = {};
+  const requiredFields = {
+    nama: 'Nama Lengkap',
+    tempat_lahir: 'Tempat Lahir',
+    tanggal_lahir: 'Tanggal Lahir',
+    jenis_kelamin: 'Jenis Kelamin',
+    agama: 'Agama',
+    suku_bangsa: 'Suku Bangsa',
+    kewarganegaraan: 'Kewarganegaraan',
+    alamat_ktp: 'Alamat KTP',
+    rt_ktp: 'RT KTP',
+    rw_ktp: 'RW KTP',
+    kelurahan_ktp: 'Kelurahan KTP',
+    kecamatan_ktp: 'Kecamatan KTP',
+    kota_ktp: 'Kota KTP',
+    provinsi_ktp: 'Provinsi KTP',
+    nomor_hp: 'Nomor HP',
+    email: 'Email',
+    status: 'Status',
+  };
+
+  Object.entries(requiredFields).forEach(([key, label]) => {
+    if (!form[key]) {
+      localErrors[key] = [`${label} wajib diisi.`];
+    }
+  });
+
+  if (form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
+    localErrors.email = ['Format email tidak valid.'];
+  }
+
+  if (form.nomor_hp && form.nomor_hp.length > 20) {
+    localErrors.nomor_hp = ['Nomor HP terlalu panjang (maks 20 karakter).'];
+  }
+
+  const fileLimit = 5 * 1024 * 1024; // 5MB
+  Object.entries(documents).forEach(([key, file]) => {
+    if (file && file.size > fileLimit) {
+      localErrors[`documents.${key}`] = ['Ukuran file maksimal 5MB.'];
+    }
+  });
+
+  errors.value = localErrors;
+  const msgs = Object.values(localErrors).flat();
+  alertMessages.value = msgs;
+
+  if (msgs.length) {
+    openAlert(msgs, "Form belum lengkap", "error");
+  }
+
+  return Object.keys(localErrors).length === 0;
+};
+
 const submitForm = async () => {
   processing.value = true;
   errors.value = {};
+  alertMessages.value = [];
+
+  const isValid = validateForm();
+  if (!isValid) {
+    processing.value = false;
+    return;
+  }
 
   try {
+    const payload = new FormData();
+    appendFormData(payload, form);
+
+    Object.entries(documents).forEach(([key, file]) => {
+      if (file) {
+        payload.append(`documents[${key}]`, file);
+      }
+    });
+
     const response = await fetch('/master-admin/employees', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify(form)
+      body: payload
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json') ? await response.json() : {};
 
     if (response.ok) {
-      window.location.href = '/master-admin/employees?success=' + encodeURIComponent(data.message);
+      window.location.href = '/master-admin/employees?success=' + encodeURIComponent(data.message || 'Karyawan berhasil ditambahkan.');
     } else {
-      if (data.errors) {
-        errors.value = data.errors;
+      const parsedErrors = data.errors || {};
+      errors.value = parsedErrors;
+      const msgs = Object.values(parsedErrors).flat();
+      alertMessages.value = msgs;
+
+      if (Object.keys(parsedErrors).length === 0) {
+        const text = contentType.includes('text') ? await response.text() : 'Gagal menyimpan data.';
+        console.error('Response detail:', text);
+        errors.value = { general: ['Gagal menyimpan data. Periksa kembali isian.'] };
+        alertMessages.value = ['Gagal menyimpan data. Periksa kembali isian.'];
+      } else {
+        console.warn('Validation errors:', parsedErrors);
       }
+      openAlert(alertMessages.value, "Validasi gagal", "error");
     }
   } catch (error) {
     console.error('Error:', error);
+    openAlert(['Terjadi kesalahan saat mengirim data. Coba lagi.'], "Error", "error");
   } finally {
     processing.value = false;
   }

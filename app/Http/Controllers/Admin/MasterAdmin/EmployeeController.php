@@ -38,6 +38,18 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
+        $documentRules = [
+            'documents.ktp' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.kartu_keluarga' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.npwp' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.bpjs_kesehatan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.bpjs_ketenagakerjaan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.skck' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.cv' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.surat_lamaran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.surat_pengalaman_kerja' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ];
+
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'tempat_lahir' => 'required|string|max:255',
@@ -75,7 +87,7 @@ class EmployeeController extends Controller
             'tanggal_masuk' => 'nullable|date',
             'posisi' => 'nullable|string|max:255',
             'keterangan' => 'nullable|string',
-        ]);
+        ] + $documentRules);
 
         $validated['is_active'] = $validated['status'] === 'active';
 
@@ -128,21 +140,66 @@ class EmployeeController extends Controller
             }
         }
 
-        // Handle Document Status
-        $documentStatus = $request->input('document_status', []);
-        $employee->documentStatuses()->create([
-            'surat_lamaran' => $documentStatus['surat_lamaran'] ?? false,
-            'cv' => $documentStatus['cv'] ?? false,
-            'akte_kelahiran' => $documentStatus['akte_kelahiran'] ?? false,
-            'kartu_keluarga' => $documentStatus['kartu_keluarga'] ?? false,
-            'surat_pengalaman_kerja' => $documentStatus['surat_pengalaman_kerja'] ?? false,
-            'ktp_sim' => $documentStatus['ktp_sim'] ?? false,
-            'skck' => $documentStatus['skck'] ?? false,
-            'pas_foto' => $documentStatus['pas_foto'] ?? false,
-            'ijazah' => $documentStatus['ijazah'] ?? false,
-            'surat_sehat' => $documentStatus['surat_sehat'] ?? false,
-            'npwp' => $documentStatus['npwp'] ?? false,
-        ]);
+        // Handle Document Status + uploads
+        $documentStatusDefaults = [
+            'surat_lamaran' => false,
+            'cv' => false,
+            'akte_kelahiran' => false,
+            'kartu_keluarga' => false,
+            'surat_pengalaman_kerja' => false,
+            'ktp_sim' => false,
+            'skck' => false,
+            'pas_foto' => false,
+            'ijazah' => false,
+            'surat_sehat' => false,
+            'npwp' => false,
+            'bpjs_kesehatan' => false,
+            'bpjs_ketenagakerjaan' => false,
+        ];
+
+        $documentStatus = array_merge(
+            $documentStatusDefaults,
+            $request->input('document_status', [])
+        );
+
+        $documentMap = [
+            'ktp' => 'KTP',
+            'kartu_keluarga' => 'Kartu Keluarga',
+            'npwp' => 'NPWP',
+            'bpjs_kesehatan' => 'BPJS Kesehatan',
+            'bpjs_ketenagakerjaan' => 'BPJS Ketenagakerjaan',
+            'skck' => 'SKCK',
+            'cv' => 'CV',
+            'surat_lamaran' => 'Surat Lamaran',
+            'surat_pengalaman_kerja' => 'Surat Pengalaman Kerja',
+        ];
+
+        foreach ($documentMap as $key => $label) {
+            if ($request->hasFile("documents.{$key}")) {
+                $file = $request->file("documents.{$key}");
+                $path = $file->store("employee-documents/{$employee->id}", 'public');
+
+                $employee->documents()->create([
+                    'type' => $key,
+                    'path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                    'uploaded_by' => $request->user()?->id,
+                ]);
+
+                $statusKey = match ($key) {
+                    'ktp' => 'ktp_sim',
+                    default => $key,
+                };
+
+                if (array_key_exists($statusKey, $documentStatus)) {
+                    $documentStatus[$statusKey] = true;
+                }
+            }
+        }
+
+        $employee->documentStatuses()->create($documentStatus);
 
         if ($request->wantsJson() || $request->expectsJson()) {
             return response()->json([
@@ -166,7 +223,8 @@ class EmployeeController extends Controller
             'workExperiences',
             'healthRecords',
             'companyReferences',
-            'documentStatuses'
+            'documentStatuses',
+            'documents'
         ]);
 
         return Inertia::render('Admin/MasterAdmin/Employees/Show', [
@@ -184,7 +242,8 @@ class EmployeeController extends Controller
             'workExperiences', 
             'healthRecords',
             'companyReferences',
-            'documentStatuses'
+            'documentStatuses',
+            'documents'
         ]);
 
         return Inertia::render('Admin/MasterAdmin/Employees/Edit', [

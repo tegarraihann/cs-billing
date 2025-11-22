@@ -24,6 +24,8 @@ class EmployeeDocumentStatus extends Model
         'ijazah',
         'surat_sehat',
         'npwp',
+        'bpjs_kesehatan',
+        'bpjs_ketenagakerjaan',
     ];
 
     protected $casts = [
@@ -38,6 +40,8 @@ class EmployeeDocumentStatus extends Model
         'ijazah' => 'boolean',
         'surat_sehat' => 'boolean',
         'npwp' => 'boolean',
+        'bpjs_kesehatan' => 'boolean',
+        'bpjs_ketenagakerjaan' => 'boolean',
     ];
 
     public function employee()
@@ -47,13 +51,14 @@ class EmployeeDocumentStatus extends Model
 
     public function getCompletionPercentageAttribute()
     {
-        $totalDocuments = 11;
+        $totalDocuments = 13;
         $completedDocuments = 0;
 
         $documents = [
             'surat_lamaran', 'cv', 'akte_kelahiran', 'kartu_keluarga',
             'surat_pengalaman_kerja', 'ktp_sim', 'skck', 'pas_foto',
-            'ijazah', 'surat_sehat', 'npwp'
+            'ijazah', 'surat_sehat', 'npwp', 'bpjs_kesehatan',
+            'bpjs_ketenagakerjaan'
         ];
 
         foreach ($documents as $document) {
@@ -78,7 +83,9 @@ class EmployeeDocumentStatus extends Model
             'pas_foto' => 'Pas Foto',
             'ijazah' => 'Ijazah',
             'surat_sehat' => 'Surat Sehat',
-            'npwp' => 'NPWP'
+            'npwp' => 'NPWP',
+            'bpjs_kesehatan' => 'BPJS Kesehatan',
+            'bpjs_ketenagakerjaan' => 'BPJS Ketenagakerjaan',
         ];
 
         $missing = [];
