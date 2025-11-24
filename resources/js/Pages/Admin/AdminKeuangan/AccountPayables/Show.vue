@@ -810,16 +810,18 @@ const componentOptions = computed(() => {
         const fallbackBase = Number(payableItem.id) || payableIndex + 1
 
         components.forEach((component = {}, componentIndex) => {
-            const fallbackId = Number(`${fallbackBase}${String(componentIndex).padStart(4, '0')}`)
-            const numericId = Number(component.id ?? component.component_id ?? fallbackId)
-            const resolvedId = Number.isNaN(numericId) ? fallbackId : numericId
+            // Gunakan hanya ID komponen yang valid dari database, hindari fallback agar tidak gagal validasi server
+            const numericId = Number(component.id ?? component.component_id)
+            if (Number.isNaN(numericId) || numericId <= 0) {
+                return
+            }
 
             items.push({
                 ...component,
                 parent_payable_id: payableItem.id ?? component.account_payable_id ?? null,
                 parent_vendor_name: payableItem.vendor?.nama_vendor || payableItem.vendor_name || component.recipient_name || '',
                 parent_invoice_number: payableItem.vendor_invoice_number || null,
-                id: resolvedId,
+                id: numericId,
                 amount: parseFloat(component.amount || 0),
                 paid_amount: parseFloat(component.paid_amount || 0),
                 outstanding_amount: parseFloat(component.outstanding_amount || 0)
@@ -1069,6 +1071,7 @@ const openPaymentModal = () => {
 
 const closePaymentModal = () => {
     showPaymentModal.value = false
+    resetPaymentForm()
 }
 
 const openEditModal = () => {
@@ -1143,6 +1146,7 @@ const markPayment = () => {
             {
                 onSuccess: () => {
                     closePaymentModal()
+                    resetPaymentForm()
                     processing.value = false
                 },
                 onError: () => {

@@ -381,6 +381,7 @@
             max-width: 90%;
             margin-left: 40px;
             margin-top: 100px;
+            text-align: justify;
         }
 
         /* Invoice Footer */
@@ -389,13 +390,21 @@
             bottom: 10mm;
             left: 100mm;
             right: 15mm;
-            font-size: 6.5pt;
+            font-size: 7pt;
             color: #666;
-            line-height: 1.3;
+            line-height: 1.5;
             display: flex;
             justify-content: space-between;
             gap: 12px;
-            margin-left: 120px;
+            margin-left: 190px;
+            margin-right: -70px;
+            text-align: justify;
+        }
+
+        .invoice-footer .footer-left {
+            text-align: right;
+            margin-left: auto;
+            margin-bottom: -120px;
         }
 
         /* Shipment Details Table Layout for proper alignment */
@@ -534,7 +543,8 @@
                     <td class="ship-label-right">VESSEL</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
-                        {{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? '-') }}</td>
+                        {{ strtoupper($invoice->vessel ?? $invoice->salesOrder->vessel ?? '-') }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="ship-label">CONSIGNEE</td>
@@ -585,7 +595,8 @@
                     <td class="ship-label">GROSS WT</td>
                     <td class="ship-colon">:</td>
                     <td class="ship-value">
-                        {{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}</td>
+                        {{ $invoice->gross_weight ? number_format($invoice->gross_weight, 4) . 'KGS' : '-' }}
+                    </td>
                     <td class="ship-label-right">DEST</td>
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
@@ -778,14 +789,16 @@
             <tr>
                 <td class="bank-label-col" style="color: #0000">BANK NUMBER</td>
                 <td class="bank-value-col" style="color: #0000">:
-                    {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}</td>
+                    {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
+                </td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
                 <td class="bank-value-col" style="color: #0000">:
-                    {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
+                    {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}
+                </td>
                 @if($invoice->hasDownPayment() && $downPayment > 0)
                     <td class="total-label-col" style="color: #0000">DOWN PAYMENT (-)</td>
                     <td class="total-value-col" style="color: #0000">{{ number_format($downPayment, 2) }}</td>
@@ -823,7 +836,8 @@
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
                 <td class="bank-value-col" style="color: #0000">:
-                    {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
+                    {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}
+                </td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
@@ -836,28 +850,29 @@
         </table>
 
         <div class="invoice-notes">
-            NOTE : 1. Payments made by bank transfer must be made to the company account in the name of Eshaka Wijaya
+            NOTE : <br>1. Payments made by bank transfer must be made to the company account in the name of Eshaka
+            Wijaya
             Logistics, PT.<br>
             2. Payment is considered complete once the funds are confirmed to have been credited to the company account
             in full.<br>
             3. Objections or corrections must be submitted no later than 7 days after receipt of the invoice. Failure to
             do so will be deemed correct or approved.<br>
             5. Bank Name &nbsp;&ndash;&nbsp; Bank Branch &nbsp;&ndash;&nbsp; Account No. &nbsp;&ndash;&nbsp; Curr.
-            &nbsp;&ndash;&nbsp; Swift No.<br>
+            &nbsp;&ndash;&nbsp; Swift No.
             MANDIRI &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 1220012330539 &nbsp;&ndash;&nbsp; IDR
-            &nbsp;&ndash;&nbsp; BMRIIDJA<br>
+            &nbsp;&ndash;&nbsp; BMRIIDJA
             BCA &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 5445974975 &nbsp;&ndash;&nbsp; IDR &nbsp;&ndash;&nbsp;
             CENAIDJAXXX
         </div>
 
         <!-- Footer -->
+        <div style="text-align: center; font-size: 8pt;">
+            Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
+            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
+        </div>
         <div class="invoice-footer">
             <div class="footer-left">
-                <div>
-                    Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
-                    Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
-                </div>
-                <div>
+                <div style="text-align: left;">
                     This is a computer<br>
                     generated invoice. No<br>
                     signature and stamp<br>

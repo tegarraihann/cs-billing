@@ -403,6 +403,7 @@
         .invoice-footer .footer-left {
             text-align: right;
             margin-left: auto;
+            margin-bottom: -120px;
         }
 
         .invoice-footer .footer-right {
@@ -819,9 +820,9 @@
             3. Objections or corrections must be submitted no later than 7 days after receipt of the invoice. Failure to
             do so will be deemed correct or approved.<br>
             5. Bank Name &nbsp;&ndash;&nbsp; Bank Branch &nbsp;&ndash;&nbsp; Account No. &nbsp;&ndash;&nbsp; Curr.
-            &nbsp;&ndash;&nbsp; Swift No.<br>
+            &nbsp;&ndash;&nbsp; Swift No.
             MANDIRI &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 1220012330539 &nbsp;&ndash;&nbsp; IDR
-            &nbsp;&ndash;&nbsp; BMRIIDJA<br>
+            &nbsp;&ndash;&nbsp; BMRIIDJA
             BCA &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 5445974975 &nbsp;&ndash;&nbsp; IDR &nbsp;&ndash;&nbsp;
             CENAIDJAXXX
         </div>

@@ -300,6 +300,7 @@ class AccountPayable extends Model
         $existingComponents = $existingComponentsCollection->keyBy(function ($item) {
             return $this->computeExistingComponentKey($item);
         });
+        $processedExistingKeys = [];
 
         $paidToDistribute = $existingComponentsCollection->isEmpty() ? (float) $this->paid_amount : 0.0;
 
@@ -314,6 +315,44 @@ class AccountPayable extends Model
             $processedKeys[] = $key;
 
             $component = $existingComponents->get($key);
+            $matchedExistingKey = $component ? $key : null;
+
+            if (!$component) {
+                // Fallback: cari komponen existing yang belum diproses dengan tipe/vendor/description yang sama
+                $fallback = $existingComponentsCollection
+                    ->filter(function ($item) use ($type, $vendorId, $payload, $processedExistingKeys) {
+                        $existingKey = $this->computeExistingComponentKey($item);
+                        if (in_array($existingKey, $processedExistingKeys, true)) {
+                            return false;
+                        }
+                        if ($item->component_type !== $type) {
+                            return false;
+                        }
+                        if ((int) $item->vendor_id !== (int) ($vendorId ?? null)) {
+                            return false;
+                        }
+                        $descMatch = trim(strtolower($item->description ?? '')) === trim(strtolower($payload['description'] ?? ''));
+                        return $descMatch;
+                    })
+                    ->first();
+
+                if ($fallback) {
+                    $component = $fallback;
+                    $matchedExistingKey = $this->computeExistingComponentKey($component);
+                    $processedExistingKeys[] = $matchedExistingKey;
+                }
+            } else {
+                $processedExistingKeys[] = $matchedExistingKey;
+            }
+
+            if ($component) {
+                // Pastikan lookup_ref terisi agar stabil
+                $existingRelatedItems = is_array($component->related_items) ? $component->related_items : [];
+                if ($lookupReference !== null) {
+                    $existingRelatedItems['lookup_ref'] = $lookupReference;
+                }
+                $component->related_items = !empty($existingRelatedItems) ? $existingRelatedItems : null;
+            }
 
             if (!$component) {
                 // Create new component
@@ -338,8 +377,7 @@ class AccountPayable extends Model
                     $component->paid_amount = min($payload['amount'], $payload['paid_amount']);
                 }
             } else {
-                // Component exists - only update non-financial fields
-                // DO NOT update amount to prevent duplication bug
+                // Component exists - update fields dan pertahankan paid_amount
                 $component->description = $payload['description'] ?? $component->description;
                 $component->recipient_name = $payload['recipient_name'] ?? $component->recipient_name;
                 $existingRelatedItems = is_array($component->related_items) ? $component->related_items : [];
@@ -356,6 +394,8 @@ class AccountPayable extends Model
                 if (isset($payload['amount']) && abs((float) $component->amount - (float) $payload['amount']) > 0.01) {
                     $component->amount = (float) $payload['amount'];
                 }
+                // Pertahankan paid_amount lama, tetapi batasi ke amount baru
+                $component->paid_amount = min((float) $component->paid_amount, (float) $component->amount);
             }
 
             if ($component->paid_amount > $component->amount) {
@@ -368,12 +408,18 @@ class AccountPayable extends Model
             $component->save();
         }
 
-        // Remove components that are no longer relevant
+        // Hapus komponen yang tidak lagi relevan (lookup_ref tidak muncul di payload)
         if (!empty($processedKeys)) {
-            $processedKeys = array_unique($processedKeys);
+            $processedKeys = array_unique(array_merge($processedKeys, $processedExistingKeys));
             foreach ($existingComponentsCollection as $existingComponent) {
                 $existingKey = $this->computeExistingComponentKey($existingComponent);
-                if (!in_array($existingKey, $processedKeys, true)) {
+                $isManual = is_array($existingComponent->related_items)
+                    && ($existingComponent->related_items['source'] ?? null) === 'account_payable_manual_entry';
+                $shouldDelete = !in_array($existingKey, $processedKeys, true)
+                    && $existingComponent->status !== 'paid'
+                    && !$isManual;
+
+                if ($shouldDelete) {
                     $existingComponent->delete();
                 }
             }
@@ -526,7 +572,72 @@ class AccountPayable extends Model
         $invoiceItems = $this->collectInvoiceItemsForVendor();
 
         if ($invoiceItems->isNotEmpty()) {
+            $vendorIdString = $this->vendor_id ? (string) $this->vendor_id : null;
+
+            // Deduplicate COGS by lookup_ref to avoid duplicate components
+            $seenCogsRefs = [];
+            $hasExistingVendorPayment = $existingComponents
+                ? $existingComponents->contains(function ($item) {
+                    return $item->component_type === 'vendor_payment';
+                })
+                : false;
+
+            // Tangkap COGS vendor spesifik (item_ref cogs_vendor_{id}) untuk vendor terkait
+            $vendorCogsItems = collect();
+            if ($vendorIdString !== null) {
+                $vendorCogsItems = $invoiceItems->where('item_type', 'operational_cost')
+                    ->filter(function ($item) use ($vendorIdString) {
+                        $ref = (string) ($item->item_ref ?? '');
+                        return str_starts_with($ref, 'cogs_vendor_') && $ref === 'cogs_vendor_' . $vendorIdString;
+                    });
+            }
+
+            // Jika belum ada entri vendor payment dari vendor_breakdown, naikkan COGS vendor menjadi komponen vendor_payment
+            $shouldPromoteCogs = $this->vendor_id
+                && $vendorCogsItems->isNotEmpty()
+                && $vendorPaymentEntries->isEmpty()
+                && !$hasExistingVendorPayment;
+
+            if ($shouldPromoteCogs) {
+                foreach ($vendorCogsItems as $cogsItem) {
+                    $lookupRef = $cogsItem->id ? 'invoice_item_' . $cogsItem->id : null;
+                    if ($lookupRef && in_array($lookupRef, $seenCogsRefs, true)) {
+                        continue;
+                    }
+                    if ($lookupRef) {
+                        $seenCogsRefs[] = $lookupRef;
+                    }
+
+                    $amount = (float) ($cogsItem->amount ?? 0);
+                    if ($amount <= 0) {
+                        continue;
+                    }
+
+                    $payloads[] = [
+                        'component_type' => 'vendor_payment',
+                        'description' => $cogsItem->description ?: 'Vendor Payment',
+                        'amount' => $amount,
+                        'recipient_name' => $this->vendor_name,
+                        'vendor_id' => $this->vendor_id,
+                        'related_items' => [
+                            'source' => 'invoice_item',
+                            'invoice_item_id' => $cogsItem->id,
+                        ],
+                        'lookup_reference' => $lookupRef,
+                    ];
+                }
+            }
+
             $operationalItems = $invoiceItems->where('item_type', 'operational_cost');
+            // Hindari menghitung dua kali COGS vendor spesifik ketika payable sudah untuk vendor tertentu
+            $operationalItems = $operationalItems->filter(function ($item) use ($vendorIdString) {
+                $ref = (string) ($item->item_ref ?? '');
+                if ($vendorIdString === null) {
+                    return true;
+                }
+
+                return !(str_starts_with($ref, 'cogs_vendor_') && $ref === 'cogs_vendor_' . $vendorIdString);
+            });
             $totalOperational = (float) $operationalItems->sum('amount');
 
             if ($totalOperational > 0) {
@@ -677,6 +788,8 @@ class AccountPayable extends Model
             return collect();
         }
 
+        $vendorId = $this->vendor_id ? (string) $this->vendor_id : null;
+
         return InvoiceItem::query()
             ->whereHas('invoice', function ($query) {
                 $query->where('sales_order_id', $this->sales_order_id);
@@ -689,11 +802,21 @@ class AccountPayable extends Model
                     $query->whereNull('vendor_id');
                 }
             })
-            ->where(function ($query) {
+            ->where(function ($query) use ($vendorId) {
                 $query->whereNull('item_ref')
-                      ->orWhere(function ($subQuery) {
-                          $subQuery->where('item_ref', 'not like', 'cogs_vendor_%')
-                                   ->where('item_ref', 'not like', 'ap_component_%');
+                      ->orWhere(function ($subQuery) use ($vendorId) {
+                          $subQuery->where('item_ref', 'not like', 'ap_component_%');
+                          $subQuery->where(function ($refQuery) use ($vendorId) {
+                              // Abaikan COGS vendor lain, tetapi izinkan COGS milik vendor yang sama
+                              $refQuery->where('item_ref', 'not like', 'cogs_vendor_%');
+
+                              if ($vendorId !== null) {
+                                  $refQuery->orWhere(function ($matchQuery) use ($vendorId) {
+                                      $matchQuery->where('item_ref', 'like', 'cogs_vendor_%')
+                                          ->whereRaw('REPLACE(item_ref, "cogs_vendor_", "") = ?', [$vendorId]);
+                                  });
+                              }
+                          });
                       });
             })
             ->get();
@@ -767,9 +890,7 @@ class AccountPayable extends Model
         string $notes = null,
         $paymentDate = null
     ): bool {
-        // Sync components first
-        $this->syncComponents();
-
+        // Gunakan komponen yang sudah tersinkronisasi di UI
         $components = $this->components()->get();
 
         // If no components, use old method

@@ -118,8 +118,7 @@ class AccountPayableController extends Controller
      */
     public function markAsPaid(Request $request, AccountPayable $accountPayable)
     {
-        // Sync components first
-        $accountPayable->syncComponents();
+        // Assume components already synced at page load
         $accountPayable->refresh();
         $components = $accountPayable->components()->get();
         $requiresComponent = $components->count() > 1;
@@ -147,27 +146,108 @@ class AccountPayableController extends Controller
         }
 
         // Add component_id validation if multiple components
-        if ($requiresComponent) {
-            $rules['component_id'] = 'required|exists:account_payable_components,id';
-        } else {
-            $rules['component_id'] = 'nullable|exists:account_payable_components,id';
-        }
+        $rules['component_id'] = 'nullable|integer';
 
         $validated = $request->validate($rules);
 
-        // Get the component to pay
+        // Allow routing payment to the correct payable if component belongs elsewhere in the SO group
+        $targetPayable = $accountPayable;
         $component = null;
+
         if (!empty($validated['component_id'])) {
-            $component = $components->firstWhere('id', (int) $validated['component_id']);
+            $componentId = (int) $validated['component_id'];
+            $component = $components->firstWhere('id', $componentId);
+
+            if (!$component) {
+                // Try find globally by ID
+                $componentModel = \App\Models\AccountPayableComponent::with('accountPayable')->find($componentId);
+
+                if ($componentModel && $componentModel->accountPayable) {
+                    $targetPayable = $componentModel->accountPayable;
+                    $targetPayable->refresh();
+                    $components = $targetPayable->components()->get();
+                    $requiresComponent = $components->count() > 1;
+                    $component = $components->firstWhere('id', $componentId);
+                }
+
+                // If still not found, try decode legacy fallback ID pattern {payableId}{index4digits}
+                if (!$component && $componentId > 9999) {
+                    $idString = (string) $componentId;
+                    $indexPart = (int) substr($idString, -4);
+                    $payablePart = (int) substr($idString, 0, strlen($idString) - 4);
+                    if ($payablePart > 0) {
+                        $legacyPayable = AccountPayable::with('components')->find($payablePart);
+                        if ($legacyPayable) {
+                            $legacyPayable->refresh()->load('components');
+                            $targetPayable = $legacyPayable;
+                            $components = $targetPayable->components()->values();
+                            $requiresComponent = $components->count() > 1;
+                            if ($components->has($indexPart)) {
+                                $component = $components->get($indexPart);
+                            }
+                        }
+                    }
+                }
+
+                // As a last attempt, sync components once to include latest data
+                if (!$component) {
+                    $targetPayable->syncComponents();
+                    $targetPayable->refresh()->load('components');
+                    $components = $targetPayable->components()->get();
+                    $requiresComponent = $components->count() > 1;
+                    $component = $components->firstWhere('id', $componentId);
+                }
+            }
         } elseif ($components->count() === 1) {
             $component = $components->first();
         }
 
-        // If multiple components and no component selected, return error
+        // If multiple components and no component selected, attempt fallback selection on SO group
         if ($requiresComponent && !$component) {
-            return redirect()->back()->withErrors([
-                'component_id' => 'Pilih komponen pembayaran.'
-            ])->withInput();
+            $groupComponents = \App\Models\AccountPayableComponent::query()
+                ->whereHas('accountPayable', function ($q) use ($accountPayable) {
+                    if ($accountPayable->sales_order_id) {
+                        $q->where('sales_order_id', $accountPayable->sales_order_id);
+                    } else {
+                        $q->where('id', $accountPayable->id);
+                    }
+                })
+                ->get();
+
+            $unpaidGroup = $groupComponents->filter(function ($item) {
+                return $item->status !== 'paid' && $item->outstanding_amount > 0.01;
+            });
+
+            if ($unpaidGroup->count() === 1) {
+                $candidate = $unpaidGroup->first();
+                $targetPayable = $candidate->accountPayable ?? $accountPayable;
+                $targetPayable->refresh()->load('components');
+                $component = $targetPayable->components->firstWhere('id', $candidate->id);
+                $components = $targetPayable->components()->get();
+                $requiresComponent = $components->count() > 1;
+            } else {
+                // Cari kandidat dengan outstanding >= amount dan terbesar
+                $candidate = $unpaidGroup
+                    ->filter(function ($item) use ($validated) {
+                        return $item->outstanding_amount >= ($validated['amount'] ?? 0) - 0.01;
+                    })
+                    ->sortByDesc('outstanding_amount')
+                    ->first();
+
+                if ($candidate) {
+                    $targetPayable = $candidate->accountPayable ?? $accountPayable;
+                    $targetPayable->refresh()->load('components');
+                    $component = $targetPayable->components->firstWhere('id', $candidate->id);
+                    $components = $targetPayable->components()->get();
+                    $requiresComponent = $components->count() > 1;
+                }
+            }
+
+            if (!$component) {
+                return redirect()->back()->withErrors([
+                    'component_id' => 'Pilih komponen pembayaran.'
+                ])->withInput();
+            }
         }
 
         // Validate amount doesn't exceed component outstanding
@@ -177,9 +257,11 @@ class AccountPayableController extends Controller
             ])->withInput();
         }
 
-        DB::transaction(function () use ($accountPayable, $component, $validated) {
+        $payableForPayment = $targetPayable ?? $accountPayable;
+
+        DB::transaction(function () use ($payableForPayment, $component, $validated) {
             // Record payment to component
-            $success = $accountPayable->recordPaymentToComponent(
+            $success = $payableForPayment->recordPaymentToComponent(
                 $component,
                 $validated['amount'],
                 $validated['payment_method'],
@@ -193,9 +275,9 @@ class AccountPayableController extends Controller
 
             $componentLabel = $component
                 ? $component->getComponentLabel() . ' - ' . $component->recipient_name
-                : $accountPayable->vendor_name;
+                : $payableForPayment->vendor_name;
 
-            $description = "Payment for {$componentLabel}: {$accountPayable->service_description}";
+            $description = "Payment for {$componentLabel}: {$payableForPayment->service_description}";
 
             if ($validated['payment_source'] === 'bank') {
                 // Record bank transaction (Vendor Payment = Debit from bank)
@@ -203,7 +285,7 @@ class AccountPayableController extends Controller
                     $validated['bank_account_id'],
                     $validated['amount'],
                     $description,
-                    $accountPayable->id,
+                    $payableForPayment->id,
                     $validated['payment_date']
                 );
             } else {
@@ -216,7 +298,7 @@ class AccountPayableController extends Controller
                     'category_id' => $validated['petty_cash_category_id'],
                     'amount' => $validated['amount'],
                     'type' => 'expense',
-                    'so_number' => $accountPayable->salesOrder->order_number ?? null,
+                    'so_number' => $payableForPayment->salesOrder->order_number ?? null,
                     'balance_after' => $balanceAfter,
                     'notes' => $validated['notes'] ?? null,
                     'status' => 'approved',
@@ -233,17 +315,17 @@ class AccountPayableController extends Controller
             // If component is reimbursement, mark related reimbursement items as paid
             if ($component && $component->component_type === 'reimbursement' && !empty($validated['reimbursement_items'])) {
                 $reimbursementVendor = $validated['reimbursement_vendor_name']
-                    ?? $accountPayable->vendor_name
+                    ?? $payableForPayment->vendor_name
                     ?? 'Eshaka Wijaya Logistics';
 
                 $reimbursementPaidAt = $validated['reimbursement_paid_at'] ?? $validated['payment_date'];
                 $reimbursementNotes = $validated['reimbursement_notes'] ?? $validated['notes'] ?? null;
 
                 $reimbursementExtras = [
-                    'account_payable_id' => $accountPayable->id,
+                    'account_payable_id' => $payableForPayment->id,
                     'account_payable_component_id' => $component->id,
-                    'account_payable_vendor' => $accountPayable->vendor_name,
-                    'account_payable_invoice_number' => $accountPayable->vendor_invoice_number,
+                    'account_payable_vendor' => $payableForPayment->vendor_name,
+                    'account_payable_invoice_number' => $payableForPayment->vendor_invoice_number,
                 ];
 
                 $items = ReimbursementItem::whereIn('id', $validated['reimbursement_items'])->get();

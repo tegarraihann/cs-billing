@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Keep the XSRF-TOKEN cookie unencrypted so the SPA (Inertia) can read it for CSRF headers
+        $middleware->encryptCookies(except: ['XSRF-TOKEN']);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
