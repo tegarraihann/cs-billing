@@ -1273,11 +1273,18 @@ const submit = () => {
             vendor_id: c.vendor_id === '' ? null : c.vendor_id
         }));
 
-    const formData = {
+    const cleanedData = {
         ...form.data(),
+        vendor_breakdown: form.vendor_breakdown.map(item => ({
+            ...item,
+            buying_amount: parseFloat(item.buying_amount) || 0,
+            selling_amount: parseFloat(item.selling_amount) || 0
+        })),
+        reimbursement_items: sanitizedReimbursements,
+        other_costs: sanitizedOtherCosts
     };
 
-    form.transform(() => formData).post(route("admin-keuangan.sales-orders.store"), {
+    form.transform(() => cleanedData).post(route("admin-keuangan.sales-orders.store"), {
         onSuccess: (page) => {
             console.log('Success response received:', page);
             console.log('Page component:', page.component);

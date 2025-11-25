@@ -332,6 +332,10 @@ class SalesOrderController extends Controller
 
         ]);
 
+        $validated['package_unit'] = !empty($validated['package_unit'])
+            ? $validated['package_unit']
+            : 'BAG';
+
         $validated['created_by'] = Auth::id();
 
         if (array_key_exists('container_no', $validated)) {
@@ -535,6 +539,11 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
         ]);
+
+        // Ensure package unit always has a valid code (column is non-nullable)
+        $validated['package_unit'] = !empty($validated['package_unit'])
+            ? $validated['package_unit']
+            : 'BAG';
 
         if (array_key_exists('container_no', $validated)) {
             $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no']);
