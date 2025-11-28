@@ -70,7 +70,7 @@ class EquipmentTransactionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string', 'max:100'],
-            'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'other'])],
+            'source_type' => ['required', Rule::in(['bank', 'petty_cash'])],
             'bank_account_id' => ['nullable', 'required_if:source_type,bank', 'exists:bank_accounts,id'],
             'petty_cash_category_id' => ['nullable', 'required_if:source_type,petty_cash', 'exists:petty_cash_categories,id'],
             'useful_life_months' => ['nullable', 'integer', 'min:1', 'max:240'],

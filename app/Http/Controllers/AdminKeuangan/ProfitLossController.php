@@ -479,6 +479,8 @@ class ProfitLossController extends Controller
         // Get additional financial information
         $financialInfo = $this->getFinancialInfo();
 
+        $isPreview = request()->boolean('preview');
+
         $pdf = Pdf::loadView('admin.admin-keuangan.reports.profit-loss-pdf', [
             'period' => $period,
             'reportData' => $reportData,
@@ -489,7 +491,9 @@ class ProfitLossController extends Controller
 
         $fileName = 'Laporan_Laba_Rugi_' . str_replace(' ', '_', $period->period_name) . '_' . now()->format('Y-m-d') . '.pdf';
 
-        return $pdf->download($fileName);
+        return $isPreview
+            ? $pdf->stream($fileName)
+            : $pdf->download($fileName);
     }
 
     private function getStats(): array

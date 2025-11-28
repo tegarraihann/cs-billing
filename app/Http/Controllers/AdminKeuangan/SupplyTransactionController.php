@@ -7,6 +7,8 @@ use App\Models\SupplyTransaction;
 use App\Models\BankAccount;
 use App\Models\PettyCashCategory;
 use App\Models\BankTransaction;
+use App\Models\PettyCashTransaction;
+use App\Models\PettyCashBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -90,6 +92,32 @@ class SupplyTransactionController extends Controller
             'notes' => $validated['notes'] ?? null,
             'created_by' => Auth::id(),
         ]);
+
+        // Jika sumber petty cash, catat pengeluaran petty cash & perbarui saldo
+        if ($validated['source_type'] === 'petty_cash' && !empty($validated['petty_cash_category_id'])) {
+            $currentBalance = PettyCashBalance::calculateBalanceUpToDate($validated['transaction_date']);
+            $balanceAfter = $currentBalance - $validated['amount'];
+
+            $pettyCash = PettyCashTransaction::create([
+                'transaction_date' => $validated['transaction_date'],
+                'description' => 'Topup Supplies - ' . ($validated['category'] ?? 'Supplies'),
+                'category_id' => $validated['petty_cash_category_id'],
+                'amount' => $validated['amount'],
+                'type' => 'expense',
+                'balance_after' => $balanceAfter,
+                'notes' => $validated['notes'] ?? null,
+                'status' => 'approved',
+                'user_id' => Auth::id(),
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'auto_generated' => true,
+                'categorization_method' => 'manual',
+            ]);
+
+            $topup->update(['petty_cash_transaction_id' => $pettyCash->id]);
+
+            PettyCashBalance::updateBalanceForDate($validated['transaction_date']);
+        }
 
         // Jika sumber bank, catat pengeluaran bank
         if ($validated['source_type'] === 'bank' && !empty($validated['bank_account_id'])) {

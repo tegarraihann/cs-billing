@@ -188,7 +188,6 @@
                             <select v-model="purchaseForm.source_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500">
                                 <option value="bank">Transfer Bank</option>
                                 <option value="petty_cash">Petty Cash</option>
-                                <option value="other">Lainnya</option>
                             </select>
                             <p v-if="purchaseForm.errors.source_type" class="text-xs text-red-600 mt-1">{{ purchaseForm.errors.source_type }}</p>
                         </div>

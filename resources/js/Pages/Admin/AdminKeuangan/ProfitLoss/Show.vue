@@ -72,6 +72,20 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div
+                        v-for="card in summaryCards"
+                        :key="card.title"
+                        class="rounded-lg border border-gray-200 bg-white shadow-sm p-4"
+                    >
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ card.title }}</div>
+                        <div :class="card.tone" class="mt-2 text-lg font-bold">
+                            {{ formatCurrency(card.value) }}
+                        </div>
+                        <div v-if="card.subtitle" class="text-xs text-gray-500 mt-1">{{ card.subtitle }}</div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 space-y-8">
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -371,6 +385,35 @@ const showOperationalDetails = ref(false)
 const loading = ref(false)
 const isExporting = ref(false)
 
+const totalRevenue = computed(() => Number(props.reportData?.revenues?.total || 0))
+const totalExpense = computed(() => Number(props.reportData?.expenses?.total || 0))
+const profitBeforeTax = computed(() => totalRevenue.value - totalExpense.value)
+const totalTax = computed(() => Number(props.reportData?.taxes?.e05 || 0) + Number(props.reportData?.taxes?.two_percent || 0))
+const netProfit = computed(() => Number(props.reportData?.net_profit_closing ?? (profitBeforeTax.value - totalTax.value)))
+
+const summaryCards = computed(() => [
+    {
+        title: 'Total Revenues',
+        value: totalRevenue.value,
+        tone: 'text-green-700'
+    },
+    {
+        title: 'Total Expenses',
+        value: totalExpense.value,
+        tone: 'text-red-700'
+    },
+    {
+        title: 'Profit Before Tax',
+        value: profitBeforeTax.value,
+        tone: profitBeforeTax.value >= 0 ? 'text-emerald-700' : 'text-red-700'
+    },
+    {
+        title: 'Net Profit / Loss',
+        value: netProfit.value,
+        tone: netProfit.value >= 0 ? 'text-emerald-700' : 'text-red-700'
+    }
+])
+
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -437,19 +480,8 @@ const exportPdf = async () => {
 
     try {
         isExporting.value = true
-        const url = route('admin-keuangan.profit-loss.export-pdf', props.period.id)
-
-        // Try to open in new window first
-        const newWindow = window.open(url, '_blank')
-
-        // If popup was blocked, fallback to current window
-        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-            // Popup blocked, use current window
-            window.location.href = url
-        }
-
-        // Add small delay to show loading state
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const url = route('admin-keuangan.profit-loss.export-pdf', { profitLoss: props.period.id, preview: 1 })
+        window.open(url, '_blank', 'noopener')
     } catch (error) {
         console.error('Error exporting PDF:', error)
         alert('Error exporting PDF. Please try again.')

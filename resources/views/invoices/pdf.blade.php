@@ -385,26 +385,14 @@
         }
 
         /* Invoice Footer */
-        .invoice-footer {
+        .page-footer {
             position: fixed;
             bottom: 10mm;
-            left: 100mm;
-            right: 15mm;
-            font-size: 7pt;
-            color: #666;
-            line-height: 1.5;
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            margin-left: 190px;
-            margin-right: -70px;
-            text-align: justify;
-        }
-
-        .invoice-footer .footer-left {
-            text-align: right;
-            margin-left: auto;
-            margin-bottom: -120px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            line-height: 1.3;
         }
 
         /* Shipment Details Table Layout for proper alignment */
@@ -857,28 +845,41 @@
             in full.<br>
             3. Objections or corrections must be submitted no later than 7 days after receipt of the invoice. Failure to
             do so will be deemed correct or approved.<br>
-            5. Bank Name &nbsp;&ndash;&nbsp; Bank Branch &nbsp;&ndash;&nbsp; Account No. &nbsp;&ndash;&nbsp; Curr.
-            &nbsp;&ndash;&nbsp; Swift No.
-            MANDIRI &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 1220012330539 &nbsp;&ndash;&nbsp; IDR
-            &nbsp;&ndash;&nbsp; BMRIIDJA
-            BCA &nbsp;&ndash;&nbsp; Jakarta &nbsp;&ndash;&nbsp; 5445974975 &nbsp;&ndash;&nbsp; IDR &nbsp;&ndash;&nbsp;
-            CENAIDJAXXX
+            5. Bank Details:
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 4px;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Bank Name</th>
+                        <th style="text-align: left;">Bank Branch</th>
+                        <th style="text-align: left;">Account No.</th>
+                        <th style="text-align: left;">Curr.</th>
+                        <th style="text-align: left;">Swift No.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MANDIRI</td>
+                        <td>Jakarta</td>
+                        <td>1220012330539</td>
+                        <td>IDR</td>
+                        <td>BMRIIDJA</td>
+                    </tr>
+                    <tr>
+                        <td>BCA</td>
+                        <td>Jakarta</td>
+                        <td>5445974975</td>
+                        <td>IDR</td>
+                        <td>CENAIDJAXXX</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Footer -->
-        <div style="text-align: center; font-size: 8pt;">
+        <div class="page-footer">
             Ruko AEROHUB Citra 8 ,C7-10, Kel Pegadungan, Kec Kalideres,<br>
-            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830
-        </div>
-        <div class="invoice-footer">
-            <div class="footer-left">
-                <div style="text-align: left;">
-                    This is a computer<br>
-                    generated invoice. No<br>
-                    signature and stamp<br>
-                    duty is required.
-                </div>
-            </div>
+            Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830<br><br>
+            This is a computer generated invoice. No signature and stamp duty is required.
         </div>
     </div>
 </body>

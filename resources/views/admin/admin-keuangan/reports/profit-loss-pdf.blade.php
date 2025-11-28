@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Laporan Laba Rugi - {{ $period->period_name }}</title>
     <style>
         body {
-            font-family: "Courier New", monospace;
+            font-family: "Courier", monospace;
             font-size: 10px;
             line-height: 1.4;
             margin: 20px;
             color: #000;
+        }
+
+        * {
+            font-family: inherit;
+        }
+
+        .section-title,
+        .item,
+        .total-row,
+        .header div,
+        .item-name,
+        .item-amount {
+            font-family: "Courier", monospace !important;
         }
 
         .header {
@@ -19,23 +32,29 @@
             padding-bottom: 15px;
         }
 
+        .company-name,
+        .report-title,
+        .period-info {
+            display: block;
+            margin: 0;
+            padding: 8px 0;
+            background-color: #556B2F;
+            color: white;
+            font-family: "Courier", monospace;
+        }
+
         .company-name {
             font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
-            font-family: "Helvetica", "Arial", sans-serif;
         }
 
         .report-title {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
-            margin: 10px 0;
-            font-family: "Helvetica", "Arial", sans-serif;
         }
 
         .period-info {
-            font-size: 10px;
-            margin: 5px 0;
+            font-size: 16px;
         }
 
         .section {
@@ -43,32 +62,37 @@
         }
 
         .section-title {
-            font-size: 12px;
+            font-size: small;
             font-weight: bold;
-            background-color: #f0f0f0;
-            padding: 8px;
-            border: 1px solid #ccc;
             margin-bottom: 10px;
         }
 
         .item {
             padding: 3px 10px;
+            margin-left: 38px; /* indent sub items without shrinking content width */
             border-bottom: 1px dotted #ccc;
+            font-size: small;
+            font-weight: normal;
         }
 
         .item-name {
             width: 70%;
             display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
         }
 
         .item-amount {
             width: 25%;
             display: inline-block;
             text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
         }
 
         .total-row {
             font-weight: bold;
+            font-size: small;
             background-color: #e0e0e0;
             padding: 8px 10px;
             border-top: 2px solid #000;
@@ -144,103 +168,166 @@
     <!-- Header -->
     <div class="header">
         <div class="company-name">PT. ESHAKA WIJAYA LOGISTICS</div>
-        <div class="report-title">LAPORAN LABA RUGI</div>
+        <div class="report-title">INCOME STATEMENT</div>
         <div class="period-info">
-            <strong>{{ $period->period_name }}</strong>
-            <span class="status-badge {{ $period->status === 'closed' ? 'status-closed' : 'status-draft' }}">
-                {{ strtoupper($period->status === 'closed' ? 'FINALISASI' : 'DRAFT') }}
-            </span>
+            @php
+                $periodLabel = $period->start_date
+                    ? \Carbon\Carbon::parse($period->start_date)->translatedFormat('F Y')
+                    : $period->period_name;
+            @endphp
+            <strong>{{ mb_strtoupper($periodLabel, 'UTF-8') }} TRANSACTION PERIODE</strong>
         </div>
-        <div class="period-info">
+        {{-- <div class="period-info">
             Periode: {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}
-        </div>
-        <div class="period-info">
+        </div> --}}
+        {{-- <div class="period-info">
             Tanggal Cetak: {{ $generatedAt->format('d M Y H:i') }}
-        </div>
+        </div> --}}
     </div>
 
     <!-- PENDAPATAN -->
     <div class="section">
-        <div class="section-title">PENDAPATAN</div>
+        <div class="section-title">REVENUE</div>
 
-        @if($reportData['revenues']['main'] && count($reportData['revenues']['main']) > 0)
-            <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa;">Pendapatan Utama</div>
-            @foreach($reportData['revenues']['main'] as $entry)
-            <div class="item">
-                <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
-            </div>
-            @endforeach
-        @endif
+        @php
+            $serviceRevenueEntries = $reportData['revenues']['main'] ?? [];
+            $serviceRevenueTotal = collect($serviceRevenueEntries)->sum(fn($entry) => data_get($entry, 'amount', 0));
 
-        @if($reportData['revenues']['other'] && count($reportData['revenues']['other']) > 0)
-            <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa; margin-top: 10px;">Pendapatan Lainnya</div>
-            @foreach($reportData['revenues']['other'] as $entry)
-            <div class="item">
-                <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
-            </div>
-            @endforeach
-        @endif
+            $interestMandiri = (float) data_get($reportData, 'revenues.other_income_breakdown.bunga_mandiri.total', 0);
+            $interestBca = (float) data_get($reportData, 'revenues.other_income_breakdown.bunga_bca.total', 0);
+            $interestTotal = $interestMandiri + $interestBca;
 
-        @if((!$reportData['revenues']['main'] || count($reportData['revenues']['main']) === 0) &&
-            (!$reportData['revenues']['other'] || count($reportData['revenues']['other']) === 0))
-            <div class="item" style="text-align: center; font-style: italic; color: #666;">
-                Tidak ada data pendapatan
-            </div>
-        @endif
+            $otherIncomeTotal = (float) data_get($reportData, 'revenues.other_income_breakdown.lainnya.total', 0);
+        @endphp
 
-        <div class="total-row">
-            <span class="item-name">TOTAL PENDAPATAN</span>
-            <span class="item-amount">Rp {{ number_format($reportData['revenues']['total'] ?? 0, 0, ',', '.') }}</span>
+        <div class="item" style="background-color: #e8f2e8;">
+            <span class="item-name">Service Revenue</span>
+            <span class="item-amount">Rp {{ number_format($serviceRevenueTotal, 0, ',', '.') }}</span>
+        </div>
+
+        <div class="item" style="background-color: #e8f2e8;">
+            <span class="item-name">Interest Revenue</span>
+            <span class="item-amount">Rp {{ number_format($interestTotal, 0, ',', '.') }}</span>
+        </div>
+
+        <div class="item" style="background-color: #e8f2e8;">
+            <span class="item-name">Other Income</span>
+            <span class="item-amount">Rp {{ number_format($otherIncomeTotal, 0, ',', '.') }}</span>
+        </div>
+
+        <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
+            <span class="item-name" style="font-weight: bold;">TOTAL REVENUES</span>
+            <span class="item-amount" style="font-weight: bold;">Rp {{ number_format($reportData['revenues']['total'] ?? 0, 0, ',', '.') }}</span>
         </div>
     </div>
 
-    <!-- BEBAN -->
+    <!-- EXPENSES -->
     <div class="section">
-        <div class="section-title">BEBAN</div>
+        <div class="section-title">EXPENSES</div>
 
-        @if($reportData['expenses']['operational'] && count($reportData['expenses']['operational']) > 0)
-            <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa;">Beban Operasional</div>
-            @foreach($reportData['expenses']['operational'] as $entry)
-            <div class="item">
-                <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
-            </div>
+        @php
+            $operationalGrouped = data_get($reportData, 'expenses.operational.grouped', []);
+            $salaryEntries = data_get($reportData, 'expenses.salary', []);
+            $adminEntries = data_get($reportData, 'expenses.admin', []);
+            $otherEntries = data_get($reportData, 'expenses.other', []);
+
+            $allExpenseEntries = collect($salaryEntries)
+                ->merge(collect($operationalGrouped)->flatMap(fn($cat) => $cat['entries'] ?? []))
+                ->merge($adminEntries)
+                ->merge($otherEntries);
+
+            $sumByKeyword = function ($keywords) use ($allExpenseEntries) {
+                $keywords = (array) $keywords;
+                return $allExpenseEntries
+                    ->filter(function ($entry) use ($keywords) {
+                        $name = strtolower((string) data_get($entry, 'account.account_name', ''));
+                        $desc = strtolower((string) data_get($entry, 'description', ''));
+                        $cat = strtolower((string) data_get($entry, 'additional_data.category_name', ''));
+                        foreach ($keywords as $kw) {
+                            $kw = strtolower($kw);
+                            if ($kw !== '' && (str_contains($name, $kw) || str_contains($desc, $kw) || str_contains($cat, $kw))) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
+                    ->sum(fn($e) => data_get($e, 'amount', 0));
+            };
+
+            $expenseLines = collect([
+                ['label' => 'Salaries Expense', 'amount' => collect($salaryEntries)->sum(fn($e) => data_get($e, 'amount', 0))],
+                ['label' => 'Rent Expense', 'amount' => $sumByKeyword(['rent', 'sewa'])],
+                ['label' => 'General & Administrative Expense', 'amount' => $sumByKeyword(['petty', 'administrative'])],
+                ['label' => 'Operating Expense', 'amount' => $sumByKeyword(['operational', 'operasional', 'lain'])],
+                ['label' => 'Electricity, Water & Internet Expense', 'amount' => $sumByKeyword(['electric', 'listrik', 'water', 'air', 'internet'])],
+                ['label' => 'Delivery Expense', 'amount' => $sumByKeyword(['delivery', 'pengiriman', 'dokumen'])],
+                ['label' => 'IPL Expense', 'amount' => $sumByKeyword(['ipl'])],
+                ['label' => 'Vehicle Maintenance Expense', 'amount' => $sumByKeyword(['vehicle', 'kendaraan', 'truck', 'fleet'])],
+                ['label' => 'Equipment Maintenance Expense', 'amount' => $sumByKeyword(['equipment', 'peralatan', 'maintenance'])],
+                ['label' => 'Marketing Comission Expense', 'amount' => $sumByKeyword(['marketing', 'komisi'])],
+                ['label' => 'Depreciation Expense - Equipment', 'amount' => $sumByKeyword(['depreciation', 'penyusutan'])],
+                ['label' => 'Entertainment Expense', 'amount' => $sumByKeyword(['entertain'])],
+                ['label' => 'Service Expense', 'amount' => $sumByKeyword(['service'])],
+                ['label' => 'Supplies Expense', 'amount' => $sumByKeyword(['supplies', 'atk'])],
+                ['label' => 'Other Expense', 'amount' => $sumByKeyword(['other', 'lain'])],
+                ['label' => 'Administrative Bank Expense', 'amount' => $sumByKeyword(['admin bank', 'bank admin'])],
+                ['label' => 'Bank Interest Expense', 'amount' => $sumByKeyword(['interest', 'bunga bank'])],
+                ['label' => 'Monthly Card Expense', 'amount' => $sumByKeyword(['card', 'kartu'])],
+            ]);
+        @endphp
+
+        @if($expenseLines->count() > 0)
+            @foreach($expenseLines as $line)
+                <div class="item" style="background-color: #e8f2e8;">
+                    <span class="item-name">{{ $line['label'] }}</span>
+                    <span class="item-amount">Rp {{ number_format($line['amount'] ?? 0, 0, ',', '.') }}</span>
+                </div>
             @endforeach
-        @endif
-
-        @if(isset($reportData['expenses']['administrative']) && $reportData['expenses']['administrative'] && count($reportData['expenses']['administrative']) > 0)
-            <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa; margin-top: 10px;">Beban Administrasi</div>
-            @foreach($reportData['expenses']['administrative'] as $entry)
-            <div class="item">
-                <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
-            </div>
-            @endforeach
-        @endif
-
-        @if($reportData['expenses']['other'] && count($reportData['expenses']['other']) > 0)
-            <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa; margin-top: 10px;">Beban Lainnya</div>
-            @foreach($reportData['expenses']['other'] as $entry)
-            <div class="item">
-                <span class="item-name">{{ $entry['account']['account_name'] ?? 'N/A' }}</span>
-                <span class="item-amount">Rp {{ number_format(data_get($entry, 'amount', 0), 0, ',', '.') }}</span>
-            </div>
-            @endforeach
-        @endif
-
-        @if((!isset($reportData['expenses']['operational']) || !$reportData['expenses']['operational'] || count($reportData['expenses']['operational']) === 0) &&
-            (!isset($reportData['expenses']['administrative']) || !$reportData['expenses']['administrative'] || count($reportData['expenses']['administrative']) === 0) &&
-            (!isset($reportData['expenses']['other']) || !$reportData['expenses']['other'] || count($reportData['expenses']['other']) === 0))
+        @else
             <div class="item" style="text-align: center; font-style: italic; color: #666;">
-                Tidak ada data beban
+                Tidak ada data expenses
             </div>
         @endif
 
-        <div class="total-row">
-            <span class="item-name">TOTAL BEBAN</span>
-            <span class="item-amount">Rp {{ number_format($reportData['expenses']['total'] ?? 0, 0, ',', '.') }}</span>
+        <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
+            <span class="item-name" style="font-weight: bold;">TOTAL EXPENSES</span>
+            <span class="item-amount" style="font-weight: bold;">Rp {{ number_format($reportData['expenses']['total'] ?? 0, 0, ',', '.') }}</span>
+        </div>
+        @php
+            $profitBeforeTax = ($reportData['revenues']['total'] ?? 0) - ($reportData['expenses']['total'] ?? 0);
+        @endphp
+        <div class="total-row" style="background: #e6e6e6; border-top: 1px solid #999; padding: 8px 10px;">
+            <span class="item-name" style="font-weight: bold">PROFIT BEFORE TAX EXPENSES</span>
+            <span class="item-amount" style="font-weight: bold">Rp {{ number_format($profitBeforeTax, 0, ',', '.') }}</span>
+        </div>
+    </div>
+
+    <!-- TAX EXPENSES -->
+    @php
+        // Placeholder totals; adjust the data keys according to your invoice tax fields
+        $taxE05 = data_get($reportData, 'taxes.e05', 0);
+        $tax2 = data_get($reportData, 'taxes.two_percent', 0);
+        $totalTax = $taxE05 + $tax2;
+        $netProfitMonthly = data_get($reportData, 'net_profit_closing', $profitBeforeTax - $totalTax);
+    @endphp
+    <div class="section">
+        <div class="section-title">TAX EXPENSES</div>
+        <div class="item" style="background-color: #e8f2e8;">
+            <span class="item-name">TAX EXPENSE 0.5%</span>
+            <span class="item-amount">Rp {{ number_format($taxE05, 0, ',', '.') }}</span>
+        </div>
+        <div class="item" style="background-color: #e8f2e8;">
+            <span class="item-name">TAX EXPENSE 2%</span>
+            <span class="item-amount">Rp {{ number_format($tax2, 0, ',', '.') }}</span>
+        </div>
+        <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
+            <span class="item-name" style="font-weight: bold">TOTAL TAX EXPENSE</span>
+            <span class="item-amount">Rp {{ number_format($totalTax, 0, ',', '.') }}</span>
+        </div>
+        <div style="height: 24px;"></div>
+        <div class="total-row" style="background: #e0e0e0; border-top: 1px solid #999; padding: 8px 10px;">
+            <span class="item-name" style="font-weight: bold">PROFIT/LOSS FOR THE CURRENT PERIOD</span>
+            <span class="item-amount" style="font-weight: bold">Rp {{ number_format($netProfitMonthly, 0, ',', '.') }}</span>
         </div>
     </div>
 
@@ -252,65 +339,6 @@
         $isProfit = $netProfit >= 0;
     @endphp
 
-    <div class="summary">
-        <div class="summary-title">RINGKASAN LABA RUGI</div>
-
-        <div class="summary-item">
-            <span class="item-name">Total Pendapatan</span>
-            <span class="item-amount" style="color: #155724;">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</span>
-        </div>
-
-        <div class="summary-item">
-            <span class="item-name">Total Beban</span>
-            <span class="item-amount" style="color: #721c24;">Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
-        </div>
-
-        <div class="net-profit {{ $isProfit ? 'profit' : 'loss' }}">
-            <span class="item-name">{{ $isProfit ? 'LABA BERSIH' : 'RUGI BERSIH' }}</span>
-            <span class="item-amount">Rp {{ number_format(abs($netProfit), 0, ',', '.') }}</span>
-        </div>
-    </div>
-
-    <!-- POSISI KEUANGAN RINGKAS (LAYOUT MIRIP FINANCIAL POSITION) -->
-    <div class="section" style="margin-top: 30px;">
-        <div class="section-title">POSISI KEUANGAN RINGKAS</div>
-
-        <!-- ASET LANCAR -->
-        <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa;">Aset Lancar</div>
-        <div class="item">
-            <span class="item-name">Saldo Bank Mandiri</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['bank_mandiri_balance'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-        <div class="item">
-            <span class="item-name">Saldo Bank BCA</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['bank_bca_balance'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-        @if(isset($financialInfo['bank_balance']) && $financialInfo['bank_balance'] > 0)
-        <div class="item">
-            <span class="item-name">Kas Kecil</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['bank_balance'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-        @endif
-        <div class="item" style="font-weight: bold; background-color: #f8f9fa;">
-            <span class="item-name">Total Saldo Bank</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['total_bank_balance'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-        <div class="item">
-            <span class="item-name">Total Piutang</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['total_receivables'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-
-        <!-- LIABILITAS / HUTANG -->
-        <div style="font-weight: bold; padding: 5px 10px; background-color: #f8f9fa; margin-top: 12px;">Liabilitas / Hutang</div>
-        <div class="item">
-            <span class="item-name">Total Hutang</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['total_payables'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-        <div class="item" style="font-weight: bold; background-color: #f8f9fa;">
-            <span class="item-name">Total Liabilitas</span>
-            <span class="item-amount">Rp {{ number_format($financialInfo['total_payables'] ?? 0, 0, ',', '.') }}</span>
-        </div>
-    </div>
 
     <!-- Footer -->
     <div class="footer">

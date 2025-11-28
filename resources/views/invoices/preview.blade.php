@@ -260,12 +260,28 @@
         }
 
         .bank-block {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
-        .bank-row {
+        .bank-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 12px;
-            line-height: 1.15;
+        }
+
+        .bank-table td {
+            padding: 3px 6px;
+            vertical-align: top;
+        }
+
+        .bank-table td.label {
+            width: 105px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .bank-table td.value {
+            width: auto;
         }
 
         .totals-section {
@@ -634,18 +650,22 @@
             <div class="bottom-section">
                 <div class="bank-details">
                     <div class="bank-block">
-                        <div class="bank-row">BANK NAME : Mandiri</div>
-                        <div class="bank-row">BANK NUMBER : 122-00-12330539</div>
-                        <div class="bank-row">ACCOUNT NAME : Eshaka Wijaya Logistics</div>
-                        <div class="bank-row">SWIFT CODE : BMRIIDJA</div>
-                        <div class="bank-row">ADDRESS : KCP JAKARTA R.S.C.M</div>
+                        <table class="bank-table">
+                            <tr><td class="label">BANK NAME</td><td class="value">Mandiri</td></tr>
+                            <tr><td class="label">BRANCH</td><td class="value">KCP JAKARTA R.S.C.M</td></tr>
+                            <tr><td class="label">ACCOUNT NAME</td><td class="value">Eshaka Wijaya Logistics</td></tr>
+                            <tr><td class="label">ACCOUNT NO.</td><td class="value">122-00-12330539</td></tr>
+                            <tr><td class="label">SWIFT CODE</td><td class="value">BMRIIDJA</td></tr>
+                        </table>
                     </div>
                     <div class="bank-block">
-                        <div class="bank-row">BANK NAME : BCA</div>
-                        <div class="bank-row">BANK NUMBER : 5445-974 975</div>
-                        <div class="bank-row">ACCOUNT NAME : Eshaka Wijaya Logistics</div>
-                        <div class="bank-row">SWIFT CODE : CENAIDJAXXX</div>
-                        <div class="bank-row">ADDRESS : KCP CITRA 2 EXT</div>
+                        <table class="bank-table">
+                            <tr><td class="label">BANK NAME</td><td class="value">BCA</td></tr>
+                            <tr><td class="label">BRANCH</td><td class="value">KCP CITRA 2 EXT</td></tr>
+                            <tr><td class="label">ACCOUNT NAME</td><td class="value">Eshaka Wijaya Logistics</td></tr>
+                            <tr><td class="label">ACCOUNT NO.</td><td class="value">5445-974 975</td></tr>
+                            <tr><td class="label">SWIFT CODE</td><td class="value">CENAIDJAXXX</td></tr>
+                        </table>
                     </div>
                 </div>
 

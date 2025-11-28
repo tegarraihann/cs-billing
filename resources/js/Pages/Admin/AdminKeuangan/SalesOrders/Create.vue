@@ -925,7 +925,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
@@ -1029,7 +1029,7 @@ const sections = ref({
     invoice: false,
 });
 
-const form = useForm({
+const buildDefaultForm = () => ({
     // Required fields based on requirements only
     order_number: props.orderNumber || "",
     ref_no: "",
@@ -1065,6 +1065,25 @@ const form = useForm({
     invoice_date: "",
     top: ""
 });
+
+const form = useForm(buildDefaultForm());
+
+const resetFormState = () => {
+    const defaults = buildDefaultForm();
+    form.reset();
+    Object.assign(form, defaults);
+};
+
+onMounted(() => {
+    resetFormState();
+});
+
+watch(
+    () => props.orderNumber,
+    () => {
+        resetFormState();
+    }
+);
 
 const toggleSection = (section) => {
     sections.value[section] = !sections.value[section];

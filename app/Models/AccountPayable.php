@@ -204,21 +204,19 @@ class AccountPayable extends Model
             return;
         }
 
+        $existingPayables = self::where('sales_order_id', $salesOrder->id)->get();
+        $existingMap = $existingPayables->keyBy(function (self $payable) {
+            return self::makeVendorGroupKey($payable->vendor_id, $payable->vendor_name);
+        });
+        $processedKeys = [];
+
         $grouped = collect($salesOrder->vendor_breakdown)
             ->filter(fn ($item) => is_array($item) && !empty($item['buying_amount']) && floatval($item['buying_amount']) > 0)
             ->groupBy(function ($item) use ($salesOrder) {
                 $vendorId = self::normalizeVendorIdentifierValue($item['vendor_id'] ?? null);
                 $vendorName = trim((string) ($item['nama_vendor'] ?? ''));
 
-                if ($vendorId !== null) {
-                    return 'id_' . $vendorId;
-                }
-
-                if ($vendorName === '') {
-                    $vendorName = 'Divisi Operational';
-                }
-
-                return 'internal_' . strtolower($vendorName);
+                return self::makeVendorGroupKey($vendorId, $vendorName);
             });
 
         foreach ($grouped as $items) {
@@ -234,6 +232,8 @@ class AccountPayable extends Model
 
             $vendor = $normalizedVendorId ? Vendor::find($normalizedVendorId) : null;
             $vendorName = $vendor?->nama_vendor ?? trim((string) ($firstItem['nama_vendor'] ?? 'Divisi Operational'));
+            $vendorKey = self::makeVendorGroupKey($normalizedVendorId, $vendorName);
+            $processedKeys[] = $vendorKey;
 
             $descriptions = $items->pluck('description')->filter()->map(fn ($desc) => trim((string) $desc))->filter()->unique()->values();
             $remarks = $items->pluck('remarks')->filter()->map(fn ($remark) => trim((string) $remark))->filter()->unique()->values();
@@ -287,6 +287,36 @@ class AccountPayable extends Model
             $payable->save();
             $payable->syncComponents();
         }
+
+        // Hapus hutang lama yang tidak lagi muncul di vendor_breakdown
+        if (!empty($processedKeys)) {
+            $staleKeys = $existingMap->keys()->diff($processedKeys);
+        } else {
+            $staleKeys = $existingMap->keys();
+        }
+
+        foreach ($staleKeys as $key) {
+            /** @var self|null $stale */
+            $stale = $existingMap->get($key);
+            if ($stale) {
+                $stale->components()->delete();
+                $stale->delete();
+            }
+        }
+    }
+
+    private static function makeVendorGroupKey($vendorId, ?string $vendorName): string
+    {
+        if ($vendorId !== null) {
+            return 'id_' . (int) $vendorId;
+        }
+
+        $name = trim(strtolower($vendorName ?? ''));
+        if ($name === '') {
+            $name = 'divisi operational';
+        }
+
+        return 'internal_' . $name;
     }
 
     /**

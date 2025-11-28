@@ -702,7 +702,7 @@ const debounceSearch = () => {
 
 const applyFilters = () => {
     router.get(route('admin-keuangan.account-payables.index'), searchForm, {
-        preserveState: true,
+        preserveState: false,
         replace: true
     })
 }

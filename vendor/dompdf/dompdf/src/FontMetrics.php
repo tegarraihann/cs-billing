@@ -464,6 +464,10 @@ class FontMetrics
         if (!$familyRaw) {
             $familyRaw = $this->options->getDefaultFont();
         }
+        // Ensure we always have a fallback family to avoid null lookup (see dompdf#3660)
+        if (!$familyRaw) {
+            $familyRaw = "helvetica";
+        }
         if (!$subtypeRaw) {
             $subtypeRaw = "normal";
         }
@@ -490,7 +494,8 @@ class FontMetrics
                 return $cache[$familyRaw][$subtypeRaw] = $families[$family][$subtype];
             }
 
-            return null;
+            // Fall back to default logic when specific family not found
+            $familyRaw = null;
         }
 
         $fallback_families = [strtolower($this->options->getDefaultFont()), "serif"];

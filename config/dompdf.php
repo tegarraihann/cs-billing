@@ -45,7 +45,7 @@ return [
          * Times-Roman, Times-Bold, Times-BoldItalic, Times-Italic,
          * Symbol, ZapfDingbats.
          */
-        'font_dir' => null, // Use default DomPDF fonts
+        'font_dir' => storage_path('fonts'), // Use storage/fonts for custom/default fonts
 
         /**
          * The location of the DOMPDF font cache directory
@@ -55,7 +55,7 @@ return [
          *
          * Note: This directory must exist and be writable by the webserver process.
          */
-        'font_cache' => null, // Use default cache
+        'font_cache' => storage_path('fonts'), // Cache font metrics in storage/fonts
 
         /**
          * The location of a temporary directory.
@@ -179,7 +179,7 @@ return [
          *
          * @var string
          */
-        'default_font' => null,
+        'default_font' => 'DejaVu Sans',
 
         /**
          * Image DPI setting
