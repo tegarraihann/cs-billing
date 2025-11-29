@@ -415,7 +415,17 @@
             <div class="section-title">Detail Informasi</div>
 
             <!-- Cost Breakdown -->
-            @if($salesOrder->vendor_breakdown && is_array($salesOrder->vendor_breakdown))
+            @php
+                $csSnapshot = $salesOrder->cs_snapshot ?? null;
+                $csVendorBreakdown = (is_array($csSnapshot['vendor_breakdown'] ?? null) && count($csSnapshot['vendor_breakdown']) > 0)
+                    ? $csSnapshot['vendor_breakdown']
+                    : ($salesOrder->vendor_breakdown ?? []);
+                $csTotalBuying = $csSnapshot['total_buying'] ?? $salesOrder->total_buying;
+                $csTotalSelling = $csSnapshot['total_selling'] ?? $salesOrder->total_selling;
+                $csTotalRevenue = $csSnapshot['total_revenue'] ?? $salesOrder->total_revenue;
+            @endphp
+
+            @if(!empty($csVendorBreakdown))
             <div style="font-family: 'Times New Roman', serif; font-size: 9px; margin-bottom: 20px;">
                 <table style="width: 90%; border-collapse: collapse; margin: 0 auto;">
                     <tr>
@@ -429,7 +439,7 @@
                         $totalBuying = 0;
                         $totalSelling = 0;
                     @endphp
-                    @foreach($salesOrder->vendor_breakdown as $item)
+                    @foreach($csVendorBreakdown as $item)
                     @php
                         $buying = floatval($item['buying_amount'] ?? 0);
                         $selling = floatval($item['selling_amount'] ?? 0);
@@ -469,9 +479,9 @@
                     </tr>
                     <tr>
                         <td style="padding: 2px 0 2px 8px; vertical-align: top; text-align: left;">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $salesOrder->total_buying ? 'Rp ' . number_format($salesOrder->total_buying, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $salesOrder->total_selling ? 'Rp ' . number_format($salesOrder->total_selling, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $salesOrder->total_revenue ? 'Rp ' . number_format($salesOrder->total_revenue, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $csTotalBuying ? 'Rp ' . number_format($csTotalBuying, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $csTotalSelling ? 'Rp ' . number_format($csTotalSelling, 0, '.', '.') : '-' }}</td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $csTotalRevenue ? 'Rp ' . number_format($csTotalRevenue, 0, '.', '.') : '-' }}</td>
                         <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $salesOrder->remarks ?: '-' }}</td>
                     </tr>
                 </table>
