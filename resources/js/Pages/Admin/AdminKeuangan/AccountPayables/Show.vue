@@ -40,6 +40,16 @@
                         </button>
 
                         <button
+                            v-if="canPostVat"
+                            @click="postVatPayable"
+                            class="inline-flex items-center px-4 py-2 bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :disabled="postingVat"
+                        >
+                            <FileText class="w-4 h-4 mr-2" />
+                            {{ postingVat ? 'Posting...' : 'Post VAT Payable' }}
+                        </button>
+
+                        <button
                             @click="openEditModal"
                             class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
@@ -653,7 +663,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { router, Head, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import { ArrowLeft, CreditCard, Edit, Plus, ChevronDown } from 'lucide-vue-next'
+import { ArrowLeft, CreditCard, Edit, Plus, ChevronDown, FileText } from 'lucide-vue-next'
 
 const props = defineProps({
     payable: Object,
@@ -712,6 +722,7 @@ const showPaymentModal = ref(false)
 const showEditModal = ref(false)
 const showAdditionalCostModal = ref(false)
 const processing = ref(false)
+const postingVat = ref(false)
 
 const paymentForm = useForm({
     amount: '',
@@ -758,6 +769,7 @@ const summaryStatus = computed(() => summary.value.status ?? payable.value?.stat
 const activeVendorName = computed(() => payable.value?.vendor?.nama_vendor ?? payable.value?.vendor_name ?? '-')
 const activeDaysOverdue = computed(() => payable.value?.days_overdue ?? 0)
 const overdueDays = computed(() => activeDaysOverdue.value)
+const canPostVat = computed(() => (summary.value.total_outstanding || 0) > 0 && summaryStatus.value !== 'paid')
 
 const headerSubtitle = computed(() => {
     if (summary.value.sales_order?.order_number) {
@@ -1043,6 +1055,26 @@ const getComponentLabel = (type) => {
         'reimbursement': 'Reimbursement'
     }
     return labels[type] || type
+}
+
+const postVatPayable = () => {
+    if (!canPostVat.value || postingVat.value || !payable.value) {
+        return
+    }
+    const ok = window.confirm('Post outstanding ke VAT Payable dan tutup hutang ini?')
+    if (!ok) {
+        return
+    }
+    postingVat.value = true
+    router.post(
+        route('admin-keuangan.account-payables.post-vat', payable.value.id),
+        {},
+        {
+            onFinish: () => {
+                postingVat.value = false
+            }
+        }
+    )
 }
 
 const goBack = () => {

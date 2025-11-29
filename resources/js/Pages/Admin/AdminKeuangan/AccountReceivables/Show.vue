@@ -26,6 +26,16 @@
                             </span>
                         </span>
 
+                        <button
+                            v-if="canPostVat"
+                            @click="postVatPayable"
+                            class="inline-flex items-center px-4 py-2 bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :disabled="postingVat"
+                        >
+                            <FileText class="w-4 h-4 mr-2" />
+                            {{ postingVat ? 'Posting...' : 'Post VAT Payable' }}
+                        </button>
+
                         <button v-if="receivable.status !== 'paid'" @click="openPaymentModal"
                             class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <CreditCard class="w-4 h-4 mr-2" />
@@ -330,6 +340,7 @@ const props = defineProps({
 
 const showPaymentModal = ref(false)
 const processing = ref(false)
+const postingVat = ref(false)
 const amountError = ref('')
 
 const paymentForm = reactive({
@@ -354,6 +365,10 @@ const selectedComponent = computed(() => {
         return componentOptions.value[0]
     }
     return componentOptions.value.find(component => component.id === id) || null
+})
+
+const canPostVat = computed(() => {
+    return (props.receivable?.outstanding_amount || 0) > 0 && props.receivable?.status !== 'paid'
 })
 
 const getComponentLabel = (type) => {
@@ -588,6 +603,28 @@ const generateSOA = () => {
     window.open(
         route('admin-keuangan.account-receivables.generate-soa', props.receivable.customer.id),
         '_blank'
+    )
+}
+
+const postVatPayable = () => {
+    if (!canPostVat.value || postingVat.value) {
+        return
+    }
+
+    const ok = window.confirm('Post outstanding ke VAT Payable dan tutup piutang?')
+    if (!ok) {
+        return
+    }
+
+    postingVat.value = true
+    router.post(
+        route('admin-keuangan.account-receivables.post-vat', props.receivable.id),
+        {},
+        {
+            onFinish: () => {
+                postingVat.value = false
+            }
+        }
     )
 }
 </script>

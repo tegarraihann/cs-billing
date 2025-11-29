@@ -596,6 +596,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{accountReceivable}', 'show')->name('show');
         Route::get('/{accountReceivable}/payment-data', 'paymentData')->name('payment-data');
         Route::post('/{accountReceivable}/record-payment', 'recordPayment')->name('record-payment');
+        Route::post('/{accountReceivable}/post-vat', 'postVatPayable')->name('post-vat');
         Route::get('/customers/{customer}/generate-soa', 'generateSOA')->name('generate-soa');
         Route::get('/customers/{customer}/receivables', 'getByCustomer')->name('get-by-customer');
         Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');
@@ -609,6 +610,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{accountPayable}', 'show')->name('show');
         Route::get('/{accountPayable}/reimbursement-items', 'reimbursementItems')->name('reimbursement-items');
         Route::post('/{accountPayable}/mark-as-paid', 'markAsPaid')->name('mark-as-paid');
+        Route::post('/{accountPayable}/post-vat', 'postVatPayable')->name('post-vat');
         Route::post('/{accountPayable}/update-due-date', 'updateDueDate')->name('update-due-date');
         Route::post('/{accountPayable}/update-vendor-invoice', 'updateVendorInvoice')->name('update-vendor-invoice');
         Route::post('/{accountPayable}/components', 'storeAdditionalComponent')->name('components.store');

@@ -12,6 +12,8 @@ use App\Models\SalesOrder;
 use App\Models\PettyCashCategory;
 use App\Models\PettyCashTransaction;
 use App\Models\PettyCashBalance;
+use App\Models\ChartOfAccount;
+use App\Models\FinancialPositionAdjustment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -111,6 +113,45 @@ class AccountPayableController extends Controller
     public function reimbursementItems(AccountPayable $accountPayable)
     {
         return response()->json($this->mapReimbursementItems($accountPayable));
+    }
+
+    /**
+     * Post outstanding payable to VAT Payable (2110/2111) and close payable.
+     */
+    public function postVatPayable(AccountPayable $accountPayable)
+    {
+        if ($accountPayable->outstanding_amount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable.']);
+        }
+
+        $accountId = ChartOfAccount::idByCode('2110') ?: ChartOfAccount::idByCode('2111');
+        if (!$accountId) {
+            return redirect()->back()->withErrors(['error' => 'Akun VAT Payable (2110/2111) belum dikonfigurasi.']);
+        }
+
+        $amount = (float) $accountPayable->outstanding_amount;
+        $now = now();
+
+        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now) {
+            FinancialPositionAdjustment::create([
+                'account_id' => $accountId,
+                'effective_date' => $now->toDateString(),
+                'amount' => $amount,
+                'notes' => 'Post VAT Payable dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
+                'created_by' => auth()->id(),
+            ]);
+
+            $accountPayable->paid_amount = $accountPayable->paid_amount + $amount;
+            $accountPayable->outstanding_amount = 0;
+            $accountPayable->status = 'paid';
+            $accountPayable->payment_date = $now;
+            $accountPayable->payment_method = 'VAT Payable Posting';
+            $accountPayable->payment_notes = trim(($accountPayable->payment_notes ? $accountPayable->payment_notes . "\n" : '') . 'Posted to VAT Payable');
+            $accountPayable->paid_by = auth()->id();
+            $accountPayable->save();
+        });
+
+        return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable dan status ditutup.');
     }
 
     /**

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AccountReceivable;
 use App\Models\Customer;
 use App\Models\BankAccount;
+use App\Models\ChartOfAccount;
+use App\Models\FinancialPositionAdjustment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -152,6 +154,69 @@ class AccountReceivableController extends Controller
             'bank_accounts' => $bankAccounts,
             'default_payment_date' => now()->toDateString(),
         ]);
+    }
+
+    /**
+     * Post outstanding AR to VAT Payable and close AR.
+     */
+    public function postVatPayable(AccountReceivable $accountReceivable)
+    {
+        $accountReceivable->loadMissing(['invoice', 'customer']);
+
+        if ($accountReceivable->outstanding_amount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable.']);
+        }
+
+        $accountId = ChartOfAccount::idByCode('2110') ?: ChartOfAccount::idByCode('2111');
+        if (!$accountId) {
+            return redirect()->back()->withErrors(['error' => 'Akun VAT Payable (2110/2111) belum dikonfigurasi.']);
+        }
+
+        $amount = (float) $accountReceivable->outstanding_amount;
+        $now = now();
+
+        DB::transaction(function () use ($accountReceivable, $amount, $accountId, $now) {
+            FinancialPositionAdjustment::create([
+                'account_id' => $accountId,
+                'effective_date' => $now->toDateString(),
+                'amount' => $amount,
+                'notes' => 'Post VAT Payable dari AR ' . $accountReceivable->invoice_number,
+                'created_by' => auth()->id(),
+            ]);
+
+            // Tutup semua komponen/outstanding AR
+            $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+            $accountReceivable->load('components');
+
+            $remaining = $amount;
+            $components = $accountReceivable->components;
+
+            if ($components->isEmpty()) {
+                $accountReceivable->recordPayment(
+                    $remaining,
+                    'Posted to VAT Payable',
+                    null,
+                    Carbon::parse($now)
+                );
+            } else {
+                foreach ($components as $component) {
+                    $out = (float) $component->outstanding_amount;
+                    if ($out <= 0 || $remaining <= 0) {
+                        continue;
+                    }
+                    $pay = min($out, $remaining);
+                    $accountReceivable->recordPayment(
+                        $pay,
+                        'Posted to VAT Payable',
+                        $component,
+                        Carbon::parse($now)
+                    );
+                    $remaining -= $pay;
+                }
+            }
+        });
+
+        return redirect()->back()->with('success', 'Outstanding diposting ke VAT Payable dan piutang ditutup.');
     }
 
     /**
