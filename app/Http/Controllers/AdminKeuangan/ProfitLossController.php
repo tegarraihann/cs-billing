@@ -9,6 +9,8 @@ use App\Models\ProfitLossEntry;
 use App\Models\EmployeeSalary;
 use App\Models\EquipmentTransaction;
 use App\Models\PrepaidRentTransaction;
+use App\Models\SalesOrder;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -199,6 +201,29 @@ class ProfitLossController extends Controller
 
         DB::beginTransaction();
         try {
+            // Blokir jika masih ada SO di periode ini yang belum diinvoice atau belum diposting ke P&L
+            $start = $profitLoss->start_date->startOfDay();
+            $end = $profitLoss->end_date->endOfDay();
+
+            $blockingOrders = SalesOrder::whereBetween('so_date', [$start, $end])
+                ->where(function ($q) {
+                    $q->doesntHave('invoices')
+                        ->orWhereHas('invoices', function ($iq) {
+                            $iq->where(function ($qq) {
+                                $qq->whereNull('posted_to_profit_loss')
+                                    ->orWhere('posted_to_profit_loss', false);
+                            });
+                        });
+                })
+                ->pluck('order_number')
+                ->toArray();
+
+            if (!empty($blockingOrders)) {
+                return redirect()->back()->withErrors([
+                    'error' => 'Periode tidak bisa di-close. SO berikut belum di-invoice/posted ke P&L: ' . implode(', ', $blockingOrders)
+                ]);
+            }
+
             $profitLoss->calculateTotals();
             
             $profitLoss->update([

@@ -539,7 +539,7 @@ class SalesOrderController extends Controller
         }
 
         // Set filename
-        $filename = 'Sales_Order_' . $salesOrder->order_number . '_' . date('Y-m-d') . '.pdf';
+        $filename = $salesOrder->order_number . '.pdf';
 
         // Return the PDF as download
         return $pdf->download($filename);

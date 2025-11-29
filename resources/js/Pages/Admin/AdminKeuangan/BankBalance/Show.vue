@@ -13,13 +13,24 @@
                                 Detail saldo dan transaksi bank {{ bank.bank_name }}
                             </p>
                         </div>
-                        <Link
-                            :href="route('admin-keuangan.bank-balance.index')"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
-                        >
-                            <ArrowLeft class="w-4 h-4 mr-2" />
-                            Kembali
-                        </Link>
+                        <div class="flex items-center space-x-2">
+                            <a
+                                :href="route('admin-keuangan.bank-balance.export-pdf', bank.id)"
+                                class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <ArrowLeft class="w-4 h-4 mr-2 transform rotate-180" />
+                                Export PDF
+                            </a>
+                            <Link
+                                :href="route('admin-keuangan.bank-balance.index')"
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
+                            >
+                                <ArrowLeft class="w-4 h-4 mr-2" />
+                                Kembali
+                            </Link>
+                        </div>
                     </div>
                 </div>
 

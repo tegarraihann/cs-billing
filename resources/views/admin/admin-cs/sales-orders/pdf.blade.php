@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Order - {{ $salesOrder->order_number }}</title>
+    <title>Shipping Order - {{ $salesOrder->order_number }}</title>
     <style>
         @page {
             margin: 1cm 1cm;
@@ -231,7 +231,7 @@
             </div>
         </div>
         <div class="document-info">
-            <div class="document-title">Sales Order</div>
+            <div class="document-title">Shipping Order</div>
             <div class="document-details">
                 <strong>No: {{ $salesOrder->order_number }}</strong><br>
                 Tanggal: {{ $salesOrder->created_at ? $salesOrder->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y') }}<br>
@@ -254,7 +254,7 @@
 
         <!-- Primary Information -->
         <div class="section">
-            <div class="section-title">Informasi Sales Order</div>
+            <div class="section-title">Informasi Shipping Order</div>
 
             <!-- Two Column Layout -->
             <div style="width: 100%; display: table; margin-bottom: 25px;">
@@ -620,7 +620,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        Sales Order No: {{ $salesOrder->order_number }} | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1<br>
+        Shipping Order No: {{ $salesOrder->order_number }} | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1<br>
         Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }} | Dokumen ini digenerate secara otomatis oleh sistem
     </div>
 </body>

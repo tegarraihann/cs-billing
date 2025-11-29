@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Order - {{ $salesOrder->order_number }}</title>
+    <title>Shipping Order - {{ $salesOrder->order_number }}</title>
     <style>
         @page {
             margin: 1cm 1cm;
@@ -264,7 +264,7 @@
             </div>
         </div>
         <div class="document-info">
-            <div class="document-title">SALES ORDER</div>
+            <div class="document-title">SHIPPING ORDER</div>
             <div class="document-number">{{ $salesOrder->order_number }}</div>
             <div class="document-date">
                 Tanggal: {{ $salesOrder->so_date ? \Carbon\Carbon::parse($salesOrder->so_date)->format('d/m/Y') : \Carbon\Carbon::parse($salesOrder->created_at)->format('d/m/Y') }}

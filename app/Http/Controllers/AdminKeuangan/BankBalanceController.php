@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BankBalanceController extends Controller
 {
@@ -143,6 +144,39 @@ class BankBalanceController extends Controller
             'transactions' => $transactions,
             'currentBalance' => $bank->getCurrentBalance()
         ]);
+    }
+
+    /**
+     * Export bank transactions to PDF (simple Courier template).
+     */
+    public function exportPdf(BankAccount $bank)
+    {
+        $bank->load(['balances' => function ($query) {
+            $query->orderBy('period_month', 'asc');
+        }]);
+
+        $transactions = $bank->transactions()
+            ->orderBy('transaction_date', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $openingBalance = (float) ($bank->balances->first()->opening_balance ?? 0);
+        $generatedAt = now();
+
+        $pdf = Pdf::loadView('admin.admin-keuangan.bank-balance.pdf', [
+            'bank' => $bank,
+            'transactions' => $transactions,
+            'openingBalance' => $openingBalance,
+            'generatedAt' => $generatedAt,
+        ])->setPaper('a4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isPhpEnabled' => true,
+        ]);
+
+        $filename = 'BankStatement_' . preg_replace('/\s+/', '_', $bank->bank_name) . '_' . $bank->account_number . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**
