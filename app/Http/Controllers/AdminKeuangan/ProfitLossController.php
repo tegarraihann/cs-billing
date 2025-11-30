@@ -394,17 +394,15 @@ class ProfitLossController extends Controller
             'equipment' => 0,
         ];
 
-        if (class_exists('App\Models\SalesOrder')) {
-            $salesOrders = app('App\Models\SalesOrder')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->where('status', 'completed')
-                ->get();
-                
-            foreach ($salesOrders as $so) {
-                $entry = ProfitLossEntry::createFromSalesOrder($so, $period->id, Auth::id());
-                if ($entry?->wasRecentlyCreated) {
-                    $summary['sales_orders']++;
-                }
+        // Revenue: gunakan invoice yang sudah posted ke P&L berdasarkan invoice_date
+        $invoices = Invoice::whereBetween('invoice_date', [$startDate, $endDate])
+            ->where('posted_to_profit_loss', true)
+            ->get();
+
+        foreach ($invoices as $inv) {
+            $entry = ProfitLossEntry::createFromInvoice($inv, $period->id, Auth::id());
+            if ($entry?->wasRecentlyCreated) {
+                $summary['sales_orders']++;
             }
         }
 

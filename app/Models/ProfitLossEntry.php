@@ -134,6 +134,41 @@ class ProfitLossEntry extends Model
         return $entry;
     }
 
+    public static function createFromInvoice($invoice, $period_id, $created_by)
+    {
+        $revenue_account = ChartOfAccount::where('account_code', '4001')->first();
+        
+        if (!$revenue_account) {
+            throw new \Exception('Revenue account (4001) not found');
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'invoice',
+            'reference_id' => $invoice->id,
+        ]);
+
+        $entry->account_id = $revenue_account->id;
+        $entry->description = 'Revenue from INV #' . $invoice->invoice_number;
+        $entry->amount = $invoice->total;
+        $entry->entry_type = 'auto_invoice';
+        $entry->transaction_date = $invoice->invoice_date?->format('Y-m-d') ?? now()->format('Y-m-d');
+        $entry->additional_data = [
+            'invoice_number' => $invoice->invoice_number,
+            'customer' => $invoice->customer->company_name ?? $invoice->customer_name ?? '',
+            'total_amount' => $invoice->total,
+            'sales_order_id' => $invoice->sales_order_id,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
+
     public static function createFromPettyCash($petty_cash, $period_id, $created_by)
     {
         // Skip if category is null (data integrity issue)
