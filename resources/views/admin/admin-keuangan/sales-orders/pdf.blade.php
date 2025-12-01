@@ -400,6 +400,48 @@
             </div>
         </div>
 
+        @php
+            $reimbs = $salesOrder->reimbursementItems ?? collect();
+            if ($reimbs instanceof \Illuminate\Support\Collection) {
+                $reimbs = $reimbs->all();
+            }
+            $hasReimbs = !empty($reimbs);
+            $totalReimb = 0;
+        @endphp
+
+        @if($hasReimbs)
+        <div class="section">
+            <div class="section-title">ITEMS REIMBURSEMENT (FINANCE)</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">DESCRIPTION</th>
+                        <th style="width: 20%;" class="right">AMOUNT</th>
+                        <th style="width: 35%;">REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($reimbs as $item)
+                        @php
+                            $amount = floatval($item['amount'] ?? 0);
+                            $totalReimb += $amount;
+                        @endphp
+                        <tr>
+                            <td>{{ $item['description'] ?? '-' }}</td>
+                            <td class="right">{{ $amount > 0 ? 'Rp ' . number_format($amount, 0, ',', '.') : '-' }}</td>
+                            <td>{{ $item['notes'] ?? $item['remarks'] ?? '-' }}</td>
+                        </tr>
+                    @endforeach
+                    <tr>
+                        <td class="summary-label">TOTAL REIMBURSEMENT</td>
+                        <td class="right summary-label">{{ 'Rp ' . number_format($totalReimb, 0, ',', '.') }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        @endif
+
         <!-- Commodity Information -->
         @if($salesOrder->commodity || $salesOrder->qty || $salesOrder->net_weight || $salesOrder->measurement)
         <div class="section">

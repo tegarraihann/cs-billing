@@ -217,9 +217,12 @@
             font-size: 8px;
             line-height: 1.2;
         }
-    </style>
+</style>
 </head>
 <body>
+    @php
+        $useLiveData = $useLiveData ?? false;
+    @endphp
     <!-- Header -->
     <div class="header">
         <div class="company-info">
@@ -417,12 +420,19 @@
             <!-- Cost Breakdown -->
             @php
                 $csSnapshot = $salesOrder->cs_snapshot ?? null;
-                $csVendorBreakdown = (is_array($csSnapshot['vendor_breakdown'] ?? null) && count($csSnapshot['vendor_breakdown']) > 0)
-                    ? $csSnapshot['vendor_breakdown']
-                    : ($salesOrder->vendor_breakdown ?? []);
-                $csTotalBuying = $csSnapshot['total_buying'] ?? $salesOrder->total_buying;
-                $csTotalSelling = $csSnapshot['total_selling'] ?? $salesOrder->total_selling;
-                $csTotalRevenue = $csSnapshot['total_revenue'] ?? $salesOrder->total_revenue;
+                if ($useLiveData) {
+                    $csVendorBreakdown = $salesOrder->vendor_breakdown ?? [];
+                    $csTotalBuying = $salesOrder->total_buying;
+                    $csTotalSelling = $salesOrder->total_selling;
+                    $csTotalRevenue = $salesOrder->total_revenue;
+                } else {
+                    $csVendorBreakdown = (is_array($csSnapshot['vendor_breakdown'] ?? null) && count($csSnapshot['vendor_breakdown']) > 0)
+                        ? $csSnapshot['vendor_breakdown']
+                        : ($salesOrder->vendor_breakdown ?? []);
+                    $csTotalBuying = $csSnapshot['total_buying'] ?? $salesOrder->total_buying;
+                    $csTotalSelling = $csSnapshot['total_selling'] ?? $salesOrder->total_selling;
+                    $csTotalRevenue = $csSnapshot['total_revenue'] ?? $salesOrder->total_revenue;
+                }
             @endphp
 
             @if(!empty($csVendorBreakdown))
@@ -491,9 +501,14 @@
         </div>
 
         @php
-            $reimbursementItems = $salesOrder->reimbursementItems ?? [];
-            if ($reimbursementItems instanceof \Illuminate\Support\Collection) {
-                $reimbursementItems = $reimbursementItems->toArray();
+            $snapshot = $csSnapshot ?? ($salesOrder->cs_snapshot ?? null);
+            if ($useLiveData) {
+                $reimbursementItems = $salesOrder->reimbursementItems ?? [];
+                if ($reimbursementItems instanceof \Illuminate\Support\Collection) {
+                    $reimbursementItems = $reimbursementItems->toArray();
+                }
+            } else {
+                $reimbursementItems = $snapshot ? ($snapshot['reimbursement_items'] ?? []) : [];
             }
             $hasReimbursementItems = !empty($reimbursementItems);
         @endphp
