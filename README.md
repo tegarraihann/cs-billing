@@ -21,6 +21,20 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Bank Opening Balance Rollover (Scheduler)
+
+- Perintah: `php artisan bank:rollover-opening`
+  - Membuat opening balance bulan berjalan dari closing bulan sebelumnya untuk setiap bank jika belum ada.
+  - Isi `created_by` default 1 (user sistem/admin).
+- Scheduler (sudah terdaftar di `routes/console.php`): jalan setiap tanggal 1 pukul 00:10.
+  - Pastikan cron di server/cPanel:
+    ```
+    * * * * * /usr/local/bin/php /home/USERNAME/path/to/artisan schedule:run >> /dev/null 2>&1
+    ```
+    Ganti path PHP dan path project sesuai lingkungan Anda.
+- Jalankan manual (opsional): `php artisan bank:rollover-opening`.
+- Pastikan `storage/` dan `bootstrap/cache` writable agar scheduler/command berjalan lancar.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

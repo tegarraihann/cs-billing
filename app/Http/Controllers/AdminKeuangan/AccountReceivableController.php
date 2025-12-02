@@ -8,6 +8,9 @@ use App\Models\Customer;
 use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
+use App\Models\ProfitLossPeriod;
+use App\Models\ProfitLossEntry;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -183,6 +186,43 @@ class AccountReceivableController extends Controller
                 'notes' => 'Post VAT Payable dari AR ' . $accountReceivable->invoice_number,
                 'created_by' => auth()->id(),
             ]);
+
+            // Catat beban pajak ke P&L (pengurang profit)
+            $invoice = $accountReceivable->invoice;
+            $periodId = null;
+            if ($invoice && $invoice->invoice_date) {
+                $periodId = ProfitLossPeriod::active()
+                    ->whereDate('start_date', '<=', $invoice->invoice_date)
+                    ->whereDate('end_date', '>=', $invoice->invoice_date)
+                    ->orderBy('start_date')
+                    ->value('id');
+            }
+
+            if ($periodId) {
+                $expenseAccount = ChartOfAccount::where('account_category', 'expense_tax')->first();
+                if ($expenseAccount) {
+                    ProfitLossEntry::updateOrCreate(
+                        [
+                            'period_id' => $periodId,
+                            'reference_type' => 'invoice',
+                            'reference_id' => $invoice?->id,
+                            'entry_type' => 'auto_tax_vat',
+                        ],
+                        [
+                            'account_id' => $expenseAccount->id,
+                            'description' => 'Beban Pajak (VAT) - ' . ($invoice?->invoice_number ?? $accountReceivable->invoice_number),
+                            'amount' => $amount,
+                            'transaction_date' => $now->toDateString(),
+                            'notes' => 'Auto dari Post VAT Payable AR ' . $accountReceivable->invoice_number,
+                            'additional_data' => [
+                                'invoice_number' => $invoice?->invoice_number,
+                                'customer_name' => $accountReceivable->customer->company_name ?? $accountReceivable->customer_name ?? '',
+                            ],
+                            'created_by' => auth()->id(),
+                        ]
+                    );
+                }
+            }
 
             // Tutup semua komponen/outstanding AR
             $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);

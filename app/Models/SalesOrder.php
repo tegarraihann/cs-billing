@@ -328,37 +328,63 @@ class SalesOrder extends Model
         $year = $now->format('y'); // 2 digit year (25 for 2025)
         $month = $now->format('m'); // Month with leading zero (01-12)
 
-        // Get the highest opening number and sequential number from current year and month
-        $maxNumbers = self::whereNotNull('order_number')
-                        ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%") // Match current year and month only
-                        ->selectRaw('
-                            MAX(CAST(SUBSTRING(order_number, 11, 3) AS UNSIGNED)) as max_opening,
-                            MAX(CAST(SUBSTRING(order_number, 14, 3) AS UNSIGNED)) as max_sequential
-                        ')
-                        ->first();
+        // Ambil max opening & sequential untuk bulan berjalan
+        $currentMax = self::whereNotNull('order_number')
+            ->where('order_number', 'LIKE', "EWILOG{$year}{$month}%")
+            ->selectRaw('
+                MAX(CAST(SUBSTRING(order_number, 11, 3) AS UNSIGNED)) as max_opening,
+                MAX(CAST(SUBSTRING(order_number, 14, 3) AS UNSIGNED)) as max_sequential
+            ')
+            ->first();
 
-        $maxOpening = $maxNumbers->max_opening ?? 0;
-        $maxSequential = $maxNumbers->max_sequential ?? 0;
+        $maxOpeningCurrentMonth = $currentMax->max_opening ?? null;
+        $maxSequentialCurrentMonth = $currentMax->max_sequential ?? 0;
 
-        // Set minimum starting numbers for specific months in 2025
+        // Ambil max opening lintas bulan dalam tahun berjalan (untuk carry ke bulan baru)
+        $yearMax = self::whereNotNull('order_number')
+            ->where('order_number', 'LIKE', "EWILOG{$year}%")
+            ->selectRaw('MAX(CAST(SUBSTRING(order_number, 11, 3) AS UNSIGNED)) as max_opening_year')
+            ->first();
+
+        $maxOpeningYear = $yearMax->max_opening_year ?? 0;
+
+        // Minimum khusus (hardcode 2025)
+        $minOpening = null;
+        $minSequential = null;
         if ($year == '25') {
             if ($month == '09') {
-                $minOpening = 219;  // Start from 219
-                $minSequential = 20; // Start from 020
-                $maxOpening = max($maxOpening, $minOpening);
-                $maxSequential = max($maxSequential, $minSequential);
+                $minOpening = 219;   // base opening untuk Sept 2025
+                $minSequential = 20; // base sequential (akan +1)
             } elseif ($month == '10') {
-                // For October 2025, start from EWILOG2510226001
-                $minOpening = 225;  // Start from 225 (will increment to 226)
-                $minSequential = 0;  // Start from 000 (will increment to 001)
-                $maxOpening = max($maxOpening, $minOpening);
-                $maxSequential = max($maxSequential, $minSequential);
+                $minOpening = 225;   // base opening untuk Okt 2025
+                $minSequential = 0;  // sequential start (akan +1)
             }
         }
 
-        // Both opening number and sequential number increment for each new SO
-        $nextOpening = str_pad($maxOpening + 1, 3, '0', STR_PAD_LEFT);
-        $nextSequential = str_pad($maxSequential + 1, 3, '0', STR_PAD_LEFT);
+        // Tentukan opening: jika bulan ini sudah ada, pakai max bulan ini; jika belum, lanjutkan dari max tahun lalu +1
+        if ($maxOpeningCurrentMonth !== null) {
+            $openingBase = $maxOpeningCurrentMonth;
+        } else {
+            $openingBase = $maxOpeningYear;
+        }
+
+        if ($minOpening !== null) {
+            $openingBase = max($openingBase, $minOpening);
+        }
+
+        // Opening tidak reset per bulan; jika bulan baru tanpa SO, lanjutkan +1 dari bulan sebelumnya
+        if ($maxOpeningCurrentMonth === null) {
+            $openingBase = $openingBase + 1;
+        }
+
+        // Sequential reset per bulan: ambil max di bulan ini (atau minSequential) lalu +1
+        $seqBase = $maxSequentialCurrentMonth;
+        if ($minSequential !== null) {
+            $seqBase = max($seqBase, $minSequential);
+        }
+
+        $nextOpening = str_pad($openingBase, 3, '0', STR_PAD_LEFT);
+        $nextSequential = str_pad($seqBase + 1, 3, '0', STR_PAD_LEFT);
 
         // Generate final order number: EWILOG + YYMM + Opening + Sequential
         return "EWILOG{$year}{$month}{$nextOpening}{$nextSequential}";

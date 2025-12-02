@@ -324,10 +324,21 @@
             window.print();
         };
     </script>
+    @php
+        $logoFile = public_path('images/logo/logo.png');
+        $logoBase64 = null;
+        if (is_file($logoFile) && is_readable($logoFile)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile));
+        }
+    @endphp
     <div class="container">
         <!-- Company Logo -->
         <div class="logo-section">
-            <img src="{{ public_path('images/logo/logo.png') }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+            @if($logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+            @else
+                <span class="logo-text">ESHAKA WIJAYA LOGISTICS</span>
+            @endif
             {{-- <div class="logo-text">ESHAKA WIJAYA LOGISTICS</div>
             <div class="logo-subtitle">International Freight Forwarder</div> --}}
         </div>

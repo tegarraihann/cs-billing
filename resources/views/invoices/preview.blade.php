@@ -446,9 +446,20 @@
 
     <div class="preview-container">
         <div class="container">
+            @php
+                $logoFile = public_path('images/logo/logo.png');
+                $logoBase64 = null;
+                if (is_file($logoFile) && is_readable($logoFile)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile));
+                }
+            @endphp
             <!-- Company Logo -->
             <div class="logo-section">
-                <img src="{{ asset('images/logo/logo.png') }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+                @else
+                    <span class="logo-text">ESHAKA WIJAYA LOGISTICS</span>
+                @endif
             </div>
 
             <!-- Top Header Line -->

@@ -29,13 +29,13 @@
         .logo-section {
             position: absolute;
             top: -10mm;
-            right: -5mm;
+            right: 6mm;
             width: 100px;
             text-align: center;
         }
 
         .logo-image {
-            width: 80px;
+            width: 120px;
             height: auto;
             margin-bottom: 3px;
         }
@@ -455,10 +455,21 @@
 </head>
 
 <body>
+    @php
+        $logoFile = public_path('images/logo/logo.png');
+        $logoBase64 = null;
+        if (is_file($logoFile) && is_readable($logoFile)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile));
+        }
+    @endphp
     <div class="container" data-status="{{ $invoice->status === 'draft' ? 'PREVIEW' : 'ORIGINAL' }}">
         <!-- Company Logo positioned exactly like example -->
         <div class="logo-section">
-            <img src="{{ public_path('images/logo/logo.png') }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+            @if($logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Eshaka Wijaya Logistics" class="logo-image">
+            @else
+                <span class="logo-text">ESHAKA WIJAYA LOGISTICS</span>
+            @endif
         </div>
 
         <!-- Header line with CUSTOMER CODE and DEBIT NOTE -->
