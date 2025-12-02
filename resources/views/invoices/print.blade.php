@@ -10,7 +10,7 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+            font-family: courier, monospace;
             font-size: 9px;
             line-height: 1.15;
             margin: 0;

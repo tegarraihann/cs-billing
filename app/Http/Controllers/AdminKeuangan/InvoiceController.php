@@ -936,8 +936,11 @@ class InvoiceController extends Controller
             'generatedAt' => $generatedAt,
             'calculatedSubtotal' => $subtotal,
             'calculatedTotal' => $total
+        ])->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
         ]);
-        $pdf->setPaper('A4', 'portrait');
 
         // Main invoice filename - only invoice number
         $filename = $invoice->invoice_number . '.pdf';
@@ -960,8 +963,11 @@ class InvoiceController extends Controller
             'invoice' => $reimbursementInvoice,
             'generatedAt' => $generatedAt,
             'reimbursementEntries' => $reimbursementEntries
+        ])->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
         ]);
-        $pdf->setPaper('A4', 'portrait');
 
         // DEBIT NOTE reimbursement filename - invoice number already has -R suffix
         $filename = 'DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf';
@@ -1018,8 +1024,11 @@ class InvoiceController extends Controller
             'generatedAt' => $generatedAt,
             'calculatedSubtotal' => $subtotal,
             'calculatedTotal' => $total
+        ])->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
         ]);
-        $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
         return $pdf->stream($mainInvoice->invoice_number . '.pdf');
@@ -1060,7 +1069,11 @@ class InvoiceController extends Controller
 
         // Generate PDF using old DEBIT NOTE template
         $pdf = PDF::loadView('invoices.pdf', ['invoice' => $reimbursementInvoice, 'generatedAt' => $generatedAt]);
-        $pdf->setPaper('A4', 'portrait');
+        $pdf->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ]);
 
         // Return inline view instead of download
         return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
@@ -1331,8 +1344,11 @@ class InvoiceController extends Controller
             'invoice' => $reimbursementInvoice,
             'generatedAt' => $generatedAt,
             'reimbursementEntries' => $reimbursementEntries
+        ])->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
         ]);
-        $pdf->setPaper('A4', 'portrait');
 
         // DEBIT NOTE filename - invoice number already has -R suffix
         $filename = 'DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf';
@@ -1357,8 +1373,11 @@ class InvoiceController extends Controller
             'invoice' => $reimbursementInvoice,
             'generatedAt' => $generatedAt,
             'reimbursementEntries' => $reimbursementEntries
+        ])->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
         ]);
-        $pdf->setPaper('A4', 'portrait');
 
         // Return inline view instead of download
         return $pdf->stream('DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf');
@@ -1381,8 +1400,11 @@ class InvoiceController extends Controller
             'invoice' => $reimbursementInvoice,
             'generatedAt' => $generatedAt,
             'reimbursementEntries' => $reimbursementEntries
+        ])->setPaper('A4', 'portrait')->setOptions([
+            'defaultFont' => 'Courier',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
         ]);
-        $pdf->setPaper('A4', 'portrait');
 
         // DEBIT NOTE filename - invoice number already has -R suffix
         $filename = 'DEBIT-NOTE-' . $reimbursementInvoice->invoice_number . '.pdf';

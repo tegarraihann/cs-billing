@@ -11,7 +11,7 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+            font-family: courier, monospace;
             font-size: 9pt;
             line-height: 1.0;
             margin: 0;
