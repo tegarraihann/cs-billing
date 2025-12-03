@@ -335,6 +335,11 @@
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
                             <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->party_lcl ?: '-' }}</td>
                         </tr>
+                        <tr>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">REF NO.</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->ref_no ?: '-' }}</td>
+                        </tr>
                     </table>
                 </div>
             </div>

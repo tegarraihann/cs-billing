@@ -7,6 +7,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
 use App\Models\InvoiceItem;
+use App\Models\Invoice;
 use App\Models\AccountPayableComponent;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -379,6 +380,12 @@ class SalesOrderController extends Controller
         // Auto-generate order number if empty or not provided
         if (empty($validated['order_number'])) {
             $validated['order_number'] = SalesOrder::generateOrderNumber();
+        }
+
+        // Auto-fill invoice number if empty (berdasarkan SO)
+        if (empty($validated['invoice_number'])) {
+            $tempSO = new SalesOrder($validated);
+            $validated['invoice_number'] = Invoice::generateInvoiceNumberFromSO($tempSO);
         }
 
         // Extract reimbursement items before creating sales order

@@ -9,6 +9,7 @@ use App\Models\MasterServiceType;
 use App\Models\ReimbursementItem;
 use App\Models\InvoiceItem;
 use App\Models\AccountPayableComponent;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -210,6 +211,12 @@ class SalesOrderController extends Controller
             // Auto-generate order number if empty or not provided
             if (empty($validated['order_number'])) {
                 $validated['order_number'] = SalesOrder::generateOrderNumber();
+            }
+
+            // Auto-fill invoice number if empty (berdasarkan SO)
+            if (empty($validated['invoice_number'])) {
+                $tempSO = new SalesOrder($validated);
+                $validated['invoice_number'] = Invoice::generateInvoiceNumberFromSO($tempSO);
             }
 
             // Remove voucher data and reimbursement items from sales order data

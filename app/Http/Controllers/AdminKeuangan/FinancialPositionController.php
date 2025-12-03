@@ -40,7 +40,7 @@ class FinancialPositionController extends Controller
         $statement = $this->financialPositionService->getStatement($cutoffDate);
         $cutoffCarbon = Carbon::parse($cutoffDate);
 
-        $pdf = Pdf::loadView('admin.admin-keuangan.financial-position.pdf', [
+        $pdf = Pdf::loadView('admin.admin-keuangan.financial-position.pdf-simple', [
             'statement' => $statement,
             'cutoffDate' => $cutoffCarbon,
             'generatedAt' => Carbon::now(),

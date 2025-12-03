@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -68,9 +69,7 @@
 
         .customer-section {
             margin: 20px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
+            padding: 8px 0;
         }
 
         .customer-title {
@@ -86,10 +85,8 @@
         }
 
         .summary-section {
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
+            margin: 12px 0;
+            padding: 8px 0;
         }
 
         .summary-title {
@@ -129,14 +126,12 @@
 
         .transactions-table th,
         .transactions-table td {
-            border: 1px solid #333;
             padding: 6px 4px;
             font-size: 8px;
             text-align: center;
         }
 
         .transactions-table th {
-            background-color: #e0e0e0;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -150,28 +145,15 @@
             font-family: monospace;
         }
 
-        .status-outstanding {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status-overdue {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-partial {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-
+        .status-outstanding,
+        .status-overdue,
+        .status-partial,
         .status-paid {
-            background-color: #d4edda;
-            color: #155724;
+            background: transparent;
+            color: inherit;
         }
 
         .total-row {
-            background-color: #e0e0e0;
             font-weight: bold;
         }
 
@@ -211,20 +193,14 @@
             border-collapse: collapse;
         }
 
-        .aging-table th,
         .aging-table td {
-            border: 1px solid #333;
             padding: 5px;
             font-size: 9px;
             text-align: center;
         }
-
-        .aging-table th {
-            background-color: #e0e0e0;
-            font-weight: bold;
-        }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <div class="header">
@@ -241,9 +217,9 @@
             <div class="document-details">
                 <strong>Date:</strong> {{ $generated_at->locale('id')->isoFormat('DD MMMM YYYY') }}<br>
                 @if($date_from || $date_to)
-                <strong>Period:</strong> 
-                {{ $date_from ? \Carbon\Carbon::parse($date_from)->locale('id')->isoFormat('DD MMM YYYY') : 'Start' }} - 
-                {{ $date_to ? \Carbon\Carbon::parse($date_to)->locale('id')->isoFormat('DD MMM YYYY') : 'End' }}
+                    <strong>Period:</strong>
+                    {{ $date_from ? \Carbon\Carbon::parse($date_from)->locale('id')->isoFormat('DD MMM YYYY') : 'Start' }} -
+                    {{ $date_to ? \Carbon\Carbon::parse($date_to)->locale('id')->isoFormat('DD MMM YYYY') : 'End' }}
                 @endif
             </div>
         </div>
@@ -273,28 +249,30 @@
                 <td class="summary-label">Total Paid Amount:</td>
                 <td class="summary-value">Rp {{ number_format($summary['total_paid'], 0, '.', '.') }}</td>
             </tr>
-            <tr style="background-color: #ffeaa7; font-weight: bold;">
+            <tr style="font-weight: bold;">
                 <td class="summary-label">Total Outstanding:</td>
                 <td class="summary-value">Rp {{ number_format($summary['total_outstanding'], 0, '.', '.') }}</td>
             </tr>
             @if($summary['oldest_invoice'])
-            <tr>
-                <td class="summary-label">Oldest Invoice Date:</td>
-                <td class="summary-value">{{ \Carbon\Carbon::parse($summary['oldest_invoice'])->locale('id')->isoFormat('DD MMMM YYYY') }}</td>
-            </tr>
+                <tr>
+                    <td class="summary-label">Oldest Invoice Date:</td>
+                    <td class="summary-value">
+                        {{ \Carbon\Carbon::parse($summary['oldest_invoice'])->locale('id')->isoFormat('DD MMMM YYYY') }}
+                    </td>
+                </tr>
             @endif
             @if($summary['count_overdue'] > 0)
-            <tr style="background-color: #fab1a0;">
-                <td class="summary-label">Overdue Invoices:</td>
-                <td class="summary-value">{{ $summary['count_overdue'] }} invoice(s)</td>
-            </tr>
+                <tr style="background-color: #fab1a0;">
+                    <td class="summary-label">Overdue Invoices:</td>
+                    <td class="summary-value">{{ $summary['count_overdue'] }} invoice(s)</td>
+                </tr>
             @endif
         </table>
     </div>
 
     <!-- Transaction Details -->
     <table class="transactions-table">
-        <thead>
+        <thead style="border: 1px solid #000;">
             <tr>
                 <th style="width: 10%;">Date</th>
                 <th style="width: 15%;">Invoice No</th>
@@ -313,37 +291,35 @@
                 $totalOutstanding = 0;
             @endphp
             @foreach($receivables as $receivable)
-            @php
-                $totalInvoiced += $receivable->invoice_amount;
-                $totalPaid += $receivable->paid_amount;
-                $totalOutstanding += $receivable->outstanding_amount;
-            @endphp
-            <tr class="status-{{ $receivable->status }}">
-                <td>{{ $receivable->invoice_date->format('d/m/Y') }}</td>
-                <td class="text-left">{{ $receivable->invoice_number }}</td>
-                <td class="text-left">{{ $receivable->salesOrder->order_number ?? '-' }}</td>
-                <td class="text-left">
-                    @if($receivable->salesOrder && $receivable->salesOrder->customer)
-                        Logistics Service - {{ $receivable->salesOrder->shipment_type ?? 'General' }}
-                    @else
-                        Service Charge
-                    @endif
-                </td>
-                <td class="text-right">{{ number_format($receivable->invoice_amount, 0, '.', '.') }}</td>
-                <td class="text-right">{{ number_format($receivable->paid_amount, 0, '.', '.') }}</td>
-                <td class="text-right">{{ number_format($receivable->outstanding_amount, 0, '.', '.') }}</td>
-                <td style="text-transform: uppercase; font-weight: bold;">
-                    {{ $receivable->status }}
-                    @if($receivable->days_overdue > 0)
-                        <br><small>({{ $receivable->days_overdue }} days)</small>
-                    @endif
-                </td>
-            </tr>
+                @php
+                    $totalInvoiced += $receivable->invoice_amount;
+                    $totalPaid += $receivable->paid_amount;
+                    $totalOutstanding += $receivable->outstanding_amount;
+                @endphp
+                <tr class="status-{{ $receivable->status }}">
+                    <td>{{ $receivable->invoice_date->format('d/m/Y') }}</td>
+                    <td class="text-left">{{ $receivable->invoice_number }}</td>
+                    <td class="text-left">{{ $receivable->salesOrder->order_number ?? '-' }}</td>
+                    <td class="text-left">
+                        @if($receivable->salesOrder && $receivable->salesOrder->customer)
+                            Logistics Service - {{ $receivable->salesOrder->shipment_type ?? 'General' }}
+                        @else
+                            Service Charge
+                        @endif
+                    </td>
+                    <td class="text-right">{{ number_format($receivable->invoice_amount, 0, '.', '.') }}</td>
+                    <td class="text-right">{{ number_format($receivable->paid_amount, 0, '.', '.') }}</td>
+                    <td class="text-right">{{ number_format($receivable->outstanding_amount, 0, '.', '.') }}</td>
+                    <td style="text-transform: uppercase; font-weight: bold;">
+                        {{ $receivable->status }}@if($receivable->days_overdue > 0) ({{ $receivable->days_overdue }}
+                        days)@endif
+                    </td>
+                </tr>
             @endforeach
-            
+
             <!-- Total Row -->
             <tr class="total-row">
-                <td colspan="4" style="text-align: right; font-weight: bold;">TOTAL:</td>
+                <td colspan="4" style="text-align: center; font-weight: bold;">TOTAL</td>
                 <td class="text-right">{{ number_format($totalInvoiced, 0, '.', '.') }}</td>
                 <td class="text-right">{{ number_format($totalPaid, 0, '.', '.') }}</td>
                 <td class="text-right">{{ number_format($totalOutstanding, 0, '.', '.') }}</td>
@@ -353,49 +329,49 @@
     </table>
 
     @if($receivables->where('status', '!=', 'paid')->count() > 0)
-    <!-- Aging Analysis -->
-    <div class="aging-section">
-        <div class="aging-title">Aging Analysis</div>
-        <table class="aging-table">
-            <thead>
-                <tr>
-                    <th>Current (0-30 days)</th>
-                    <th>31-60 days</th>
-                    <th>61-90 days</th>
-                    <th>Over 90 days</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $aging = [
-                        'current' => 0,
-                        'days_31_60' => 0,
-                        'days_61_90' => 0,
-                        'over_90' => 0
-                    ];
-                    
-                    foreach($receivables->where('status', '!=', 'paid') as $receivable) {
-                        $days = $receivable->days_overdue;
-                        if ($days <= 30) {
-                            $aging['current'] += $receivable->outstanding_amount;
-                        } elseif ($days <= 60) {
-                            $aging['days_31_60'] += $receivable->outstanding_amount;
-                        } elseif ($days <= 90) {
-                            $aging['days_61_90'] += $receivable->outstanding_amount;
-                        } else {
-                            $aging['over_90'] += $receivable->outstanding_amount;
+        <!-- Aging Analysis -->
+        <div class="aging-section">
+            <div class="aging-title">Aging Analysis</div>
+            <table class="aging-table">
+                <thead style="border: 1px solid #333; fonr-weight: bold;">
+                    <tr>
+                        <th>Current (0-30 days)</th>
+                        <th>31-60 days</th>
+                        <th>61-90 days</th>
+                        <th>Over 90 days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $aging = [
+                            'current' => 0,
+                            'days_31_60' => 0,
+                            'days_61_90' => 0,
+                            'over_90' => 0
+                        ];
+
+                        foreach ($receivables->where('status', '!=', 'paid') as $receivable) {
+                            $days = $receivable->days_overdue;
+                            if ($days <= 30) {
+                                $aging['current'] += $receivable->outstanding_amount;
+                            } elseif ($days <= 60) {
+                                $aging['days_31_60'] += $receivable->outstanding_amount;
+                            } elseif ($days <= 90) {
+                                $aging['days_61_90'] += $receivable->outstanding_amount;
+                            } else {
+                                $aging['over_90'] += $receivable->outstanding_amount;
+                            }
                         }
-                    }
-                @endphp
-                <tr>
-                    <td>Rp {{ number_format($aging['current'], 0, '.', '.') }}</td>
-                    <td>Rp {{ number_format($aging['days_31_60'], 0, '.', '.') }}</td>
-                    <td>Rp {{ number_format($aging['days_61_90'], 0, '.', '.') }}</td>
-                    <td>Rp {{ number_format($aging['over_90'], 0, '.', '.') }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                    @endphp
+                    <tr>
+                        <td>Rp {{ number_format($aging['current'], 0, '.', '.') }}</td>
+                        <td>Rp {{ number_format($aging['days_31_60'], 0, '.', '.') }}</td>
+                        <td>Rp {{ number_format($aging['days_61_90'], 0, '.', '.') }}</td>
+                        <td>Rp {{ number_format($aging['over_90'], 0, '.', '.') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     @endif
 
     <!-- Print Information -->
@@ -409,4 +385,5 @@
         Statement of Account | {{ $customer->company_name }} | PT. Eshaka Wijaya Logistics | Page 1 of 1
     </div>
 </body>
+
 </html>

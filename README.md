@@ -1,75 +1,38 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# OfficeManagement – Dokumentasi Ringkas
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Peran & Akses
+- **Admin CS**: Buat/rilis Sales Order (SO), cetak SO (snapshot CS).
+- **Admin Keuangan/Finance**: Kelola SO (data live), Invoice, Piutang (AR), Hutang (AP), Petty Cash, Bank, Profit & Loss, Financial Position.
 
-## About Laravel
+## Fitur Utama
+- **Sales Order**: Penomoran berformat `EWILOG + YYMM + opening(lintas bulan) + sequential(reset per bulan)`. PDF CS pakai snapshot; PDF Finance pakai data live.
+- **Invoice & P&L**: Auto-post ke laba rugi berbasis invoice_date (periode aktif). Logo invoice di-embed base64.
+- **AR – Post VAT Payable**: Tombol “Post VAT Payable” menutup AR, menambah VAT Payable, dan catat beban pajak (expense_tax) ke P&L.
+- **AP**: Kelola hutang, bayar, tambah biaya komponen.
+- **Bank Balance**: Saldo per bulan, mutasi, setoran modal (akun 3100). Opening bulan baru bisa dibuat otomatis (cron) dari closing bulan sebelumnya.
+- **Financial Position**: Neraca otomatis (Assets, Liabilities, Equity). Equity: 3100 modal disetor (adjustment), 3200 laba ditahan (akumulasi P&L published/closed), 3300 current year earnings (P&L tahun berjalan).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Cron / Scheduler (cpanel/host)
+Jalankan Laravel scheduler tiap menit:
+```
+* * * * * /usr/local/bin/php /home/USERNAME/path/to/artisan schedule:run >> /dev/null 2>&1
+```
+Ganti path PHP dan project sesuai hosting.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Jadwal penting
+- `bank:rollover-opening` setiap tanggal 1 pukul 00:10 (buat opening balance bulan berjalan dari closing bulan sebelumnya).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Jalankan Manual (opsional)
+- Rollover opening bank: `php artisan bank:rollover-opening`
 
-## Bank Opening Balance Rollover (Scheduler)
+## File Penting
+- SO Finance PDF: `resources/views/admin/admin-keuangan/sales-orders/pdf.blade.php` (data live).
+- SO CS PDF: `resources/views/admin/admin-cs/sales-orders/pdf.blade.php` (snapshot CS).
+- Invoice PDF: `resources/views/invoices/*.blade.php` (logo base64, font courier).
+- Financial Position PDF simple: `resources/views/admin/admin-keuangan/financial-position/pdf-simple.blade.php`.
+- Perintah rollover: `app/Console/Commands/RolloverBankOpening.php`.
 
-- Perintah: `php artisan bank:rollover-opening`
-  - Membuat opening balance bulan berjalan dari closing bulan sebelumnya untuk setiap bank jika belum ada.
-  - Isi `created_by` default 1 (user sistem/admin).
-- Scheduler (sudah terdaftar di `routes/console.php`): jalan setiap tanggal 1 pukul 00:10.
-  - Pastikan cron di server/cPanel:
-    ```
-    * * * * * /usr/local/bin/php /home/USERNAME/path/to/artisan schedule:run >> /dev/null 2>&1
-    ```
-    Ganti path PHP dan path project sesuai lingkungan Anda.
-- Jalankan manual (opsional): `php artisan bank:rollover-opening`.
-- Pastikan `storage/` dan `bootstrap/cache` writable agar scheduler/command berjalan lancar.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Catatan Implementasi
+- Penomoran SO tidak reset per bulan untuk opening; sequential reset per bulan.
+- Post VAT Payable tidak otomatis mengurangi profit SO kecuali lewat beban pajak yang kini dicatat di P&L (expense_tax).
+- Opening bank bulanan diisi dari closing bulan sebelumnya via cron; jika opening sudah ada, cron skip.
