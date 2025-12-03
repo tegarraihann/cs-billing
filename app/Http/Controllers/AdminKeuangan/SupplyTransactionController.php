@@ -9,6 +9,9 @@ use App\Models\PettyCashCategory;
 use App\Models\BankTransaction;
 use App\Models\PettyCashTransaction;
 use App\Models\PettyCashBalance;
+use App\Models\ProfitLossPeriod;
+use App\Models\ProfitLossEntry;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -146,7 +149,7 @@ class SupplyTransactionController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        SupplyTransaction::create([
+        $usage = SupplyTransaction::create([
             'transaction_date' => $validated['transaction_date'],
             'transaction_type' => $validated['transaction_type'],
             'category' => $validated['category'],
@@ -158,7 +161,40 @@ class SupplyTransactionController extends Controller
             'created_by' => Auth::id(),
         ]);
 
+        // Buat entri laba rugi untuk usage/depreciation supplies di periode yang relevan
+        $this->createProfitLossEntries($usage);
+
         return redirect()->route('admin-keuangan.supplies.index')
             ->with('success', 'Pemakaian supplies berhasil dicatat.');
+    }
+
+    /**
+     * Create P&L entries for supplies usage/depreciation on active periods
+     */
+    private function createProfitLossEntries(SupplyTransaction $supply): void
+    {
+        $txnDate = Carbon::parse($supply->transaction_date)->toDateString();
+
+        $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+            ->where('start_date', '<=', $txnDate)
+            ->where('end_date', '>=', $txnDate)
+            ->get();
+
+        // Fallback: periode yang mencakup bulan transaksi
+        if ($periods->isEmpty()) {
+            $monthStart = Carbon::parse($txnDate)->startOfMonth()->toDateString();
+            $monthEnd = Carbon::parse($txnDate)->endOfMonth()->toDateString();
+            $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->where('start_date', '<=', $monthStart)
+                ->where('end_date', '>=', $monthEnd)
+                ->get();
+        }
+
+        foreach ($periods as $period) {
+            $entry = ProfitLossEntry::createFromSupplyTransaction($supply, $period->id, Auth::id());
+            if ($entry) {
+                $period->calculateTotals();
+            }
+        }
     }
 }

@@ -327,7 +327,7 @@
             transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 120pt;
             font-weight: bold;
-            color: rgba(128, 128, 128, 0.15);
+            color: rgba(80, 80, 80, 0.28);
             z-index: -1;
             pointer-events: none;
             white-space: nowrap;
@@ -680,7 +680,7 @@
                 <tr>
                     <td class="ship-label">20'/40'/45'</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value">{{ $invoice->container_size ?? '3X20' }}</td>
+                    <td class="ship-value">{{ $invoice->party_lcl ?? '-' }}</td>
                     <td colspan="3"></td>
                 </tr>
                 <tr>

@@ -8,6 +8,8 @@ use Inertia\Inertia;
 use App\Models\PettyCashTransaction;
 use App\Models\PettyCashCategory;
 use App\Models\PettyCashBalance;
+use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -93,10 +95,12 @@ class PettyCashController extends Controller
     {
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
+        $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']);
 
         return Inertia::render('Admin/AdminKeuangan/PettyCash/Create', [
             'categories' => $categories,
             'currentBalance' => $currentBalance,
+            'bankAccounts' => $bankAccounts,
         ]);
     }
 
@@ -122,6 +126,20 @@ class PettyCashController extends Controller
             $rules['category_id'] = 'nullable|exists:petty_cash_categories,id';
         }
 
+        // Bank account is required for topup/refund
+        $rules['bank_account_id'] = [
+            Rule::requiredIf(in_array($request->type, ['topup', 'refund'])),
+            'nullable',
+            'exists:bank_accounts,id'
+        ];
+
+        // Bank account is required for topup/refund (agar mengurangi saldo bank)
+        $rules['bank_account_id'] = [
+            Rule::requiredIf(in_array($request->type, ['topup', 'refund'])),
+            'nullable',
+            'exists:bank_accounts,id'
+        ];
+
         $request->validate($rules);
 
         DB::transaction(function () use ($request) {
@@ -141,7 +159,7 @@ class PettyCashController extends Controller
             }
 
             // Create transaction
-            PettyCashTransaction::create([
+            $pettyCash = PettyCashTransaction::create([
                 'transaction_date' => $request->transaction_date,
                 'description' => $request->description,
                 'category_id' => $request->type === 'expense' ? $request->category_id : null,
@@ -156,6 +174,20 @@ class PettyCashController extends Controller
                 'approved_by' => Auth::id(),
                 'approved_at' => now(),
             ]);
+
+            // Jika topup/refund, catat transaksi bank (debit)
+            if (in_array($request->type, ['topup', 'refund']) && $request->filled('bank_account_id')) {
+                BankTransaction::create([
+                    'bank_account_id' => $request->bank_account_id,
+                    'transaction_date' => $request->transaction_date,
+                    'transaction_type' => 'debit',
+                    'amount' => $request->amount,
+                    'description' => 'Top up petty cash: ' . $request->description,
+                    'reference_type' => 'petty_cash_' . $request->type,
+                    'reference_id' => $pettyCash->id,
+                    'created_by' => Auth::id(),
+                ]);
+            }
 
             // Update balance records for this date and future dates
             PettyCashBalance::updateBalanceForDate($request->transaction_date);
@@ -190,11 +222,17 @@ class PettyCashController extends Controller
     {
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
+        $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']);
+        $linkedBankAccountId = BankTransaction::where('reference_id', $pettyCash->id)
+            ->whereIn('reference_type', ['petty_cash_topup', 'petty_cash_refund'])
+            ->value('bank_account_id');
 
         return Inertia::render('Admin/AdminKeuangan/PettyCash/Edit', [
             'transaction' => $pettyCash,
             'categories' => $categories,
             'currentBalance' => $currentBalance,
+            'bankAccounts' => $bankAccounts,
+            'linkedBankAccountId' => $linkedBankAccountId,
         ]);
     }
 
@@ -254,6 +292,39 @@ class PettyCashController extends Controller
                 'receipt_file' => $receiptFile,
             ]);
 
+            // Sinkronisasi transaksi bank terkait
+            $bankTx = BankTransaction::where('reference_id', $pettyCash->id)
+                ->whereIn('reference_type', ['petty_cash_topup', 'petty_cash_refund'])
+                ->first();
+
+            if (in_array($request->type, ['topup', 'refund'])) {
+                $referenceType = 'petty_cash_' . $request->type;
+
+                if ($bankTx) {
+                    $bankTx->update([
+                        'bank_account_id' => $request->bank_account_id,
+                        'transaction_date' => $request->transaction_date,
+                        'transaction_type' => 'debit',
+                        'amount' => $request->amount,
+                        'description' => 'Top up petty cash: ' . $request->description,
+                        'reference_type' => $referenceType,
+                    ]);
+                } else {
+                    BankTransaction::create([
+                        'bank_account_id' => $request->bank_account_id,
+                        'transaction_date' => $request->transaction_date,
+                        'transaction_type' => 'debit',
+                        'amount' => $request->amount,
+                        'description' => 'Top up petty cash: ' . $request->description,
+                        'reference_type' => $referenceType,
+                        'reference_id' => $pettyCash->id,
+                        'created_by' => Auth::id(),
+                    ]);
+                }
+            } elseif ($bankTx) {
+                $bankTx->delete();
+            }
+
             // Get all dates that need to be recalculated
             $datesToUpdate = collect([$oldTransactionDate, $newTransactionDate])
                 ->unique()
@@ -283,6 +354,11 @@ class PettyCashController extends Controller
     {
         DB::transaction(function () use ($pettyCash) {
             $transactionDate = $pettyCash->transaction_date;
+            // Hapus transaksi bank yang terhubung (jika ada)
+            BankTransaction::where('reference_id', $pettyCash->id)
+                ->whereIn('reference_type', ['petty_cash_topup', 'petty_cash_refund'])
+                ->delete();
+
             $pettyCash->delete();
 
             // Update balance records for this date and future dates

@@ -8,9 +8,14 @@ use Inertia\Inertia;
 use App\Models\GeneralExpense;
 use App\Models\GeneralExpenseItem;
 use App\Models\OperationalCostCategory;
+use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProfitLossEntry;
+use App\Models\ProfitLossPeriod;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Models\ChartOfAccount;
 
 class GeneralExpenseController extends Controller
 {
@@ -96,9 +101,14 @@ class GeneralExpenseController extends Controller
             ->orderBy('name')
             ->pluck('name')
             ->values();
+        $expenseAccounts = ChartOfAccount::where('account_type', 'expense')
+            ->orderBy('account_code')
+            ->get(['id', 'account_code', 'account_name']);
 
         return Inertia::render('Admin/AdminKeuangan/GeneralExpenses/Create', [
             'categories' => $categories,
+            'bankAccounts' => BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']),
+            'expenseAccounts' => $expenseAccounts,
         ]);
     }
 
@@ -117,6 +127,8 @@ class GeneralExpenseController extends Controller
             ],
             'status' => 'required|in:draft,approved',
             'notes' => 'nullable|string',
+            'bank_account_id' => ['nullable', 'required_if:status,approved', 'exists:bank_accounts,id'],
+            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
             'items.*.amount' => 'required|numeric|min:0.01',
@@ -144,6 +156,7 @@ class GeneralExpenseController extends Controller
                     'status' => $validated['status'],
                     'notes' => $validated['notes'] ?? null,
                     'total_amount' => $totalAmount,
+                    'pl_account_id' => $validated['pl_account_id'],
                     'created_by' => auth()->id(),
                 ] + $approverData);
 
@@ -159,6 +172,25 @@ class GeneralExpenseController extends Controller
 
                 // Ensure persisted total amount reflects latest item sum
                 $expense->update(['total_amount' => $totalAmount]);
+
+                // Jika approved, catat transaksi bank (debit)
+                if ($validated['status'] === 'approved' && !empty($validated['bank_account_id'])) {
+                    BankTransaction::create([
+                        'bank_account_id' => $validated['bank_account_id'],
+                        'transaction_date' => $validated['expense_date'],
+                        'transaction_type' => 'debit',
+                        'amount' => $totalAmount,
+                        'description' => 'General expense: ' . $validated['category'],
+                        'reference_type' => 'general_expense',
+                        'reference_id' => $expense->id,
+                        'created_by' => auth()->id(),
+                    ]);
+                }
+
+                // Buat entri laba rugi untuk general expense (approved)
+                if ($validated['status'] === 'approved') {
+                    $this->createProfitLossEntries($expense);
+                }
             });
 
             return redirect()->route('admin-keuangan.general-expenses.index')
@@ -201,6 +233,10 @@ class GeneralExpenseController extends Controller
             'expense' => $generalExpense,
             'generalExpense' => $generalExpense,
             'categories' => $categories,
+            'bankAccounts' => BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']),
+            'expenseAccounts' => ChartOfAccount::where('account_type', 'expense')
+                ->orderBy('account_code')
+                ->get(['id', 'account_code', 'account_name']),
         ]);
     }
 
@@ -227,6 +263,8 @@ class GeneralExpenseController extends Controller
             ],
             'status' => 'required|in:draft,approved',
             'notes' => 'nullable|string',
+            'bank_account_id' => ['nullable', 'required_if:status,approved', 'exists:bank_accounts,id'],
+            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
             'items.*.amount' => 'required|numeric|min:0.01',
@@ -241,6 +279,7 @@ class GeneralExpenseController extends Controller
                     'category' => $validated['category'],
                     'status' => $validated['status'],
                     'notes' => $validated['notes'] ?? null,
+                    'pl_account_id' => $validated['pl_account_id'],
                     'approved_by' => $validated['status'] === 'approved' ? auth()->id() : null,
                     'approved_at' => $validated['status'] === 'approved' ? now() : null,
                 ]);
@@ -262,6 +301,41 @@ class GeneralExpenseController extends Controller
                     return (float) $item['amount'];
                 });
                 $generalExpense->update(['total_amount' => $totalAmount]);
+
+                // Sinkron transaksi bank
+                $bankTx = BankTransaction::where('reference_type', 'general_expense')
+                    ->where('reference_id', $generalExpense->id)
+                    ->first();
+
+                if ($validated['status'] === 'approved') {
+                    if ($bankTx) {
+                        $bankTx->update([
+                            'bank_account_id' => $validated['bank_account_id'],
+                            'transaction_date' => $validated['expense_date'],
+                            'transaction_type' => 'debit',
+                            'amount' => $totalAmount,
+                            'description' => 'General expense: ' . $validated['category'],
+                        ]);
+                    } else {
+                        BankTransaction::create([
+                            'bank_account_id' => $validated['bank_account_id'],
+                            'transaction_date' => $validated['expense_date'],
+                            'transaction_type' => 'debit',
+                            'amount' => $totalAmount,
+                            'description' => 'General expense: ' . $validated['category'],
+                            'reference_type' => 'general_expense',
+                            'reference_id' => $generalExpense->id,
+                            'created_by' => auth()->id(),
+                        ]);
+                    }
+                } elseif ($bankTx) {
+                    $bankTx->delete();
+                }
+
+                // Buat entri laba rugi jika approved
+                if ($validated['status'] === 'approved') {
+                    $this->createProfitLossEntries($generalExpense);
+                }
             });
 
             return redirect()->route('admin-keuangan.general-expenses.index')
@@ -283,6 +357,11 @@ class GeneralExpenseController extends Controller
         }
 
         try {
+            // Hapus transaksi bank jika ada (harusnya tidak ada untuk draft)
+            BankTransaction::where('reference_type', 'general_expense')
+                ->where('reference_id', $generalExpense->id)
+                ->delete();
+
             $generalExpense->delete();
 
             return redirect()->route('admin-keuangan.general-expenses.index')
@@ -303,6 +382,31 @@ class GeneralExpenseController extends Controller
         }
 
         $generalExpense->approve();
+
+        // Catat entri laba rugi saat approve
+        $this->createProfitLossEntries($generalExpense);
+
+        // Catat transaksi bank saat approve jika belum ada
+        $bankTx = BankTransaction::where('reference_type', 'general_expense')
+            ->where('reference_id', $generalExpense->id)
+            ->first();
+
+        if (!$bankTx) {
+            // Default ke bank aktif pertama jika tidak disediakan, untuk menghindari gagal; bisa diedit setelahnya
+            $bankAccountId = BankAccount::active()->orderBy('bank_name')->value('id');
+            if ($bankAccountId) {
+                BankTransaction::create([
+                    'bank_account_id' => $bankAccountId,
+                    'transaction_date' => $generalExpense->expense_date,
+                    'transaction_type' => 'debit',
+                    'amount' => $generalExpense->total_amount,
+                    'description' => 'General expense: ' . $generalExpense->category,
+                    'reference_type' => 'general_expense',
+                    'reference_id' => $generalExpense->id,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
 
         return back()->with('success', 'General expense berhasil disetujui.');
     }
@@ -340,5 +444,35 @@ class GeneralExpenseController extends Controller
             'period' => Carbon::create($year, $month)->format('F Y'),
             'data' => $expenses
         ]);
+    }
+
+    /**
+     * Create P&L entries for general expense on active periods
+     */
+    private function createProfitLossEntries(GeneralExpense $expense): void
+    {
+        $txnDate = Carbon::parse($expense->expense_date)->toDateString();
+
+        $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+            ->where('start_date', '<=', $txnDate)
+            ->where('end_date', '>=', $txnDate)
+            ->get();
+
+        // Fallback: periode yang mencakup bulan transaksi
+        if ($periods->isEmpty()) {
+            $monthStart = Carbon::parse($txnDate)->startOfMonth()->toDateString();
+            $monthEnd = Carbon::parse($txnDate)->endOfMonth()->toDateString();
+            $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->where('start_date', '<=', $monthStart)
+                ->where('end_date', '>=', $monthEnd)
+                ->get();
+        }
+
+        foreach ($periods as $period) {
+            $entry = ProfitLossEntry::createFromGeneralExpense($expense, $period->id, auth()->id());
+            if ($entry) {
+                $period->calculateTotals();
+            }
+        }
     }
 }

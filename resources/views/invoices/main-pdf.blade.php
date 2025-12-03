@@ -326,7 +326,7 @@
             transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 120pt;
             font-weight: bold;
-            color: rgba(128, 128, 128, 0.15);
+            color: rgba(80, 80, 80, 0.28);
             z-index: -1;
             pointer-events: none;
             white-space: nowrap;

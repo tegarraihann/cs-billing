@@ -1,6 +1,16 @@
 <template>
     <AdminKeuanganLayout>
         <Head title="Pendapatan Lain-lain" />
+        <AlertDialog
+            :show="alertDialog.show"
+            :type="alertDialog.type"
+            :title="alertDialog.title"
+            :message="alertDialog.message"
+            confirm-text="Ya, lanjutkan"
+            cancel-text="Batal"
+            @confirm="handleAlertConfirm"
+            @close="closeAlert"
+        />
 
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -300,8 +310,9 @@
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
+import AlertDialog from '@/Components/AlertDialog.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import {
     Plus,
     Calendar,
@@ -367,6 +378,35 @@ const receivableStatusBadge = (status) => {
     }
 }
 
+// Alert dialog
+const alertDialog = reactive({
+    show: false,
+    type: 'confirm',
+    title: '',
+    message: '',
+    onConfirm: null,
+})
+
+const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+    alertDialog.show = true
+    alertDialog.type = 'confirm'
+    alertDialog.title = title
+    alertDialog.message = message
+    alertDialog.onConfirm = onConfirm
+}
+
+const closeAlert = () => {
+    alertDialog.show = false
+    alertDialog.onConfirm = null
+}
+
+const handleAlertConfirm = () => {
+    if (alertDialog.onConfirm) {
+        alertDialog.onConfirm()
+    }
+    closeAlert()
+}
+
 const getCategoryBadge = (category) => {
     const badges = {
         'Bunga Bank Mandiri': 'bg-blue-100 text-blue-800',
@@ -396,20 +436,26 @@ const resetFilters = () => {
 }
 
 const postToProfitLoss = (income) => {
-    if (confirm(`Posting pendapatan "${income.description}" ke Laba Rugi?`)) {
-        router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', income.id))
-    }
+    openConfirm(
+        `Posting pendapatan "${income.description}" ke Laba Rugi?`,
+        () => router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', income.id))
+    )
 }
 
 const unpostFromProfitLoss = (income) => {
-    if (confirm(`Unpost pendapatan "${income.description}" dari Laba Rugi?`)) {
-        router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', income.id))
-    }
+    openConfirm(
+        `Unpost pendapatan "${income.description}" dari Laba Rugi?`,
+        () => router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', income.id))
+    )
 }
 
 const deleteIncome = (income) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus pendapatan "${income.description}"?`)) {
-        router.delete(route('admin-keuangan.other-incomes.destroy', income.id))
-    }
+    openConfirm(
+        `Apakah Anda yakin ingin menghapus pendapatan "${income.description}"?`,
+        () => router.delete(route('admin-keuangan.other-incomes.destroy', income.id)),
+        'Hapus Pendapatan'
+    )
 }
+
+const closeAndReset = () => closeAlert()
 </script>

@@ -94,10 +94,10 @@
                             </div>
                             <div class="px-4 py-5 sm:p-6">
                                 <div class="space-y-4">
-                                    <div v-if="reportData.revenues.main.length > 0">
+                                    <div v-if="revenuesMain.length > 0">
                                         <h4 class="text-sm font-medium text-gray-700 mb-2">Pendapatan Utama</h4>
                                         <div class="space-y-2">
-                                            <div v-for="entry in reportData.revenues.main" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
+                                            <div v-for="entry in revenuesMain" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
                                                 <div>
                                                     <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
                                                     <div class="text-xs text-gray-500">{{ entry.description }}</div>
@@ -107,7 +107,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div v-if="reportData.revenues.other.length > 0">
+                                    <div v-if="revenuesOther.length > 0">
                                         <h4 class="text-sm font-medium text-gray-700 mb-3">Pendapatan Lain-lain</h4>
 
                                         <!-- Bunga Bank Mandiri -->
@@ -242,10 +242,10 @@
                                         </transition>
                                     </div>
                                     
-                                    <div v-if="reportData.expenses.admin.length > 0">
+                                    <div v-if="adminExpenses.length > 0">
                                         <h4 class="text-sm font-medium text-gray-700 mb-2">Beban Administrasi</h4>
                                         <div class="space-y-2">
-                                            <div v-for="entry in reportData.expenses.admin" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
+                                            <div v-for="entry in adminExpenses" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
                                                 <div>
                                                     <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
                                                     <div class="text-xs text-gray-500">{{ entry.description }}</div>
@@ -255,10 +255,10 @@
                                         </div>
                                     </div>
                                     
-                                    <div v-if="reportData.expenses.other.length > 0">
+                                    <div v-if="otherExpenses.length > 0">
                                         <h4 class="text-sm font-medium text-gray-700 mb-2">Beban Lainnya</h4>
                                         <div class="space-y-2">
-                                            <div v-for="entry in reportData.expenses.other" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
+                                            <div v-for="entry in otherExpenses" :key="entry.id" class="flex justify-between items-center py-2 border-b border-gray-100">
                                                 <div>
                                                     <div class="text-sm font-medium text-gray-900">{{ entry.account.account_name }}</div>
                                                     <div class="text-xs text-gray-500">{{ entry.description }}</div>
@@ -377,9 +377,16 @@ const props = defineProps({
     accounts: Object,
 })
 
+const revenuesMain = computed(() => props.reportData?.revenues?.main ?? [])
+const revenuesOther = computed(() => props.reportData?.revenues?.other ?? [])
+
 const operationalGroup = computed(() => props.reportData?.expenses?.operational || { grouped: [], total: 0 })
 const operationalCategories = computed(() => Array.isArray(operationalGroup.value.grouped) ? operationalGroup.value.grouped : [])
 const operationalExpensesTotal = computed(() => Number(operationalGroup.value.total || 0))
+const salaryExpenses = computed(() => props.reportData?.expenses?.salary ?? [])
+const adminExpenses = computed(() => props.reportData?.expenses?.admin ?? [])
+const otherExpenses = computed(() => props.reportData?.expenses?.other ?? [])
+
 const showOperationalDetails = ref(false)
 
 const loading = ref(false)

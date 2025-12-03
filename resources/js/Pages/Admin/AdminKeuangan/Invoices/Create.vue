@@ -91,24 +91,18 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Shipper</label>
-                            <input type="text" v-model="form.shipper" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.shipper"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Consignee</label>
-                            <input type="text" v-model="form.consignee" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.consignee"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">AWB/BL No.</label>
-                            <input type="text" v-model="form.awb_bl_no" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.awb_bl_no"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">MAWB/OBL No.</label>
@@ -117,10 +111,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Vessel</label>
-                            <input type="text" v-model="form.vessel" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.vessel"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Flight/VOY</label>
@@ -129,77 +121,54 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">POL/POD</label>
-                            <input type="text" v-model="form.pol_pod" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.pol_pod"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Origin</label>
-                            <input type="text" v-model="form.origin" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.origin"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Destination</label>
-                            <input type="text" v-model="form.destination" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="text" v-model="form.destination"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">ETD</label>
-                            <input type="date" v-model="form.etd" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="date" v-model="form.etd"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">ETA</label>
-                            <input type="date" v-model="form.eta" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" />
+                            <input type="date" v-model="form.eta"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Gross Weight (KG)</label>
                             <input type="number" v-model="form.gross_weight" step="0.0001"
-                                :readonly="form.sales_order_id" :class="[
-                                    'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                    form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                                ]" />
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Net Weight (KG)</label>
-                            <input type="number" v-model="form.net_weight" step="0.0001" :readonly="form.sales_order_id"
-                                :class="[
-                                    'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                    form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                                ]" />
+                            <input type="number" v-model="form.net_weight" step="0.0001"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Volume</label>
-                            <input type="text" v-model="form.volume" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" placeholder="e.g., 10.5 M³" />
+                            <input type="text" v-model="form.volume"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" placeholder="e.g., 10.5 M³" />
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">No of Packages</label>
                                 <input type="number" v-model="form.no_of_packages" min="0"
-                                    :readonly="form.sales_order_id" :class="[
-                                        'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                        form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                                    ]" />
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Package Unit</label>
-                                <select v-model="form.package_unit" :disabled="form.sales_order_id" :class="[
-                                    'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                    form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                                ]">
+                                <select v-model="form.package_unit"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                     <option value="">Select Unit</option>
                                     <option v-for="unit in packageUnits" :key="unit.code" :value="unit.code">
                                         {{ unit.name }}
@@ -209,17 +178,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">20'/40'/45'</label>
-                            <input type="text" v-model="form.container_size" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" placeholder="e.g., 20GP, 40GP, 45GP" />
+                            <input type="text" v-model="form.container_size"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" placeholder="e.g., 20GP, 40GP, 45GP" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Container No.</label>
-                            <input type="text" v-model="form.container_no" :readonly="form.sales_order_id" :class="[
-                                'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500',
-                                form.sales_order_id ? 'bg-gray-100 text-gray-600' : ''
-                            ]" placeholder="e.g., MSKU2934199" />
+                            <input type="text" v-model="form.container_no"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" placeholder="e.g., MSKU2934199" />
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
@@ -941,7 +906,7 @@ const loadSalesOrderData = () => {
         form.volume = selectedOrder.measurement || '';
         form.no_of_packages = selectedOrder.qty || '';
         form.package_unit = selectedOrder.package_unit || 'BAG';
-        form.container_size = selectedOrder.shipment_type || '';
+        form.container_size = selectedOrder.party_lcl || '';
 
         // Container info
         if (selectedOrder.container_no) {

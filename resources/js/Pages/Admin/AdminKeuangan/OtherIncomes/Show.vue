@@ -1,6 +1,16 @@
 <template>
     <AdminKeuanganLayout>
         <Head title="Detail Pendapatan Lain-lain" />
+        <AlertDialog
+            :show="alertDialog.show"
+            :type="alertDialog.type"
+            :title="alertDialog.title"
+            :message="alertDialog.message"
+            confirm-text="Ya, lanjutkan"
+            cancel-text="Batal"
+            @confirm="handleAlertConfirm"
+            @close="closeAlert"
+        />
 
         <div class="py-6">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -353,7 +363,7 @@
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
-import { computed, watch } from 'vue'
+import { computed, watch, reactive } from 'vue'
 import {
     ArrowLeft,
     Edit,
@@ -368,6 +378,7 @@ import {
     XCircle,
     Trash2
 } from 'lucide-vue-next'
+import AlertDialog from '@/Components/AlertDialog.vue'
 
 const props = defineProps({
     otherIncome: Object,
@@ -390,6 +401,35 @@ const paymentForm = useForm({
 const bankOptions = computed(() => props.bankAccounts ?? [])
 const outstandingAmount = computed(() => Number(props.otherIncome.outstanding_amount || 0))
 const canRecordPayment = computed(() => outstandingAmount.value > 0)
+
+// Alert dialog
+const alertDialog = reactive({
+    show: false,
+    type: 'confirm',
+    title: '',
+    message: '',
+    onConfirm: null,
+})
+
+const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+    alertDialog.show = true
+    alertDialog.type = 'confirm'
+    alertDialog.title = title
+    alertDialog.message = message
+    alertDialog.onConfirm = onConfirm
+}
+
+const closeAlert = () => {
+    alertDialog.show = false
+    alertDialog.onConfirm = null
+}
+
+const handleAlertConfirm = () => {
+    if (alertDialog.onConfirm) {
+        alertDialog.onConfirm()
+    }
+    closeAlert()
+}
 
 watch(
     () => paymentForm.payment_method,
@@ -452,6 +492,17 @@ const getCategoryBadge = (category) => {
 }
 
 const recordPayment = () => {
+    const amount = parseFloat(paymentForm.amount || 0)
+    const adj = parseFloat(paymentForm.adjustment_amount || 0)
+    if (amount + adj - 0.01 > outstandingAmount.value) {
+        openConfirm(
+            'Total pembayaran + adjustment melebihi outstanding. Periksa kembali nominalnya.',
+            () => closeAlert(),
+            'Validasi Pembayaran'
+        )
+        return
+    }
+
     paymentForm.post(route('admin-keuangan.other-incomes.record-payment', props.otherIncome.id), {
         preserveScroll: true,
         onSuccess: () => {
@@ -469,21 +520,25 @@ const recordPayment = () => {
 }
 
 const postToProfitLoss = () => {
-    if (confirm(`Posting pendapatan ini ke Laba Rugi?`)) {
-        router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', props.otherIncome.id))
-    }
+    openConfirm(
+        'Posting pendapatan ini ke Laba Rugi?',
+        () => router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', props.otherIncome.id))
+    )
 }
 
 const unpostFromProfitLoss = () => {
-    if (confirm(`Unpost pendapatan ini dari Laba Rugi?`)) {
-        router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', props.otherIncome.id))
-    }
+    openConfirm(
+        'Unpost pendapatan ini dari Laba Rugi?',
+        () => router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', props.otherIncome.id))
+    )
 }
 
 const deleteIncome = () => {
-    if (confirm(`Apakah Anda yakin ingin menghapus pendapatan ini?`)) {
-        router.delete(route('admin-keuangan.other-incomes.destroy', props.otherIncome.id))
-    }
+    openConfirm(
+        'Apakah Anda yakin ingin menghapus pendapatan ini?',
+        () => router.delete(route('admin-keuangan.other-incomes.destroy', props.otherIncome.id)),
+        'Hapus Pendapatan'
+    )
 }
 
 const paymentMethodLabel = (method) => {

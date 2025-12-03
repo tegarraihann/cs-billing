@@ -123,7 +123,7 @@ class InvoiceController extends Controller
 
         // Get only approved SOs (already released and approved by finance)
         $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems'])
-            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'gross_weight', 'measurement', 'qty', 'package_unit', 'shipment_type', 'container_no'])
+            ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'gross_weight', 'measurement', 'qty', 'package_unit', 'shipment_type', 'container_no', 'party_lcl'])
             ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
             ->whereNotNull('approved_at')  // Must be approved by finance

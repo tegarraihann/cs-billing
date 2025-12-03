@@ -9,6 +9,8 @@ use App\Models\ProfitLossEntry;
 use App\Models\EmployeeSalary;
 use App\Models\EquipmentTransaction;
 use App\Models\PrepaidRentTransaction;
+use App\Models\SupplyTransaction;
+use App\Models\GeneralExpense;
 use App\Models\SalesOrder;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
@@ -465,6 +467,34 @@ class ProfitLossController extends Controller
                 $entry = ProfitLossEntry::createFromEquipmentDepreciation($equipmentTransaction, $period->id, Auth::id());
                 if ($entry?->wasRecentlyCreated) {
                     $summary['equipment']++;
+                }
+            }
+        }
+
+        // General Expenses (approved)
+        if (class_exists(GeneralExpense::class)) {
+            $generalExpenses = GeneralExpense::whereBetween('expense_date', [$startDate, $endDate])
+                ->where('status', 'approved')
+                ->get();
+
+            foreach ($generalExpenses as $expense) {
+                $entry = ProfitLossEntry::createFromGeneralExpense($expense, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['general_expense'] = ($summary['general_expense'] ?? 0) + 1;
+                }
+            }
+        }
+
+        // Supplies usage/depreciation -> expense
+        if (class_exists(SupplyTransaction::class)) {
+            $supplies = SupplyTransaction::whereIn('transaction_type', ['usage', 'depreciation'])
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->get();
+
+            foreach ($supplies as $supply) {
+                $entry = ProfitLossEntry::createFromSupplyTransaction($supply, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['supplies'] = ($summary['supplies'] ?? 0) + 1;
                 }
             }
         }

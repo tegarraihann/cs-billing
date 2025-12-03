@@ -180,6 +180,52 @@
                         </p>
                     </div>
 
+                    <!-- Bank -->
+                    <div>
+                        <label class="block text-sm font-medium text-sage-700 mb-2">
+                            Bank Penerima <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            v-model="form.bank_account_id"
+                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                            :class="{ 'border-red-300': form.errors.bank_account_id }"
+                        >
+                            <option value="">Pilih Bank</option>
+                            <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                                {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
+                            </option>
+                        </select>
+                        <p v-if="form.errors.bank_account_id" class="mt-1 text-sm text-red-600">
+                            {{ form.errors.bank_account_id }}
+                        </p>
+                        <p class="mt-1 text-xs text-sage-500">
+                            Pendapatan ini akan langsung menambah saldo bank terpilih.
+                        </p>
+                    </div>
+
+                    <!-- Akun Laba Rugi -->
+                    <div>
+                        <label class="block text-sm font-medium text-sage-700 mb-2">
+                            Akun Pendapatan (P&L) <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            v-model="form.pl_account_id"
+                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                            :class="{ 'border-red-300': form.errors.pl_account_id }"
+                        >
+                            <option value="">Pilih Akun</option>
+                            <option v-for="acc in revenueAccounts" :key="acc.id" :value="acc.id">
+                                {{ acc.account_code }} - {{ acc.account_name }}
+                            </option>
+                        </select>
+                        <p v-if="form.errors.pl_account_id" class="mt-1 text-sm text-red-600">
+                            {{ form.errors.pl_account_id }}
+                        </p>
+                        <p class="mt-1 text-xs text-sage-500">
+                            Pendapatan akan dicatat ke akun ini di laporan laba rugi.
+                        </p>
+                    </div>
+
                     <!-- Catatan -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
@@ -279,10 +325,18 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    customers: {
-        type: Array,
-        default: () => [],
-    },
+  customers: {
+    type: Array,
+    default: () => [],
+  },
+  bankAccounts: {
+    type: Array,
+    default: () => [],
+  },
+  revenueAccounts: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const todayDate = new Date().toISOString().split('T')[0]
@@ -296,13 +350,17 @@ const form = useForm({
     category: '',
     description: '',
     amount: '',
-    notes: '',
-    receipt_file: null,
+  notes: '',
+  bank_account_id: '',
+  pl_account_id: '',
+  receipt_file: null,
 })
 
 const filePreview = ref('')
 const categoryOptions = computed(() => props.categories ?? [])
 const customers = computed(() => props.customers ?? [])
+const bankAccounts = computed(() => props.bankAccounts ?? [])
+const revenueAccounts = computed(() => props.revenueAccounts ?? [])
 
 watch(
     () => form.customer_id,
@@ -321,6 +379,25 @@ watch(
     (options) => {
         if (!form.category && options.length > 0) {
             form.category = options[0]
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+  revenueAccounts,
+  (options) => {
+    if (!form.pl_account_id && options.length > 0) {
+      form.pl_account_id = options[0].id
+    }
+  },
+  { immediate: true }
+)
+watch(
+    bankAccounts,
+    (options) => {
+        if (!form.bank_account_id && options.length > 0) {
+            form.bank_account_id = options[0].id
         }
     },
     { immediate: true }

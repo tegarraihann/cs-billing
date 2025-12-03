@@ -116,7 +116,6 @@
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                                 :class="{ 'border-red-300': form.errors.transaction_date }"
                                 :disabled="otherIncome.posted_to_profit_loss"
-                                required
                             />
                             <p v-if="form.errors.transaction_date" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.transaction_date }}
@@ -133,7 +132,6 @@
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                                 :class="{ 'border-red-300': form.errors.category }"
                                 :disabled="otherIncome.posted_to_profit_loss || categoryOptions.length === 0"
-                                required
                             >
                                 <option value="" disabled>Pilih Kategori</option>
                                 <option v-for="category in categoryOptions" :key="category" :value="category">
@@ -154,15 +152,14 @@
                         <label class="block text-sm font-medium text-sage-700 mb-2">
                             Deskripsi <span class="text-red-500">*</span>
                         </label>
-                        <textarea
-                            v-model="form.description"
-                            rows="3"
-                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
-                            :class="{ 'border-red-300': form.errors.description }"
-                            :disabled="otherIncome.posted_to_profit_loss"
-                            placeholder="Contoh: Bunga bank periode Desember 2024"
-                            required
-                        ></textarea>
+                            <textarea
+                                v-model="form.description"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
+                                :class="{ 'border-red-300': form.errors.description }"
+                                :disabled="otherIncome.posted_to_profit_loss"
+                                placeholder="Contoh: Bunga bank periode Desember 2024"
+                            ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
                             {{ form.errors.description }}
                         </p>
@@ -186,11 +183,58 @@
                                 :class="{ 'border-red-300': form.errors.amount }"
                                 :disabled="otherIncome.posted_to_profit_loss"
                                 placeholder="0.00"
-                                required
                             />
                         </div>
                         <p v-if="form.errors.amount" class="mt-1 text-sm text-red-600">
                             {{ form.errors.amount }}
+                        </p>
+                    </div>
+
+                    <!-- Bank -->
+                    <div>
+                        <label class="block text-sm font-medium text-sage-700 mb-2">
+                            Bank Penerima <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            v-model="form.bank_account_id"
+                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                            :class="{ 'border-red-300': form.errors.bank_account_id }"
+                            :disabled="otherIncome.posted_to_profit_loss"
+                        >
+                            <option value="">Pilih Bank</option>
+                            <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                                {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
+                            </option>
+                        </select>
+                        <p v-if="form.errors.bank_account_id" class="mt-1 text-sm text-red-600">
+                            {{ form.errors.bank_account_id }}
+                        </p>
+                        <p class="mt-1 text-xs text-sage-500">
+                            Pendapatan ini akan langsung menambah saldo bank terpilih.
+                        </p>
+                    </div>
+
+                    <!-- Akun Laba Rugi -->
+                    <div>
+                        <label class="block text-sm font-medium text-sage-700 mb-2">
+                            Akun Pendapatan (P&L) <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            v-model="form.pl_account_id"
+                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                            :class="{ 'border-red-300': form.errors.pl_account_id }"
+                            :disabled="otherIncome.posted_to_profit_loss"
+                        >
+                            <option value="">Pilih Akun</option>
+                            <option v-for="acc in revenueAccounts" :key="acc.id" :value="acc.id">
+                                {{ acc.account_code }} - {{ acc.account_name }}
+                            </option>
+                        </select>
+                        <p v-if="form.errors.pl_account_id" class="mt-1 text-sm text-red-600">
+                            {{ form.errors.pl_account_id }}
+                        </p>
+                        <p class="mt-1 text-xs text-sage-500">
+                            Pendapatan akan dicatat ke akun ini di laporan laba rugi.
                         </p>
                     </div>
 
@@ -293,30 +337,56 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    customers: {
+  customers: {
+    type: Array,
+    default: () => [],
+  },
+    bankAccounts: {
+        type: Array,
+        default: () => [],
+    },
+    linkedBankAccountId: {
+        type: [Number, String, null],
+        default: null,
+    },
+    revenueAccounts: {
         type: Array,
         default: () => [],
     },
 })
 
 const todayDate = new Date().toISOString().split('T')[0]
+const formatDateInput = (value) => {
+    if (!value) return ''
+    // Jika string sudah dalam format yyyy-mm-dd atau berawalan itu, ambil 10 char pertama
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+        return value.slice(0, 10)
+    }
+    const date = new Date(value)
+    if (isNaN(date.getTime())) return ''
+    return date.toISOString().split('T')[0]
+}
 
 const form = useForm({
     reference_number: props.otherIncome.reference_number || '',
     customer_id: props.otherIncome.customer_id || '',
     customer_name: props.otherIncome.customer_name || '',
-    transaction_date: props.otherIncome.transaction_date,
-    due_date: props.otherIncome.due_date || '',
+    transaction_date: formatDateInput(props.otherIncome.transaction_date),
+    due_date: formatDateInput(props.otherIncome.due_date),
     category: props.otherIncome.category,
     description: props.otherIncome.description,
     amount: props.otherIncome.amount,
     notes: props.otherIncome.notes || '',
+    bank_account_id: props.linkedBankAccountId || '',
+    pl_account_id: props.otherIncome.pl_account_id || '',
     receipt_file: null,
 })
 
 const filePreview = ref('')
 const categoryOptions = computed(() => props.categories ?? [])
 const customers = computed(() => props.customers ?? [])
+const bankAccounts = computed(() => props.bankAccounts ?? [])
+const revenueAccounts = computed(() => props.revenueAccounts ?? [])
 
 watch(
     categoryOptions,
@@ -327,6 +397,26 @@ watch(
 
         if (!options.includes(form.category)) {
             form.category = options[0]
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+    bankAccounts,
+    (options) => {
+        if (!form.bank_account_id && options.length > 0) {
+            form.bank_account_id = options[0].id
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+    revenueAccounts,
+    (options) => {
+        if (!form.pl_account_id && options.length > 0) {
+            form.pl_account_id = options[0].id
         }
     },
     { immediate: true }
@@ -358,11 +448,36 @@ const removeFile = () => {
     filePreview.value = ''
 }
 
+const normalizeBeforeSubmit = () => {
+    // Normalisasi tanggal ke yyyy-mm-dd
+    form.transaction_date = formatDateInput(form.transaction_date)
+    form.due_date = formatDateInput(form.due_date)
+
+    // Normalisasi amount (hilangkan pemisah ribuan, ganti koma ke titik)
+    if (form.amount !== null && form.amount !== undefined && form.amount !== '') {
+        const normalized = String(form.amount)
+            .replace(/\s+/g, '')
+            .replace(/,/g, '.')
+        const parsed = parseFloat(normalized)
+        form.amount = isNaN(parsed) ? '' : parsed
+    }
+
+    // Pastikan bank terisi jika ada opsi
+    if (!form.bank_account_id && bankAccounts.value.length > 0) {
+        form.bank_account_id = bankAccounts.value[0].id
+    }
+}
+
 const submitForm = () => {
-    form.post(route('admin-keuangan.other-incomes.update', props.otherIncome.id), {
-        preserveScroll: true,
-        forceFormData: true,
-        _method: 'put'
-    })
+    normalizeBeforeSubmit()
+    form
+        .transform((data) => ({
+            ...data,
+            _method: 'put',
+        }))
+        .post(route('admin-keuangan.other-incomes.update', props.otherIncome.id), {
+            preserveScroll: true,
+            forceFormData: true,
+        })
 }
 </script>

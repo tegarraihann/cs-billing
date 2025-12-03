@@ -92,6 +92,30 @@
               </p>
             </div>
 
+            <!-- Sumber Bank (untuk Top Up / Refund) -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                Sumber Bank <span v-if="['topup', 'refund'].includes(form.type)" class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.bank_account_id"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                :disabled="!['topup', 'refund'].includes(form.type)"
+                :class="{ 'border-red-300': errors.bank_account_id }"
+              >
+                <option value="">Pilih Bank</option>
+                <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                  {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
+                </option>
+              </select>
+              <p v-if="errors.bank_account_id" class="mt-1 text-sm text-red-600">
+                {{ errors.bank_account_id }}
+              </p>
+              <p v-if="['topup', 'refund'].includes(form.type)" class="mt-1 text-xs text-sage-500">
+                Saldo bank akan berkurang sesuai nominal top up/refund.
+              </p>
+            </div>
+
             <!-- Jumlah -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
@@ -234,6 +258,10 @@ const props = defineProps({
     type: Array,
     required: true
   },
+  bankAccounts: {
+    type: Array,
+    required: true
+  },
   currentBalance: {
     type: [Number, String],
     required: true
@@ -255,6 +283,7 @@ const form = useForm({
   category_id: '',
   amount: '',
   type: '',
+  bank_account_id: '',
   so_number: '',
   notes: '',
   receipt_file: null
@@ -286,6 +315,10 @@ const willBeNegative = computed(() => {
 watch(() => form.type, (newType) => {
   if (newType !== 'expense') {
     form.category_id = ''
+  }
+
+  if (!['topup', 'refund'].includes(newType)) {
+    form.bank_account_id = ''
   }
 })
 

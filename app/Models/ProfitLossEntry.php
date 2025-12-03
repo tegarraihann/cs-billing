@@ -355,15 +355,43 @@ class ProfitLossEntry extends Model
             default => '4099'
         };
 
-        $revenue_account = ChartOfAccount::where('account_code', $account_code)
-                                        ->orWhere('account_name', 'like', '%' . $other_income->category . '%')
-                                        ->first();
+        // Jika pl_account_id diberikan dan valid, gunakan itu
+        $revenue_account = null;
+        if (!empty($other_income->pl_account_id)) {
+            $revenue_account = ChartOfAccount::where('id', $other_income->pl_account_id)
+                ->where('account_type', 'revenue')
+                ->first();
+        }
 
-        // Fallback: use generic other revenue account if specific account not found
+        if (!$revenue_account) {
+            $revenue_account = ChartOfAccount::where('account_code', $account_code)
+                ->orWhere('account_name', 'like', '%' . $other_income->category . '%')
+                ->first();
+        }
+
+        // Fallback: generic other revenue
         if (!$revenue_account) {
             $revenue_account = ChartOfAccount::where('account_type', 'revenue')
-                                            ->where('account_category', 'revenue_other')
-                                            ->first();
+                ->where(function ($q) {
+                    $q->where('account_category', 'revenue_other')
+                      ->orWhereNull('account_category');
+                })
+                ->orderBy('account_code')
+                ->first();
+        }
+
+        // Fallback terakhir: buat akun pendapatan lain-lain jika belum ada
+        if (!$revenue_account) {
+            $revenue_account = ChartOfAccount::firstOrCreate(
+                ['account_code' => '4099'],
+                [
+                    'account_name' => 'Pendapatan Lain-lain',
+                    'account_type' => 'revenue',
+                    'account_category' => 'revenue_other',
+                    'is_active' => true,
+                    'sort_order' => 999,
+                ]
+            );
         }
 
         if (!$revenue_account) {
@@ -468,6 +496,128 @@ class ProfitLossEntry extends Model
             'category' => $transaction->category,
             'reference_number' => $transaction->reference_number,
             'notes' => $transaction->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
+
+    /**
+     * Create profit loss entry from Supply Transaction (usage/depreciation)
+     */
+    public static function createFromSupplyTransaction($supply, $period_id, $created_by)
+    {
+        if (!in_array($supply->transaction_type, ['usage', 'depreciation'])) {
+            return null;
+        }
+
+        // Find or create Supplies Expense account
+        $expense_account = ChartOfAccount::where('account_code', '5203')
+            ->orWhere('account_name', 'like', '%Supplies%')
+            ->where('account_type', 'expense')
+            ->first();
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::firstOrCreate(
+                ['account_code' => '5203'],
+                [
+                    'account_name' => 'Supplies Expense',
+                    'account_type' => 'expense',
+                    'account_category' => 'expense_operational',
+                    'is_active' => true,
+                    'sort_order' => 5203,
+                ]
+            );
+        }
+
+        if (!$expense_account) {
+            throw new \Exception('Expense account not found for supplies.');
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'supply_transaction',
+            'reference_id' => $supply->id,
+        ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = 'Supplies ' . ($supply->transaction_type === 'depreciation' ? 'Depreciation' : 'Usage') . ' - ' . ($supply->description ?? $supply->category ?? 'Supplies');
+        $entry->amount = $supply->amount;
+        $entry->entry_type = 'auto_supplies';
+        $entry->transaction_date = $supply->transaction_date;
+        $entry->additional_data = [
+            'category' => $supply->category,
+            'transaction_type' => $supply->transaction_type,
+            'reference_number' => $supply->reference_number,
+            'notes' => $supply->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
+
+    /**
+     * Create profit loss entry from General Expense (approved)
+     */
+    public static function createFromGeneralExpense($expense, $period_id, $created_by)
+    {
+        if ($expense->status !== 'approved') {
+            return null;
+        }
+
+        // Gunakan akun biaya operasional umum
+        // Jika pl_account_id tersedia di model, gunakan akun itu
+        $expense_account = null;
+        if (!empty($expense->pl_account_id)) {
+            $expense_account = ChartOfAccount::where('id', $expense->pl_account_id)
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::where('account_code', '5299')
+                ->orWhere('account_name', 'like', '%General Expense%')
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::firstOrCreate(
+                ['account_code' => '5299'],
+                [
+                    'account_name' => 'General Expense',
+                    'account_type' => 'expense',
+                    'account_category' => 'expense_operational',
+                    'is_active' => true,
+                    'sort_order' => 5299,
+                ]
+            );
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'general_expense',
+            'reference_id' => $expense->id,
+        ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = 'General Expense - ' . ($expense->category ?? 'Biaya Operasional');
+        $entry->amount = $expense->total_amount;
+        $entry->entry_type = 'auto_general_expense';
+        $entry->transaction_date = $expense->expense_date;
+        $entry->additional_data = [
+            'category' => $expense->category,
+            'notes' => $expense->notes,
         ];
 
         if (!$entry->exists) {

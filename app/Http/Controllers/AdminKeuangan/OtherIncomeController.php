@@ -9,6 +9,10 @@ use App\Models\Customer;
 use App\Models\OperationalCostCategory;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
+use App\Models\ProfitLossPeriod;
+use App\Models\ProfitLossEntry;
+use App\Models\ChartOfAccount;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -93,10 +97,15 @@ class OtherIncomeController extends Controller
         $categories = OperationalCostCategory::orderBy('name')
             ->pluck('name')
             ->values();
+        $revenueAccounts = ChartOfAccount::where('account_type', 'revenue')
+            ->orderBy('account_code')
+            ->get(['id', 'account_code', 'account_name']);
 
         return Inertia::render('Admin/AdminKeuangan/OtherIncomes/Create', [
             'categories' => $categories,
             'customers' => Customer::select('id', 'company_name')->orderBy('company_name')->get(),
+            'bankAccounts' => BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']),
+            'revenueAccounts' => $revenueAccounts,
         ]);
     }
 
@@ -113,7 +122,7 @@ class OtherIncomeController extends Controller
             $customerName = $validated['customer_name']
                 ?? optional(Customer::find($validated['customer_id'] ?? null))->company_name;
 
-            OtherIncome::create([
+            $otherIncome = OtherIncome::create([
                 'reference_number' => $validated['reference_number'] ?? null,
                 'customer_id' => $validated['customer_id'] ?? null,
                 'customer_name' => $customerName,
@@ -122,8 +131,21 @@ class OtherIncomeController extends Controller
                 'category' => $validated['category'],
                 'description' => $validated['description'],
                 'amount' => $validated['amount'],
+                'pl_account_id' => $validated['pl_account_id'],
                 'notes' => $validated['notes'] ?? null,
                 'receipt_file' => $receiptFile,
+                'created_by' => Auth::id(),
+            ]);
+
+            // Catat transaksi bank (credit) saat input pendapatan lain-lain
+            BankTransaction::create([
+                'bank_account_id' => $validated['bank_account_id'],
+                'transaction_date' => $validated['transaction_date'],
+                'transaction_type' => 'credit',
+                'amount' => $validated['amount'],
+                'description' => 'Other income: ' . $validated['description'],
+                'reference_type' => 'other_income_direct',
+                'reference_id' => $otherIncome->id,
                 'created_by' => Auth::id(),
             ]);
         });
@@ -152,11 +174,19 @@ class OtherIncomeController extends Controller
         $categories = OperationalCostCategory::orderBy('name')
             ->pluck('name')
             ->values();
+        $linkedBankAccountId = BankTransaction::where('reference_type', 'other_income_direct')
+            ->where('reference_id', $otherIncome->id)
+            ->value('bank_account_id');
 
         return Inertia::render('Admin/AdminKeuangan/OtherIncomes/Edit', [
             'otherIncome' => $otherIncome,
             'categories' => $categories,
             'customers' => Customer::select('id', 'company_name')->orderBy('company_name')->get(),
+            'bankAccounts' => BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']),
+            'linkedBankAccountId' => $linkedBankAccountId,
+            'revenueAccounts' => ChartOfAccount::where('account_type', 'revenue')
+                ->orderBy('account_code')
+                ->get(['id', 'account_code', 'account_name']),
         ]);
     }
 
@@ -192,11 +222,37 @@ class OtherIncomeController extends Controller
                 'category' => $validated['category'],
                 'description' => $validated['description'],
                 'amount' => $validated['amount'],
+                'pl_account_id' => $validated['pl_account_id'],
                 'notes' => $validated['notes'] ?? null,
                 'receipt_file' => $receiptFile,
             ]);
 
             $otherIncome->recalculateStatus();
+
+            // Sinkronisasi transaksi bank (credit)
+            $bankTx = BankTransaction::where('reference_type', 'other_income_direct')
+                ->where('reference_id', $otherIncome->id)
+                ->first();
+
+            if ($bankTx) {
+                $bankTx->update([
+                    'bank_account_id' => $validated['bank_account_id'],
+                    'transaction_date' => $validated['transaction_date'],
+                    'amount' => $validated['amount'],
+                    'description' => 'Other income: ' . $validated['description'],
+                ]);
+            } else {
+                BankTransaction::create([
+                    'bank_account_id' => $validated['bank_account_id'],
+                    'transaction_date' => $validated['transaction_date'],
+                    'transaction_type' => 'credit',
+                    'amount' => $validated['amount'],
+                    'description' => 'Other income: ' . $validated['description'],
+                    'reference_type' => 'other_income_direct',
+                    'reference_id' => $otherIncome->id,
+                    'created_by' => Auth::id(),
+                ]);
+            }
         });
 
         return redirect()->route('admin-keuangan.other-incomes.show', $otherIncome->id)
@@ -248,6 +304,11 @@ class OtherIncomeController extends Controller
                     'created_by' => Auth::id(),
                 ]);
             }
+
+            // Jika status sudah paid dan belum ada entry P&L, buatkan
+            if ($otherIncome->posted_to_profit_loss) {
+                $this->createProfitLossEntries($otherIncome);
+            }
         });
 
         return back()->with('success', 'Pembayaran piutang berhasil dicatat.');
@@ -260,8 +321,15 @@ class OtherIncomeController extends Controller
                 ->withErrors(['error' => 'Tidak dapat menghapus pendapatan yang sudah diposting ke laba rugi.']);
         }
 
-        $otherIncome->payments()->delete();
-        $otherIncome->delete();
+        DB::transaction(function () use ($otherIncome) {
+            // Hapus transaksi bank direct (bukan payment) jika ada
+            BankTransaction::where('reference_type', 'other_income_direct')
+                ->where('reference_id', $otherIncome->id)
+                ->delete();
+
+            $otherIncome->payments()->delete();
+            $otherIncome->delete();
+        });
 
         return redirect()->route('admin-keuangan.other-incomes.index')
             ->with('success', 'Pendapatan lain-lain berhasil dihapus.');
@@ -271,6 +339,12 @@ class OtherIncomeController extends Controller
     {
         try {
             $otherIncome->postToProfitLoss(Auth::id());
+
+            $createdEntries = $this->createProfitLossEntries($otherIncome);
+            if ($createdEntries === 0) {
+                return redirect()->back()
+                    ->withErrors(['error' => 'Tidak ada periode laba rugi yang cocok. Pastikan ada periode aktif yang mencakup tanggal transaksi.']);
+            }
 
             return redirect()->back()
                 ->with('success', 'Pendapatan berhasil diposting ke laba rugi.');
@@ -331,6 +405,57 @@ class OtherIncomeController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string|max:1000',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'bank_account_id' => ['required', 'exists:bank_accounts,id'],
+            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
         ]);
+    }
+
+    /**
+     * Buatkan entri laba rugi untuk Other Income di periode yang relevan
+     */
+    private function createProfitLossEntries(OtherIncome $otherIncome): int
+    {
+        $txnDate = Carbon::parse($otherIncome->transaction_date)->toDateString();
+        $createdEntries = 0;
+
+        // Cari periode non-closed yang mencakup tanggal transaksi
+        $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+            ->where('start_date', '<=', $txnDate)
+            ->where('end_date', '>=', $txnDate)
+            ->get();
+
+        // Fallback: periode yang mencakup bulan transaksi
+        if ($periods->isEmpty()) {
+            $monthStart = Carbon::parse($txnDate)->startOfMonth()->toDateString();
+            $monthEnd = Carbon::parse($txnDate)->endOfMonth()->toDateString();
+            $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->where('start_date', '<=', $monthStart)
+                ->where('end_date', '>=', $monthEnd)
+                ->get();
+        }
+
+        // Fallback: periode non-closed terbaru
+        if ($periods->isEmpty()) {
+            $fallback = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->orderBy('end_date', 'desc')
+                ->first();
+            if ($fallback) {
+                $periods = collect([$fallback]);
+            }
+        }
+
+        foreach ($periods as $period) {
+            $entry = ProfitLossEntry::createFromOtherIncome($otherIncome, $period->id, Auth::id());
+            if ($entry) {
+                $createdEntries++;
+            }
+        }
+
+        if ($createdEntries > 0) {
+            // Recalculate for affected periods only once at the end
+            $periods->each->calculateTotals();
+        }
+
+        return $createdEntries;
     }
 }

@@ -127,6 +127,52 @@
             </p>
           </div>
 
+          <!-- Akun P&L -->
+          <div>
+            <label class="block text-sm font-medium text-sage-700 mb-2">
+              Akun Beban (P&L) <span class="text-red-500">*</span>
+            </label>
+            <select
+              v-model="form.pl_account_id"
+              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+              :class="{ 'border-red-300': errors.pl_account_id }"
+            >
+              <option value="">Pilih Akun</option>
+              <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
+                {{ acc.account_code }} - {{ acc.account_name }}
+              </option>
+            </select>
+            <p v-if="errors.pl_account_id" class="mt-1 text-sm text-red-600">
+              {{ errors.pl_account_id }}
+            </p>
+            <p class="mt-1 text-xs text-sage-500">
+              Pengeluaran ini akan dicatat ke akun ini di laporan laba rugi.
+            </p>
+          </div>
+
+          <!-- Bank Source -->
+          <div>
+            <label class="block text-sm font-medium text-sage-700 mb-2">
+              Bank Sumber Dana <span v-if="form.status === 'approved'" class="text-red-500">*</span>
+            </label>
+            <select
+              v-model="form.bank_account_id"
+              class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+              :class="{ 'border-red-300': errors.bank_account_id }"
+            >
+              <option value="">Pilih Bank</option>
+              <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
+              </option>
+            </select>
+            <p v-if="errors.bank_account_id" class="mt-1 text-sm text-red-600">
+              {{ errors.bank_account_id }}
+            </p>
+            <p class="mt-1 text-xs text-sage-500">
+              Saat status Approved, pengeluaran akan otomatis mendebit saldo bank terpilih.
+            </p>
+          </div>
+
           <!-- Items Section -->
           <div class="border-t border-sage-200 pt-6">
             <div class="flex justify-between items-center mb-4">
@@ -284,6 +330,14 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  bankAccounts: {
+    type: Array,
+    default: () => []
+  },
+  expenseAccounts: {
+    type: Array,
+    default: () => []
+  },
   errors: {
     type: Object,
     default: () => ({})
@@ -296,6 +350,8 @@ const form = useForm({
   category: props.generalExpense.category,
   status: props.generalExpense.status,
   notes: props.generalExpense.notes || '',
+  bank_account_id: '',
+  pl_account_id: props.generalExpense.pl_account_id || '',
   items: props.generalExpense.items?.map(item => ({
     id: item.id,
     description: item.description,
@@ -307,6 +363,28 @@ const form = useForm({
 const processing = ref(false)
 const errors = ref(props.errors)
 const categoryOptions = computed(() => props.categories ?? [])
+const bankAccounts = computed(() => props.bankAccounts ?? [])
+const expenseAccounts = computed(() => props.expenseAccounts ?? [])
+
+watch(
+  bankAccounts,
+  (options) => {
+    if (!form.bank_account_id && options.length > 0) {
+      form.bank_account_id = options[0].id
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  expenseAccounts,
+  (options) => {
+    if (!form.pl_account_id && options.length > 0) {
+      form.pl_account_id = options[0].id
+    }
+  },
+  { immediate: true }
+)
 
 watch(
   categoryOptions,
