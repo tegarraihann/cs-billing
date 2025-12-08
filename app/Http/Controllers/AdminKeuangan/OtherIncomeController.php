@@ -108,7 +108,6 @@ class OtherIncomeController extends Controller
             'revenueAccounts' => $revenueAccounts,
         ]);
     }
-
     public function store(Request $request)
     {
         $validated = $this->validateForm($request);

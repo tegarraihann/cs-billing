@@ -16,6 +16,7 @@ use App\Models\ProfitLossPeriod;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use App\Models\ChartOfAccount;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class GeneralExpenseController extends Controller
 {
@@ -412,38 +413,66 @@ class GeneralExpenseController extends Controller
     }
 
     /**
-     * Export to Excel
+     * Export to PDF
      */
     public function export(Request $request)
     {
-        $month = null;
-        $year = null;
+        // Build query with same filters as index
+        $query = GeneralExpense::with('items', 'creator', 'approver')
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('created_at', 'desc');
 
+        $filterMonth = null;
+        $filterYear = null;
         if ($request->filled('period')) {
             try {
                 $period = Carbon::createFromFormat('Y-m', $request->period);
-                $month = $period->month;
-                $year = $period->year;
+                $filterMonth = $period->month;
+                $filterYear = $period->year;
             } catch (\Exception $e) {
-                // ignore invalid input, fall back to month/year params
+                // ignore invalid period
             }
         }
+        $month = $filterMonth ?? $request->month;
+        $year = $filterYear ?? $request->year;
+        if ($month && $year) {
+            $query->byPeriod($month, $year);
+        }
 
-        $month = $month ?? $request->month ?? now()->month;
-        $year = $year ?? $request->year ?? now()->year;
+        if ($request->filled('expense_date')) {
+            $query->whereDate('expense_date', $request->expense_date);
+        }
 
-        $expenses = GeneralExpense::with('items')
-            ->byPeriod($month, $year)
-            ->orderBy('category')
-            ->orderBy('expense_date')
-            ->get();
+        if ($request->filled('category')) {
+            $query->byCategory($request->category);
+        }
 
-        // Generate Excel export logic here
-        // For now, return JSON data
-        return response()->json([
-            'period' => Carbon::create($year, $month)->format('F Y'),
-            'data' => $expenses
-        ]);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $expenses = $query->get();
+        $totalAmount = $expenses->sum('total_amount');
+
+        $filters = [
+            'period' => $request->input('period'),
+            'expense_date' => $request->input('expense_date'),
+            'category' => $request->input('category'),
+            'status' => $request->input('status'),
+            'month' => $month,
+            'year' => $year,
+        ];
+
+        $pdf = Pdf::loadView('admin.admin-keuangan.general-expenses.pdf', [
+            'expenses' => $expenses,
+            'totalAmount' => $totalAmount,
+            'filters' => $filters,
+            'generatedAt' => now(),
+        ])->setPaper('a4', 'portrait');
+
+        $filename = 'general_expenses_' . now()->format('Ymd_His') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**

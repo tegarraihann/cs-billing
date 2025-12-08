@@ -59,7 +59,7 @@
         .header-line {
             margin-top: 70px;
             margin-bottom: 2px;
-            font-size: 9pt;
+            font-size: 11pt;
         }
 
         .customer-code {
@@ -79,7 +79,7 @@
 
         /* Company name - bold and big */
         .company-name {
-            font-size: 11pt;
+            font-size: 13pt;
             font-weight: bold;
             text-transform: uppercase;
             margin: 8px 0 2px 0;
@@ -87,7 +87,7 @@
 
         /* Address line */
         .company-address {
-            font-size: 9pt;
+            font-size: 10pt;
             text-transform: uppercase;
             margin-bottom: 15px;
         }
@@ -97,7 +97,7 @@
             float: right;
             width: 180px;
             margin-bottom: 15px;
-            font-size: 9pt;
+            font-size: 10pt;
         }
 
         .invoice-details-table tr {
@@ -133,7 +133,7 @@
 
         .shipment-table {
             width: 100%;
-            font-size: 8.5pt;
+            font-size: 10pt;
             border-collapse: collapse;
         }
 
@@ -144,7 +144,7 @@
         }
 
         .ship-label {
-            width: 90px;
+            width: 100px;
             font-weight: bold;
         }
 
@@ -153,29 +153,31 @@
         }
 
         .ship-value {
-            width: 200px;
+            width: 250px;
             text-transform: uppercase;
         }
 
         .ship-label-right {
-            width: 80px;
+            width: 130px;
             font-weight: bold;
             padding-left: 20px;
+            text-indent: 40px;
         }
 
         .ship-colon-right {
-            width: 10px;
+            width: 0px;
         }
 
         .ship-value-right {
             text-transform: uppercase;
+            text-indent: 10px;
         }
 
         /* Items table exactly like example */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8.5pt;
+            font-size: 10pt;
             margin-bottom: 20px;
         }
 
@@ -374,13 +376,13 @@
         }
 
         .invoice-notes {
-            font-size: 8pt;
+            font-size: 7pt;
             margin: 18px 0;
             line-height: 1.4;
             text-transform: none;
-            max-width: 90%;
-            margin-left: 40px;
-            margin-top: 100px;
+            max-width: 100%;
+            margin-left: 0px;
+            margin-top: 90px;
             text-align: justify;
         }
 
@@ -391,7 +393,7 @@
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 8pt;
+            font-size: 7pt;
             line-height: 1.3;
         }
 

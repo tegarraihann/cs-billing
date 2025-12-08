@@ -59,7 +59,7 @@
         .header-line {
             margin-top: 70px;
             margin-bottom: 2px;
-            font-size: 9pt;
+            font-size: 11pt;
         }
 
         .customer-code {
@@ -68,7 +68,7 @@
 
         .debit-note-title {
             float: right;
-            font-size: 20pt;
+            font-size: 22pt;
             font-weight: bold;
             letter-spacing: 8px;
         }
@@ -79,7 +79,7 @@
 
         /* Company name - bold and big */
         .company-name {
-            font-size: 11pt;
+            font-size: 13pt;
             font-weight: bold;
             text-transform: uppercase;
             margin: 8px 0 2px 0;
@@ -87,7 +87,7 @@
 
         /* Address line */
         .company-address {
-            font-size: 9pt;
+            font-size: 10pt;
             text-transform: uppercase;
             margin-bottom: 15px;
         }
@@ -97,7 +97,7 @@
             float: right;
             width: 180px;
             margin-bottom: 15px;
-            font-size: 9pt;
+            font-size: 10pt;
         }
 
         .invoice-details-table tr {
@@ -132,7 +132,7 @@
 
         .shipment-table {
             width: 100%;
-            font-size: 8.5pt;
+            font-size: 10pt;
             border-collapse: collapse;
         }
 
@@ -143,7 +143,7 @@
         }
 
         .ship-label {
-            width: 90px;
+            width: 100px;
             font-weight: bold;
         }
 
@@ -152,29 +152,31 @@
         }
 
         .ship-value {
-            width: 200px;
+            width: 250px;
             text-transform: uppercase;
         }
 
         .ship-label-right {
-            width: 80px;
+            width: 130px;
             font-weight: bold;
             padding-left: 20px;
+            text-indent: 40px;
         }
 
         .ship-colon-right {
-            width: 10px;
+            width: 0px;
         }
 
         .ship-value-right {
             text-transform: uppercase;
+            text-indent: 10px;
         }
 
         /* Items table exactly like example */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8.5pt;
+            font-size: 10pt;
             margin-bottom: 20px;
         }
 
@@ -356,12 +358,14 @@
         }
 
         .total-label-col {
+            font-size: 10pt;
             width: 20%;
             text-align: right;
             padding-right: 10px;
         }
 
         .total-value-col {
+            font-size: 10pt;
             width: 30%;
             text-align: right;
         }
@@ -373,13 +377,13 @@
         }
 
         .invoice-notes {
-            font-size: 8pt;
+            font-size: 7pt;
             margin: 18px 0;
             line-height: 1.4;
             text-transform: none;
-            max-width: 90%;
-            margin-left: 40px;
-            margin-top: 100px;
+            max-width: 100%;
+            margin-left: 0px;
+            margin-top: 90px;
             text-align: justify;
         }
 
@@ -390,7 +394,7 @@
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 8pt;
+            font-size: 7pt;
             line-height: 1.3;
         }
 
@@ -752,7 +756,8 @@
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
                 <td class="bank-value-col" style="color: #0000">:
-                    {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}</td>
+                    {{ $invoice->bank_account_name ?? 'Eshaka Wijaya Logistics' }}
+                </td>
                 @if($invoice->hasDownPayment())
                     <td class="total-label-col" style="color: #0000">DOWN PAYMENT (-)</td>
                     <td class="total-value-col" style="color: #0000">{{ number_format($invoice->down_payment_amount, 2) }}
@@ -791,7 +796,8 @@
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
                 <td class="bank-value-col" style="color: #0000">:
-                    {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}</td>
+                    {{ $invoice->bank_account_name_bca ?? 'Eshaka Wijaya Logistics' }}
+                </td>
                 <td class="total-label-col"></td>
                 <td class="total-value-col"></td>
             </tr>
@@ -804,14 +810,15 @@
         </table>
 
         <div class="invoice-notes">
-            NOTE : <br>1. Payments made by bank transfer must be made to the company account in the name of Eshaka Wijaya
+            NOTE : <br>1. Payments made by bank transfer must be made to the company account in the name of Eshaka
+            Wijaya
             Logistics, PT.<br>
             2. Payment is considered complete once the funds are confirmed to have been credited to the company account
             in full.<br>
             3. Objections or corrections must be submitted no later than 7 days after receipt of the invoice. Failure to
             do so will be deemed correct or approved.<br>
-            5. Bank Details:
-            <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 4px;">
+            4. Bank Details:
+            <table style="width: 100%; border-collapse: collapse; font-size: 7pt; margin-top: 4px;">
                 <thead>
                     <tr>
                         <th style="text-align: left;">Bank Name</th>

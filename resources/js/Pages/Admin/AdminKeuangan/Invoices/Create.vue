@@ -10,11 +10,11 @@
                     </div>
                     <Link :href="route('admin-keuangan.invoices.index')"
                         class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Kembali
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Kembali
                     </Link>
                 </div>
             </div>
@@ -157,7 +157,8 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Volume</label>
                             <input type="text" v-model="form.volume"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" placeholder="e.g., 10.5 M³" />
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                                placeholder="e.g., 10.5 M³" />
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -179,12 +180,14 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">20'/40'/45'</label>
                             <input type="text" v-model="form.container_size"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" placeholder="e.g., 20GP, 40GP, 45GP" />
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                                placeholder="e.g., 20GP, 40GP, 45GP" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Container No.</label>
                             <input type="text" v-model="form.container_no"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" placeholder="e.g., MSKU2934199" />
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                                placeholder="e.g., MSKU2934199" />
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
@@ -648,7 +651,7 @@
                             <div class="flex justify-between items-center text-sm">
                                 <span class="font-medium text-red-700">Total Biaya Operasional:</span>
                                 <span class="font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal())
-                                }}</span>
+                                    }}</span>
                             </div>
                         </div>
 
@@ -681,7 +684,7 @@
                         <div class="bg-white rounded-lg p-4 border border-red-200">
                             <div class="text-red-600 font-medium">Operational Costs</div>
                             <div class="text-xl font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal())
-                            }}</div>
+                                }}</div>
                             <div class="text-xs text-red-500">Internal costs only</div>
                         </div>
                         <div class="bg-white rounded-lg p-4 border border-green-200">
@@ -707,7 +710,7 @@
                         <div class="flex space-x-4">
                             <Link :href="route('admin-keuangan.invoices.index')"
                                 class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                            Batal
+                                Batal
                             </Link>
                             <button type="submit" :disabled="form.processing"
                                 class="px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50">
