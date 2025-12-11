@@ -135,18 +135,46 @@
       <slot />
     </main>
 
-    <!-- Auto Logout Timer -->
-    <!-- <AutoLogoutTimer /> --> <!-- Disabled auto-logout feature -->
+    <!-- Idle logout modal -->
+    <div
+      v-if="showIdleModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4"
+    >
+      <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
+        <div class="text-lg font-semibold text-gray-900">Sesi hampir berakhir</div>
+        <p class="text-sm text-gray-600">
+          Tidak ada aktivitas selama 10 menit. Anda akan keluar otomatis dalam
+          <span class="font-semibold text-red-600">{{ idleCountdown }}</span> detik.
+        </p>
+        <div class="flex justify-end space-x-3">
+          <button
+            type="button"
+            class="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+            @click="stayLoggedIn"
+            :disabled="idleProcessing"
+          >
+            Lanjutkan
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+            @click="forceLogout"
+            :disabled="idleProcessing"
+          >
+            Keluar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { Link } from "@inertiajs/vue3";
+import { Link, router } from "@inertiajs/vue3";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import SidebarNavigation from "@/Pages/Admin/AdminKeuangan/Components/SidebarNavigation.vue";
-// import AutoLogoutTimer from "@/Components/AutoLogoutTimer.vue"; // Disabled auto-logout feature
 
 // Route function (use global route helper)
 const route = window.route || function(name, params) {
@@ -206,6 +234,68 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
+});
+
+// Idle timeout 10 menit
+const showIdleModal = ref(false);
+const idleCountdown = ref(0);
+const idleProcessing = ref(false);
+const IDLE_LIMIT = 10 * 60 * 1000; // 10 menit
+const COUNTDOWN_LIMIT = 30; // detik peringatan
+let idleTimer = null;
+let countdownTimer = null;
+const activityEvents = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
+
+const clearIdleTimers = () => {
+  if (idleTimer) clearTimeout(idleTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  idleTimer = null;
+  countdownTimer = null;
+};
+
+const resetIdleTimer = () => {
+  clearIdleTimers();
+  showIdleModal.value = false;
+  idleCountdown.value = 0;
+  idleTimer = setTimeout(startIdleWarning, IDLE_LIMIT);
+};
+
+const startIdleWarning = () => {
+  showIdleModal.value = true;
+  idleCountdown.value = COUNTDOWN_LIMIT;
+  countdownTimer = setInterval(() => {
+    idleCountdown.value -= 1;
+    if (idleCountdown.value <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      forceLogout();
+    }
+  }, 1000);
+};
+
+const stayLoggedIn = () => {
+  resetIdleTimer();
+};
+
+const forceLogout = () => {
+  if (idleProcessing.value) return;
+  idleProcessing.value = true;
+  router.post(route("logout"), {}, {
+    onFinish: () => {
+      idleProcessing.value = false;
+      window.location.href = route("login");
+    },
+  });
+};
+
+onMounted(() => {
+  resetIdleTimer();
+  activityEvents.forEach((ev) => window.addEventListener(ev, resetIdleTimer, { passive: true }));
+});
+
+onUnmounted(() => {
+  clearIdleTimers();
+  activityEvents.forEach((ev) => window.removeEventListener(ev, resetIdleTimer));
 });
 </script>
 
