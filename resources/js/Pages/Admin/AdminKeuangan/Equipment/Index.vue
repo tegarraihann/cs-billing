@@ -182,6 +182,19 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
                         <input v-model="purchaseForm.description" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" placeholder="Keterangan tambahan" />
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Akun Beban (P&L) *</label>
+                        <select
+                            v-model="purchaseForm.pl_account_id"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                        >
+                            <option value="">Pilih akun</option>
+                            <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
+                                {{ acc.account_code }} - {{ acc.account_name }}
+                            </option>
+                        </select>
+                        <p v-if="purchaseForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ purchaseForm.errors.pl_account_id }}</p>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sumber Dana *</label>
@@ -238,7 +251,7 @@
                         <button type="button" @click="closePurchaseModal" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700">Batal</button>
                         <button
                             type="submit"
-                            :disabled="purchaseForm.processing"
+                            :disabled="isPurchaseDisabled"
                             class="px-4 py-2 rounded-md bg-sage-600 text-white text-sm font-semibold hover:bg-sage-700 disabled:opacity-50"
                         >
                             {{ purchaseForm.processing ? 'Menyimpan...' : 'Simpan' }}
@@ -328,6 +341,10 @@ const props = defineProps({
     filters: {
         type: Object,
         default: () => ({})
+    },
+    expenseAccounts: {
+        type: Array,
+        default: () => []
     }
 })
 
@@ -336,6 +353,8 @@ const showDepreciationModal = ref(false)
 
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
+const expenseAccounts = computed(() => props.expenseAccounts ?? [])
+const defaultExpenseAccountId = computed(() => expenseAccounts.value[0]?.id || '')
 
 const filterForm = reactive({
     transaction_type: props.filters?.transaction_type ?? '',
@@ -354,6 +373,7 @@ const purchaseForm = useForm({
     source_type: 'bank',
     bank_account_id: '',
     petty_cash_category_id: '',
+    pl_account_id: '',
     useful_life_months: '',
     depreciation_start_date: '',
     notes: ''
@@ -383,6 +403,7 @@ const openPurchaseModal = () => {
     purchaseForm.reset()
     purchaseForm.transaction_date = new Date().toISOString().split('T')[0]
     purchaseForm.source_type = 'bank'
+    purchaseForm.pl_account_id = defaultExpenseAccountId.value
     showPurchaseModal.value = true
 }
 
@@ -430,6 +451,16 @@ const submitDepreciation = () => {
         }
     })
 }
+
+const isPurchaseDisabled = computed(() => {
+    if (purchaseForm.processing) return true
+    if (!purchaseForm.transaction_date || !purchaseForm.asset_name || !purchaseForm.amount || !purchaseForm.source_type || !purchaseForm.pl_account_id) {
+        return true
+    }
+    if (purchaseForm.source_type === 'bank' && !purchaseForm.bank_account_id) return true
+    if (purchaseForm.source_type === 'petty_cash' && !purchaseForm.petty_cash_category_id) return true
+    return false
+})
 
 const formatNumber = (value) => {
     return new Intl.NumberFormat('id-ID').format(Number(value) || 0)

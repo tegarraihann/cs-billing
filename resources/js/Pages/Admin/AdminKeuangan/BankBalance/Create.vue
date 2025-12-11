@@ -166,9 +166,9 @@
                                 </Link>
                                 <button
                                     type="submit"
-                                    :disabled="form.processing"
+                                    :disabled="isDisabled"
                                     class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                    :class="{ 'opacity-25': form.processing }"
+                                    :class="{ 'opacity-25': isDisabled }"
                                 >
                                     <span v-if="form.processing" class="mr-2">
                                         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -226,6 +226,15 @@ const form = useForm({
 
 const hasExistingBalances = computed(() => {
     return Object.keys(props.existingBalances).length > 0
+})
+
+const isDisabled = computed(() => {
+    if (form.processing) return true
+    if (!form.period_month) return true
+    // semua opening balance wajib terisi (angka > 0 dianggap lebih aman, tapi minimal tidak kosong)
+    const allFilled = form.balances.every(b => b.opening_balance !== null && b.opening_balance !== '')
+    if (!allFilled) return true
+    return false
 })
 
 const formatCurrency = (amount) => {

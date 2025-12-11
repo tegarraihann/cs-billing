@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Customer;
 use App\Models\User;
+use App\Models\ProfitLossPeriod;
+use App\Models\ProfitLossEntry;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Other Income Model
@@ -37,6 +40,7 @@ class OtherIncome extends Model
         'amount',
         'due_date',
         'status',
+        'pl_account_id',
         'paid_amount',
         'outstanding_amount',
         'tax_adjustment_amount',
@@ -161,12 +165,48 @@ class OtherIncome extends Model
             throw new \Exception('Income already posted to profit/loss.');
         }
 
+        $actorId = $userId ?? auth()->id();
         $this->update([
             'posted_to_profit_loss' => true,
             'posted_at' => now(),
-            'approved_by' => $userId ?? auth()->id(),
+            'approved_by' => $actorId,
             'approved_at' => $this->approved_at ?? now(),
         ]);
+
+        // Buat entri laba rugi untuk periode aktif yang mencakup tanggal transaksi
+        $txnDate = Carbon::parse($this->transaction_date)->toDateString();
+        $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+            ->where('start_date', '<=', $txnDate)
+            ->where('end_date', '>=', $txnDate)
+            ->get();
+
+        // Fallback: gunakan periode yang mencakup bulan transaksi bila tidak ada yang presisi
+        if ($periods->isEmpty()) {
+            $monthStart = Carbon::parse($txnDate)->startOfMonth()->toDateString();
+            $monthEnd = Carbon::parse($txnDate)->endOfMonth()->toDateString();
+            $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->where('start_date', '<=', $monthStart)
+                ->where('end_date', '>=', $monthEnd)
+                ->get();
+        }
+
+        // Fallback terakhir: periode non-closed terbaru
+        if ($periods->isEmpty()) {
+            $fallback = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->orderBy('end_date', 'desc')
+                ->first();
+            if ($fallback) {
+                $periods = collect([$fallback]);
+            }
+        }
+
+        foreach ($periods as $period) {
+            ProfitLossEntry::createFromOtherIncome($this, $period->id, $actorId);
+        }
+
+        if ($periods->isNotEmpty()) {
+            $periods->each->calculateTotals();
+        }
 
         return true;
     }
@@ -182,6 +222,11 @@ class OtherIncome extends Model
             'posted_to_profit_loss' => false,
             'posted_at' => null,
         ]);
+
+        // Hapus entri laba rugi terkait
+        ProfitLossEntry::where('reference_type', 'other_income')
+            ->where('reference_id', $this->id)
+            ->delete();
 
         return true;
     }

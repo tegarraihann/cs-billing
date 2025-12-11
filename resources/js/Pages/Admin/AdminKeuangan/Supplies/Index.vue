@@ -239,6 +239,19 @@
                                 <p class="text-xs text-gray-500 mt-1">Harga per pcs: <span class="font-semibold">{{ topupUnitPrice ? formatCurrency(topupUnitPrice) : '-' }}</span></p>
                             </div>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Akun Beban (P&L)</label>
+                            <select
+                                v-model="topupForm.pl_account_id"
+                                class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
+                                required
+                            >
+                                <option value="">Pilih akun</option>
+                                <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
+                                    {{ acc.account_code }} - {{ acc.account_name }}
+                                </option>
+                            </select>
+                        </div>
                         <div v-if="topupForm.source_type === 'bank'">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Akun Bank</label>
                             <select
@@ -266,8 +279,8 @@
                     <button type="button" class="px-4 py-2 text-sm text-gray-600" @click="closeTopupModal">Batal</button>
                     <button
                         type="button"
-                        class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-md text-sm font-semibold hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
-                        :disabled="topupForm.processing"
+                        class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-md text-sm font-semibold hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :disabled="isTopupDisabled"
                         @click="submitTopup"
                     >
                         Tambah Top-up
@@ -352,6 +365,19 @@
                             ></textarea>
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Akun Beban (P&L)</label>
+                            <select
+                                v-model="usageForm.pl_account_id"
+                                class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
+                                required
+                            >
+                                <option value="">Pilih akun</option>
+                                <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
+                                    {{ acc.account_code }} - {{ acc.account_name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
                             <textarea
                                 v-model="usageForm.notes"
@@ -366,7 +392,7 @@
                     <button
                         type="button"
                         class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-md text-sm font-semibold hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
-                        :disabled="usageForm.processing"
+                        :disabled="isUsageDisabled"
                         @click="submitUsage"
                     >
                         Simpan
@@ -390,11 +416,17 @@ const props = defineProps({
     categories: Array,
     pettyCashCategories: Array,
     filters: Object,
+    expenseAccounts: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const categories = computed(() => props.categories ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
 const selectedTopupCategoryId = ref(pettyCashCategories.value[0]?.id || '')
+const expenseAccounts = computed(() => props.expenseAccounts ?? [])
+const defaultExpenseAccountId = computed(() => expenseAccounts.value[0]?.id || '')
 
 const today = new Date().toISOString().split('T')[0]
 
@@ -404,6 +436,7 @@ const topupForm = useForm({
     description: '',
     amount: '',
     quantity: '',
+    pl_account_id: '',
     source_type: 'other',
     bank_account_id: '',
     petty_cash_category_id: '',
@@ -418,6 +451,7 @@ const usageForm = useForm({
     amount: '',
     quantity: '',
     transaction_type: 'usage',
+    pl_account_id: '',
     notes: '',
 })
 
@@ -450,6 +484,23 @@ const calculateUnitPrice = (amount, qty) => {
 const pricePerPcs = (entry) => calculateUnitPrice(entry.amount, entry.quantity)
 const topupUnitPrice = computed(() => calculateUnitPrice(topupForm.amount, topupForm.quantity))
 const usageUnitPrice = computed(() => calculateUnitPrice(usageForm.amount, usageForm.quantity))
+const isTopupDisabled = computed(() => {
+    if (topupForm.processing) return true
+    // semua field wajib terisi: tanggal, kategori, amount, quantity, source_type, akun biaya
+    if (!topupForm.transaction_date || !topupForm.category || !topupForm.amount || !topupForm.quantity || !topupForm.source_type || !topupForm.pl_account_id) {
+        return true
+    }
+    // jika sumber bank/petty cash, wajib akun terkait
+    if (topupForm.source_type === 'bank' && !topupForm.bank_account_id) return true
+    if (topupForm.source_type === 'petty_cash' && !topupForm.petty_cash_category_id) return true
+    return false
+})
+
+const isUsageDisabled = computed(() => {
+    if (usageForm.processing) return true
+    if (!usageForm.transaction_date || !usageForm.category || !usageForm.amount || !usageForm.pl_account_id) return true
+    return false
+})
 
 const formatDate = (value) => {
     if (!value) return '-'
@@ -521,6 +572,18 @@ const resetFilters = () => {
 }
 
 const openTopupModal = () => {
+    topupForm.reset()
+    topupForm.transaction_date = today
+    topupForm.source_type = 'other'
+    topupForm.pl_account_id = defaultExpenseAccountId.value
+    topupForm.bank_account_id = ''
+    topupForm.petty_cash_category_id = ''
+    if (selectedTopupCategoryId.value) {
+        const cat = pettyCashCategories.value.find((c) => c.id === selectedTopupCategoryId.value)
+        if (cat) {
+            topupForm.category = cat.name
+        }
+    }
     showTopupModal.value = true
 }
 
@@ -529,6 +592,9 @@ const closeTopupModal = () => {
 }
 
 const openUsageModal = () => {
+    usageForm.reset()
+    usageForm.transaction_date = today
+    usageForm.pl_account_id = defaultExpenseAccountId.value
     showUsageModal.value = true
 }
 

@@ -310,8 +310,8 @@
                                         class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                                         Cancel
                                     </button>
-                                    <button type="submit" :disabled="processing"
-                                        class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                                    <button type="submit" :disabled="isPaymentDisabled"
+                                        class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                         {{ processing ? 'Recording...' : 'Record Payment' }}
                                     </button>
                                 </div>
@@ -358,6 +358,16 @@ const componentOptions = computed(() => (props.receivable.components || []).map(
     paid_amount: parseFloat(component.paid_amount || 0),
     outstanding_amount: parseFloat(component.outstanding_amount || 0)
 })))
+
+const isPaymentDisabled = computed(() => {
+    if (processing.value) return true
+    const hasMultiple = componentOptions.value.length > 1
+    if (hasMultiple && !paymentForm.component_id) return true
+    if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) return true
+    if (!paymentForm.payment_date) return true
+    if (!paymentForm.bank_account_id) return true
+    return false
+})
 const hasMultipleComponents = computed(() => componentOptions.value.length > 1)
 const selectedComponent = computed(() => {
     const id = paymentForm.component_id ? Number(paymentForm.component_id) : null

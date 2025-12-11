@@ -471,11 +471,26 @@ class ProfitLossEntry extends Model
      */
     public static function createFromEquipmentDepreciation(EquipmentTransaction $transaction, $period_id, $created_by)
     {
-        $expense_account = ChartOfAccount::where('account_code', '5300')->first()
-            ?? ChartOfAccount::where('account_type', 'expense')->orderBy('account_code')->first();
+        // Gunakan akun khusus depresiasi equipment (5260), buat jika belum ada
+        $expense_account = ChartOfAccount::where('account_code', '5260')->first();
 
         if (!$expense_account) {
-            throw new \Exception('Expense account for equipment depreciation not found (expected account code 5300).');
+            $expense_account = ChartOfAccount::firstOrCreate(
+                ['account_code' => '5260'],
+                [
+                    'account_name' => 'Depreciation Expense - Equipment',
+                    'account_type' => 'expense',
+                    'account_category' => 'expense_operational',
+                    'parent_code' => '5000',
+                    'sort_order' => 5260,
+                    'is_active' => true,
+                    'description' => 'Beban penyusutan equipment',
+                ]
+            );
+        }
+
+        if (!$expense_account) {
+            throw new \Exception('Expense account for equipment depreciation not found (expected account code 5260).');
         }
 
         $entry = self::firstOrNew([
@@ -508,6 +523,76 @@ class ProfitLossEntry extends Model
     }
 
     /**
+     * Create entry from equipment purchase transaction.
+     */
+    public static function createFromEquipmentPurchase(EquipmentTransaction $transaction, $period_id, $created_by)
+    {
+        if ($transaction->transaction_type !== 'purchase') {
+            return null;
+        }
+
+        // Pakai akun biaya yang dipilih jika ada, fallback ke Equipment Expense (5204)
+        $expense_account = null;
+        if (!empty($transaction->pl_account_id)) {
+            $expense_account = ChartOfAccount::where('id', $transaction->pl_account_id)
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::where('account_code', '5204')
+                ->orWhere('account_name', 'like', '%Equipment%')
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::firstOrCreate(
+                ['account_code' => '5204'],
+                [
+                    'account_name' => 'Equipment Expense',
+                    'account_type' => 'expense',
+                    'account_category' => 'expense_operational',
+                    'sort_order' => 5204,
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        if (!$expense_account) {
+            throw new \Exception('Expense account for equipment purchase not found (expected 5204 or selected account).');
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'equipment_transaction',
+            'reference_id' => $transaction->id,
+            'entry_type' => 'auto_equipment_purchase',
+        ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = $transaction->description
+            ? 'Pembelian Equipment - ' . $transaction->description
+            : 'Pembelian Equipment';
+        $entry->amount = $transaction->amount;
+        $entry->transaction_date = $transaction->transaction_date;
+        $entry->additional_data = [
+            'asset_name' => $transaction->asset_name,
+            'category' => $transaction->category,
+            'reference_number' => $transaction->reference_number,
+            'notes' => $transaction->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
+
+    /**
      * Create profit loss entry from Supply Transaction (usage/depreciation)
      */
     public static function createFromSupplyTransaction($supply, $period_id, $created_by)
@@ -516,21 +601,30 @@ class ProfitLossEntry extends Model
             return null;
         }
 
-        // Find or create Supplies Expense account
-        $expense_account = ChartOfAccount::where('account_code', '5203')
-            ->orWhere('account_name', 'like', '%Supplies%')
-            ->where('account_type', 'expense')
-            ->first();
+        // Find or create Supplies Expense account (prioritize pl_account_id if provided)
+        $expense_account = null;
+        if (!empty($supply->pl_account_id)) {
+            $expense_account = ChartOfAccount::where('id', $supply->pl_account_id)
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::where('account_code', '5230')
+                ->orWhere('account_name', 'like', '%Supplies%')
+                ->where('account_type', 'expense')
+                ->first();
+        }
 
         if (!$expense_account) {
             $expense_account = ChartOfAccount::firstOrCreate(
-                ['account_code' => '5203'],
+                ['account_code' => '5230'],
                 [
-                    'account_name' => 'Supplies Expense',
+                    'account_name' => 'ATK & Supplies',
                     'account_type' => 'expense',
                     'account_category' => 'expense_operational',
                     'is_active' => true,
-                    'sort_order' => 5203,
+                    'sort_order' => 5230,
                 ]
             );
         }
@@ -549,6 +643,74 @@ class ProfitLossEntry extends Model
         $entry->description = 'Supplies ' . ($supply->transaction_type === 'depreciation' ? 'Depreciation' : 'Usage') . ' - ' . ($supply->description ?? $supply->category ?? 'Supplies');
         $entry->amount = $supply->amount;
         $entry->entry_type = 'auto_supplies';
+        $entry->transaction_date = $supply->transaction_date;
+        $entry->additional_data = [
+            'category' => $supply->category,
+            'transaction_type' => $supply->transaction_type,
+            'reference_number' => $supply->reference_number,
+            'notes' => $supply->notes,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
+
+    /**
+     * Create profit loss entry from Supply Transaction (topup/purchase)
+     */
+    public static function createFromSupplyTopup($supply, $period_id, $created_by)
+    {
+        if ($supply->transaction_type !== 'topup') {
+            return null;
+        }
+
+        // Find or create Supplies Expense account (prioritize pl_account_id if provided)
+        $expense_account = null;
+        if (!empty($supply->pl_account_id)) {
+            $expense_account = ChartOfAccount::where('id', $supply->pl_account_id)
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::where('account_code', '5230')
+                ->orWhere('account_name', 'like', '%Supplies%')
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account) {
+            $expense_account = ChartOfAccount::firstOrCreate(
+                ['account_code' => '5230'],
+                [
+                    'account_name' => 'ATK & Supplies',
+                    'account_type' => 'expense',
+                    'account_category' => 'expense_operational',
+                    'is_active' => true,
+                    'sort_order' => 5230,
+                ]
+            );
+        }
+
+        if (!$expense_account) {
+            throw new \Exception('Expense account not found for supplies.');
+        }
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'supply_transaction',
+            'reference_id' => $supply->id,
+            'entry_type' => 'auto_supplies_purchase',
+        ]);
+
+        $entry->account_id = $expense_account->id;
+        $entry->description = 'Supplies Purchase - ' . ($supply->description ?? $supply->category ?? 'Supplies');
+        $entry->amount = $supply->amount;
         $entry->transaction_date = $supply->transaction_date;
         $entry->additional_data = [
             'category' => $supply->category,

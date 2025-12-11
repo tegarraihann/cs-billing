@@ -174,6 +174,19 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
                         <input v-model="topupForm.description" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" placeholder="Contoh: Sewa kantor Q1" />
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Biaya (opsional)</label>
+                        <select
+                            v-model="topupForm.pl_account_id"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                        >
+                            <option value="">Pilih biaya (opsional)</option>
+                            <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
+                                {{ account.code }} - {{ account.name }}
+                            </option>
+                        </select>
+                        <p v-if="topupForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ topupForm.errors.pl_account_id }}</p>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sumber Dana *</label>
@@ -249,7 +262,7 @@
                         <button type="button" @click="closeTopupModal" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700">Batal</button>
                         <button
                             type="submit"
-                            :disabled="topupForm.processing"
+                            :disabled="isTopupDisabled"
                             class="px-4 py-2 rounded-md bg-sage-600 text-white text-sm font-semibold hover:bg-sage-700 disabled:opacity-50"
                         >
                             {{ topupForm.processing ? 'Menyimpan...' : 'Simpan' }}
@@ -288,6 +301,19 @@
                         <input v-model="amortizationForm.description" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" placeholder="Contoh: Penyusutan bulan Januari" />
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Biaya *</label>
+                        <select
+                            v-model="amortizationForm.pl_account_id"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                        >
+                            <option value="">Pilih biaya</option>
+                            <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
+                                {{ account.code }} - {{ account.name }}
+                            </option>
+                        </select>
+                        <p v-if="amortizationForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ amortizationForm.errors.pl_account_id }}</p>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
                         <textarea
                             v-model="amortizationForm.notes"
@@ -299,7 +325,7 @@
                         <button type="button" @click="closeAmortizationModal" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700">Batal</button>
                         <button
                             type="submit"
-                            :disabled="amortizationForm.processing"
+                            :disabled="isAmortizationDisabled"
                             class="px-4 py-2 rounded-md bg-sage-600 text-white text-sm font-semibold hover:bg-sage-700 disabled:opacity-50"
                         >
                             {{ amortizationForm.processing ? 'Menyimpan...' : 'Simpan' }}
@@ -331,6 +357,10 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    expenseAccounts: {
+        type: Array,
+        default: () => []
+    },
     filters: {
         type: Object,
         default: () => ({})
@@ -342,6 +372,7 @@ const showAmortizationModal = ref(false)
 
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
+const expenseAccounts = computed(() => props.expenseAccounts ?? [])
 
 const filterForm = reactive({
     transaction_type: props.filters?.transaction_type ?? '',
@@ -357,6 +388,7 @@ const topupForm = useForm({
     source_type: 'bank',
     bank_account_id: '',
     petty_cash_category_id: '',
+    pl_account_id: '',
     rental_start_date: '',
     rental_end_date: '',
     amortization_months: '',
@@ -367,6 +399,7 @@ const amortizationForm = useForm({
     transaction_date: new Date().toISOString().split('T')[0],
     amount: '',
     description: '',
+    pl_account_id: '',
     notes: ''
 })
 
@@ -432,6 +465,21 @@ const submitAmortization = () => {
         }
     })
 }
+
+const isTopupDisabled = computed(() => {
+    if (topupForm.processing) return true
+    if (!topupForm.transaction_date || !topupForm.amount) return true
+    if (topupForm.source_type === 'bank' && !topupForm.bank_account_id) return true
+    if (topupForm.source_type === 'petty_cash' && !topupForm.petty_cash_category_id) return true
+    return false
+})
+
+const isAmortizationDisabled = computed(() => {
+    if (amortizationForm.processing) return true
+    if (!amortizationForm.transaction_date || !amortizationForm.amount) return true
+    if (!amortizationForm.pl_account_id) return true
+    return false
+})
 
 const formatNumber = (value) => {
     return new Intl.NumberFormat('id-ID').format(Number(value) || 0)

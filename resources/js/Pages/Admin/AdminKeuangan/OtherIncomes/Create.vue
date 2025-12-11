@@ -301,7 +301,7 @@
                         </Link>
                         <button
                             type="submit"
-                            :disabled="form.processing || categoryOptions.length === 0"
+                            :disabled="isDisabled"
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition disabled:opacity-50"
                         >
                             <Save class="w-4 h-4 mr-2" />
@@ -361,6 +361,19 @@ const categoryOptions = computed(() => props.categories ?? [])
 const customers = computed(() => props.customers ?? [])
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const revenueAccounts = computed(() => props.revenueAccounts ?? [])
+const isDisabled = computed(() => {
+    if (form.processing) return true
+    if (categoryOptions.value.length === 0) return true
+    // mandatory fields
+    const requiredFilled =
+        form.transaction_date &&
+        form.category &&
+        form.description &&
+        form.amount &&
+        form.bank_account_id &&
+        form.pl_account_id
+    return !requiredFilled
+})
 
 watch(
     () => form.customer_id,

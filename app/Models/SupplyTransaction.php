@@ -20,6 +20,7 @@ class SupplyTransaction extends Model
         'description',
         'amount',
         'quantity',
+        'pl_account_id',
         'source_type',
         'bank_account_id',
         'petty_cash_transaction_id',

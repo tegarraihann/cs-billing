@@ -18,6 +18,7 @@ class EquipmentTransaction extends Model
         'reference_number',
         'description',
         'amount',
+        'pl_account_id',
         'source_type',
         'bank_account_id',
         'petty_cash_category_id',

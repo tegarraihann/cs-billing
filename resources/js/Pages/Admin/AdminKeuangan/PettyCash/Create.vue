@@ -225,7 +225,7 @@
             </Link>
             <button
               type="submit"
-              :disabled="processing || willBeNegative"
+              :disabled="isDisabled"
               class="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               :class="willBeNegative ? 'bg-red-600 hover:bg-red-700' : 'bg-sage-600 hover:bg-sage-700'"
             >
@@ -309,6 +309,19 @@ const projectedBalance = computed(() => {
 
 const willBeNegative = computed(() => {
   return form.type === 'expense' && projectedBalance.value < 0
+})
+
+const isDisabled = computed(() => {
+  if (processing.value) return true
+  // wajib umum
+  if (!form.transaction_date || !form.type || !form.amount || !form.description) return true
+  // jika expense, wajib kategori
+  if (form.type === 'expense' && !form.category_id) return true
+  // jika topup/refund, wajib bank
+  if (['topup', 'refund'].includes(form.type) && !form.bank_account_id) return true
+  // amount harus > 0
+  if (parseFloat(form.amount) <= 0) return true
+  return false
 })
 
 // Watchers

@@ -272,7 +272,7 @@
             </Link>
             <button
               type="submit"
-              :disabled="processing || form.items.length === 0 || categoryOptions.length === 0"
+              :disabled="isDisabled"
               class="px-4 py-2 text-sm font-medium text-white bg-sage-600 rounded-lg hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <span v-if="processing">Menyimpan...</span>
@@ -374,6 +374,20 @@ const calculatedTotal = computed(() => {
   return form.items.reduce((total, item) => {
     return total + (parseFloat(item.amount) || 0)
   }, 0)
+})
+
+const isDisabled = computed(() => {
+  if (processing.value) return true
+  if (categoryOptions.value.length === 0) return true
+  // wajib: tanggal, kategori, status, akun P&L, minimal 1 item dengan description & amount, total > 0
+  if (!form.expense_date || !form.category || !form.status || !form.pl_account_id) return true
+  if (!form.items || form.items.length === 0) return true
+  const hasValidItems = form.items.every(item => item.description && parseFloat(item.amount) > 0)
+  if (!hasValidItems) return true
+  if (calculatedTotal.value <= 0) return true
+  // jika status approved dan ada sumber bank yang harus diisi?
+  if (form.status === 'approved' && !form.bank_account_id) return true
+  return false
 })
 
 // Methods

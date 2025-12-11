@@ -5,6 +5,7 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\SupplyTransaction;
 use App\Models\BankAccount;
+use App\Models\ChartOfAccount;
 use App\Models\PettyCashCategory;
 use App\Models\BankTransaction;
 use App\Models\PettyCashTransaction;
@@ -62,6 +63,9 @@ class SupplyTransactionController extends Controller
             'bankAccounts' => BankAccount::all(['id', 'bank_name', 'account_number', 'account_name']),
             'categories' => $categories,
             'pettyCashCategories' => PettyCashCategory::active()->ordered()->get(['id', 'name']),
+            'expenseAccounts' => ChartOfAccount::where('account_type', 'expense')
+                ->orderBy('account_code')
+                ->get(['id', 'account_code', 'account_name']),
             'filters' => $request->only(['category', 'transaction_type', 'date_from', 'date_to']),
         ]);
     }
@@ -74,6 +78,7 @@ class SupplyTransactionController extends Controller
             'description' => ['nullable', 'string'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'quantity' => ['nullable', 'numeric', 'min:0.01'],
+            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
             'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'other'])],
             'bank_account_id' => ['nullable', 'required_if:source_type,bank', 'exists:bank_accounts,id'],
             'petty_cash_category_id' => ['nullable', 'required_if:source_type,petty_cash', 'exists:petty_cash_categories,id'],
@@ -88,6 +93,7 @@ class SupplyTransactionController extends Controller
             'description' => $validated['description'] ?? null,
             'amount' => $validated['amount'],
             'quantity' => $validated['quantity'] ?? null,
+            'pl_account_id' => $validated['pl_account_id'],
             'source_type' => $validated['source_type'],
             'bank_account_id' => $validated['bank_account_id'] ?? null,
             'reference_number' => $validated['reference_number'] ?? null,
@@ -133,6 +139,9 @@ class SupplyTransactionController extends Controller
             );
         }
 
+        // Buat entri laba rugi untuk pembelian/topup supplies
+        $this->createProfitLossEntriesForTopup($topup);
+
         return redirect()->route('admin-keuangan.supplies.index')
             ->with('success', 'Top-up supplies berhasil dicatat.');
     }
@@ -146,6 +155,7 @@ class SupplyTransactionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'quantity' => ['nullable', 'numeric', 'min:0.01'],
             'transaction_type' => ['required', Rule::in(['usage', 'depreciation'])],
+            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
             'notes' => ['nullable', 'string'],
         ]);
 
@@ -156,6 +166,7 @@ class SupplyTransactionController extends Controller
             'description' => $validated['description'] ?? null,
             'amount' => $validated['amount'],
             'quantity' => $validated['quantity'] ?? null,
+            'pl_account_id' => $validated['pl_account_id'],
             'source_type' => 'other',
             'notes' => $validated['notes'] ?? null,
             'created_by' => Auth::id(),
@@ -166,6 +177,36 @@ class SupplyTransactionController extends Controller
 
         return redirect()->route('admin-keuangan.supplies.index')
             ->with('success', 'Pemakaian supplies berhasil dicatat.');
+    }
+
+    /**
+     * Create P&L entries for supplies topup/purchase on active periods
+     */
+    private function createProfitLossEntriesForTopup(SupplyTransaction $topup): void
+    {
+        $txnDate = Carbon::parse($topup->transaction_date)->toDateString();
+
+        $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+            ->where('start_date', '<=', $txnDate)
+            ->where('end_date', '>=', $txnDate)
+            ->get();
+
+        // Fallback: periode yang mencakup bulan transaksi
+        if ($periods->isEmpty()) {
+            $monthStart = Carbon::parse($txnDate)->startOfMonth()->toDateString();
+            $monthEnd = Carbon::parse($txnDate)->endOfMonth()->toDateString();
+            $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->where('start_date', '<=', $monthStart)
+                ->where('end_date', '>=', $monthEnd)
+                ->get();
+        }
+
+        foreach ($periods as $period) {
+            $entry = ProfitLossEntry::createFromSupplyTopup($topup, $period->id, Auth::id());
+            if ($entry) {
+                $period->calculateTotals();
+            }
+        }
     }
 
     /**
