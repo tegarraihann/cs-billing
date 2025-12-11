@@ -228,6 +228,23 @@ const CategoryBlock = defineComponent({
     },
   },
   setup(props) {
+    const pickLabel = (item) => {
+      const normalize = (text) => {
+        if (!text) return ''
+        // ambil bagian setelah tanda " - " pertama jika ada
+        const parts = text.split(' - ')
+        return parts.length > 1 ? parts.slice(1).join(' - ').trim() : text.trim()
+      }
+
+      return (
+        normalize(item.description) ||
+        normalize(item.additional_data?.description) ||
+        normalize(item.notes) ||
+        normalize(item.additional_data?.category_name) ||
+        'Item'
+      )
+    }
+
     return () =>
       h('div', { class: 'space-y-2' }, [
         h('div', { class: 'text-xs font-semibold text-gray-600 uppercase tracking-wide' }, props.title),
@@ -242,9 +259,9 @@ const CategoryBlock = defineComponent({
             h(
               'tbody',
               { class: 'divide-y divide-gray-100' },
-              props.items.map((item) =>
-                h('tr', { key: item.id }, [
-                  h('td', { class: 'px-3 py-2 text-gray-900' }, item.account?.account_name || item.description || 'Item'),
+              (props.items || []).map((item, idx) =>
+                h('tr', { key: item.id ?? `${props.title}-${idx}` }, [
+                  h('td', { class: 'px-3 py-2 text-gray-900' }, h('div', { class: 'font-medium' }, pickLabel(item))),
                   h('td', { class: 'px-3 py-2 text-right font-semibold text-gray-900' }, formatCurrency(item.amount)),
                 ])
               )
