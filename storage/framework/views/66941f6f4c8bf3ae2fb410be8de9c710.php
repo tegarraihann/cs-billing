@@ -273,7 +273,6 @@
         </table>
     </div>
 
-    <!-- Transaction Details -->
     <table class="transactions-table">
         <thead style="border: 1px solid #000;">
             <tr>
