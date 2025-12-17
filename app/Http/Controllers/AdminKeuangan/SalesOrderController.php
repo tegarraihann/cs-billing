@@ -297,7 +297,7 @@ class SalesOrderController extends Controller
             'other_costs.*.description' => 'required_with:other_costs|string|max:255',
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
-            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
+            'other_costs.*.vendor_id' => 'required_with:other_costs|nullable', // Must be filled (internal/external)
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -514,7 +514,7 @@ class SalesOrderController extends Controller
             'other_costs.*.description' => 'required_with:other_costs|string|max:255',
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
-            'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
+            'other_costs.*.vendor_id' => 'required_with:other_costs|nullable', // Wajib vendor (internal/eksternal)
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -1218,6 +1218,12 @@ class SalesOrderController extends Controller
         foreach ($otherCosts as $index => $cost) {
             if (isset($cost['amount'])) {
                 $otherCosts[$index]['amount'] = $this->normalizeIndonesianNumber($cost['amount']);
+            }
+            // auto-set category refund jika deskripsi mengandung refund
+            if (!empty($otherCosts[$index]['description']) && empty($otherCosts[$index]['category'])) {
+                if (stripos($otherCosts[$index]['description'], 'refund') !== false) {
+                    $otherCosts[$index]['category'] = 'refund';
+                }
             }
         }
         $request->merge(['other_costs' => $otherCosts]);

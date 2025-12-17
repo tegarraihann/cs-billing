@@ -10,6 +10,8 @@ use App\Models\BankTransaction;
 use App\Models\ChartOfAccount;
 use App\Models\ProfitLossEntry;
 use App\Models\ProfitLossPeriod;
+use App\Models\PettyCashTransaction;
+use App\Models\PettyCashBalance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -103,6 +105,28 @@ class PrepaidRentController extends Controller
                 $topup->id,
                 $validated['transaction_date']
             );
+        }
+
+        // Jika sumbernya petty cash, catat pengeluaran petty cash
+        if ($validated['source_type'] === 'petty_cash' && !empty($validated['petty_cash_category_id'])) {
+            $openingBalance = PettyCashBalance::calculateBalanceUpToDate($validated['transaction_date'], false);
+            $closingBalance = $openingBalance - $validated['amount'];
+
+            PettyCashTransaction::create([
+                'transaction_date' => $validated['transaction_date'],
+                'description' => 'Prepaid Rent - ' . ($validated['description'] ?? 'Topup'),
+                'category_id' => $validated['petty_cash_category_id'],
+                'amount' => $validated['amount'],
+                'type' => 'expense',
+                'status' => 'approved',
+                'user_id' => Auth::id(),
+                'auto_generated' => true,
+                'notes' => $validated['notes'] ?? null,
+                'balance_after' => $closingBalance,
+            ]);
+
+            // perbarui saldo petty cash pada tanggal transaksi
+            PettyCashBalance::updateBalanceForDate($validated['transaction_date']);
         }
 
         // Topup prepaid rent dicatat sebagai aset, tidak ke P&L

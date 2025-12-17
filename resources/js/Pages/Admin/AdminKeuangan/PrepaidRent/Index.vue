@@ -145,7 +145,7 @@
         </div>
 
         <div v-if="showTopupModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto mx-4">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-gray-900">Tambah Pembayaran Sewa</h3>
                     <button @click="closeTopupModal" class="text-gray-400 hover:text-gray-600">&times;</button>
@@ -182,7 +182,7 @@
                         >
                             <option value="">Pilih biaya (opsional)</option>
                             <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
-                                {{ account.code }} - {{ account.name }}
+                                {{ account.account_code }} - {{ account.account_name }}
                             </option>
                         </select>
                         <p v-if="topupForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ topupForm.errors.pl_account_id }}</p>
@@ -273,7 +273,7 @@
         </div>
 
         <div v-if="showAmortizationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto mx-4">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-gray-900">Catat Penyusutan</h3>
                     <button @click="closeAmortizationModal" class="text-gray-400 hover:text-gray-600">&times;</button>
@@ -308,7 +308,7 @@
                         >
                             <option value="">Pilih biaya</option>
                             <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
-                                {{ account.code }} - {{ account.name }}
+                                {{ account.account_code }} - {{ account.account_name }}
                             </option>
                         </select>
                         <p v-if="amortizationForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ amortizationForm.errors.pl_account_id }}</p>
@@ -454,6 +454,8 @@ const submitTopup = () => {
     topupForm.post(route('admin-keuangan.prepaid-rent.topup'), {
         onSuccess: () => {
             closeTopupModal()
+            topupForm.reset()
+            applyFilters()
         }
     })
 }
@@ -462,6 +464,8 @@ const submitAmortization = () => {
     amortizationForm.post(route('admin-keuangan.prepaid-rent.amortization'), {
         onSuccess: () => {
             closeAmortizationModal()
+            amortizationForm.reset()
+            applyFilters()
         }
     })
 }

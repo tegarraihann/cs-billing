@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use App\Models\Vendor;
 
 class AccountPayable extends Model
 {
@@ -200,9 +201,40 @@ class AccountPayable extends Model
 
     public static function generateFromSalesOrder(SalesOrder $salesOrder): void
     {
-        if (!$salesOrder->vendor_breakdown || !is_array($salesOrder->vendor_breakdown)) {
+        $vendorBreakdown = is_array($salesOrder->vendor_breakdown) ? $salesOrder->vendor_breakdown : [];
+
+        // Tambahkan other_costs (refund/operational) sebagai vendor breakdown untuk hutang
+        if (is_array($salesOrder->other_costs) && !empty($salesOrder->other_costs)) {
+            $mappedOtherCosts = collect($salesOrder->other_costs)
+                ->filter(function ($item) {
+                    return is_array($item)
+                        && isset($item['amount'])
+                        && floatval($item['amount']) > 0
+                        && !empty($item['vendor_id']);
+                })
+                ->map(function ($item) {
+                    $vendorId = self::normalizeVendorIdentifierValue($item['vendor_id'] ?? null);
+                    $vendor = $vendorId ? Vendor::find($vendorId) : null;
+                    return [
+                        'vendor_id' => $vendorId,
+                        'nama_vendor' => $vendor?->nama_vendor ?? ($item['vendor_name'] ?? ($item['category'] ?? 'Divisi Operational')),
+                        'description' => $item['description'] ?? 'Other Cost',
+                        'remarks' => $item['remarks'] ?? ($item['category'] ?? null),
+                        'buying_amount' => (float) ($item['amount'] ?? 0),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $vendorBreakdown = array_merge($vendorBreakdown, $mappedOtherCosts);
+        }
+
+        if (empty($vendorBreakdown)) {
             return;
         }
+
+        // Set ulang vendor_breakdown pada model untuk sinkronisasi komponen
+        $salesOrder->setAttribute('vendor_breakdown', $vendorBreakdown);
 
         $existingPayables = self::where('sales_order_id', $salesOrder->id)->get();
         $existingMap = $existingPayables->keyBy(function (self $payable) {

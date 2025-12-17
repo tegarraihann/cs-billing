@@ -142,7 +142,7 @@
         </div>
 
         <div v-if="showPurchaseModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto mx-4">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-gray-900">Tambah Pembelian Equipment</h3>
                     <button @click="closePurchaseModal" class="text-gray-400 hover:text-gray-600">&times;</button>
@@ -440,6 +440,8 @@ const submitPurchase = () => {
     purchaseForm.post(route('admin-keuangan.equipment.purchase'), {
         onSuccess: () => {
             closePurchaseModal()
+            purchaseForm.reset()
+            applyFilters()
         }
     })
 }

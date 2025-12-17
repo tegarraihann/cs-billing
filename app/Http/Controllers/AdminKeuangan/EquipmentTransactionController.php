@@ -10,6 +10,8 @@ use App\Models\BankTransaction;
 use App\Models\ProfitLossEntry;
 use App\Models\ProfitLossPeriod;
 use App\Models\ChartOfAccount;
+use App\Models\PettyCashTransaction;
+use App\Models\PettyCashBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -113,6 +115,27 @@ class EquipmentTransactionController extends Controller
                 $purchase->id,
                 $validated['transaction_date']
             );
+        }
+
+        // Jika sumber petty cash, catat pengeluaran petty cash dan perbarui saldo
+        if ($validated['source_type'] === 'petty_cash' && !empty($validated['petty_cash_category_id'])) {
+            $openingBalance = PettyCashBalance::calculateBalanceUpToDate($validated['transaction_date'], false);
+            $closingBalance = $openingBalance - $validated['amount'];
+
+            PettyCashTransaction::create([
+                'transaction_date' => $validated['transaction_date'],
+                'description' => 'Pembelian Equipment - ' . ($validated['asset_name'] ?? 'Aset'),
+                'category_id' => $validated['petty_cash_category_id'],
+                'amount' => $validated['amount'],
+                'type' => 'expense',
+                'status' => 'approved',
+                'user_id' => Auth::id(),
+                'auto_generated' => true,
+                'notes' => $validated['notes'] ?? null,
+                'balance_after' => $closingBalance,
+            ]);
+
+            PettyCashBalance::updateBalanceForDate($validated['transaction_date']);
         }
 
         // Catat entri laba rugi sesuai akun biaya yang dipilih

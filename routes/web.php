@@ -309,33 +309,27 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         $totalInvoices = \App\Models\Invoice::count();
         $paidInvoices = \App\Models\Invoice::where('status', 'paid')->count();
 
-        // Profit Analytics - gunakan data aktual (invoice paid + biaya yang benar-benar tercatat)
-        $invoicesWithItems = \App\Models\Invoice::with('items')
-            ->where('status', 'paid')
-            ->get();
+        // Profit Analytics - pakai data aktual dari Profit & Loss
+        $activePeriod = \App\Models\ProfitLossPeriod::whereDate('start_date', '<=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('start_date')
+            ->first() ?? \App\Models\ProfitLossPeriod::orderByDesc('start_date')->first();
 
-        // Calculate gross revenue (all billable items)
-        $grossRevenue = $invoicesWithItems->sum(function($invoice) {
-            return $invoice->items->where('item_type', '!=', 'operational_cost')
-                ->where('include_in_customer_invoice', true)
-                ->where('is_hidden_from_customer', false)
-                ->sum('amount');
-        });
+        $plEntries = collect();
+        if ($activePeriod) {
+            $plEntries = \App\Models\ProfitLossEntry::with('account')
+                ->where('period_id', $activePeriod->id)
+                ->get();
+        }
 
-        // Calculate operational costs (actual costs from AP components + approved petty cash)
-        $accountPayableOperationalCosts = \App\Models\AccountPayableComponent::where('component_type', 'operational_cost')
-            ->whereHas('accountPayable', function ($query) {
-                $query->whereNotIn('status', ['cancelled', 'rejected']);
-            })
-            ->sum('amount');
+        $grossRevenue = $plEntries->filter(function ($entry) {
+            return $entry->account && $entry->account->account_type === 'revenue';
+        })->sum('amount');
 
-        $pettyCashOperationalCosts = \App\Models\PettyCashTransaction::where('type', 'expense')
-            ->where('status', 'approved')
-            ->sum('amount');
+        $operationalCosts = $plEntries->filter(function ($entry) {
+            return $entry->account && $entry->account->account_type === 'expense';
+        })->sum('amount');
 
-        $operationalCosts = $accountPayableOperationalCosts + $pettyCashOperationalCosts;
-
-        // Calculate net profit and margin
         $netProfit = $grossRevenue - $operationalCosts;
         $profitMargin = $grossRevenue > 0 ? ($netProfit / $grossRevenue) * 100 : 0;
 
@@ -345,31 +339,17 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
             $monthStart = now()->subMonths($i)->startOfMonth();
             $monthEnd = now()->subMonths($i)->endOfMonth();
 
-            $monthlyInvoices = \App\Models\Invoice::with('items')
-                ->where('status', 'paid')
-                ->whereBetween('payment_confirmed_at', [$monthStart, $monthEnd])
+            $monthlyEntries = \App\Models\ProfitLossEntry::with('account')
+                ->whereBetween('transaction_date', [$monthStart, $monthEnd])
                 ->get();
 
-            $monthlyGrossRevenue = $monthlyInvoices->sum(function($invoice) {
-                return $invoice->items->where('item_type', '!=', 'operational_cost')
-                    ->where('include_in_customer_invoice', true)
-                    ->where('is_hidden_from_customer', false)
-                    ->sum('amount');
-            });
+            $monthlyGrossRevenue = $monthlyEntries->filter(function ($entry) {
+                return $entry->account && $entry->account->account_type === 'revenue';
+            })->sum('amount');
 
-            $monthlyApOperationalCosts = \App\Models\AccountPayableComponent::where('component_type', 'operational_cost')
-                ->whereBetween('created_at', [$monthStart, $monthEnd])
-                ->whereHas('accountPayable', function ($query) {
-                    $query->whereNotIn('status', ['cancelled', 'rejected']);
-                })
-                ->sum('amount');
-
-            $monthlyPettyCashCosts = \App\Models\PettyCashTransaction::where('type', 'expense')
-                ->where('status', 'approved')
-                ->whereBetween('transaction_date', [$monthStart, $monthEnd])
-                ->sum('amount');
-
-            $monthlyOperationalCosts = $monthlyApOperationalCosts + $monthlyPettyCashCosts;
+            $monthlyOperationalCosts = $monthlyEntries->filter(function ($entry) {
+                return $entry->account && $entry->account->account_type === 'expense';
+            })->sum('amount');
 
             $monthlyNetProfit = $monthlyGrossRevenue - $monthlyOperationalCosts;
 

@@ -80,38 +80,39 @@
         <!-- Structured sections -->
         <div class="space-y-6">
           <SectionCard title="PENDAPATAN" :total="reportData.revenues.total" tone="text-green-700">
-            <CategoryBlock v-if="revenuesMain.length" title="Pendapatan Utama" :items="revenuesMain" />
-
-            <CategoryBlock
+            <SummaryRow v-if="totalRevenuesMain > 0" title="Pendapatan Utama" :amount="totalRevenuesMain" />
+            <SummaryRow
               v-if="otherIncome.bunga_mandiri.total > 0"
               title="Pendapatan Lain-lain - Bunga Bank Mandiri"
-              :items="otherIncome.bunga_mandiri.entries"
+              :amount="otherIncome.bunga_mandiri.total"
             />
-            <CategoryBlock
+            <SummaryRow
               v-if="otherIncome.bunga_bca.total > 0"
               title="Pendapatan Lain-lain - Bunga Bank BCA"
-              :items="otherIncome.bunga_bca.entries"
+              :amount="otherIncome.bunga_bca.total"
             />
-            <CategoryBlock
+            <SummaryRow
               v-if="otherIncome.lainnya.total > 0"
               title="Pendapatan Lain-lain - Lainnya"
-              :items="otherIncome.lainnya.entries"
+              :amount="otherIncome.lainnya.total"
             />
           </SectionCard>
 
           <SectionCard title="BEBAN" :total="expensesTotal" tone="text-red-700">
-            <CategoryBlock v-if="expensesSalary.length" title="Beban Gaji" :items="expensesSalary" />
-            <div v-if="operationalGrouped.length" class="space-y-4">
+            <SummaryRow v-if="totalExpensesSalary > 0" title="Beban Gaji" :amount="totalExpensesSalary" />
+            <div v-if="operationalGrouped.length" class="space-y-2">
               <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Beban Operasional</div>
-              <CategoryBlock
-                v-for="cat in operationalGrouped"
-                :key="cat.category_name"
-                :title="cat.category_name"
-                :items="cat.entries"
-              />
+              <div class="space-y-1">
+                <SummaryRow
+                  v-for="cat in operationalGrouped"
+                  :key="cat.category_name"
+                  :title="cat.category_name"
+                  :amount="cat.total"
+                />
+              </div>
             </div>
-            <CategoryBlock v-if="expensesAdmin.length" title="Beban Administrasi" :items="expensesAdmin" />
-            <CategoryBlock v-if="expensesOther.length" title="Beban Lain-lain" :items="expensesOther" />
+            <SummaryRow v-if="totalExpensesAdmin > 0" title="Beban Administrasi" :amount="totalExpensesAdmin" />
+            <SummaryRow v-if="totalExpensesOther > 0" title="Beban Lain-lain" :amount="totalExpensesOther" />
           </SectionCard>
 
           <SectionCard
@@ -151,6 +152,7 @@ const summaryCards = computed(() => [
 ])
 
 const revenuesMain = computed(() => props.reportData?.revenues?.main || [])
+const totalRevenuesMain = computed(() => revenuesMain.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const otherIncome = computed(() => {
   const oi = props.reportData?.revenues?.other_income_breakdown || {}
   return {
@@ -165,6 +167,10 @@ const operationalGrouped = computed(() => props.reportData?.expenses?.operationa
 const expensesSalary = computed(() => props.reportData?.expenses?.salary || [])
 const expensesAdmin = computed(() => props.reportData?.expenses?.admin || [])
 const expensesOther = computed(() => props.reportData?.expenses?.other || [])
+
+const totalExpensesSalary = computed(() => expensesSalary.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const totalExpensesAdmin = computed(() => expensesAdmin.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const totalExpensesOther = computed(() => expensesOther.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 
 const isExporting = ref(false)
 const loading = ref(false)
@@ -218,56 +224,20 @@ const SectionCard = defineComponent({
   },
 })
 
-const CategoryBlock = defineComponent({
-  name: 'CategoryBlock',
+const SummaryRow = defineComponent({
+  name: 'SummaryRow',
   props: {
     title: String,
-    items: {
-      type: Array,
-      default: () => [],
+    amount: {
+      type: [Number, String],
+      default: 0,
     },
   },
   setup(props) {
-    const pickLabel = (item) => {
-      const normalize = (text) => {
-        if (!text) return ''
-        // ambil bagian setelah tanda " - " pertama jika ada
-        const parts = text.split(' - ')
-        return parts.length > 1 ? parts.slice(1).join(' - ').trim() : text.trim()
-      }
-
-      return (
-        normalize(item.description) ||
-        normalize(item.additional_data?.description) ||
-        normalize(item.notes) ||
-        normalize(item.additional_data?.category_name) ||
-        'Item'
-      )
-    }
-
     return () =>
-      h('div', { class: 'space-y-2' }, [
-        h('div', { class: 'text-xs font-semibold text-gray-600 uppercase tracking-wide' }, props.title),
-        h('div', { class: 'border border-gray-100 rounded overflow-hidden' }, [
-          h('table', { class: 'min-w-full text-sm' }, [
-            h('thead', { class: 'bg-gray-50' }, [
-              h('tr', [
-                h('th', { class: 'px-3 py-2 text-left font-semibold text-gray-700' }, 'Keterangan'),
-                h('th', { class: 'px-3 py-2 text-right font-semibold text-gray-700' }, 'Nominal'),
-              ]),
-            ]),
-            h(
-              'tbody',
-              { class: 'divide-y divide-gray-100' },
-              (props.items || []).map((item, idx) =>
-                h('tr', { key: item.id ?? `${props.title}-${idx}` }, [
-                  h('td', { class: 'px-3 py-2 text-gray-900' }, h('div', { class: 'font-medium' }, pickLabel(item))),
-                  h('td', { class: 'px-3 py-2 text-right font-semibold text-gray-900' }, formatCurrency(item.amount)),
-                ])
-              )
-            ),
-          ]),
-        ]),
+      h('div', { class: 'flex items-center justify-between border border-gray-100 rounded px-3 py-2 bg-gray-50' }, [
+        h('div', { class: 'text-sm font-semibold text-gray-800' }, props.title || 'Kategori'),
+        h('div', { class: 'text-sm font-bold text-gray-900' }, formatCurrency(props.amount)),
       ])
   },
 })

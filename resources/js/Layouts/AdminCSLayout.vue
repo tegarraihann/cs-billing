@@ -86,6 +86,38 @@
     <main class="lg:ml-64 pt-16 min-h-screen">
       <slot />
     </main>
+
+    <!-- Idle logout modal -->
+    <div
+      v-if="showIdleModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4"
+    >
+      <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
+        <div class="text-lg font-semibold text-gray-900">Session will expire</div>
+        <p class="text-sm text-gray-600">
+          No activity for 10 minutes. You will be logged out in
+          <span class="font-semibold text-red-600">{{ idleCountdown }}</span> seconds.
+        </p>
+        <div class="flex justify-end space-x-3">
+          <button
+            type="button"
+            class="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+            @click="stayLoggedIn"
+            :disabled="idleProcessing"
+          >
+            Continue
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+            @click="forceLogout"
+            :disabled="idleProcessing"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -95,6 +127,7 @@ import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import SidebarNavigation from "@/Pages/Admin/AdminCS/Components/SidebarNavigation.vue";
 import { Menu, ChevronDown, UserRound, LogOut } from "lucide-vue-next";
+import { useIdleTimeout } from "@/Composables/useIdleTimeout";
 
 // Route function (use global route helper)
 const route = window.route || function(name, params) {
@@ -112,6 +145,10 @@ const route = window.route || function(name, params) {
 
 // Reactive state
 const isMobileSidebarOpen = ref(false);
+const { showIdleModal, idleCountdown, idleProcessing, stayLoggedIn, forceLogout } = useIdleTimeout({
+  idleMinutes: 10,
+  warningSeconds: 30,
+});
 
 // Methods
 const toggleMobileSidebar = () => {
