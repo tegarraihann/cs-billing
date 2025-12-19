@@ -28,6 +28,10 @@ class AccountReceivable extends Model
         'notes',
         'created_by',
         'account_id',
+        'tax_writeoff_rate',
+        'tax_writeoff_amount',
+        'tax_writeoff_at',
+        'tax_writeoff_account_id',
     ];
 
     protected $casts = [
@@ -40,6 +44,10 @@ class AccountReceivable extends Model
         'payment_terms_days' => 'integer',
         'days_overdue' => 'integer',
         'account_id' => 'integer',
+        'tax_writeoff_rate' => 'decimal:2',
+        'tax_writeoff_amount' => 'decimal:2',
+        'tax_writeoff_at' => 'datetime',
+        'tax_writeoff_account_id' => 'integer',
     ];
 
     protected static function booted(): void

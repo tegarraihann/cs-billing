@@ -17,7 +17,7 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center space-x-3">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                         <span :class="getStatusClass(receivable.status)"
                             class="inline-flex px-3 py-1 text-sm font-semibold rounded-full">
                             {{ getStatusText(receivable.status) }}
@@ -29,21 +29,39 @@
                         <button
                             v-if="canPostVat"
                             @click="postVatPayable"
-                            class="inline-flex items-center px-4 py-2 bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
                             :disabled="postingVat"
                         >
                             <FileText class="w-4 h-4 mr-2" />
                             {{ postingVat ? 'Posting...' : 'Post VAT Payable' }}
                         </button>
+                        <button
+                            v-if="canPostTaxExpense"
+                            @click="postTaxExpense(0.5)"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :disabled="postingTax"
+                        >
+                            <Percent class="w-4 h-4 mr-2" />
+                            {{ postingTax ? 'Posting...' : 'Post Beban Pajak 0.5%' }}
+                        </button>
+                        <button
+                            v-if="canPostTaxExpense"
+                            @click="postTaxExpense(2)"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :disabled="postingTax"
+                        >
+                            <Percent class="w-4 h-4 mr-2" />
+                            {{ postingTax ? 'Posting...' : 'Post Beban Pajak 2%' }}
+                        </button>
 
                         <button v-if="receivable.status !== 'paid'" @click="openPaymentModal"
-                            class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <CreditCard class="w-4 h-4 mr-2" />
                             Record Payment
                         </button>
 
                         <button v-if="receivable.customer" @click="generateSOA"
-                            class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <FileText class="w-4 h-4 mr-2" />
                             Generate SOA
                         </button>
@@ -328,7 +346,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import { ArrowLeft, CreditCard, FileText } from 'lucide-vue-next'
+import { ArrowLeft, CreditCard, FileText, Percent } from 'lucide-vue-next'
 
 const props = defineProps({
     receivable: Object,
@@ -341,6 +359,7 @@ const props = defineProps({
 const showPaymentModal = ref(false)
 const processing = ref(false)
 const postingVat = ref(false)
+const postingTax = ref(false)
 const amountError = ref('')
 
 const paymentForm = reactive({
@@ -379,6 +398,10 @@ const selectedComponent = computed(() => {
 
 const canPostVat = computed(() => {
     return (props.receivable?.outstanding_amount || 0) > 0 && props.receivable?.status !== 'paid'
+})
+
+const canPostTaxExpense = computed(() => {
+    return (props.receivable?.outstanding_amount || 0) > 0 && !props.receivable?.tax_writeoff_at
 })
 
 const getComponentLabel = (type) => {
@@ -633,6 +656,28 @@ const postVatPayable = () => {
         {
             onFinish: () => {
                 postingVat.value = false
+            }
+        }
+    )
+}
+
+const postTaxExpense = (rate) => {
+    if (!canPostTaxExpense.value || postingTax.value) {
+        return
+    }
+
+    const ok = window.confirm(`Post outstanding ke Beban Pajak ${rate}% dan tutup piutang?`)
+    if (!ok) {
+        return
+    }
+
+    postingTax.value = true
+    router.post(
+        route('admin-keuangan.account-receivables.post-tax-expense', props.receivable.id),
+        { tax_rate: rate },
+        {
+            onFinish: () => {
+                postingTax.value = false
             }
         }
     )

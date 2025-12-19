@@ -577,6 +577,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{accountReceivable}/payment-data', 'paymentData')->name('payment-data');
         Route::post('/{accountReceivable}/record-payment', 'recordPayment')->name('record-payment');
         Route::post('/{accountReceivable}/post-vat', 'postVatPayable')->name('post-vat');
+        Route::post('/{accountReceivable}/post-tax-expense', 'postTaxExpense')->name('post-tax-expense');
         Route::get('/customers/{customer}/generate-soa', 'generateSOA')->name('generate-soa');
         Route::get('/customers/{customer}/receivables', 'getByCustomer')->name('get-by-customer');
         Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');

@@ -112,6 +112,7 @@
               </div>
             </div>
             <SummaryRow v-if="totalExpensesAdmin > 0" title="Beban Administrasi" :amount="totalExpensesAdmin" />
+            <SummaryRow v-if="totalExpensesTax > 0" title="Tax Expenses" :amount="totalExpensesTax" />
             <SummaryRow v-if="totalExpensesOther > 0" title="Beban Lain-lain" :amount="totalExpensesOther" />
           </SectionCard>
 
@@ -166,10 +167,12 @@ const expensesTotal = computed(() => props.reportData?.expenses?.total || 0)
 const operationalGrouped = computed(() => props.reportData?.expenses?.operational?.grouped || [])
 const expensesSalary = computed(() => props.reportData?.expenses?.salary || [])
 const expensesAdmin = computed(() => props.reportData?.expenses?.admin || [])
+const expensesTax = computed(() => props.reportData?.expenses?.tax || [])
 const expensesOther = computed(() => props.reportData?.expenses?.other || [])
 
 const totalExpensesSalary = computed(() => expensesSalary.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesAdmin = computed(() => expensesAdmin.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const totalExpensesTax = computed(() => expensesTax.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesOther = computed(() => expensesOther.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 
 const isExporting = ref(false)

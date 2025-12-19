@@ -47,6 +47,8 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => '5400', 'name' => 'Beban Marketing', 'type' => 'expense', 'category' => 'expense_marketing', 'parent' => '5000', 'sort' => 40],
             ['code' => '5410', 'name' => 'Promosi & Iklan', 'type' => 'expense', 'category' => 'expense_marketing', 'parent' => '5400', 'sort' => 41],
             ['code' => '5420', 'name' => 'Entertainment', 'type' => 'expense', 'category' => 'expense_marketing', 'parent' => '5400', 'sort' => 42],
+            ['code' => '5450', 'name' => 'Beban Pajak 0.5%', 'type' => 'expense', 'category' => 'expense_tax', 'parent' => '5000', 'sort' => 43],
+            ['code' => '5451', 'name' => 'Beban Pajak 2%', 'type' => 'expense', 'category' => 'expense_tax', 'parent' => '5000', 'sort' => 44],
 
             // ASSET ACCOUNTS
             ['code' => '1000', 'name' => 'ASET LANCAR', 'type' => 'asset', 'category' => 'asset_cash', 'parent' => null, 'sort' => 50],

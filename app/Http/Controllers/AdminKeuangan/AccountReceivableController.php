@@ -260,6 +260,140 @@ class AccountReceivableController extends Controller
     }
 
     /**
+     * Post outstanding AR to tax expense (0.5% or 2%) and close AR.
+     */
+    public function postTaxExpense(AccountReceivable $accountReceivable, Request $request)
+    {
+        $validated = $request->validate([
+            'tax_rate' => ['required', Rule::in(['0.5', '2', 0.5, 2])],
+        ]);
+
+        $accountReceivable->loadMissing(['invoice', 'customer']);
+
+        if ($accountReceivable->outstanding_amount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting.']);
+        }
+
+        if ($accountReceivable->tax_writeoff_at) {
+            return redirect()->back()->withErrors(['error' => 'Piutang ini sudah diposting ke beban pajak.']);
+        }
+
+        $rate = (float) $validated['tax_rate'];
+        $expenseAccount = $this->resolveTaxExpenseAccount($rate);
+        if (!$expenseAccount) {
+            return redirect()->back()->withErrors(['error' => 'Akun Beban Pajak belum dikonfigurasi.']);
+        }
+
+        $amount = (float) $accountReceivable->outstanding_amount;
+        $now = now();
+
+        DB::transaction(function () use ($accountReceivable, $amount, $expenseAccount, $rate, $now) {
+            $invoice = $accountReceivable->invoice;
+            $periodId = null;
+
+            if ($invoice && $invoice->invoice_date) {
+                $periodId = ProfitLossPeriod::active()
+                    ->whereDate('start_date', '<=', $invoice->invoice_date)
+                    ->whereDate('end_date', '>=', $invoice->invoice_date)
+                    ->orderBy('start_date')
+                    ->value('id');
+            }
+
+            if ($periodId) {
+                ProfitLossEntry::updateOrCreate(
+                    [
+                        'period_id' => $periodId,
+                        'reference_type' => 'account_receivable_tax',
+                        'reference_id' => $accountReceivable->id,
+                        'entry_type' => $rate === 0.5 ? 'manual_tax_0_5' : 'manual_tax_2',
+                    ],
+                    [
+                        'account_id' => $expenseAccount->id,
+                        'description' => ($rate === 0.5 ? 'Beban Pajak 0.5%' : 'Beban Pajak 2%') . ' - ' . ($invoice?->invoice_number ?? $accountReceivable->invoice_number),
+                        'amount' => $amount,
+                        'transaction_date' => $now->toDateString(),
+                        'notes' => 'Post beban pajak dari AR ' . $accountReceivable->invoice_number,
+                        'additional_data' => [
+                            'invoice_number' => $invoice?->invoice_number,
+                            'customer_name' => $accountReceivable->customer->company_name ?? $accountReceivable->customer_name ?? '',
+                            'tax_rate' => $rate,
+                        ],
+                        'created_by' => auth()->id(),
+                    ]
+                );
+            }
+
+            $accountReceivable->update([
+                'tax_writeoff_rate' => $rate,
+                'tax_writeoff_amount' => $amount,
+                'tax_writeoff_at' => $now,
+                'tax_writeoff_account_id' => $expenseAccount->id,
+            ]);
+
+            // Tutup semua komponen/outstanding AR
+            $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+            $accountReceivable->load('components');
+
+            $remaining = $amount;
+            $components = $accountReceivable->components;
+
+            if ($components->isEmpty()) {
+                $accountReceivable->recordPayment(
+                    $remaining,
+                    'Posted to Tax Expense ' . $rate . '%',
+                    null,
+                    Carbon::parse($now)
+                );
+            } else {
+                foreach ($components as $component) {
+                    $out = (float) $component->outstanding_amount;
+                    if ($out <= 0 || $remaining <= 0) {
+                        continue;
+                    }
+                    $pay = min($out, $remaining);
+                    $accountReceivable->recordPayment(
+                        $pay,
+                        'Posted to Tax Expense ' . $rate . '%',
+                        $component,
+                        Carbon::parse($now)
+                    );
+                    $remaining -= $pay;
+                }
+            }
+        });
+
+        return redirect()->back()->with('success', 'Outstanding diposting ke beban pajak dan piutang ditutup.');
+    }
+
+    private function resolveTaxExpenseAccount(float $rate): ?ChartOfAccount
+    {
+        $rateKey = $rate === 0.5 ? '0.5' : '2';
+        $accountName = $rate === 0.5 ? 'Beban Pajak 0.5%' : 'Beban Pajak 2%';
+        $accountCode = $rate === 0.5 ? '5450' : '5451';
+
+        $account = ChartOfAccount::where('account_code', $accountCode)->first();
+        if (!$account) {
+            $account = ChartOfAccount::where('account_name', $accountName)->first();
+        }
+
+        if (!$account) {
+            $account = ChartOfAccount::create([
+                'account_code' => $accountCode,
+                'account_name' => $accountName,
+                'account_type' => 'expense',
+                'account_category' => 'expense_tax',
+                'is_active' => true,
+                'sort_order' => 0,
+                'description' => 'Auto created for tax expense rate ' . $rateKey . '%',
+            ]);
+        } elseif ($account->account_category !== 'expense_tax') {
+            $account->update(['account_category' => 'expense_tax']);
+        }
+
+        return $account;
+    }
+
+    /**
      * Record a payment for account receivable
      */
     public function recordPayment(Request $request, AccountReceivable $accountReceivable)

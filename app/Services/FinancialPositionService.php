@@ -13,6 +13,7 @@ use App\Models\PettyCashBalance;
 use App\Models\PrepaidRentTransaction;
 use App\Models\ProfitLossPeriod;
 use App\Models\SupplyTransaction;
+use App\Models\ProfitLossEntry;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -40,7 +41,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'CURRENT LIABILITIES',
-                    'account_codes' => ['2100', '2110', '2111'],
+                    'account_codes' => ['2100', '2110', '2111', '5450', '5451'],
                 ],
             ],
         ],
@@ -187,6 +188,7 @@ class FinancialPositionService
             '1515' => $this->calculateEquipmentAccumulatedBalance($cutoff),
             '1400' => $this->calculatePrepaidRentBalance($cutoff),
             '2110', '2111' => $this->calculateVatPayableBalance($accountCode, $cutoff),
+            '5450', '5451' => $this->calculateTaxExpensePayableBalance($accountCode, $cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3100' => $this->calculatePaidInCapitalBalance($accountCode, $cutoff),
             '3200' => $this->calculateRetainedEarningsBalance($cutoff),
@@ -292,6 +294,31 @@ class FinancialPositionService
 
         $query = FinancialPositionAdjustment::where('account_id', $accountId)
             ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('amount');
+        $records = $query->count();
+
+        return [
+            'amount' => round($amount, 2),
+            'source' => 'auto',
+            'meta' => [
+                'records' => $records,
+            ],
+        ];
+    }
+
+    /**
+     * Calculate tax expense payable balance (0.5% / 2%) from P&L entries.
+     */
+    private function calculateTaxExpensePayableBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $query = ProfitLossEntry::where('account_id', $accountId)
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString());
 
         $amount = (float) $query->sum('amount');
         $records = $query->count();
