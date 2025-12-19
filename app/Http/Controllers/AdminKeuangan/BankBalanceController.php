@@ -136,6 +136,7 @@ class BankBalanceController extends Controller
         $transactions = $bank->transactions()
                             ->with('creator')
                             ->orderBy('transaction_date', 'desc')
+                            ->orderBy('created_at', 'desc')
                             ->paginate(20);
 
         return Inertia::render('Admin/AdminKeuangan/BankBalance/History', [

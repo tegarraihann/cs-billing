@@ -227,11 +227,15 @@
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Sumber Dana</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Sumber Dana <span class="text-red-500">*</span>
+                                </label>
                                 <select
                                     v-model="topupForm.source_type"
                                     class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
+                                    required
                                 >
+                                    <option value="">Pilih sumber dana</option>
                                     <option value="other">Lainnya</option>
                                     <option value="bank">Bank</option>
                                     <option value="petty_cash">Petty Cash</option>
@@ -437,7 +441,7 @@ const topupForm = useForm({
     amount: '',
     quantity: '',
     pl_account_id: '',
-    source_type: 'other',
+    source_type: '',
     bank_account_id: '',
     petty_cash_category_id: '',
     reference_number: '',
