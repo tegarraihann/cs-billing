@@ -21,9 +21,11 @@ Ganti path PHP dan project sesuai hosting.
 
 ### Jadwal penting
 - `bank:rollover-opening` setiap tanggal 1 pukul 00:10 (buat opening balance bulan berjalan dari closing bulan sebelumnya).
+- `equipment:post-depreciation` setiap hari pukul 01:30 (posting otomatis penyusutan equipment berdasarkan jadwal).
 
 ## Jalankan Manual (opsional)
 - Rollover opening bank: `php artisan bank:rollover-opening`
+- Post otomatis penyusutan equipment: `php artisan equipment:post-depreciation`
 
 ## File Penting
 - SO Finance PDF: `resources/views/admin/admin-keuangan/sales-orders/pdf.blade.php` (data live).

@@ -11,5 +11,8 @@ Artisan::command('inspire', function () {
 // Schedule prepaid rent amortization daily (idempotent)
 Schedule::command('prepaid-rent:amortize')->dailyAt('01:00');
 
+// Schedule equipment depreciation posting daily (idempotent)
+Schedule::command('equipment:post-depreciation')->dailyAt('01:30');
+
 // Rollover opening balance bank setiap awal bulan (ambil closing bulan sebelumnya)
 Schedule::command('bank:rollover-opening')->monthlyOn(1, '00:10');

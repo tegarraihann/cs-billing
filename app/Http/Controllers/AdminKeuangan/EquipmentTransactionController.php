@@ -106,6 +106,9 @@ class EquipmentTransactionController extends Controller
             'created_by' => Auth::id(),
         ]);
 
+        // Generate depreciation schedule (if configured)
+        $purchase->ensureDepreciationSchedules();
+
         // Jika sumber bank, catat pengeluaran bank
         if ($validated['source_type'] === 'bank' && !empty($validated['bank_account_id'])) {
             BankTransaction::recordVendorPayment(
