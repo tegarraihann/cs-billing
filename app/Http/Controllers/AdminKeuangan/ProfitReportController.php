@@ -39,7 +39,9 @@ class ProfitReportController extends Controller
         $profitData = $salesOrders->map(function ($salesOrder) {
             // Use invoice data for accurate profit calculation
             $revenue = $this->calculateTotalRevenue($salesOrder);
-            $costs = $this->calculateTotalCosts($salesOrder);
+            $operationalCosts = $this->calculateOperationalCosts($salesOrder);
+            $taxExpense = $this->calculateTaxExpense($salesOrder);
+            $costs = $operationalCosts + $taxExpense;
 
             $profit = $revenue - $costs;
             $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
@@ -53,6 +55,8 @@ class ProfitReportController extends Controller
                 'sales_order' => $salesOrder,
                 'revenue' => $revenue,
                 'costs' => $costs,
+                'operational_costs' => $operationalCosts,
+                'tax_expense' => $taxExpense,
                 'profit' => $profit,
                 'profit_margin' => $profitMargin,
                 'invoice_total' => $invoiceTotal,
@@ -66,6 +70,7 @@ class ProfitReportController extends Controller
         $summary = [
             'total_revenue' => $profitData->sum('revenue'),
             'total_costs' => $profitData->sum('costs'),
+            'total_tax_expense' => $profitData->sum('tax_expense'),
             'total_profit' => $profitData->sum('profit'),
             'total_receivables_paid' => $profitData->sum('receivables_paid'),
             'total_payables_paid' => $profitData->sum('payables_paid'),
@@ -119,7 +124,9 @@ class ProfitReportController extends Controller
 
         $profitData = $salesOrders->map(function ($salesOrder) {
             $revenue = $this->calculateTotalRevenue($salesOrder);
-            $costs = $this->calculateTotalCosts($salesOrder);
+            $operationalCosts = $this->calculateOperationalCosts($salesOrder);
+            $taxExpense = $this->calculateTaxExpense($salesOrder);
+            $costs = $operationalCosts + $taxExpense;
             $profit = $revenue - $costs;
             $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
             
@@ -127,6 +134,8 @@ class ProfitReportController extends Controller
                 'sales_order' => $salesOrder,
                 'revenue' => $revenue,
                 'costs' => $costs,
+                'operational_costs' => $operationalCosts,
+                'tax_expense' => $taxExpense,
                 'profit' => $profit,
                 'profit_margin' => $profitMargin,
                 'profit_status' => $this->getProfitStatus($profit, $profitMargin)
@@ -136,6 +145,7 @@ class ProfitReportController extends Controller
         $summary = [
             'total_revenue' => $profitData->sum('revenue'),
             'total_costs' => $profitData->sum('costs'),
+            'total_tax_expense' => $profitData->sum('tax_expense'),
             'total_profit' => $profitData->sum('profit'),
             'average_profit_margin' => $profitData->avg('profit_margin'),
             'profitable_shipments' => $profitData->where('profit', '>', 0)->count(),
@@ -175,7 +185,9 @@ class ProfitReportController extends Controller
 
         // Calculate detailed breakdown using invoice data
         $revenue = $this->calculateTotalRevenue($salesOrder);
-        $costs = $this->calculateTotalCosts($salesOrder);
+        $operationalCosts = $this->calculateOperationalCosts($salesOrder);
+        $taxExpense = $this->calculateTaxExpense($salesOrder);
+        $costs = $operationalCosts + $taxExpense;
         $profit = $revenue - $costs;
         $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
 
@@ -220,6 +232,8 @@ class ProfitReportController extends Controller
             'profitAnalysis' => [
                 'revenue' => $revenue,
                 'costs' => $costs,
+                'operational_costs' => $operationalCosts,
+                'tax_expense' => $taxExpense,
                 'profit' => $profit,
                 'profit_margin' => $profitMargin,
                 'profit_status' => $this->getProfitStatus($profit, $profitMargin)
@@ -358,7 +372,7 @@ class ProfitReportController extends Controller
 
         $totalRevenue = $salesOrders->sum('total_selling');
         $totalCosts = $salesOrders->sum(function ($so) {
-            return $this->calculateTotalCosts($so);
+            return $this->calculateOperationalCosts($so) + $this->calculateTaxExpense($so);
         });
         $totalProfit = $totalRevenue - $totalCosts;
         $averageMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
@@ -371,7 +385,7 @@ class ProfitReportController extends Controller
             'shipment_count' => $salesOrders->count(),
             'profitable_count' => $salesOrders->filter(function ($so) {
                 $revenue = $so->total_selling ?? 0;
-                $costs = $this->calculateTotalCosts($so);
+                $costs = $this->calculateOperationalCosts($so) + $this->calculateTaxExpense($so);
                 return ($revenue - $costs) > 0;
             })->count()
         ];
@@ -398,7 +412,7 @@ class ProfitReportController extends Controller
                     ->get();
 
                 $costs = $customerSalesOrders->sum(function ($so) {
-                    return $this->calculateTotalCosts($so);
+                    return $this->calculateOperationalCosts($so) + $this->calculateTaxExpense($so);
                 });
                 
                 $profit = $item->total_revenue - $costs;
@@ -457,12 +471,21 @@ class ProfitReportController extends Controller
      * Calculate operational costs for a sales order
      * Only includes operational costs from invoices (consistent with Invoice Show)
      */
-    private function calculateTotalCosts(SalesOrder $salesOrder): float
+    private function calculateOperationalCosts(SalesOrder $salesOrder): float
     {
         $totalCosts = 0;
         foreach ($salesOrder->invoices as $invoice) {
             $totalCosts += $invoice->calculateOperationalCosts();
         }
         return $totalCosts;
+    }
+
+    private function calculateTaxExpense(SalesOrder $salesOrder): float
+    {
+        return $salesOrder->accountReceivables
+            ->whereNotNull('tax_writeoff_at')
+            ->sum(function ($receivable) {
+                return (float) ($receivable->tax_writeoff_amount ?? 0);
+            });
     }
 }

@@ -146,34 +146,34 @@
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                    <div class="text-sm font-medium text-blue-600 mb-1">Total Revenue</div>
-                    <div class="text-2xl font-bold text-blue-900">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Total Revenue</div>
+                    <div class="text-lg font-bold text-gray-900">
                         Rp {{ formatNumber(summary.total_revenue) }}
                     </div>
                 </div>
-                <div class="bg-red-50 p-6 rounded-lg border border-red-200">
-                    <div class="text-sm font-medium text-red-600 mb-1">Total Costs</div>
-                    <div class="text-2xl font-bold text-red-900">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Total Costs</div>
+                    <div class="text-lg font-bold text-gray-900">
                         Rp {{ formatNumber(summary.total_costs) }}
                     </div>
                 </div>
-                <div class="bg-green-50 p-6 rounded-lg border border-green-200">
-                    <div class="text-sm font-medium text-green-600 mb-1">Total Profit</div>
-                    <div class="text-2xl font-bold" :class="summary.total_profit >= 0 ? 'text-green-900' : 'text-red-900'">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Total Profit</div>
+                    <div class="text-lg font-bold" :class="summary.total_profit >= 0 ? 'text-green-600' : 'text-red-600'">
                         Rp {{ formatNumber(summary.total_profit) }}
                     </div>
                 </div>
-                <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                    <div class="text-sm font-medium text-purple-600 mb-1">Avg Profit Margin</div>
-                    <div class="text-2xl font-bold text-purple-900">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Avg Profit Margin</div>
+                    <div class="text-lg font-bold text-gray-900">
                         {{ formatPercentage(summary.average_profit_margin) }}%
                     </div>
                 </div>
             </div>
 
             <!-- Additional Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                     <div class="text-sm font-medium text-gray-500 mb-1">Profitable Shipments</div>
                     <div class="text-lg font-bold text-green-600">
@@ -190,6 +190,12 @@
                     <div class="text-sm font-medium text-gray-500 mb-1">Breakeven Shipments</div>
                     <div class="text-lg font-bold text-gray-600">
                         {{ summary.breakeven_shipments }} shipments
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Total Tax Expense</div>
+                    <div class="text-lg font-bold text-red-600">
+                        Rp {{ formatNumber(summary.total_tax_expense) }}
                     </div>
                 </div>
             </div>
@@ -211,6 +217,9 @@
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Costs
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tax Expense
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Profit
@@ -251,6 +260,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                                     Rp {{ formatNumber(item.costs) }}
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    Rp {{ formatNumber(item.tax_expense) }}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" 
                                     :class="item.profit >= 0 ? 'text-green-600' : 'text-red-600'">
                                     Rp {{ formatNumber(item.profit) }}
@@ -281,7 +293,7 @@
                                 </td>
                             </tr>
                             <tr v-if="profitData.length === 0">
-                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                <td colspan="9" class="px-6 py-4 text-center text-gray-500">
                                     Tidak ada data untuk periode yang dipilih
                                 </td>
                             </tr>

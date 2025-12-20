@@ -41,7 +41,7 @@
 
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 15px;
         }
 
@@ -150,6 +150,10 @@
                 <div class="value">Rp {{ number_format($summary['total_costs'], 0, ',', '.') }}</div>
             </div>
             <div class="summary-item">
+                <div class="label">Total Tax Expense</div>
+                <div class="value">Rp {{ number_format($summary['total_tax_expense'] ?? 0, 0, ',', '.') }}</div>
+            </div>
+            <div class="summary-item">
                 <div class="label">Total Profit</div>
                 <div class="value {{ $summary['total_profit'] >= 0 ? 'profit' : 'loss' }}">
                     Rp {{ number_format($summary['total_profit'], 0, ',', '.') }}
@@ -179,11 +183,12 @@
                 <th style="width: 18%;">Customer</th>
                 <th style="width: 10%;">Date</th>
                 <th style="width: 12%;">Revenue</th>
-                <th style="width: 12%;">Costs</th>
-                <th style="width: 12%;">Profit</th>
-                <th style="width: 8%;">Margin</th>
-                <th style="width: 8%;">Status</th>
-                <th style="width: 8%;">Invoice Status</th>
+                <th style="width: 11%;">Costs</th>
+                <th style="width: 11%;">Tax Expense</th>
+                <th style="width: 11%;">Profit</th>
+                <th style="width: 7%;">Margin</th>
+                <th style="width: 7%;">Status</th>
+                <th style="width: 7%;">Invoice Status</th>
             </tr>
         </thead>
         <tbody>
@@ -194,6 +199,7 @@
                 <td class="text-center">{{ $data['sales_order']->created_at->format('d/m/Y') }}</td>
                 <td class="text-right">Rp {{ number_format($data['revenue'], 0, ',', '.') }}</td>
                 <td class="text-right">Rp {{ number_format($data['costs'], 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($data['tax_expense'] ?? 0, 0, ',', '.') }}</td>
                 <td class="text-right {{ $data['profit'] >= 0 ? 'profit' : 'loss' }}">
                     Rp {{ number_format($data['profit'], 0, ',', '.') }}
                 </td>
@@ -215,7 +221,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="9" class="text-center" style="padding: 20px; color: #666;">
+                <td colspan="10" class="text-center" style="padding: 20px; color: #666;">
                     No profit data available for the selected period
                 </td>
             </tr>

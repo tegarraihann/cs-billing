@@ -126,7 +126,7 @@
                                             </div>
                                         </td>
                                         <td class="px-3 py-3 text-sm text-gray-900">
-                                            {{ transaction.creator?.name || '-' }}
+                                            {{ transaction.creator?.name || 'System/Auto' }}
                                         </td>
                                     </tr>
                                     <tr v-if="transactions.data.length === 0">

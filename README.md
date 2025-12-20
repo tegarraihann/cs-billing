@@ -11,6 +11,7 @@
 - **AP**: Kelola hutang, bayar, tambah biaya komponen.
 - **Bank Balance**: Saldo per bulan, mutasi, setoran modal (akun 3100). Opening bulan baru bisa dibuat otomatis (cron) dari closing bulan sebelumnya.
 - **Financial Position**: Neraca otomatis (Assets, Liabilities, Equity). Equity: 3100 modal disetor (adjustment), 3200 laba ditahan (akumulasi P&L published/closed), 3300 current year earnings (P&L tahun berjalan).
+- **Prepaid Rent**: Topup membentuk jadwal penyusutan otomatis berdasarkan `rental_start_date` dan `rental_end_date`. Penyusutan diposting via cron (masuk Financial Position).
 
 ## Cron / Scheduler (cpanel/host)
 Jalankan Laravel scheduler tiap menit:
@@ -22,10 +23,12 @@ Ganti path PHP dan project sesuai hosting.
 ### Jadwal penting
 - `bank:rollover-opening` setiap tanggal 1 pukul 00:10 (buat opening balance bulan berjalan dari closing bulan sebelumnya).
 - `equipment:post-depreciation` setiap hari pukul 01:30 (posting otomatis penyusutan equipment berdasarkan jadwal).
+- `prepaid-rent:amortize` setiap hari pukul 01:00 (posting otomatis penyusutan prepaid rent berdasarkan tanggal mulai/akhir).
 
 ## Jalankan Manual (opsional)
 - Rollover opening bank: `php artisan bank:rollover-opening`
 - Post otomatis penyusutan equipment: `php artisan equipment:post-depreciation`
+- Post otomatis penyusutan prepaid rent: `php artisan prepaid-rent:amortize`
 
 ## File Penting
 - SO Finance PDF: `resources/views/admin/admin-keuangan/sales-orders/pdf.blade.php` (data live).

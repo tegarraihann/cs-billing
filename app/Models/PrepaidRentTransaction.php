@@ -82,12 +82,20 @@ class PrepaidRentTransaction extends Model
             return collect();
         }
 
-        if (!$this->amortization_months || $this->amortization_months < 1) {
+        $months = 0;
+        if ($this->rental_start_date && $this->rental_end_date) {
+            $startMonth = Carbon::parse($this->rental_start_date)->startOfMonth();
+            $endMonth = Carbon::parse($this->rental_end_date)->startOfMonth();
+            $months = $startMonth->diffInMonths($endMonth) + 1;
+        } elseif ($this->amortization_months) {
+            $months = (int) $this->amortization_months;
+        }
+
+        if ($months < 1) {
             return $this->schedules()->get();
         }
 
         $startDate = Carbon::parse($this->rental_start_date ?? $this->transaction_date)->startOfMonth();
-        $months = (int) $this->amortization_months;
 
         // Avoid regenerating if already complete
         if ($this->schedules()->count() >= $months) {

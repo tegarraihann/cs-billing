@@ -34,7 +34,13 @@ class PrepaidRentAmortizeCommand extends Command
 
         $topups = PrepaidRentTransaction::with('schedules')
             ->where('transaction_type', 'topup')
-            ->whereNotNull('amortization_months')
+            ->where(function ($query) {
+                $query->whereNotNull('amortization_months')
+                    ->orWhere(function ($inner) {
+                        $inner->whereNotNull('rental_start_date')
+                            ->whereNotNull('rental_end_date');
+                    });
+            })
             ->get();
 
         $processed = 0;
@@ -52,6 +58,12 @@ class PrepaidRentAmortizeCommand extends Command
                 }
 
                 $amortizationDate = $schedulePeriod->copy()->endOfMonth();
+                if ($topup->rental_end_date) {
+                    $endDate = Carbon::parse($topup->rental_end_date)->endOfDay();
+                    if ($amortizationDate->gt($endDate)) {
+                        $amortizationDate = $endDate->toDateString();
+                    }
+                }
 
                 $amortization = PrepaidRentTransaction::create([
                     'transaction_date' => $amortizationDate,

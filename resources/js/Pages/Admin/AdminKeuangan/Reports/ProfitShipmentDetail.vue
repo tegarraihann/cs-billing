@@ -72,28 +72,34 @@
                 </div>
 
                 <!-- Profit Analysis Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                        <div class="text-sm font-medium text-blue-600 mb-1">Revenue</div>
-                        <div class="text-2xl font-bold text-blue-900">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="text-sm font-medium text-gray-500 mb-1">Revenue</div>
+                        <div class="text-lg font-bold text-gray-900">
                             Rp {{ formatNumber(profitAnalysis.revenue) }}
                         </div>
                     </div>
-                    <div class="bg-red-50 p-6 rounded-lg border border-red-200">
-                        <div class="text-sm font-medium text-red-600 mb-1">Operational Costs</div>
-                        <div class="text-2xl font-bold text-red-900">
-                            Rp {{ formatNumber(profitAnalysis.costs) }}
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="text-sm font-medium text-gray-500 mb-1">Operational Costs</div>
+                        <div class="text-lg font-bold text-gray-900">
+                            Rp {{ formatNumber(profitAnalysis.operational_costs) }}
                         </div>
                     </div>
-                    <div class="bg-green-50 p-6 rounded-lg border border-green-200">
-                        <div class="text-sm font-medium text-green-600 mb-1">Net Profit</div>
-                        <div class="text-2xl font-bold" :class="profitAnalysis.profit >= 0 ? 'text-green-900' : 'text-red-900'">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="text-sm font-medium text-gray-500 mb-1">Tax Expense</div>
+                        <div class="text-lg font-bold text-gray-900">
+                            Rp {{ formatNumber(profitAnalysis.tax_expense) }}
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="text-sm font-medium text-gray-500 mb-1">Net Profit</div>
+                        <div class="text-lg font-bold" :class="profitAnalysis.profit >= 0 ? 'text-green-600' : 'text-red-600'">
                             Rp {{ formatNumber(profitAnalysis.profit) }}
                         </div>
                     </div>
-                    <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                        <div class="text-sm font-medium text-purple-600 mb-1">Profit Margin</div>
-                        <div class="text-2xl font-bold text-purple-900">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="text-sm font-medium text-gray-500 mb-1">Profit Margin</div>
+                        <div class="text-lg font-bold text-gray-900">
                             {{ formatPercentage(profitAnalysis.profit_margin) }}%
                         </div>
                     </div>
@@ -156,6 +162,12 @@
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
                     <div class="px-6 py-4 border-b border-gray-200 bg-red-50">
                         <h3 class="text-lg font-semibold text-red-800">Cost Breakdown by Vendor</h3>
+                    </div>
+                    <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                        <div class="flex items-center justify-between text-sm font-medium text-gray-700">
+                            <span>Tax Expense</span>
+                            <span class="text-gray-900">Rp {{ formatNumber(profitAnalysis.tax_expense) }}</span>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
