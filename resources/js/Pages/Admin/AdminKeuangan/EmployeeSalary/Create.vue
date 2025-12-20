@@ -26,6 +26,25 @@
                                     <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Informasi Karyawan</h3>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="md:col-span-2">
+                                            <label for="employee_source" class="block text-sm font-medium text-gray-700 mb-2">
+                                                Pilih Karyawan (opsional)
+                                            </label>
+                                            <select
+                                                id="employee_source"
+                                                v-model="selectedEmployeeId"
+                                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                                            >
+                                                <option value="">Pilih karyawan dari master admin</option>
+                                                <option v-for="employee in employees" :key="employee.id" :value="employee.id">
+                                                    {{ employee.nama }}{{ employee.employee_id ? ` (${employee.employee_id})` : '' }}
+                                                </option>
+                                            </select>
+                                            <p class="mt-1 text-xs text-gray-500">
+                                                Mengisi otomatis Nama, ID, dan Jabatan dari data karyawan.
+                                            </p>
+                                        </div>
+
                                         <div>
                                             <label for="employee_name" class="block text-sm font-medium text-gray-700 mb-2">
                                                 Nama Karyawan <span class="text-red-500">*</span>
@@ -271,12 +290,18 @@
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ArrowLeft, Loader2, Info } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
     divisions: Object,
+    employees: {
+        type: Array,
+        default: () => [],
+    },
     errors: Object,
 })
+
+const selectedEmployeeId = ref('')
 
 const form = useForm({
     employee_name: '',
@@ -298,6 +323,16 @@ const totalSalary = computed(() => {
     const allowances = parseFloat(form.allowances) || 0
     const deductions = parseFloat(form.deductions) || 0
     return basic + allowances - deductions
+})
+
+watch(selectedEmployeeId, (value) => {
+    const selected = props.employees.find((employee) => String(employee.id) === String(value))
+    if (!selected) {
+        return
+    }
+    form.employee_name = selected.nama || ''
+    form.employee_id = selected.employee_id || ''
+    form.position = selected.posisi || ''
 })
 
 const submit = () => {

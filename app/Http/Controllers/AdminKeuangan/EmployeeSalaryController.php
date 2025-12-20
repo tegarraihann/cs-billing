@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\AdminKeuangan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\EmployeeSalary;
 use App\Models\BankTransaction;
 use App\Models\BankAccount;
@@ -50,7 +51,8 @@ class EmployeeSalaryController extends Controller
     public function create()
     {
         return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/Create', [
-            'divisions' => $this->getDivisions()
+            'divisions' => $this->getDivisions(),
+            'employees' => $this->getActiveEmployees(),
         ]);
     }
 
@@ -128,7 +130,8 @@ class EmployeeSalaryController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/Edit', [
             'salary' => $employeeSalary,
-            'divisions' => $this->getDivisions()
+            'divisions' => $this->getDivisions(),
+            'employees' => $this->getActiveEmployees(),
         ]);
     }
 
@@ -276,7 +279,8 @@ class EmployeeSalaryController extends Controller
     public function bulkCreate()
     {
         return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/BulkCreate', [
-            'divisions' => $this->getDivisions()
+            'divisions' => $this->getDivisions(),
+            'employees' => $this->getActiveEmployees(),
         ]);
     }
 
@@ -505,5 +509,13 @@ class EmployeeSalaryController extends Controller
     private function normalizeAmount($value, $default = 0)
     {
         return ($value === null || $value === '') ? $default : $value;
+    }
+
+    private function getActiveEmployees()
+    {
+        return Employee::active()
+            ->select('id', 'employee_id', 'nama', 'posisi')
+            ->orderBy('nama')
+            ->get();
     }
 }
