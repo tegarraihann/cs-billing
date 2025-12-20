@@ -175,12 +175,15 @@
                         <input v-model="topupForm.description" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" placeholder="Contoh: Sewa kantor Q1" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Biaya (opsional)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Biaya <span class="text-red-500">*</span>
+                        </label>
                         <select
                             v-model="topupForm.pl_account_id"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                            required
                         >
-                            <option value="">Pilih biaya (opsional)</option>
+                            <option value="">Pilih biaya</option>
                             <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
                                 {{ account.account_code }} - {{ account.account_name }}
                             </option>
@@ -473,6 +476,7 @@ const submitAmortization = () => {
 const isTopupDisabled = computed(() => {
     if (topupForm.processing) return true
     if (!topupForm.transaction_date || !topupForm.amount) return true
+    if (!topupForm.pl_account_id) return true
     if (topupForm.source_type === 'bank' && !topupForm.bank_account_id) return true
     if (topupForm.source_type === 'petty_cash' && !topupForm.petty_cash_category_id) return true
     return false

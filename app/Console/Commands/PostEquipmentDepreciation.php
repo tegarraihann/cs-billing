@@ -4,8 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\EquipmentDepreciationSchedule;
 use App\Models\EquipmentTransaction;
-use App\Models\ProfitLossEntry;
-use App\Models\ProfitLossPeriod;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -50,28 +48,6 @@ class PostEquipmentDepreciation extends Command
                     'notes' => 'Auto depreciation',
                     'created_by' => 1,
                 ]);
-
-                $date = Carbon::parse($schedule->schedule_date)->toDateString();
-                $periods = ProfitLossPeriod::where('status', '!=', 'closed')
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date)
-                    ->get();
-
-                if ($periods->isEmpty()) {
-                    $monthStart = Carbon::parse($date)->startOfMonth()->toDateString();
-                    $monthEnd = Carbon::parse($date)->endOfMonth()->toDateString();
-                    $periods = ProfitLossPeriod::where('status', '!=', 'closed')
-                        ->where('start_date', '<=', $monthStart)
-                        ->where('end_date', '>=', $monthEnd)
-                        ->get();
-                }
-
-                foreach ($periods as $period) {
-                    $entry = ProfitLossEntry::createFromEquipmentDepreciation($depr, $period->id, 1);
-                    if ($entry) {
-                        $period->calculateTotals();
-                    }
-                }
 
                 $schedule->update([
                     'posted_at' => now(),

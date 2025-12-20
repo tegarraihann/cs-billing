@@ -73,7 +73,7 @@ class PrepaidRentController extends Controller
             'rental_start_date' => ['nullable', 'date'],
             'rental_end_date' => ['nullable', 'date', 'after_or_equal:rental_start_date'],
             'amortization_months' => ['nullable', 'integer', 'min:1', 'max:60'],
-            'pl_account_id' => ['nullable', 'exists:chart_of_accounts,id'],
+            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
         ]);
 
         $topup = PrepaidRentTransaction::create([
@@ -129,7 +129,8 @@ class PrepaidRentController extends Controller
             PettyCashBalance::updateBalanceForDate($validated['transaction_date']);
         }
 
-        // Topup prepaid rent dicatat sebagai aset, tidak ke P&L
+        // Topup prepaid rent masuk P&L sesuai akun biaya yang dipilih
+        $this->postToProfitLoss($topup, $validated['pl_account_id'], 'auto_prepaid_rent_topup');
 
         return redirect()->route('admin-keuangan.prepaid-rent.index')
             ->with('success', 'Pembayaran sewa berhasil dicatat.');
@@ -154,8 +155,6 @@ class PrepaidRentController extends Controller
             'notes' => $validated['notes'] ?? null,
             'created_by' => Auth::id(),
         ]);
-
-        $this->postToProfitLoss($amort, $validated['pl_account_id'], 'auto_prepaid_rent_amort');
 
         return redirect()->route('admin-keuangan.prepaid-rent.index')
             ->with('success', 'Penyusutan prepaid rent berhasil dicatat.');

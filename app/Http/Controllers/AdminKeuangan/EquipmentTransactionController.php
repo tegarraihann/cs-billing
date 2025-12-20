@@ -169,8 +169,6 @@ class EquipmentTransactionController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-        $this->createProfitLossEntriesForDepreciation($depr);
-
         return redirect()->route('admin-keuangan.equipment.index')
             ->with('success', 'Penyusutan equipment berhasil dicatat.');
     }

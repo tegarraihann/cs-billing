@@ -172,8 +172,10 @@ class SupplyTransactionController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-        // Buat entri laba rugi untuk usage/depreciation supplies di periode yang relevan
-        $this->createProfitLossEntries($usage);
+        // Hanya pemakaian yang masuk P&L, penyusutan hanya ke financial position
+        if ($validated['transaction_type'] === 'usage') {
+            $this->createProfitLossEntries($usage);
+        }
 
         return redirect()->route('admin-keuangan.supplies.index')
             ->with('success', 'Pemakaian supplies berhasil dicatat.');
