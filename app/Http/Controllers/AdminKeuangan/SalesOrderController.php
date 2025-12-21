@@ -1226,6 +1226,7 @@ class SalesOrderController extends Controller
                 }
             }
         }
+        $otherCosts = $this->dedupeOtherCosts($otherCosts);
         $request->merge(['other_costs' => $otherCosts]);
 
         // Normalize reimbursement items amounts
@@ -1315,6 +1316,43 @@ class SalesOrderController extends Controller
         }
 
         return $value;
+    }
+
+    private function dedupeOtherCosts(array $otherCosts): array
+    {
+        $seen = [];
+        $deduped = [];
+
+        foreach ($otherCosts as $cost) {
+            if (!is_array($cost)) {
+                continue;
+            }
+
+            $description = strtolower(trim((string) ($cost['description'] ?? '')));
+            $amount = isset($cost['amount']) ? (string) ((float) $cost['amount']) : '0';
+            $category = strtolower(trim((string) ($cost['category'] ?? '')));
+            $vendorId = $cost['vendor_id'] ?? null;
+
+            if (is_string($vendorId)) {
+                $vendorId = strtolower(trim($vendorId));
+            }
+
+            $key = implode('|', [
+                $description,
+                $amount,
+                $category,
+                $vendorId ?? 'null',
+            ]);
+
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $deduped[] = $cost;
+        }
+
+        return $deduped;
     }
 
     private function sanitizeContainerNumbers($value): array

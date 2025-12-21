@@ -207,10 +207,16 @@ class AccountPayable extends Model
         if (is_array($salesOrder->other_costs) && !empty($salesOrder->other_costs)) {
             $mappedOtherCosts = collect($salesOrder->other_costs)
                 ->filter(function ($item) {
-                    return is_array($item)
-                        && isset($item['amount'])
-                        && floatval($item['amount']) > 0
-                        && !empty($item['vendor_id']);
+                    if (!is_array($item) || !isset($item['amount'])) {
+                        return false;
+                    }
+                    $amount = (float) $item['amount'];
+                    if ($amount <= 0) {
+                        return false;
+                    }
+                    $vendorId = self::normalizeVendorIdentifierValue($item['vendor_id'] ?? null);
+                    $vendorName = $item['vendor_name'] ?? ($item['category'] ?? null);
+                    return $vendorId !== null || !empty($vendorName);
                 })
                 ->map(function ($item) {
                     $vendorId = self::normalizeVendorIdentifierValue($item['vendor_id'] ?? null);
@@ -221,6 +227,7 @@ class AccountPayable extends Model
                         'description' => $item['description'] ?? 'Other Cost',
                         'remarks' => $item['remarks'] ?? ($item['category'] ?? null),
                         'buying_amount' => (float) ($item['amount'] ?? 0),
+                        'id' => $item['id'] ?? null,
                     ];
                 })
                 ->values()
@@ -631,111 +638,49 @@ class AccountPayable extends Model
             }
         }
 
-        $invoiceItems = $this->collectInvoiceItemsForVendor();
-
-        if ($invoiceItems->isNotEmpty()) {
-            $vendorIdString = $this->vendor_id ? (string) $this->vendor_id : null;
-
-            // Deduplicate COGS by lookup_ref to avoid duplicate components
-            $seenCogsRefs = [];
-            $hasExistingVendorPayment = $existingComponents
-                ? $existingComponents->contains(function ($item) {
-                    return $item->component_type === 'vendor_payment';
-                })
-                : false;
-
-            // Tangkap COGS vendor spesifik (item_ref cogs_vendor_{id}) untuk vendor terkait
-            $vendorCogsItems = collect();
-            if ($vendorIdString !== null) {
-                $vendorCogsItems = $invoiceItems->where('item_type', 'operational_cost')
-                    ->filter(function ($item) use ($vendorIdString) {
-                        $ref = (string) ($item->item_ref ?? '');
-                        return str_starts_with($ref, 'cogs_vendor_') && $ref === 'cogs_vendor_' . $vendorIdString;
-                    });
+        $operationalEntries = $this->collectOperationalCostEntries();
+        foreach ($operationalEntries as $entry) {
+            $relatedItems = [
+                'source' => 'other_costs',
+                'other_cost_index' => $entry['entry_index'],
+            ];
+            if ($entry['entry_id'] !== null) {
+                $relatedItems['other_cost_id'] = $entry['entry_id'];
+            }
+            if (!empty($entry['category'])) {
+                $relatedItems['category'] = $entry['category'];
             }
 
-            // Jika belum ada entri vendor payment dari vendor_breakdown, naikkan COGS vendor menjadi komponen vendor_payment
-            $shouldPromoteCogs = $this->vendor_id
-                && $vendorCogsItems->isNotEmpty()
-                && $vendorPaymentEntries->isEmpty()
-                && !$hasExistingVendorPayment;
+            $payloads[] = [
+                'component_type' => 'operational_cost',
+                'description' => $entry['description'] !== '' ? $entry['description'] : 'Biaya Operational',
+                'amount' => $entry['amount'],
+                'recipient_name' => $entry['vendor_name'] ?? $this->vendor_name,
+                'vendor_id' => $entry['vendor_id'],
+                'related_items' => $relatedItems,
+                'lookup_reference' => $entry['lookup_ref'],
+            ];
+        }
 
-            if ($shouldPromoteCogs) {
-                foreach ($vendorCogsItems as $cogsItem) {
-                    $lookupRef = $cogsItem->id ? 'invoice_item_' . $cogsItem->id : null;
-                    if ($lookupRef && in_array($lookupRef, $seenCogsRefs, true)) {
-                        continue;
-                    }
-                    if ($lookupRef) {
-                        $seenCogsRefs[] = $lookupRef;
-                    }
-
-                    $amount = (float) ($cogsItem->amount ?? 0);
-                    if ($amount <= 0) {
-                        continue;
-                    }
-
-                    $payloads[] = [
-                        'component_type' => 'vendor_payment',
-                        'description' => $cogsItem->description ?: 'Vendor Payment',
-                        'amount' => $amount,
-                        'recipient_name' => $this->vendor_name,
-                        'vendor_id' => $this->vendor_id,
-                        'related_items' => [
-                            'source' => 'invoice_item',
-                            'invoice_item_id' => $cogsItem->id,
-                        ],
-                        'lookup_reference' => $lookupRef,
-                    ];
-                }
+        $reimbursementEntries = $this->collectReimbursementEntries();
+        foreach ($reimbursementEntries as $entry) {
+            $relatedItems = [
+                'source' => 'reimbursement_items',
+                'reimbursement_item_id' => $entry['entry_id'],
+            ];
+            if (!empty($entry['category'])) {
+                $relatedItems['category'] = $entry['category'];
             }
 
-            $operationalItems = $invoiceItems->where('item_type', 'operational_cost');
-            // Hindari menghitung dua kali COGS vendor spesifik ketika payable sudah untuk vendor tertentu
-            $operationalItems = $operationalItems->filter(function ($item) use ($vendorIdString) {
-                $ref = (string) ($item->item_ref ?? '');
-                if ($vendorIdString === null) {
-                    return true;
-                }
-
-                return !(str_starts_with($ref, 'cogs_vendor_') && $ref === 'cogs_vendor_' . $vendorIdString);
-            });
-            $totalOperational = (float) $operationalItems->sum('amount');
-
-            if ($totalOperational > 0) {
-                $payloads[] = [
-                    'component_type' => 'operational_cost',
-                    'description' => 'Biaya Operational',
-                    'amount' => $totalOperational,
-                    'recipient_name' => $this->vendor_name,
-                    'vendor_id' => $this->vendor_id,
-                    'related_items' => $operationalItems->pluck('id')->toArray(),
-                ];
-            }
-
-            $reimbursementItems = $invoiceItems->where('item_type', 'reimbursement');
-            foreach ($reimbursementItems as $reimbursementItem) {
-                $amount = (float) ($reimbursementItem->amount ?? 0);
-                if ($amount <= 0) {
-                    continue;
-                }
-
-                $itemId = $reimbursementItem->id ?? null;
-                $lookupRef = $itemId ? 'invoice_item_' . $itemId : 'invoice_item_' . uniqid();
-
-                $payloads[] = [
-                    'component_type' => 'reimbursement',
-                    'description' => $reimbursementItem->description ?: 'Reimbursement',
-                    'amount' => $amount,
-                    'recipient_name' => $this->vendor_name,
-                    'vendor_id' => $this->vendor_id,
-                    'related_items' => [
-                        'source' => 'invoice_item',
-                        'invoice_item_id' => $itemId,
-                    ],
-                    'lookup_reference' => $lookupRef,
-                ];
-            }
+            $payloads[] = [
+                'component_type' => 'reimbursement',
+                'description' => $entry['description'] !== '' ? $entry['description'] : 'Reimbursement',
+                'amount' => $entry['amount'],
+                'recipient_name' => $entry['vendor_name'] ?? $this->vendor_name,
+                'vendor_id' => $entry['vendor_id'],
+                'related_items' => $relatedItems,
+                'lookup_reference' => $entry['lookup_ref'],
+            ];
         }
 
         if ($paidToDistribute > 0 && !empty($payloads)) {
@@ -817,6 +762,154 @@ class AccountPayable extends Model
             })
             ->filter()
             ->values();
+    }
+
+    protected function collectOperationalCostEntries(): Collection
+    {
+        if (!$this->salesOrder || !is_array($this->salesOrder->other_costs)) {
+            return collect();
+        }
+
+        $payableVendorId = $this->vendor_id ? (int) $this->vendor_id : null;
+        $payableVendorName = $this->vendor_name ? trim((string) $this->vendor_name) : null;
+
+        return collect($this->salesOrder->other_costs)
+            ->values()
+            ->filter(function ($entry) {
+                return is_array($entry);
+            })
+            ->map(function ($entry, $index) use ($payableVendorId, $payableVendorName) {
+                $amount = (float) ($entry['amount'] ?? 0);
+                if ($amount <= 0) {
+                    return null;
+                }
+
+                $entryVendorId = $this->normalizeVendorIdentifier($entry['vendor_id'] ?? null);
+                $entryVendorName = $this->resolveOtherCostVendorName($entry);
+
+                if (!$this->matchesPayableVendor($entryVendorId, $entryVendorName, $payableVendorId, $payableVendorName)) {
+                    return null;
+                }
+
+                $description = trim((string) ($entry['description'] ?? ''));
+                $entryId = $entry['id'] ?? null;
+                $lookupRef = $entryId !== null
+                    ? 'other_cost_' . $entryId
+                    : 'other_cost_' . md5(json_encode([
+                        'index' => $index,
+                        'description' => $description,
+                        'amount' => $amount,
+                        'vendor_id' => $entryVendorId,
+                        'vendor_name' => $entryVendorName,
+                    ]));
+
+                return [
+                    'amount' => $amount,
+                    'description' => $description,
+                    'entry_index' => $index,
+                    'entry_id' => $entryId,
+                    'lookup_ref' => $lookupRef,
+                    'vendor_id' => $entryVendorId,
+                    'vendor_name' => $entryVendorName,
+                    'category' => $entry['category'] ?? null,
+                ];
+            })
+            ->filter()
+            ->unique('lookup_ref')
+            ->values();
+    }
+
+    protected function collectReimbursementEntries(): Collection
+    {
+        if (!$this->salesOrder) {
+            return collect();
+        }
+
+        $this->salesOrder->loadMissing(['reimbursementItems.vendor']);
+
+        $payableVendorId = $this->vendor_id ? (int) $this->vendor_id : null;
+        $payableVendorName = $this->vendor_name ? trim((string) $this->vendor_name) : null;
+
+        return $this->salesOrder->reimbursementItems
+            ->filter(function ($item) {
+                return (float) ($item->amount ?? 0) > 0 && ($item->status ?? null) !== 'paid';
+            })
+            ->map(function ($item) use ($payableVendorId, $payableVendorName) {
+                $entryVendorId = $this->normalizeVendorIdentifier($item->vendor_id ?? $item->vendor?->id ?? null);
+                $entryVendorName = $this->resolveReimbursementVendorName($item);
+
+                if (!$this->matchesPayableVendor($entryVendorId, $entryVendorName, $payableVendorId, $payableVendorName)) {
+                    return null;
+                }
+
+                $description = trim((string) ($item->description ?? ''));
+                $lookupRef = 'reimbursement_' . $item->id;
+
+                return [
+                    'amount' => (float) $item->amount,
+                    'description' => $description,
+                    'entry_index' => null,
+                    'entry_id' => $item->id,
+                    'lookup_ref' => $lookupRef,
+                    'vendor_id' => $entryVendorId,
+                    'vendor_name' => $entryVendorName,
+                    'category' => $item->category ?? null,
+                ];
+            })
+            ->filter()
+            ->unique('lookup_ref')
+            ->values();
+    }
+
+    protected function resolveOtherCostVendorName(array $entry): ?string
+    {
+        $vendorName = trim((string) ($entry['vendor_name'] ?? ''));
+        if ($vendorName !== '') {
+            return $vendorName;
+        }
+
+        $category = trim((string) ($entry['category'] ?? ''));
+        if ($category !== '') {
+            return $category;
+        }
+
+        return 'Divisi Operational';
+    }
+
+    protected function resolveReimbursementVendorName($item): ?string
+    {
+        $vendorName = trim((string) ($item->vendor?->nama_vendor ?? ''));
+        if ($vendorName !== '') {
+            return $vendorName;
+        }
+
+        $receiptName = trim((string) (data_get($item->receipt_info ?? [], 'vendor_name') ?? ''));
+        if ($receiptName !== '') {
+            return $receiptName;
+        }
+
+        $category = trim((string) ($item->category ?? ''));
+        if ($category !== '') {
+            return $category;
+        }
+
+        return 'Divisi Operational';
+    }
+
+    protected function matchesPayableVendor(?int $entryVendorId, ?string $entryVendorName, ?int $payableVendorId, ?string $payableVendorName): bool
+    {
+        if ($payableVendorId !== null || $entryVendorId !== null) {
+            return $payableVendorId === $entryVendorId;
+        }
+
+        $entryName = trim((string) ($entryVendorName ?? ''));
+        $payableName = trim((string) ($payableVendorName ?? ''));
+
+        if ($entryName === '' || $payableName === '') {
+            return true;
+        }
+
+        return strcasecmp($entryName, $payableName) === 0;
     }
 
     protected function makeComponentLookupKey(string $componentType, $vendorId, ?string $reference = null): string
