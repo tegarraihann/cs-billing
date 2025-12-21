@@ -1646,6 +1646,26 @@ class InvoiceController extends Controller
     private function autoGenerateOperationalDebt(Invoice $invoice)
     {
         try {
+            $invoice->loadMissing(['salesOrder.reimbursementItems']);
+            $salesOrder = $invoice->salesOrder;
+
+            if ($salesOrder) {
+                $hasVendorBreakdown = is_array($salesOrder->vendor_breakdown)
+                    && collect($salesOrder->vendor_breakdown)->filter(function ($item) {
+                        return is_array($item) && (float) ($item['buying_amount'] ?? 0) > 0;
+                    })->isNotEmpty();
+                $hasOtherCosts = is_array($salesOrder->other_costs)
+                    && collect($salesOrder->other_costs)->filter(function ($item) {
+                        return is_array($item) && (float) ($item['amount'] ?? 0) > 0;
+                    })->isNotEmpty();
+                $hasReimbursements = $salesOrder->reimbursementItems()->exists();
+
+                if ($hasVendorBreakdown || $hasOtherCosts || $hasReimbursements) {
+                    $this->cleanupInvoiceGeneratedPayables($invoice);
+                    return;
+                }
+            }
+
             // Get operational costs and reimbursement items from invoice
             $allItems = $invoice->items()
                 ->whereIn('item_type', ['operational_cost', 'reimbursement'])
@@ -1749,6 +1769,23 @@ class InvoiceController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             // Don't throw exception to prevent blocking invoice creation
+        }
+    }
+
+    private function cleanupInvoiceGeneratedPayables(Invoice $invoice): void
+    {
+        if (!$invoice->sales_order_id) {
+            return;
+        }
+
+        $payables = \App\Models\AccountPayable::query()
+            ->where('sales_order_id', $invoice->sales_order_id)
+            ->where('service_remarks', 'Auto-generated from invoice items')
+            ->get();
+
+        foreach ($payables as $payable) {
+            $payable->components()->delete();
+            $payable->delete();
         }
     }
 

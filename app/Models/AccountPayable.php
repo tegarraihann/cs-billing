@@ -202,6 +202,7 @@ class AccountPayable extends Model
     public static function generateFromSalesOrder(SalesOrder $salesOrder): void
     {
         $vendorBreakdown = is_array($salesOrder->vendor_breakdown) ? $salesOrder->vendor_breakdown : [];
+        $baseVendorBreakdown = $vendorBreakdown;
 
         // Tambahkan other_costs (refund/operational) sebagai vendor breakdown untuk hutang
         if (is_array($salesOrder->other_costs) && !empty($salesOrder->other_costs)) {
@@ -234,6 +235,39 @@ class AccountPayable extends Model
                 ->all();
 
             $vendorBreakdown = array_merge($vendorBreakdown, $mappedOtherCosts);
+        }
+
+        // Tambahkan reimbursement items sebagai vendor breakdown agar ada payable per vendor reimbursement
+        $mappedReimbursements = collect();
+        if ($salesOrder->relationLoaded('reimbursementItems')) {
+            $reimbursementItems = $salesOrder->reimbursementItems;
+        } else {
+            $reimbursementItems = $salesOrder->reimbursementItems()->get();
+        }
+        if ($reimbursementItems && $reimbursementItems->isNotEmpty()) {
+            $mappedReimbursements = $reimbursementItems
+                ->filter(function ($item) {
+                    return (float) ($item->amount ?? 0) > 0 && ($item->status ?? null) !== 'paid';
+                })
+                ->map(function ($item) {
+                    $vendorId = self::normalizeVendorIdentifierValue($item->vendor_id ?? null);
+                    $vendorName = $item->vendor?->nama_vendor
+                        ?? data_get($item->receipt_info ?? [], 'vendor_name')
+                        ?? ($item->category ?? 'Divisi Operational');
+                    return [
+                        'vendor_id' => $vendorId,
+                        'nama_vendor' => $vendorName,
+                        'description' => $item->description ?? 'Reimbursement',
+                        'remarks' => $item->notes ?? null,
+                        'buying_amount' => (float) $item->amount,
+                        'id' => 'reimbursement_' . $item->id,
+                    ];
+                })
+                ->values();
+        }
+
+        if ($mappedReimbursements->isNotEmpty()) {
+            $vendorBreakdown = array_merge($vendorBreakdown, $mappedReimbursements->all());
         }
 
         if (empty($vendorBreakdown)) {
@@ -342,6 +376,9 @@ class AccountPayable extends Model
                 $stale->delete();
             }
         }
+
+        // Kembalikan vendor_breakdown ke nilai asli agar data SO tidak tercampur reimbursement
+        $salesOrder->setAttribute('vendor_breakdown', $baseVendorBreakdown);
     }
 
     private static function makeVendorGroupKey($vendorId, ?string $vendorName): string
