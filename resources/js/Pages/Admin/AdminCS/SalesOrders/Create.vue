@@ -994,7 +994,7 @@ const form = useForm({
     gudang_utc: "",
     party_lcl: "",
     exchange_rate: "",
-    vendor_breakdown: [{ vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
+    vendor_breakdown: [{ id: null, vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
     other_costs: [],
     remarks: "",
     note: "",
@@ -1069,6 +1069,7 @@ const removeContainerNo = (index) => {
 // Vendor breakdown management methods
 const addVendorItem = () => {
     form.vendor_breakdown.push({
+        id: null,
         vendor_id: '',
         nama_vendor: '',
         no_rekening: '',

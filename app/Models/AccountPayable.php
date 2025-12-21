@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Models\Vendor;
+use App\Models\SalesOrderVendorItem;
 
 class AccountPayable extends Model
 {
@@ -203,6 +204,17 @@ class AccountPayable extends Model
     {
         $vendorBreakdown = is_array($salesOrder->vendor_breakdown) ? $salesOrder->vendor_breakdown : [];
         $baseVendorBreakdown = $vendorBreakdown;
+
+        // Prefer vendor breakdown items table if available
+        $vendorItems = $salesOrder->relationLoaded('vendorBreakdownItems')
+            ? $salesOrder->vendorBreakdownItems
+            : $salesOrder->vendorBreakdownItems()->get();
+
+        if ($vendorItems && $vendorItems->isNotEmpty()) {
+            $vendorBreakdown = $vendorItems
+                ->map(fn (SalesOrderVendorItem $item) => $item->toVendorBreakdownArray())
+                ->all();
+        }
 
         // Tambahkan other_costs (refund/operational) sebagai vendor breakdown untuk hutang
         if (is_array($salesOrder->other_costs) && !empty($salesOrder->other_costs)) {
@@ -786,7 +798,7 @@ class AccountPayable extends Model
                         'amount' => $amount,
                     ]));
                 } else {
-                    $lookupRef = (string) $lookupRef;
+                    $lookupRef = 'vendor_breakdown_' . (string) $lookupRef . '_' . $index;
                 }
 
                 return [

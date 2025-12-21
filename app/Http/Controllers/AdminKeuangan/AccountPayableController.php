@@ -79,7 +79,12 @@ class AccountPayableController extends Controller
      */
     public function show(Request $request, AccountPayable $accountPayable)
     {
-        $accountPayable->load(['vendor', 'salesOrder', 'creator', 'paidByUser']);
+        $accountPayable->load([
+            'vendor',
+            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date,vendor_breakdown,other_costs',
+            'creator',
+            'paidByUser'
+        ]);
         $accountPayable->syncComponents();
         $accountPayable->load('components');
 
@@ -613,7 +618,7 @@ class AccountPayableController extends Controller
                 $query->orderBy('component_type');
             },
             'vendor',
-            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date',
+            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date,vendor_breakdown,other_costs',
             'creator:id,name',
             'paidByUser:id,name',
         ]);
@@ -899,7 +904,7 @@ class AccountPayableController extends Controller
                 $query->orderBy('component_type');
             },
             'vendor',
-            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date',
+            'salesOrder:id,order_number,customer,customer_name,shipper,consignee_shipper,released_at,so_date,vendor_breakdown,other_costs',
             'creator:id,name',
             'paidByUser:id,name',
         ]);

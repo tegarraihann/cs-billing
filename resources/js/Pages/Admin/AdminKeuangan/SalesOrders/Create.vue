@@ -1050,7 +1050,7 @@ const buildDefaultForm = () => ({
     party_lcl: "",
     prepared_by: "",
     exchange_rate: "",
-    vendor_breakdown: [{ vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
+    vendor_breakdown: [{ id: null, vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
     other_costs: [{ description: '', amount: 0, category: '', vendor_id: '' }],
     remarks: "",
     note: "",
@@ -1173,6 +1173,7 @@ const removeContainerNo = (index) => {
 // Vendor breakdown management methods
 const addVendorItem = () => {
     form.vendor_breakdown.push({
+        id: null,
         vendor_id: '',
         nama_vendor: '',
         no_rekening: '',

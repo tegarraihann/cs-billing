@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
+use App\Models\SalesOrderVendorItem;
 
 class SalesOrder extends Model
 {
@@ -156,6 +157,11 @@ class SalesOrder extends Model
         return $this->hasMany(ReimbursementItem::class);
     }
 
+    public function vendorBreakdownItems(): HasMany
+    {
+        return $this->hasMany(SalesOrderVendorItem::class)->orderBy('sort_order');
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'customer_id');
@@ -276,6 +282,85 @@ class SalesOrder extends Model
     {
         $this->updateTotals();
         return parent::save($options);
+    }
+
+    public function syncVendorBreakdownItems(array $items, ?int $userId = null): void
+    {
+        $userId = $userId ?: $this->created_by;
+        $existing = $this->vendorBreakdownItems()->get()->keyBy('id');
+
+        $hasIdsInInput = collect($items)->contains(function ($item) {
+            return is_array($item) && !empty($item['id']);
+        });
+
+        $seenIds = [];
+
+        if ($hasIdsInInput) {
+            foreach ($items as $index => $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $itemId = isset($item['id']) && is_numeric($item['id']) ? (int) $item['id'] : null;
+                $payload = $this->mapVendorItemPayload($item, $index, $userId);
+
+                if ($itemId && $existing->has($itemId)) {
+                    $existing->get($itemId)->fill($payload)->save();
+                    $seenIds[] = $itemId;
+                } else {
+                    $created = $this->vendorBreakdownItems()->create($payload);
+                    $seenIds[] = $created->id;
+                }
+            }
+
+            $existing->keys()->diff($seenIds)->each(function ($id) use ($existing) {
+                $existing->get($id)?->delete();
+            });
+        } else {
+            $this->vendorBreakdownItems()->delete();
+            foreach ($items as $index => $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $payload = $this->mapVendorItemPayload($item, $index, $userId);
+                $this->vendorBreakdownItems()->create($payload);
+            }
+        }
+
+        $normalized = $this->vendorBreakdownItems()
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (SalesOrderVendorItem $item) => $item->toVendorBreakdownArray())
+            ->all();
+
+        $this->setAttribute('vendor_breakdown', $normalized);
+        $this->saveQuietly();
+    }
+
+    private function mapVendorItemPayload(array $item, int $index, ?int $userId): array
+    {
+        $vendorId = $item['vendor_id'] ?? null;
+        if (is_string($vendorId) && strtolower(trim($vendorId)) === 'internal') {
+            $vendorId = null;
+        }
+        if (is_numeric($vendorId)) {
+            $vendorId = (int) $vendorId;
+        } else {
+            $vendorId = null;
+        }
+
+        return [
+            'vendor_id' => $vendorId,
+            'vendor_name' => $item['nama_vendor'] ?? null,
+            'vendor_bank_account' => $item['no_rekening'] ?? null,
+            'vendor_account_name' => $item['nama_rekening'] ?? null,
+            'description' => $item['description'] ?? null,
+            'buying_amount' => (float) ($item['buying_amount'] ?? 0),
+            'selling_amount' => (float) ($item['selling_amount'] ?? 0),
+            'rcvd_inv' => $item['rcvd_inv'] ?? null,
+            'remarks' => $item['remarks'] ?? null,
+            'sort_order' => $index,
+            'created_by' => $userId,
+        ];
     }
 
     /**

@@ -125,6 +125,7 @@ class SalesOrderController extends Controller
                 'prepared_by' => 'nullable|string|max:255',
                 'exchange_rate' => 'nullable|numeric|min:0',
                 'vendor_breakdown' => 'nullable|array',
+                'vendor_breakdown.*.id' => 'nullable|integer|exists:sales_order_vendor_items,id',
                 'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
                 'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
                 'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
@@ -231,6 +232,9 @@ class SalesOrderController extends Controller
             // Create reimbursement items
             $this->createReimbursementItems($salesOrder, $reimbursementItems);
 
+            // Sync vendor breakdown items to table
+            $salesOrder->syncVendorBreakdownItems($validated['vendor_breakdown'] ?? [], auth()->id());
+
 
             return redirect()
                 ->route('admin-cs.sales-orders.index')
@@ -331,6 +335,7 @@ class SalesOrderController extends Controller
             'prepared_by' => 'nullable|string|max:255',
             'exchange_rate' => 'nullable|numeric|min:0',
             'vendor_breakdown' => 'nullable|array',
+            'vendor_breakdown.*.id' => 'nullable|integer|exists:sales_order_vendor_items,id',
             'vendor_breakdown.*.vendor_id' => 'nullable|exists:vendors,id',
             'vendor_breakdown.*.nama_vendor' => 'nullable|string|max:255',
             'vendor_breakdown.*.no_rekening' => 'nullable|string|max:255',
@@ -420,6 +425,9 @@ class SalesOrderController extends Controller
 
         // Update reimbursement items
         $this->updateReimbursementItems($salesOrder, $reimbursementItems);
+
+        // Sync vendor breakdown items to table
+        $salesOrder->syncVendorBreakdownItems($validated['vendor_breakdown'] ?? [], auth()->id());
 
         return redirect()
             ->route('admin-cs.sales-orders.index')

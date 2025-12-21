@@ -820,6 +820,7 @@ const rawPackageUnits = computed(() => props.packageUnits ?? []);
 const initializeVendorBreakdown = () => {
     if (props.salesOrder.vendor_breakdown && Array.isArray(props.salesOrder.vendor_breakdown)) {
         return props.salesOrder.vendor_breakdown.map(item => ({
+            id: item.id ?? null,
             vendor_id: item.vendor_id || '',
             nama_vendor: item.nama_vendor || '',
             no_rekening: item.no_rekening || '',
@@ -832,6 +833,7 @@ const initializeVendorBreakdown = () => {
         }));
     }
     return [{
+        id: null,
         vendor_id: '',
         nama_vendor: '',
         no_rekening: '',
@@ -1108,6 +1110,7 @@ const onVendorSelect = (index) => {
 // Vendor breakdown management methods
 const addVendorItem = () => {
     form.vendor_breakdown.push({
+        id: null,
         vendor_id: '',
         nama_vendor: '',
         no_rekening: '',
