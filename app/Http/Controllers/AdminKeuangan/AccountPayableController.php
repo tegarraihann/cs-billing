@@ -624,7 +624,15 @@ class AccountPayableController extends Controller
             $query->where('id', $accountPayable->id);
         }
 
-        return $query->orderBy('vendor_invoice_number')->orderBy('created_at')->get();
+        $payables = $query->orderBy('vendor_invoice_number')->orderBy('created_at')->get();
+
+        $payables->each(function (AccountPayable $payable) {
+            $payable->loadMissing('salesOrder');
+            $payable->syncComponents();
+            $payable->load('components');
+        });
+
+        return $payables;
     }
 
     private function buildGroupSummary(Collection $payables, ?SalesOrder $salesOrder): array
