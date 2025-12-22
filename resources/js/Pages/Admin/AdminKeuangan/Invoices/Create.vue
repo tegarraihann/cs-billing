@@ -1062,6 +1062,31 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
                     item_type: 'billable'
                 });
             }
+
+            const buyingAmount = normalizeNumber(vendor.buying_amount);
+            if (buyingAmount > 0) {
+                const vendorInfo = resolveVendorSelectionFromRecord(vendor);
+
+                operationalCosts.value.push({
+                    description: `${vendor.description || `Service ${index + 1}`} - Buying Cost (COGS)`,
+                    quantity: 1,
+                    unit: 'SET',
+                    rate: buyingAmount,
+                    currency: 'IDR',
+                    amount: buyingAmount,
+                    category_id: '',
+                    category_name: '',
+                    category: '',
+                    category_source: '',
+                    vendor_id: vendorInfo.vendorId,
+                    item_type: 'operational_cost',
+                    include_in_customer_invoice: false,
+                    is_hidden_from_customer: true,
+                    auto_generated: true,
+                    source: 'vendor_breakdown_buying',
+                    item_ref: `cogs_vendor_${vendor.vendor_id || index}`
+                });
+            }
         });
     }
 
@@ -1088,10 +1113,8 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
         });
     }
 
-    // 3. DO NOT populate buying costs from vendor_breakdown to frontend form
-    // Buying costs (COGS) will be auto-generated in BACKEND when invoice is saved
-    // This keeps the form clean and prevents user confusion
-    // Backend will automatically create operational cost items from vendor_breakdown buying prices
+    // 3. Buying costs (COGS) ditampilkan di section operasional agar margin akurat.
+    // Backend akan menghindari duplikasi karena item_ref "cogs_vendor_*" sudah ada.
 
     // 4. Populate operational costs from other_costs (input CS)
     if (otherCostsSource && Array.isArray(otherCostsSource)) {
