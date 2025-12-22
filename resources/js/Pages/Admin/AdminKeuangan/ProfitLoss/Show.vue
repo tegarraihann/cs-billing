@@ -181,7 +181,7 @@ const loading = ref(false)
 const exportPdf = () => {
   if (isExporting.value) return
   isExporting.value = true
-  window.location.href = route('admin-keuangan.profit-loss.export', { profitLoss: props.period.id })
+  window.location.href = route('admin-keuangan.profit-loss.export-pdf', { profitLoss: props.period.id })
   setTimeout(() => (isExporting.value = false), 1000)
 }
 

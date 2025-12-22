@@ -921,8 +921,20 @@ const loadSalesOrderData = () => {
         // Remarks - keep empty, don't auto-populate from sales order
         // form.remarks remains empty for manual input
 
+        const fallbackData = {
+            vendor_breakdown: (selectedOrder.vendor_breakdown && selectedOrder.vendor_breakdown.length > 0)
+                ? selectedOrder.vendor_breakdown
+                : (props.preselectedVendorBreakdown ?? []),
+            reimbursement_items: (selectedOrder.reimbursement_items && selectedOrder.reimbursement_items.length > 0)
+                ? selectedOrder.reimbursement_items
+                : (props.preselectedReimbursementItems ?? []),
+            other_costs: (selectedOrder.other_costs && selectedOrder.other_costs.length > 0)
+                ? selectedOrder.other_costs
+                : (props.preselectedOtherCosts ?? []),
+        };
+
         // Auto-populate items from sales order data
-        populateItemsFromSalesOrder(selectedOrder);
+        populateItemsFromSalesOrder(selectedOrder, fallbackData);
     }
 };
 
@@ -1021,7 +1033,7 @@ const resolveVendorSelectionFromRecord = (record) => {
 };
 
 // Function to auto-populate items from sales order
-const populateItemsFromSalesOrder = (salesOrder) => {
+const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
     if (!salesOrder) return;
 
     // Clear existing items
@@ -1029,9 +1041,13 @@ const populateItemsFromSalesOrder = (salesOrder) => {
     reimbursementItems.value = [];
     operationalCosts.value = [];
 
+    const vendorBreakdown = overrides.vendor_breakdown ?? salesOrder.vendor_breakdown ?? [];
+    const reimbursementSource = overrides.reimbursement_items ?? salesOrder.reimbursement_items ?? [];
+    const otherCostsSource = overrides.other_costs ?? salesOrder.other_costs ?? [];
+
     // 1. Populate main items from vendor_breakdown
-    if (salesOrder.vendor_breakdown && Array.isArray(salesOrder.vendor_breakdown)) {
-        salesOrder.vendor_breakdown.forEach((vendor, index) => {
+    if (vendorBreakdown && Array.isArray(vendorBreakdown)) {
+        vendorBreakdown.forEach((vendor, index) => {
             const sellingAmount = normalizeNumber(vendor.selling_amount);
             if (sellingAmount > 0) {
                 mainItems.value.push({
@@ -1046,38 +1062,13 @@ const populateItemsFromSalesOrder = (salesOrder) => {
                     item_type: 'billable'
                 });
             }
-
-            const buyingAmount = normalizeNumber(vendor.buying_amount);
-            if (buyingAmount > 0) {
-                const vendorInfo = resolveVendorSelectionFromRecord(vendor);
-
-                operationalCosts.value.push({
-                    description: `${vendor.description || `Service ${index + 1}`} - Buying Cost (COGS)`,
-                    quantity: 1,
-                    unit: 'SET',
-                    rate: buyingAmount,
-                    currency: 'IDR',
-                    amount: buyingAmount,
-                    category_id: '',
-                    category_name: '',
-                    category: '',
-                    category_source: '',
-                    vendor_id: vendorInfo.vendorId,
-                    item_type: 'operational_cost',
-                    include_in_customer_invoice: false,
-                    is_hidden_from_customer: true,
-                    auto_generated: true,
-                    source: 'vendor_breakdown_buying',
-                    item_ref: `cogs_vendor_${vendor.vendor_id || index}`
-                });
-            }
         });
     }
 
     // 2. Populate reimbursement items from reimbursementItems relationship
-    if (salesOrder.reimbursement_items && Array.isArray(salesOrder.reimbursement_items)) {
-        console.log('Populating reimbursement items from relationship:', salesOrder.reimbursement_items);
-        salesOrder.reimbursement_items.forEach((item, index) => {
+    if (reimbursementSource && Array.isArray(reimbursementSource)) {
+        console.log('Populating reimbursement items from relationship:', reimbursementSource);
+        reimbursementSource.forEach((item, index) => {
             if (item.amount && item.amount > 0) {
                 const vendorInfo = resolveVendorSelectionFromRecord(item);
 
@@ -1103,9 +1094,9 @@ const populateItemsFromSalesOrder = (salesOrder) => {
     // Backend will automatically create operational cost items from vendor_breakdown buying prices
 
     // 4. Populate operational costs from other_costs (input CS)
-    if (salesOrder.other_costs && Array.isArray(salesOrder.other_costs)) {
-        console.log('Populating operational costs from other_costs:', salesOrder.other_costs);
-        salesOrder.other_costs.forEach((cost, index) => {
+    if (otherCostsSource && Array.isArray(otherCostsSource)) {
+        console.log('Populating operational costs from other_costs:', otherCostsSource);
+        otherCostsSource.forEach((cost, index) => {
             const amount = normalizeNumber(cost.amount);
             if (amount > 0) {
                 const categoryInfo = deriveOperationalCategoryInfo(cost);

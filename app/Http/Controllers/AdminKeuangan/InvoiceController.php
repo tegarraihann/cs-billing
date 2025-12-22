@@ -90,8 +90,9 @@ class InvoiceController extends Controller
     {
         // Check if coming from Sales Order detail page
         if ($request->has('sales_order_id') && $request->has('invoice_type')) {
-            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy', 'reimbursementItems'])
+            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems'])
                 ->findOrFail($request->sales_order_id);
+            $this->ensureVendorBreakdownPayload($salesOrder);
 
             // Verify SO is eligible for invoice creation - must be approved by finance
             if ($salesOrder->status !== 'approved' || !$salesOrder->released_at || !$salesOrder->approved_at) {
@@ -122,19 +123,22 @@ class InvoiceController extends Controller
         }
 
         // Get only approved SOs (already released and approved by finance)
-        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems'])
+        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems'])
             ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'gross_weight', 'measurement', 'qty', 'package_unit', 'shipment_type', 'container_no', 'party_lcl'])
             ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
             ->whereNotNull('approved_at')  // Must be approved by finance
             ->orderBy('approved_at', 'desc')  // Order by approval date
             ->get();
+        $allSalesOrders->each(function ($salesOrder) {
+            $this->ensureVendorBreakdownPayload($salesOrder);
+        });
 
         // Filter SOs that can still have invoices created
         $salesOrders = $allSalesOrders->filter(function($salesOrder) {
             // Only show SOs that have NO invoices at all
             return $salesOrder->invoices->count() === 0;
-        });
+        })->values();
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
             'salesOrders' => $salesOrders,
@@ -424,6 +428,21 @@ class InvoiceController extends Controller
             return back()->withErrors([
                 'general' => 'Terjadi kesalahan saat membuat invoice: ' . $e->getMessage()
             ])->withInput();
+        }
+    }
+
+    private function ensureVendorBreakdownPayload(SalesOrder $salesOrder): void
+    {
+        $vendorBreakdown = $salesOrder->vendor_breakdown;
+        $vendorItems = $salesOrder->relationLoaded('vendorBreakdownItems')
+            ? $salesOrder->vendorBreakdownItems
+            : $salesOrder->vendorBreakdownItems()->get();
+
+        if ((!is_array($vendorBreakdown) || empty($vendorBreakdown)) && $vendorItems->isNotEmpty()) {
+            $salesOrder->setAttribute(
+                'vendor_breakdown',
+                $vendorItems->map(fn ($item) => $item->toVendorBreakdownArray())->all()
+            );
         }
     }
 
