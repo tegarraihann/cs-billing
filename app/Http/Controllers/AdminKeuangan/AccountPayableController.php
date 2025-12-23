@@ -586,7 +586,19 @@ class AccountPayableController extends Controller
         }
 
         if ($component) {
+            \Log::info('AP add component created', [
+                'account_payable_id' => $accountPayable->id,
+                'component_id' => $component->id,
+                'component_type' => $component->component_type,
+                'amount' => $component->amount,
+                'user_id' => auth()->id(),
+            ]);
             $invoiceCostSyncService->syncFromAccountPayableComponent($component);
+            \Log::info('AP add component sync completed', [
+                'account_payable_id' => $accountPayable->id,
+                'component_id' => $component->id,
+                'user_id' => auth()->id(),
+            ]);
         }
 
         return redirect()->back()->with('success', 'Biaya tambahan berhasil ditambahkan.');
