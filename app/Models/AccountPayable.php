@@ -828,6 +828,11 @@ class AccountPayable extends Model
                 return is_array($entry);
             })
             ->map(function ($entry, $index) use ($payableVendorId, $payableVendorName) {
+                $source = $entry['source'] ?? null;
+                if ($source === 'account_payable_component' || !empty($entry['component_id'])) {
+                    return null;
+                }
+
                 $amount = (float) ($entry['amount'] ?? 0);
                 if ($amount <= 0) {
                     return null;

@@ -23,10 +23,23 @@ class ProfitReportController extends Controller
         [$rangeStart, $rangeEnd] = $filters['range'];
         $customerId = $request->input('customer_id');
         
-        // Base query for sales orders
+        $invoiceRange = [$rangeStart->toDateString(), $rangeEnd->toDateString()];
+
+        // Base query for sales orders (filter by invoice date for reporting period)
         $query = SalesOrder::query()
-            ->with(['customer', 'invoices.items', 'accountReceivables', 'accountPayables', 'reimbursementItems'])
-            ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+            ->with([
+                'customer',
+                'invoices' => function ($query) use ($invoiceRange) {
+                    $query->whereBetween('invoice_date', $invoiceRange)
+                        ->with('items');
+                },
+                'accountReceivables',
+                'accountPayables',
+                'reimbursementItems',
+            ])
+            ->whereHas('invoices', function ($query) use ($invoiceRange) {
+                $query->whereBetween('invoice_date', $invoiceRange);
+            })
             ->where('status', 'approved');
 
         if ($customerId) {
@@ -110,10 +123,23 @@ class ProfitReportController extends Controller
         [$rangeStart, $rangeEnd] = $filters['range'];
         $customerId = $request->input('customer_id');
         
-        // Get the same data as index
+        $invoiceRange = [$rangeStart->toDateString(), $rangeEnd->toDateString()];
+
+        // Get the same data as index (filter by invoice date)
         $query = SalesOrder::query()
-            ->with(['customer', 'invoices.items', 'accountReceivables', 'accountPayables', 'reimbursementItems'])
-            ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+            ->with([
+                'customer',
+                'invoices' => function ($query) use ($invoiceRange) {
+                    $query->whereBetween('invoice_date', $invoiceRange)
+                        ->with('items');
+                },
+                'accountReceivables',
+                'accountPayables',
+                'reimbursementItems',
+            ])
+            ->whereHas('invoices', function ($query) use ($invoiceRange) {
+                $query->whereBetween('invoice_date', $invoiceRange);
+            })
             ->where('status', 'approved');
 
         if ($customerId) {
@@ -152,6 +178,9 @@ class ProfitReportController extends Controller
             'loss_shipments' => $profitData->where('profit', '<', 0)->count(),
         ];
 
+        $dateFrom = $filters['dateFrom'];
+        $dateTo = $filters['dateTo'];
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.admin-keuangan.reports.profit-shipment-pdf', [
             'profitData' => $profitData,
             'summary' => $summary,
@@ -180,8 +209,14 @@ class ProfitReportController extends Controller
             'customer', 
             'invoices.items', 
             'accountReceivables', 
-            'accountPayables.vendor'
+            'accountPayables.vendor',
+            'accountPayables.components.vendor'
         ]);
+
+        $salesOrder->accountPayables->each(function ($payable) {
+            $payable->syncComponents();
+            $payable->loadMissing(['components.vendor']);
+        });
 
         // Calculate detailed breakdown using invoice data
         $revenue = $this->calculateTotalRevenue($salesOrder);
@@ -191,22 +226,33 @@ class ProfitReportController extends Controller
         $profit = $revenue - $costs;
         $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
 
-        // Cost breakdown by vendor
-        $costBreakdown = $salesOrder->accountPayables->groupBy('vendor_name')->map(function ($payables, $vendorName) {
-            return [
-                'vendor_name' => $vendorName,
-                'total_cost' => $payables->sum('amount'),
-                'paid_amount' => $payables->sum('paid_amount'),
-                'outstanding_amount' => $payables->sum('outstanding_amount'),
-                'services' => $payables->map(function ($payable) {
-                    return [
-                        'description' => $payable->service_description,
-                        'amount' => $payable->amount,
-                        'status' => $payable->status
-                    ];
-                })
-            ];
-        })->values();
+        // Cost breakdown by vendor (use components so manual AP items appear)
+        $components = $salesOrder->accountPayables
+            ->flatMap(fn ($payable) => $payable->components ?? collect());
+
+        $costBreakdown = $components
+            ->groupBy(function ($component) {
+                return $component->vendor?->nama_vendor
+                    ?? $component->recipient_name
+                    ?? $component->accountPayable?->vendor_name
+                    ?? 'Unknown Vendor';
+            })
+            ->map(function ($items, $vendorName) {
+                return [
+                    'vendor_name' => $vendorName,
+                    'total_cost' => $items->sum('amount'),
+                    'paid_amount' => $items->sum('paid_amount'),
+                    'outstanding_amount' => $items->sum('outstanding_amount'),
+                    'services' => $items->map(function ($component) {
+                        return [
+                            'description' => $component->description,
+                            'amount' => $component->amount,
+                            'status' => $component->status
+                        ];
+                    })->values(),
+                ];
+            })
+            ->values();
 
         // Revenue breakdown - only billable items
         $revenueBreakdown = $salesOrder->invoices->map(function ($invoice) {
@@ -364,9 +410,22 @@ class ProfitReportController extends Controller
 
     private function getPeriodProfitData($dateFrom, $dateTo)
     {
+        $rangeStart = $dateFrom instanceof Carbon ? $dateFrom->toDateString() : Carbon::parse($dateFrom)->toDateString();
+        $rangeEnd = $dateTo instanceof Carbon ? $dateTo->toDateString() : Carbon::parse($dateTo)->toDateString();
+
         $salesOrders = SalesOrder::query()
-            ->with(['accountPayables', 'accountReceivables', 'invoices.items', 'reimbursementItems'])
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->with([
+                'accountPayables',
+                'accountReceivables',
+                'invoices' => function ($query) use ($rangeStart, $rangeEnd) {
+                    $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd])
+                        ->with('items');
+                },
+                'reimbursementItems',
+            ])
+            ->whereHas('invoices', function ($query) use ($rangeStart, $rangeEnd) {
+                $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd]);
+            })
             ->where('status', 'approved')
             ->get();
 

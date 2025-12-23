@@ -518,29 +518,9 @@ class AccountPayableController extends Controller
 
             $salesOrder = $accountPayable->salesOrder;
 
-            if ($validated['component_type'] === 'operational_cost' && $salesOrder) {
-                $otherCosts = $salesOrder->other_costs ?? [];
-                $otherCosts = collect($otherCosts)
-                    ->reject(fn ($item) => data_get($item, 'component_id') === $component->id)
-                    ->values()
-                    ->toArray();
-
-                $otherCosts[] = [
-                    'id' => 'ap_component_' . $component->id,
-                    'description' => $validated['description'],
-                    'amount' => $amount,
-                    'category_id' => $category?->id ? (string) $category->id : '',
-                    'category_name' => $category?->name ?? '',
-                    'category' => $category?->name ?? '',
-                    'vendor_id' => $vendor->id ?? null,
-                    'source' => 'account_payable_component',
-                    'component_id' => $component->id,
-                    'auto_generated' => false,
-                ];
-
-                $salesOrder->other_costs = $otherCosts;
-                $salesOrder->save();
-            }
+            // Operational cost tambahan disimpan sebagai component saja.
+            // Sinkronisasi ke invoice/profit dilakukan via InvoiceCostSyncService,
+            // sehingga tidak perlu menambah entry di other_costs untuk menghindari duplikasi.
 
             if ($validated['component_type'] === 'reimbursement' && $salesOrder) {
                 $reimbursementItem = ReimbursementItem::create([
