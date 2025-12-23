@@ -1104,6 +1104,13 @@ class AccountPayable extends Model
 
         // If no components, use old method
         if ($components->isEmpty()) {
+            if ($amount <= 0 || $amount > $this->outstanding_amount) {
+                \Log::warning('AP recordPaymentToComponent failed: invalid amount without components', [
+                    'account_payable_id' => $this->id,
+                    'amount' => $amount,
+                    'outstanding_amount' => $this->outstanding_amount,
+                ]);
+            }
             return $this->markAsPaid($amount, $paymentMethod, $notes);
         }
 
@@ -1111,10 +1118,21 @@ class AccountPayable extends Model
         $component = $component ?: $components->first();
 
         if (!$component || $component->account_payable_id !== $this->id) {
+            \Log::warning('AP recordPaymentToComponent failed: component mismatch', [
+                'account_payable_id' => $this->id,
+                'component_id' => $component?->id,
+                'component_account_payable_id' => $component?->account_payable_id,
+            ]);
             return false;
         }
 
         if ($amount <= 0 || $amount > $component->outstanding_amount) {
+            \Log::warning('AP recordPaymentToComponent failed: amount exceeds outstanding', [
+                'account_payable_id' => $this->id,
+                'component_id' => $component->id,
+                'amount' => $amount,
+                'outstanding_amount' => $component->outstanding_amount,
+            ]);
             return false;
         }
 

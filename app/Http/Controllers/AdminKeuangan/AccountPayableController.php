@@ -316,6 +316,17 @@ class AccountPayableController extends Controller
             );
 
             if (!$success) {
+                \Log::warning('AP markAsPaid failed', [
+                    'account_payable_id' => $payableForPayment->id,
+                    'component_id' => $component?->id,
+                    'amount' => $validated['amount'] ?? null,
+                    'payment_method' => $validated['payment_method'] ?? null,
+                    'payment_date' => $validated['payment_date'] ?? null,
+                    'payment_source' => $validated['payment_source'] ?? null,
+                    'bank_account_id' => $validated['bank_account_id'] ?? null,
+                    'petty_cash_category_id' => $validated['petty_cash_category_id'] ?? null,
+                    'user_id' => auth()->id(),
+                ]);
                 throw new \Exception('Failed to mark payment');
             }
 

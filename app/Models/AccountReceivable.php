@@ -144,6 +144,11 @@ class AccountReceivable extends Model
         $components = $this->components()->get();
         if ($components->isEmpty()) {
             if ($amount <= 0 || $amount > $this->outstanding_amount) {
+                \Log::warning('AR recordPayment failed: invalid amount without components', [
+                    'account_receivable_id' => $this->id,
+                    'amount' => $amount,
+                    'outstanding_amount' => $this->outstanding_amount,
+                ]);
                 return false;
             }
 
@@ -172,10 +177,21 @@ class AccountReceivable extends Model
         $component = $component ?: $components->first();
 
         if (!$component || $component->account_receivable_id !== $this->id) {
+            \Log::warning('AR recordPayment failed: component mismatch', [
+                'account_receivable_id' => $this->id,
+                'component_id' => $component?->id,
+                'component_account_receivable_id' => $component?->account_receivable_id,
+            ]);
             return false;
         }
 
         if ($amount <= 0 || $amount > $component->outstanding_amount) {
+            \Log::warning('AR recordPayment failed: amount exceeds outstanding', [
+                'account_receivable_id' => $this->id,
+                'component_id' => $component->id,
+                'amount' => $amount,
+                'outstanding_amount' => $component->outstanding_amount,
+            ]);
             return false;
         }
 

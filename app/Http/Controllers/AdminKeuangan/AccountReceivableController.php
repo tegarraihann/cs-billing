@@ -464,6 +464,14 @@ class AccountReceivableController extends Controller
             );
 
             if (!$success) {
+                \Log::warning('AR recordPayment failed', [
+                    'account_receivable_id' => $accountReceivable->id,
+                    'component_id' => $component?->id,
+                    'amount' => $validated['amount'] ?? null,
+                    'payment_date' => $validated['payment_date'] ?? null,
+                    'bank_account_id' => $validated['bank_account_id'] ?? null,
+                    'user_id' => auth()->id(),
+                ]);
                 throw new \Exception('Failed to record payment');
             }
 
