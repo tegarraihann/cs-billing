@@ -484,7 +484,9 @@ class AccountPayableController extends Controller
 
             $vendor = !empty($validated['vendor_id'])
                 ? Vendor::find($validated['vendor_id'])
-                : $accountPayable->vendor;
+                : null;
+
+            $recipientName = $vendor?->nama_vendor ?? 'Divisi Operational';
 
             $amount = (float) $validated['amount'];
 
@@ -496,9 +498,7 @@ class AccountPayableController extends Controller
                 'outstanding_amount' => $amount,
                 'status' => 'unpaid',
                 'due_date' => $accountPayable->payment_due_date,
-                'recipient_name' => $vendor->nama_vendor
-                    ?? $accountPayable->vendor_name
-                    ?? 'Divisi Operational',
+                'recipient_name' => $recipientName,
                 'vendor_id' => $vendor->id ?? null,
                 'related_items' => [
                     'category_id' => $category?->id,
