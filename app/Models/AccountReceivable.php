@@ -176,7 +176,7 @@ class AccountReceivable extends Model
 
         $component = $component ?: $components->first();
 
-        if (!$component || $component->account_receivable_id !== $this->id) {
+        if (!$component || (int) $component->account_receivable_id !== (int) $this->id) {
             \Log::warning('AR recordPayment failed: component mismatch', [
                 'account_receivable_id' => $this->id,
                 'component_id' => $component?->id,

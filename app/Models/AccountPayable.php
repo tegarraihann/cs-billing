@@ -1117,7 +1117,7 @@ class AccountPayable extends Model
         // Get the component to pay
         $component = $component ?: $components->first();
 
-        if (!$component || $component->account_payable_id !== $this->id) {
+        if (!$component || (int) $component->account_payable_id !== (int) $this->id) {
             \Log::warning('AP recordPaymentToComponent failed: component mismatch', [
                 'account_payable_id' => $this->id,
                 'component_id' => $component?->id,
