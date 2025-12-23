@@ -225,7 +225,8 @@ class AccountReceivable extends Model
         // Calculate due date from payment terms
         $dueDate = null;
         if ($invoice->term_days) {
-            $dueDate = Carbon::parse($invoice->invoice_date)->addDays($invoice->term_days);
+            $dueDays = (int) $invoice->term_days;
+            $dueDate = Carbon::parse($invoice->invoice_date)->addDays($dueDays);
         }
 
         $receivable = self::create([
@@ -256,7 +257,8 @@ class AccountReceivable extends Model
         // Calculate new due date from payment terms
         $dueDate = null;
         if ($invoice->term_days) {
-            $dueDate = Carbon::parse($invoice->invoice_date)->addDays($invoice->term_days);
+            $dueDays = (int) $invoice->term_days;
+            $dueDate = Carbon::parse($invoice->invoice_date)->addDays($dueDays);
         }
 
         // Calculate new outstanding amount
