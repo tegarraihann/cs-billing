@@ -488,81 +488,102 @@ class AccountPayableController extends Controller
                 ->withInput();
         }
 
-        $component = DB::transaction(function () use ($validated, $accountPayable) {
-            $category = !empty($validated['category_id'])
-                ? OperationalCostCategory::find($validated['category_id'])
-                : null;
+        \Log::info('AP add component request', [
+            'account_payable_id' => $accountPayable->id,
+            'sales_order_id' => $accountPayable->sales_order_id,
+            'component_type' => $validated['component_type'],
+            'amount' => $validated['amount'],
+            'category_id' => $validated['category_id'] ?? null,
+            'vendor_id' => $validated['vendor_id'] ?? null,
+            'user_id' => auth()->id(),
+        ]);
 
-            $vendor = !empty($validated['vendor_id'])
-                ? Vendor::find($validated['vendor_id'])
-                : null;
+        try {
+            $component = DB::transaction(function () use ($validated, $accountPayable) {
+                $category = !empty($validated['category_id'])
+                    ? OperationalCostCategory::find($validated['category_id'])
+                    : null;
 
-            $recipientName = $vendor?->nama_vendor ?? 'Divisi Operational';
+                $vendor = !empty($validated['vendor_id'])
+                    ? Vendor::find($validated['vendor_id'])
+                    : null;
 
-            $amount = (float) $validated['amount'];
+                $recipientName = $vendor?->nama_vendor ?? 'Divisi Operational';
 
-            $component = $accountPayable->components()->create([
-                'component_type' => $validated['component_type'],
-                'description' => $validated['description'],
-                'amount' => $amount,
-                'paid_amount' => 0,
-                'outstanding_amount' => $amount,
-                'status' => 'unpaid',
-                'due_date' => $accountPayable->payment_due_date,
-                'recipient_name' => $recipientName,
-                'vendor_id' => $vendor->id ?? null,
-                'related_items' => [
-                    'category_id' => $category?->id,
-                    'category_name' => $category?->name,
-                    'notes' => $validated['notes'] ?? null,
-                    'source' => 'account_payable_manual_entry',
-                ],
-            ]);
+                $amount = (float) $validated['amount'];
 
-            // Ensure manual component has unique lookup reference for sync
-            $component->update([
-                'related_items' => array_merge(
-                    $component->related_items ?? [],
-                    ['lookup_ref' => 'manual_component_' . $component->id]
-                ),
-            ]);
-
-            $salesOrder = $accountPayable->salesOrder;
-
-            // Operational cost tambahan disimpan sebagai component saja.
-            // Sinkronisasi ke invoice/profit dilakukan via InvoiceCostSyncService,
-            // sehingga tidak perlu menambah entry di other_costs untuk menghindari duplikasi.
-
-            if ($validated['component_type'] === 'reimbursement' && $salesOrder) {
-                $reimbursementItem = ReimbursementItem::create([
-                    'sales_order_id' => $salesOrder->id,
+                $component = $accountPayable->components()->create([
+                    'component_type' => $validated['component_type'],
                     'description' => $validated['description'],
                     'amount' => $amount,
+                    'paid_amount' => 0,
+                    'outstanding_amount' => $amount,
+                    'status' => 'unpaid',
+                    'due_date' => $accountPayable->payment_due_date,
+                    'recipient_name' => $recipientName,
                     'vendor_id' => $vendor->id ?? null,
-                    'category' => $category?->name ?? 'Reimbursement',
-                    'status' => 'pending',
-                    'created_by' => auth()->id(),
-                    'receipt_info' => [
-                        'source' => 'account_payable_component',
-                        'component_id' => null,
+                    'related_items' => [
+                        'category_id' => $category?->id,
+                        'category_name' => $category?->name,
+                        'notes' => $validated['notes'] ?? null,
+                        'source' => 'account_payable_manual_entry',
                     ],
                 ]);
 
-                $receiptInfo = $reimbursementItem->receipt_info ?? [];
-                $receiptInfo['component_id'] = $component->id;
-                $reimbursementItem->receipt_info = $receiptInfo;
-                $reimbursementItem->save();
+                // Ensure manual component has unique lookup reference for sync
+                $component->update([
+                    'related_items' => array_merge(
+                        $component->related_items ?? [],
+                        ['lookup_ref' => 'manual_component_' . $component->id]
+                    ),
+                ]);
 
-                $relatedItems = $component->related_items ?? [];
-                $relatedItems['reimbursement_item_id'] = $reimbursementItem->id;
-                $component->related_items = $relatedItems;
-                $component->save();
-            }
+                $salesOrder = $accountPayable->salesOrder;
 
-            $accountPayable->recalculateTotals();
+                // Operational cost tambahan disimpan sebagai component saja.
+                // Sinkronisasi ke invoice/profit dilakukan via InvoiceCostSyncService,
+                // sehingga tidak perlu menambah entry di other_costs untuk menghindari duplikasi.
 
-            return $component;
-        });
+                if ($validated['component_type'] === 'reimbursement' && $salesOrder) {
+                    $reimbursementItem = ReimbursementItem::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'description' => $validated['description'],
+                        'amount' => $amount,
+                        'vendor_id' => $vendor->id ?? null,
+                        'category' => $category?->name ?? 'Reimbursement',
+                        'status' => 'pending',
+                        'created_by' => auth()->id(),
+                        'receipt_info' => [
+                            'source' => 'account_payable_component',
+                            'component_id' => null,
+                        ],
+                    ]);
+
+                    $receiptInfo = $reimbursementItem->receipt_info ?? [];
+                    $receiptInfo['component_id'] = $component->id;
+                    $reimbursementItem->receipt_info = $receiptInfo;
+                    $reimbursementItem->save();
+
+                    $relatedItems = $component->related_items ?? [];
+                    $relatedItems['reimbursement_item_id'] = $reimbursementItem->id;
+                    $component->related_items = $relatedItems;
+                    $component->save();
+                }
+
+                $accountPayable->recalculateTotals();
+
+                return $component;
+            });
+        } catch (\Throwable $e) {
+            \Log::error('AP add component failed', [
+                'account_payable_id' => $accountPayable->id,
+                'sales_order_id' => $accountPayable->sales_order_id,
+                'payload' => $validated,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
 
         if ($component) {
             $invoiceCostSyncService->syncFromAccountPayableComponent($component);
