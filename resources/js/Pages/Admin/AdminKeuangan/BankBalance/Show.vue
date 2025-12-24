@@ -281,7 +281,7 @@ import {
     Activity, History, Plus, Download, Loader2
 } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
     bank: {
         type: Object,
         required: true

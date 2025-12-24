@@ -123,7 +123,8 @@ class BankBalanceController extends Controller
         return Inertia::render('Admin/AdminKeuangan/BankBalance/Show', [
             'bank' => $bank,
             'currentBalance' => $bank->getCurrentBalance(),
-            'stats' => $this->getBankStats($bank)
+            'stats' => $this->getBankStats($bank),
+            'transactions' => $bank->transactions,
         ]);
     }
 
