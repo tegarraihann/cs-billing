@@ -299,10 +299,11 @@
                                             </svg>
                                         </button>
                                         <button
-                                            v-if="receivable.customer"
-                                            @click="generateSOA(receivable.customer)"
+                                            v-if="receivable.customer || receivable.customer_id"
+                                            type="button"
                                             class="text-purple-600 hover:text-purple-900"
                                             title="Generate SOA"
+                                            @click.stop="downloadSOA(receivable)"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -866,17 +867,33 @@ watch(
     }
 )
 
-const generateSOA = (customer) => {
-    const params = new URLSearchParams({
-        date_from: searchForm.date_from || '',
-        date_to: searchForm.date_to || '',
-        include_paid: 'false'
-    }).toString()
-    
-    window.open(
-        route('admin-keuangan.account-receivables.generate-soa', customer.id) + '?' + params,
-        '_blank'
-    )
+const getSoaUrl = (receivable) => {
+    const customerId = receivable?.customer?.id || receivable?.customer_id
+    if (!customerId) {
+        return '#'
+    }
+
+    const params = new URLSearchParams()
+    if (searchForm.date_from) {
+        params.set('date_from', searchForm.date_from)
+    }
+    if (searchForm.date_to) {
+        params.set('date_to', searchForm.date_to)
+    }
+
+    const queryString = params.toString()
+    const baseUrl = `/admin-keuangan/account-receivables/customers/${customerId}/generate-soa`
+
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl
+}
+
+const downloadSOA = (receivable) => {
+    const url = getSoaUrl(receivable)
+    if (url === '#') {
+        return
+    }
+
+    window.location.href = url
 }
 
 const visitPage = (url) => {

@@ -169,6 +169,31 @@ class ProfitLossPeriod extends Model
         ];
 
         $summary = $this->summary_data ?? [];
+        $taxExpenseEntries = $expense_entries->get('expense_tax', collect());
+        $taxRateMatches = function ($entry, float $rate, string $entryType, string $accountCode) {
+            if ($entry->entry_type === $entryType) {
+                return true;
+            }
+
+            $entryRate = data_get($entry->additional_data, 'tax_rate');
+            if ($entryRate !== null && abs(((float) $entryRate) - $rate) < 0.0001) {
+                return true;
+            }
+
+            return (string) ($entry->account?->account_code) === $accountCode;
+        };
+
+        $tax05Entries = $taxExpenseEntries->filter(function ($entry) use ($taxRateMatches) {
+            return $taxRateMatches($entry, 0.5, 'manual_tax_0_5', '5450');
+        });
+
+        $tax2Entries = $taxExpenseEntries->filter(function ($entry) use ($taxRateMatches) {
+            return $taxRateMatches($entry, 2.0, 'manual_tax_2', '5451');
+        });
+
+        $tax05Total = $tax05Entries->sum('amount');
+        $tax2Total = $tax2Entries->sum('amount');
+        $taxTotal = $tax05Total + $tax2Total;
 
         return [
             'period' => $this,
@@ -201,6 +226,17 @@ class ProfitLossPeriod extends Model
                 'tax' => $serializeEntries($expense_entries->get('expense_tax', collect())),
                 'other' => $serializeEntries($expense_entries->get('expense_other', collect())),
                 'total' => $this->total_expenses
+            ],
+            'taxes' => [
+                'e05' => [
+                    'entries' => $serializeEntries($tax05Entries),
+                    'total' => $tax05Total,
+                ],
+                'two_percent' => [
+                    'entries' => $serializeEntries($tax2Entries),
+                    'total' => $tax2Total,
+                ],
+                'total' => $taxTotal,
             ],
             'summary' => [
                 'total_salary_expense' => $summary['total_salary_expense'] ?? 0,

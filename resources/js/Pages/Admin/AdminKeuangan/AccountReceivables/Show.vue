@@ -60,11 +60,14 @@
                             Record Payment
                         </button>
 
-                        <button v-if="receivable.customer" @click="generateSOA"
+                        <a v-if="receivable.customer"
+                            :href="soaUrl"
+                            target="_blank"
+                            rel="noopener"
                             class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <FileText class="w-4 h-4 mr-2" />
                             Generate SOA
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -627,17 +630,14 @@ const recordPayment = () => {
     )
 }
 
-const generateSOA = () => {
-    if (!props.receivable.customer) {
-        alert('Customer information not available')
-        return
+const soaUrl = computed(() => {
+    const customerId = props.receivable?.customer?.id || props.receivable?.customer_id
+    if (!customerId) {
+        return '#'
     }
 
-    window.open(
-        route('admin-keuangan.account-receivables.generate-soa', props.receivable.customer.id),
-        '_blank'
-    )
-}
+    return `/admin-keuangan/account-receivables/customers/${customerId}/generate-soa`
+})
 
 const postVatPayable = () => {
     if (!canPostVat.value || postingVat.value) {

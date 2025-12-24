@@ -304,10 +304,9 @@
 
     <!-- TAX EXPENSES -->
     @php
-        // Placeholder totals; adjust the data keys according to your invoice tax fields
-        $taxE05 = data_get($reportData, 'taxes.e05', 0);
-        $tax2 = data_get($reportData, 'taxes.two_percent', 0);
-        $totalTax = $taxE05 + $tax2;
+        $taxE05 = data_get($reportData, 'taxes.e05.total', 0);
+        $tax2 = data_get($reportData, 'taxes.two_percent.total', 0);
+        $totalTax = data_get($reportData, 'taxes.total', $taxE05 + $tax2);
         $netProfitMonthly = data_get($reportData, 'net_profit_closing', $profitBeforeTax - $totalTax);
     @endphp
     <div class="section">
