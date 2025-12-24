@@ -608,6 +608,7 @@ class SalesOrderController extends Controller
         // Re-sync vendor COGS items on related invoices and regenerate hutang vendor
         $salesOrder->refresh();
         $this->syncVendorBreakdownToInvoices($salesOrder);
+        $this->syncOperationalAndReimbursementToInvoices($salesOrder);
         \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
 
         return redirect()
@@ -925,6 +926,163 @@ class SalesOrderController extends Controller
 
             // COGS tidak mempengaruhi subtotal pelanggan tapi hitung ulang untuk konsistensi
             $invoice->calculateTotals();
+        }
+    }
+
+    private function syncOperationalAndReimbursementToInvoices(SalesOrder $salesOrder): void
+    {
+        $salesOrder->loadMissing(['invoices', 'reimbursementItems']);
+
+        if ($salesOrder->invoices->isEmpty()) {
+            return;
+        }
+
+        $otherCosts = is_array($salesOrder->other_costs) ? $salesOrder->other_costs : [];
+        $reimbursementItems = $salesOrder->reimbursementItems;
+        $hasReimbursementInvoice = $salesOrder->invoices->contains(function (Invoice $invoice) {
+            return $invoice->invoice_type === 'reimbursement';
+        });
+
+        foreach ($salesOrder->invoices as $invoice) {
+            $shouldRecalculate = false;
+            $syncOperational = $invoice->invoice_type !== 'reimbursement';
+            $syncReimbursement = !$hasReimbursementInvoice || in_array($invoice->invoice_type, ['reimbursement', 'combined'], true);
+
+            if ($syncOperational) {
+                $expectedOperationalRefs = [];
+
+                foreach ($otherCosts as $index => $otherCost) {
+                    $amount = (float) ($otherCost['amount'] ?? 0);
+                    if ($amount <= 0) {
+                        continue;
+                    }
+
+                    $itemRef = 'other_cost_' . $index;
+                    $expectedOperationalRefs[] = $itemRef;
+
+                    $rawVendor = $otherCost['vendor_id'] ?? null;
+                    $vendorId = $this->resolveVendorId($rawVendor);
+                    $description = $otherCost['description'] ?? 'Additional Cost';
+
+                    $itemData = [
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Other Cost - ' . $description,
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $amount,
+                        'currency' => 'IDR',
+                        'amount' => $amount,
+                        'item_ref' => $itemRef,
+                        'item_type' => 'operational_cost',
+                        'include_in_customer_invoice' => false,
+                        'is_hidden_from_customer' => true,
+                    ];
+
+                    if ($vendorId) {
+                        $itemData['vendor_id'] = $vendorId;
+                    }
+
+                    $existingItem = $invoice->items()
+                        ->where('item_ref', $itemRef)
+                        ->where('item_type', 'operational_cost')
+                        ->first();
+
+                    if ($existingItem) {
+                        $existingItem->fill($itemData);
+                        if ($existingItem->isDirty()) {
+                            $existingItem->save();
+                            $shouldRecalculate = true;
+                        }
+                    } else {
+                        InvoiceItem::create($itemData);
+                        $shouldRecalculate = true;
+                    }
+                }
+
+                $deleteQuery = $invoice->items()
+                    ->where('item_type', 'operational_cost')
+                    ->where('item_ref', 'like', 'other_cost_%');
+
+                if (!empty($expectedOperationalRefs)) {
+                    $deleteQuery->whereNotIn('item_ref', $expectedOperationalRefs);
+                }
+
+                if ($deleteQuery->count() > 0) {
+                    $deleteQuery->delete();
+                    $shouldRecalculate = true;
+                }
+            }
+
+            if ($syncReimbursement) {
+                $expectedReimbursementRefs = [];
+
+                foreach ($reimbursementItems as $reimbursementItem) {
+                    if ($reimbursementItem->invoice_id && $reimbursementItem->invoice_id !== $invoice->id) {
+                        continue;
+                    }
+
+                    $itemRef = 'reimbursement_' . $reimbursementItem->id;
+                    $expectedReimbursementRefs[] = $itemRef;
+
+                    $amount = (float) $reimbursementItem->amount;
+
+                    $itemData = [
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Reimbursement - ' . $reimbursementItem->description,
+                        'quantity' => 1,
+                        'unit' => 'SET',
+                        'rate' => $amount,
+                        'currency' => 'IDR',
+                        'amount' => $amount,
+                        'item_ref' => $itemRef,
+                        'item_type' => 'reimbursement',
+                        'include_in_customer_invoice' => true,
+                        'is_hidden_from_customer' => false,
+                    ];
+
+                    if ($reimbursementItem->vendor_id) {
+                        $itemData['vendor_id'] = $reimbursementItem->vendor_id;
+                    }
+
+                    $existingItem = $invoice->items()
+                        ->where('item_ref', $itemRef)
+                        ->where('item_type', 'reimbursement')
+                        ->first();
+
+                    if ($existingItem) {
+                        $existingItem->fill($itemData);
+                        if ($existingItem->isDirty()) {
+                            $existingItem->save();
+                            $shouldRecalculate = true;
+                        }
+                    } else {
+                        InvoiceItem::create($itemData);
+                        $shouldRecalculate = true;
+                    }
+
+                    if (!$reimbursementItem->invoice_id) {
+                        $reimbursementItem->markAsInvoiced($invoice->id);
+                    }
+                }
+
+                $deleteQuery = $invoice->items()
+                    ->where('item_type', 'reimbursement')
+                    ->where('item_ref', 'like', 'reimbursement_%');
+
+                if (!empty($expectedReimbursementRefs)) {
+                    $deleteQuery->whereNotIn('item_ref', $expectedReimbursementRefs);
+                }
+
+                if ($deleteQuery->count() > 0) {
+                    $deleteQuery->delete();
+                    $shouldRecalculate = true;
+                }
+            }
+
+            if ($shouldRecalculate) {
+                $invoice->calculateTotals();
+                \App\Models\AccountReceivable::syncFromInvoice($invoice->fresh());
+            }
         }
     }
 
