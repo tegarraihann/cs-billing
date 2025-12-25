@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\SalesOrder;
 
 class ProfitLossPeriod extends Model
 {
@@ -195,6 +196,58 @@ class ProfitLossPeriod extends Model
         $tax2Total = $tax2Entries->sum('amount');
         $taxTotal = $tax05Total + $tax2Total;
 
+        $shipmentSummary = [
+            'total_revenue' => 0,
+            'total_costs' => 0,
+            'total_profit' => 0,
+            'average_margin' => 0,
+            'shipment_count' => 0,
+        ];
+
+        if ($this->start_date && $this->end_date) {
+            $rangeStart = $this->start_date->toDateString();
+            $rangeEnd = $this->end_date->toDateString();
+
+            $salesOrders = SalesOrder::query()
+                ->with([
+                    'invoices' => function ($query) use ($rangeStart, $rangeEnd) {
+                        $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd])
+                            ->with('items');
+                    },
+                    'accountReceivables',
+                ])
+                ->whereHas('invoices', function ($query) use ($rangeStart, $rangeEnd) {
+                    $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd]);
+                })
+                ->where('status', 'approved')
+                ->get();
+
+            $totalMargins = 0;
+
+            foreach ($salesOrders as $salesOrder) {
+                $revenue = 0;
+                $operationalCosts = 0;
+
+                foreach ($salesOrder->invoices as $invoice) {
+                    $revenue += $invoice->calculateGrossRevenue();
+                    $operationalCosts += $invoice->calculateOperationalCosts();
+                }
+
+                $profit = $revenue - $operationalCosts;
+                $margin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
+
+                $shipmentSummary['total_revenue'] += $revenue;
+                $shipmentSummary['total_costs'] += $operationalCosts;
+                $shipmentSummary['total_profit'] += $profit;
+                $totalMargins += $margin;
+            }
+
+            $shipmentSummary['shipment_count'] = $salesOrders->count();
+            $shipmentSummary['average_margin'] = $shipmentSummary['shipment_count'] > 0
+                ? $totalMargins / $shipmentSummary['shipment_count']
+                : 0;
+        }
+
         return [
             'period' => $this,
             'revenues' => [
@@ -245,6 +298,7 @@ class ProfitLossPeriod extends Model
                 'total_tax_expense' => $summary['total_tax_expense'] ?? 0,
                 'total_other_expense' => $summary['total_other_expense'] ?? 0,
             ],
+            'shipment_profit' => $shipmentSummary,
             'net_profit' => $this->net_profit
         ];
     }

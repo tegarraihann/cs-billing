@@ -148,6 +148,14 @@ const getStatusBadge = (status) => (status === 'closed' ? 'bg-green-100 text-gre
 const summaryCards = computed(() => [
   { title: 'Total Pendapatan', value: props.reportData?.revenues?.total || 0, tone: 'text-green-700' },
   { title: 'Total Beban', value: props.reportData?.expenses?.total || 0, tone: 'text-red-700' },
+  {
+    title: 'Total Profit Shipment',
+    value: props.reportData?.shipment_profit?.total_profit || 0,
+    tone: props.reportData?.shipment_profit?.total_profit >= 0 ? 'text-green-700' : 'text-red-700',
+    subtitle: props.reportData?.shipment_profit?.shipment_count
+      ? `Shipments: ${props.reportData?.shipment_profit?.shipment_count} • Margin ${Number(props.reportData?.shipment_profit?.average_margin || 0).toFixed(2)}%`
+      : 'Shipments: 0'
+  },
   { title: 'Laba/Rugi Bersih', value: props.reportData?.net_profit || 0, tone: props.reportData?.net_profit >= 0 ? 'text-green-700' : 'text-red-700' },
   { title: 'Status', value: '', tone: 'text-gray-500', subtitle: getStatusText(props.period.status) },
 ])

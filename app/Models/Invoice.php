@@ -438,60 +438,17 @@ class Invoice extends Model
         try {
             \DB::beginTransaction();
 
-            // Get accounts
-            $revenueAccount = \App\Models\ChartOfAccount::where('account_category', 'revenue_main')->first();
-            $expenseAccount = \App\Models\ChartOfAccount::where('account_category', 'expense_operational')->first();
+            // Update invoice status first so sync uses latest posted invoices
+            $this->update([
+                'posted_to_profit_loss' => true,
+                'posted_to_profit_loss_at' => now(),
+                'posted_by' => $userId,
+            ]);
 
-            if (!$revenueAccount || !$expenseAccount) {
-                throw new \Exception('Account laba rugi belum dikonfigurasi. Hubungi administrator.');
-            }
-
-            // Create revenue entry (jika ada gross revenue)
-            if ($this->calculateGrossRevenue() > 0) {
-                $revenueEntry = \App\Models\ProfitLossEntry::create([
-                    'period_id' => $periodId,
-                    'account_id' => $revenueAccount->id,
-                    'description' => "Pendapatan - Invoice {$this->invoice_number}",
-                    'amount' => $this->calculateGrossRevenue(),
-                    'entry_type' => 'auto_invoice',
-                    'reference_type' => 'invoice',
-                    'reference_id' => $this->id,
-                    'transaction_date' => $this->invoice_date,
-                    'notes' => "Auto-generated dari invoice {$this->invoice_number}",
-                    'additional_data' => [
-                        'invoice_number' => $this->invoice_number,
-                        'customer_name' => $this->customer->company_name ?? 'Unknown',
-                        'gross_revenue' => $this->calculateGrossRevenue(),
-                        'operational_costs' => $this->calculateOperationalCosts(),
-                        'net_profit' => $this->calculateNetProfit()
-                    ],
-                    'created_by' => $userId,
-                ]);
-                $entryIds[] = $revenueEntry->id;
-            }
-
-            // Create operational cost entries (per item)
-            foreach ($this->operationalCosts()->get() as $cost) {
-                $costEntry = \App\Models\ProfitLossEntry::create([
-                    'period_id' => $periodId,
-                    'account_id' => $expenseAccount->id,
-                    'description' => "Biaya Operasional - {$cost->description}",
-                    'amount' => $cost->amount,
-                    'entry_type' => 'auto_invoice',
-                    'reference_type' => 'invoice_item',
-                    'reference_id' => $cost->id,
-                    'transaction_date' => $this->invoice_date,
-                    'notes' => "Auto-generated dari invoice {$this->invoice_number} - {$cost->description}",
-                    'additional_data' => [
-                        'invoice_number' => $this->invoice_number,
-                        'invoice_item_id' => $cost->id,
-                        'item_description' => $cost->description,
-                        'item_quantity' => $cost->quantity,
-                        'item_rate' => $cost->rate
-                    ],
-                    'created_by' => $userId,
-                ]);
-                $entryIds[] = $costEntry->id;
+            // Sync profit shipment entry for the sales order within this period
+            $profitEntry = $this->syncShipmentProfitEntry($period, $userId);
+            if ($profitEntry) {
+                $entryIds[] = $profitEntry->id;
             }
 
             // Update profit & loss period summary so ringkasan reflects latest totals
@@ -499,9 +456,6 @@ class Invoice extends Model
 
             // Update invoice status
             $this->update([
-                'posted_to_profit_loss' => true,
-                'posted_to_profit_loss_at' => now(),
-                'posted_by' => $userId,
                 'profit_loss_entries' => $entryIds
             ]);
 
@@ -511,9 +465,9 @@ class Invoice extends Model
                 'success' => true,
                 'message' => 'Invoice berhasil di-post ke laba rugi.',
                 'entry_ids' => $entryIds,
-                'gross_revenue' => $this->calculateGrossRevenue(),
-                'operational_costs' => $this->calculateOperationalCosts(),
-                'net_profit' => $this->calculateNetProfit()
+                'gross_revenue' => $profitEntry?->additional_data['gross_revenue'] ?? 0,
+                'operational_costs' => $profitEntry?->additional_data['operational_costs'] ?? 0,
+                'net_profit' => $profitEntry?->amount ?? 0
             ];
 
         } catch (\Exception $e) {
@@ -536,15 +490,18 @@ class Invoice extends Model
             \DB::beginTransaction();
 
             if ($this->profit_loss_entries && is_array($this->profit_loss_entries)) {
-                $periodIds = \App\Models\ProfitLossEntry::whereIn('id', $this->profit_loss_entries)
-                    ->pluck('period_id')
-                    ->unique();
-                $periods = \App\Models\ProfitLossPeriod::whereIn('id', $periodIds)->get();
+                \App\Models\ProfitLossEntry::whereIn('id', $this->profit_loss_entries)->delete();
             }
 
-            // Delete related profit loss entries
-            if ($this->profit_loss_entries && is_array($this->profit_loss_entries)) {
-                \App\Models\ProfitLossEntry::whereIn('id', $this->profit_loss_entries)->delete();
+            if ($this->invoice_date) {
+                $period = \App\Models\ProfitLossPeriod::active()
+                    ->whereDate('start_date', '<=', $this->invoice_date)
+                    ->whereDate('end_date', '>=', $this->invoice_date)
+                    ->orderBy('start_date')
+                    ->first();
+                if ($period) {
+                    $periods[] = $period;
+                }
             }
 
             // Update invoice status
@@ -554,6 +511,11 @@ class Invoice extends Model
                 'posted_by' => null,
                 'profit_loss_entries' => null
             ]);
+
+            // Sync shipment profit entries for affected periods
+            foreach ($periods as $period) {
+                $this->syncShipmentProfitEntry($period, $userId);
+            }
 
             // Recalculate affected profit & loss periods after removing entries
             foreach ($periods as $period) {
@@ -576,5 +538,46 @@ class Invoice extends Model
 
         return in_array($this->status, $eligibleStatuses, true) &&
                ($this->calculateGrossRevenue() > 0 || $this->calculateOperationalCosts() > 0);
+    }
+
+    protected function syncShipmentProfitEntry(\App\Models\ProfitLossPeriod $period, int $userId): ?\App\Models\ProfitLossEntry
+    {
+        $salesOrder = $this->salesOrder;
+        if (!$salesOrder) {
+            return null;
+        }
+
+        $invoices = $salesOrder->invoices()
+            ->with('items')
+            ->whereBetween('invoice_date', [$period->start_date, $period->end_date])
+            ->where('posted_to_profit_loss', true)
+            ->get();
+
+        if ($invoices->isEmpty()) {
+            \App\Models\ProfitLossEntry::where('period_id', $period->id)
+                ->where('reference_type', 'shipment_profit')
+                ->where('reference_id', $salesOrder->id)
+                ->delete();
+            return null;
+        }
+
+        $grossRevenue = $invoices->sum(function ($invoice) {
+            return $invoice->calculateGrossRevenue();
+        });
+        $operationalCosts = $invoices->sum(function ($invoice) {
+            return $invoice->calculateOperationalCosts();
+        });
+
+        $latestInvoiceDate = $invoices->max(function ($invoice) {
+            return $invoice->invoice_date?->format('Y-m-d') ?? $invoice->created_at->format('Y-m-d');
+        });
+
+        return \App\Models\ProfitLossEntry::createFromShipmentProfit($salesOrder, $period->id, $userId, [
+            'gross_revenue' => $grossRevenue,
+            'operational_costs' => $operationalCosts,
+            'profit' => $grossRevenue - $operationalCosts,
+            'invoice_ids' => $invoices->pluck('id')->all(),
+            'transaction_date' => $latestInvoiceDate,
+        ]);
     }
 }

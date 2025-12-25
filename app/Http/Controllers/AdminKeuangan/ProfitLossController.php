@@ -396,16 +396,64 @@ class ProfitLossController extends Controller
             'equipment' => 0,
         ];
 
-        // Revenue: gunakan invoice yang sudah posted ke P&L berdasarkan invoice_date
-        $invoices = Invoice::whereBetween('invoice_date', [$startDate, $endDate])
-            ->where('posted_to_profit_loss', true)
-            ->get();
+        // Revenue: gunakan profit shipment (gross revenue - operational costs) dari invoice yang posted ke P&L
+        ProfitLossEntry::where('period_id', $period->id)
+            ->whereIn('entry_type', ['auto_invoice', 'auto_so'])
+            ->delete();
 
-        foreach ($invoices as $inv) {
-            $entry = ProfitLossEntry::createFromInvoice($inv, $period->id, Auth::id());
+        $invoiceGroups = Invoice::with('items')
+            ->whereBetween('invoice_date', [$startDate, $endDate])
+            ->where('posted_to_profit_loss', true)
+            ->get()
+            ->groupBy('sales_order_id');
+
+        $salesOrders = SalesOrder::whereIn('id', $invoiceGroups->keys())
+            ->get()
+            ->keyBy('id');
+
+        $validSalesOrderIds = [];
+
+        foreach ($invoiceGroups as $salesOrderId => $invoices) {
+            $salesOrder = $salesOrders->get($salesOrderId);
+            if (!$salesOrder) {
+                continue;
+            }
+
+            $grossRevenue = $invoices->sum(function ($invoice) {
+                return $invoice->calculateGrossRevenue();
+            });
+            $operationalCosts = $invoices->sum(function ($invoice) {
+                return $invoice->calculateOperationalCosts();
+            });
+
+            if ($grossRevenue == 0 && $operationalCosts == 0) {
+                continue;
+            }
+
+            $latestInvoiceDate = $invoices->max(function ($invoice) {
+                return $invoice->invoice_date?->format('Y-m-d') ?? $invoice->created_at->format('Y-m-d');
+            });
+
+            $entry = ProfitLossEntry::createFromShipmentProfit($salesOrder, $period->id, Auth::id(), [
+                'gross_revenue' => $grossRevenue,
+                'operational_costs' => $operationalCosts,
+                'profit' => $grossRevenue - $operationalCosts,
+                'invoice_ids' => $invoices->pluck('id')->all(),
+                'transaction_date' => $latestInvoiceDate,
+            ]);
+
             if ($entry?->wasRecentlyCreated) {
                 $summary['sales_orders']++;
             }
+
+            $validSalesOrderIds[] = $salesOrder->id;
+        }
+
+        if (!empty($validSalesOrderIds)) {
+            ProfitLossEntry::where('period_id', $period->id)
+                ->where('entry_type', 'auto_shipment_profit')
+                ->whereNotIn('reference_id', $validSalesOrderIds)
+                ->delete();
         }
 
         if (class_exists('App\Models\PettyCashTransaction')) {
@@ -495,6 +543,20 @@ class ProfitLossController extends Controller
                 $entry = ProfitLossEntry::createFromSupplyTransaction($supply, $period->id, Auth::id());
                 if ($entry?->wasRecentlyCreated) {
                     $summary['supplies'] = ($summary['supplies'] ?? 0) + 1;
+                }
+            }
+        }
+
+        // Supplies topup/purchase -> expense
+        if (class_exists(SupplyTransaction::class)) {
+            $supplyTopups = SupplyTransaction::where('transaction_type', 'topup')
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->get();
+
+            foreach ($supplyTopups as $topup) {
+                $entry = ProfitLossEntry::createFromSupplyTopup($topup, $period->id, Auth::id());
+                if ($entry?->wasRecentlyCreated) {
+                    $summary['supplies_purchase'] = ($summary['supplies_purchase'] ?? 0) + 1;
                 }
             }
         }

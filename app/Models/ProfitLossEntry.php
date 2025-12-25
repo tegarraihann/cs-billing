@@ -54,6 +54,8 @@ class ProfitLossEntry extends Model
         switch ($this->reference_type) {
             case 'sales_order':
                 return app('App\Models\SalesOrder')->find($this->reference_id);
+            case 'shipment_profit':
+                return app('App\Models\SalesOrder')->find($this->reference_id);
             case 'petty_cash_transaction':
                 return app('App\Models\PettyCashTransaction')->find($this->reference_id);
             case 'employee_salary':
@@ -158,6 +160,55 @@ class ProfitLossEntry extends Model
             'customer' => $invoice->customer->company_name ?? $invoice->customer_name ?? '',
             'total_amount' => $invoice->total,
             'sales_order_id' => $invoice->sales_order_id,
+        ];
+
+        if (!$entry->exists) {
+            $entry->created_by = $created_by;
+        }
+
+        $entry->save();
+
+        return $entry;
+    }
+
+    /**
+     * Create profit loss entry from shipment profit (gross revenue - operational costs).
+     */
+    public static function createFromShipmentProfit(SalesOrder $sales_order, int $period_id, int $created_by, array $payload = []): ProfitLossEntry
+    {
+        $revenue_account = ChartOfAccount::where('account_type', 'revenue')
+            ->where('account_category', 'revenue_main')
+            ->orderBy('sort_order')
+            ->first();
+
+        if (!$revenue_account) {
+            $revenue_account = ChartOfAccount::where('account_type', 'revenue')
+                ->orderBy('account_code')
+                ->first();
+        }
+
+        if (!$revenue_account) {
+            throw new \Exception('Revenue account not found for shipment profit.');
+        }
+
+        $orderNumber = $sales_order->order_number ?? $sales_order->so_number ?? ('SO-' . $sales_order->id);
+
+        $entry = self::firstOrNew([
+            'period_id' => $period_id,
+            'reference_type' => 'shipment_profit',
+            'reference_id' => $sales_order->id,
+        ]);
+
+        $entry->account_id = $revenue_account->id;
+        $entry->description = 'Profit Shipment - ' . $orderNumber;
+        $entry->amount = (float) ($payload['profit'] ?? 0);
+        $entry->entry_type = 'auto_shipment_profit';
+        $entry->transaction_date = $payload['transaction_date'] ?? ($sales_order->so_date?->format('Y-m-d') ?? now()->format('Y-m-d'));
+        $entry->additional_data = [
+            'so_number' => $orderNumber,
+            'gross_revenue' => (float) ($payload['gross_revenue'] ?? 0),
+            'operational_costs' => (float) ($payload['operational_costs'] ?? 0),
+            'invoice_ids' => $payload['invoice_ids'] ?? [],
         ];
 
         if (!$entry->exists) {
