@@ -196,7 +196,7 @@ const exportPdf = () => {
 const regenerateEntries = () => {
   if (loading.value) return
   loading.value = true
-  router.post(route('admin-keuangan.profit-loss.recalculate', props.period.id), {}, {
+  router.post(route('admin-keuangan.profit-loss.regenerate', props.period.id), {}, {
     preserveScroll: true,
     onFinish: () => (loading.value = false),
   })

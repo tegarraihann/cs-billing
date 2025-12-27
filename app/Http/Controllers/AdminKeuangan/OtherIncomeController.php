@@ -136,17 +136,8 @@ class OtherIncomeController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            // Catat transaksi bank (credit) saat input pendapatan lain-lain
-            BankTransaction::create([
-                'bank_account_id' => $validated['bank_account_id'],
-                'transaction_date' => $validated['transaction_date'],
-                'transaction_type' => 'credit',
-                'amount' => $validated['amount'],
-                'description' => 'Other income: ' . $validated['description'],
-                'reference_type' => 'other_income_direct',
-                'reference_id' => $otherIncome->id,
-                'created_by' => Auth::id(),
-            ]);
+            // Auto post ke laba rugi agar langsung masuk income statement (accrual)
+            $otherIncome->postToProfitLoss(Auth::id());
         });
 
         return redirect()->route('admin-keuangan.other-incomes.index')
