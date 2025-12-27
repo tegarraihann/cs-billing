@@ -7,6 +7,10 @@ use App\Models\Employee;
 use App\Models\EmployeeSalary;
 use App\Models\BankTransaction;
 use App\Models\BankAccount;
+use App\Models\ChartOfAccount;
+use App\Models\ProfitLossEntry;
+use App\Models\ProfitLossPeriod;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +48,14 @@ class EmployeeSalaryController extends Controller
             'stats' => $stats,
             'filters' => $request->only(['period', 'division', 'status']),
             'divisions' => $this->getDivisions(),
-            'periods' => $this->getAvailablePeriods()
+            'periods' => $this->getAvailablePeriods(),
+            'bankAccounts' => BankAccount::active()
+                ->orderBy('bank_name')
+                ->get(['id', 'bank_name', 'account_number', 'account_name']),
+            'salaryAccounts' => ChartOfAccount::where('account_type', 'expense')
+                ->where('account_category', 'expense_salary')
+                ->orderBy('account_code')
+                ->get(['id', 'account_code', 'account_name']),
         ]);
     }
 
@@ -118,7 +129,14 @@ class EmployeeSalaryController extends Controller
         $salary = $employeeSalary->load(['creator', 'approver', 'profitLossEntries.period']);
         
         return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/Show', [
-            'salary' => $salary
+            'salary' => $salary,
+            'bankAccounts' => BankAccount::active()
+                ->orderBy('bank_name')
+                ->get(['id', 'bank_name', 'account_number', 'account_name']),
+            'salaryAccounts' => ChartOfAccount::where('account_type', 'expense')
+                ->where('account_category', 'expense_salary')
+                ->orderBy('account_code')
+                ->get(['id', 'account_code', 'account_name']),
         ]);
     }
 
@@ -216,14 +234,21 @@ class EmployeeSalaryController extends Controller
         }
 
         try {
+            request()->validate([
+                'bank_account_id' => ['required', 'exists:bank_accounts,id'],
+                'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
+            ]);
             // Approve salary (mark as paid)
             $employeeSalary->approve(Auth::id());
 
+            $details = $employeeSalary->details ?? [];
+            $details['pl_account_id'] = (int) request('pl_account_id');
+            $employeeSalary->update([
+                'details' => $details,
+            ]);
+
             // Catat transaksi bank (debit) jika ada akun bank yang tersedia
             $bankAccountId = request('bank_account_id');
-            if (!$bankAccountId) {
-                $bankAccountId = BankAccount::value('id'); // default ke akun pertama jika tidak dipilih
-            }
 
             if ($bankAccountId) {
                 BankTransaction::create([
@@ -236,6 +261,43 @@ class EmployeeSalaryController extends Controller
                     'reference_id' => $employeeSalary->id,
                     'created_by' => Auth::id(),
                 ]);
+            }
+
+            $txnDate = Carbon::parse($employeeSalary->salary_date)->toDateString();
+            $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                ->where('start_date', '<=', $txnDate)
+                ->where('end_date', '>=', $txnDate)
+                ->get();
+
+            if ($periods->isEmpty()) {
+                $monthStart = Carbon::parse($txnDate)->startOfMonth()->toDateString();
+                $monthEnd = Carbon::parse($txnDate)->endOfMonth()->toDateString();
+                $periods = ProfitLossPeriod::where('status', '!=', 'closed')
+                    ->where('start_date', '<=', $monthStart)
+                    ->where('end_date', '>=', $monthEnd)
+                    ->get();
+            }
+
+            if ($periods->isEmpty()) {
+                $fallback = ProfitLossPeriod::where('status', '!=', 'closed')
+                    ->orderBy('end_date', 'desc')
+                    ->first();
+                if ($fallback) {
+                    $periods = collect([$fallback]);
+                }
+            }
+
+            foreach ($periods as $period) {
+                ProfitLossEntry::createFromEmployeeSalary(
+                    $employeeSalary,
+                    $period->id,
+                    Auth::id(),
+                    (int) request('pl_account_id')
+                );
+            }
+
+            if ($periods->isNotEmpty()) {
+                $periods->each->calculateTotals();
             }
             
             return redirect()->back()->with('success', 'Gaji karyawan berhasil disetujui dan dibayar');

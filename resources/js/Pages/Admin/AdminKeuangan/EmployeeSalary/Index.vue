@@ -188,7 +188,7 @@
                                                 </Link>
                                                 <button
                                                     v-if="salary.status === 'draft'"
-                                                    @click="approveSalary(salary)"
+                                                    @click="openApproveModal(salary)"
                                                     class="text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50"
                                                     title="Approve"
                                                 >
@@ -217,6 +217,61 @@
                 </div>
             </div>
         </div>
+
+        <div v-if="showApproveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Approve & Bayar Gaji</h3>
+                    <button @click="closeApproveModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-sm text-gray-600">
+                        {{ selectedSalary ? `Gaji ${selectedSalary.employee_name} sebesar ${formatCurrency(selectedSalary.total_salary)}` : '' }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Akun Bank</label>
+                        <select
+                            v-model="selectedBankAccountId"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                        >
+                            <option value="" disabled>Pilih akun bank</option>
+                            <option v-for="account in bankAccounts" :key="account.id" :value="account.id">
+                                {{ account.bank_name }} - {{ account.account_number }} ({{ account.account_name }})
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Akun P&amp;L (Beban Gaji)</label>
+                        <select
+                            v-model="selectedPlAccountId"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                        >
+                            <option value="" disabled>Pilih akun P&amp;L</option>
+                            <option v-for="account in salaryAccounts" :key="account.id" :value="account.id">
+                                {{ account.account_code }} - {{ account.account_name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end gap-2">
+                    <button
+                        type="button"
+                        @click="closeApproveModal"
+                        class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        @click="submitApprove"
+                        :disabled="!selectedBankAccountId || !selectedPlAccountId"
+                        class="px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Approve & Bayar
+                    </button>
+                </div>
+            </div>
+        </div>
     </AdminKeuanganLayout>
 </template>
 
@@ -225,6 +280,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { Plus, Users, DollarSign, Clock, CheckCircle, Eye, Edit, Check, Trash2, Globe } from 'lucide-vue-next'
+import { ref } from 'vue'
 
 defineProps({
     salaries: Object,
@@ -232,6 +288,8 @@ defineProps({
     filters: Object,
     divisions: Object,
     periods: Array,
+    bankAccounts: Array,
+    salaryAccounts: Array,
 })
 
 const formatCurrency = (amount) => {
@@ -288,10 +346,38 @@ const getStatusText = (status) => {
     return texts[status] || status
 }
 
-const approveSalary = (salary) => {
-    if (confirm(`Approve gaji ${salary.employee_name} sebesar ${formatCurrency(salary.total_salary)}?`)) {
-        router.post(route('admin-keuangan.employee-salary.approve', salary.id))
-    }
+const showApproveModal = ref(false)
+const selectedSalary = ref(null)
+const selectedBankAccountId = ref('')
+const selectedPlAccountId = ref('')
+
+const openApproveModal = (salary) => {
+    selectedSalary.value = salary
+    selectedBankAccountId.value = ''
+    selectedPlAccountId.value = ''
+    showApproveModal.value = true
+}
+
+const closeApproveModal = () => {
+    showApproveModal.value = false
+    selectedSalary.value = null
+    selectedBankAccountId.value = ''
+    selectedPlAccountId.value = ''
+}
+
+const submitApprove = () => {
+    if (!selectedSalary.value || !selectedBankAccountId.value || !selectedPlAccountId.value) return
+
+    router.post(
+        route('admin-keuangan.employee-salary.approve', selectedSalary.value.id),
+        {
+            bank_account_id: selectedBankAccountId.value,
+            pl_account_id: selectedPlAccountId.value,
+        },
+        {
+            onFinish: closeApproveModal,
+        }
+    )
 }
 
 const deleteSalary = (salary) => {

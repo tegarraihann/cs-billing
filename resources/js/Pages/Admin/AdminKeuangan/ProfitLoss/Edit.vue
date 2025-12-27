@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Edit Periode Laba Rugi" />
+        <Head title="Edit Income Statement Period" />
         
         <div class="py-6">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,10 +10,10 @@
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
-                        Kembali ke Detail
+                        Back to Details
                     </Link>
-                    <h1 class="text-2xl font-bold text-gray-900">Edit Periode Laba Rugi</h1>
-                    <p class="mt-1 text-sm text-gray-600">Edit periode {{ period.period_name }}</p>
+                    <h1 class="text-2xl font-bold text-gray-900">Edit Income Statement Period</h1>
+                    <p class="mt-1 text-sm text-gray-600">Update period {{ period.period_name }}</p>
                 </div>
 
                 <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
@@ -22,7 +22,7 @@
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label for="period_name" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Nama Periode <span class="text-red-500">*</span>
+                                        Period Name <span class="text-red-500">*</span>
                                     </label>
                                     <input
                                         id="period_name"
@@ -30,7 +30,7 @@
                                         type="text"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                         :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.period_name }"
-                                        placeholder="Contoh: Laporan Laba Rugi Desember 2024"
+                                        placeholder="Example: December 2024 Income Statement"
                                     />
                                     <div v-if="errors.period_name" class="mt-1 text-sm text-red-600">
                                         {{ errors.period_name }}
@@ -39,7 +39,7 @@
 
                                 <div>
                                     <label for="period_type" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Tipe Periode
+                                        Period Type
                                     </label>
                                     <select
                                         id="period_type"
@@ -47,19 +47,19 @@
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-50 text-gray-500 cursor-not-allowed"
                                         disabled
                                     >
-                                        <option value="monthly">Bulanan</option>
-                                        <option value="quarterly">Triwulan</option>
-                                        <option value="yearly">Tahunan</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="quarterly">Quarterly</option>
+                                        <option value="yearly">Yearly</option>
                                     </select>
                                     <p class="mt-1 text-sm text-gray-500">
-                                        Tipe periode tidak dapat diubah setelah dibuat
+                                        The period type cannot be changed after creation.
                                     </p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Tanggal Mulai <span class="text-red-500">*</span>
+                                            Start Date <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="start_date"
@@ -75,7 +75,7 @@
 
                                     <div>
                                         <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Tanggal Selesai <span class="text-red-500">*</span>
+                                            End Date <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="end_date"
@@ -92,21 +92,21 @@
 
                                 <div>
                                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Catatan
+                                        Notes
                                     </label>
                                     <textarea
                                         id="notes"
                                         v-model="form.notes"
                                         rows="3"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                                        placeholder="Catatan tambahan untuk periode ini..."
+                                        placeholder="Additional notes for this period..."
                                     ></textarea>
                                 </div>
 
                                 <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
-                                    <h3 class="text-sm font-medium text-blue-900 mb-2">Informasi Periode</h3>
+                                    <h3 class="text-sm font-medium text-blue-900 mb-2">Period Information</h3>
                                     <div class="text-sm text-blue-700 space-y-1">
-                                        <p><strong>Kode Periode:</strong> {{ period.period_code }}</p>
+                                        <p><strong>Period Code:</strong> {{ period.period_code }}</p>
                                         <p><strong>Status:</strong> 
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                                 :class="{
@@ -114,11 +114,11 @@
                                                     'bg-green-100 text-green-800': period.status === 'closed'
                                                 }"
                                             >
-                                                {{ period.status === 'draft' ? 'Draft' : 'Ditutup' }}
+                                                {{ period.status === 'draft' ? 'Draft' : 'Closed' }}
                                             </span>
                                         </p>
-                                        <p><strong>Dibuat:</strong> {{ formatDate(period.created_at) }}</p>
-                                        <p v-if="period.approved_at"><strong>Disetujui:</strong> {{ formatDate(period.approved_at) }}</p>
+                                        <p><strong>Created:</strong> {{ formatDate(period.created_at) }}</p>
+                                        <p v-if="period.approved_at"><strong>Approved:</strong> {{ formatDate(period.approved_at) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -128,7 +128,7 @@
                                     :href="route('admin-keuangan.profit-loss.show', period.id)"
                                     class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                 >
-                                    Batal
+                                    Cancel
                                 </Link>
                                 <button
                                     type="submit"
@@ -136,7 +136,7 @@
                                     class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50"
                                 >
                                     <Loader2 v-if="processing" class="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    {{ processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                                    {{ processing ? 'Saving...' : 'Save Changes' }}
                                 </button>
                             </div>
                         </form>
@@ -149,12 +149,12 @@
                             <AlertTriangle class="h-5 w-5 text-yellow-400" />
                         </div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-yellow-800">Peringatan</h3>
+                            <h3 class="text-sm font-medium text-yellow-800">Warning</h3>
                             <div class="mt-2 text-sm text-yellow-700">
                                 <ul class="list-disc list-inside space-y-1">
-                                    <li>Mengubah tanggal periode akan mempengaruhi data yang diimpor otomatis</li>
-                                    <li>Setelah menyimpan, Anda mungkin perlu melakukan regenerate entries untuk memperbarui data otomatis</li>
-                                    <li>Periode yang sudah ditutup tidak dapat diedit</li>
+                                    <li>Changing the period dates affects the data imported automatically.</li>
+                                    <li>After saving, you may need to regenerate entries to refresh the automatic data.</li>
+                                    <li>Closed periods cannot be edited.</li>
                                 </ul>
                             </div>
                         </div>

@@ -348,9 +348,35 @@ class ProfitLossEntry extends Model
         return $entry;
     }
 
-    public static function createFromEmployeeSalary($employee_salary, $period_id, $created_by)
+    public static function createFromEmployeeSalary($employee_salary, $period_id, $created_by, $accountId = null)
     {
-        $salary_account = ChartOfAccount::where('account_code', '5001')->first();
+        $salary_account = null;
+
+        if (!empty($accountId)) {
+            $salary_account = ChartOfAccount::where('id', $accountId)
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$salary_account) {
+            $detailsAccountId = data_get($employee_salary->details, 'pl_account_id');
+            if (!empty($detailsAccountId)) {
+                $salary_account = ChartOfAccount::where('id', $detailsAccountId)
+                    ->where('account_type', 'expense')
+                    ->first();
+            }
+        }
+
+        if (!$salary_account) {
+            $salary_account = ChartOfAccount::where('account_code', '5001')->first();
+        }
+
+        if (!$salary_account) {
+            $salary_account = ChartOfAccount::where('account_type', 'expense')
+                ->where('account_category', 'expense_salary')
+                ->orderBy('account_code')
+                ->first();
+        }
 
         if (!$salary_account) {
             throw new \Exception('Salary expense account (5001) not found');

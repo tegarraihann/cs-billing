@@ -17,6 +17,7 @@ class GeneralExpense extends Model
         'period_year',
         'status',
         'notes',
+        'pl_account_id',
         'created_by',
         'approved_by',
         'approved_at'
