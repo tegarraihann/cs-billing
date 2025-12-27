@@ -69,7 +69,7 @@ class ProfitLossPeriod extends Model
 
         $operational_expense = $entries->filter(function ($entry) {
             return $entry->account->account_type === 'expense' &&
-                   in_array($entry->account->account_category, ['expense_operational', 'expense_utilities', 'expense_travel', 'expense_equipment']);
+                   in_array($entry->account->account_category, ['expense_operational', 'expense_utilities', 'expense_travel', 'expense_equipment', 'expense_marketing']);
         })->sum('amount');
 
         $admin_expense = $entries->filter(function ($entry) {
@@ -132,8 +132,6 @@ class ProfitLossPeriod extends Model
                 'expense_travel',
                 'expense_equipment',
                 'expense_marketing',
-                'expense_admin',
-                'expense_other',
             ])
             ->flatten();
 
