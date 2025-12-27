@@ -57,23 +57,23 @@ class ProfitLossPeriod extends Model
     public function calculateTotals(): void
     {
         $entries = $this->entries()->with('account')->get();
-        
+
         $this->total_revenue = $entries->filter(function ($entry) {
             return $entry->account->account_type === 'revenue';
         })->sum('amount');
 
         $salary_expense = $entries->filter(function ($entry) {
-            return $entry->account->account_type === 'expense' && 
+            return $entry->account->account_type === 'expense' &&
                    $entry->account->account_category === 'expense_salary';
         })->sum('amount');
 
         $operational_expense = $entries->filter(function ($entry) {
-            return $entry->account->account_type === 'expense' && 
+            return $entry->account->account_type === 'expense' &&
                    in_array($entry->account->account_category, ['expense_operational', 'expense_utilities', 'expense_travel', 'expense_equipment']);
         })->sum('amount');
 
         $admin_expense = $entries->filter(function ($entry) {
-            return $entry->account->account_type === 'expense' && 
+            return $entry->account->account_type === 'expense' &&
                    $entry->account->account_category === 'expense_admin';
         })->sum('amount');
 
@@ -83,13 +83,13 @@ class ProfitLossPeriod extends Model
         })->sum('amount');
 
         $other_expense = $entries->filter(function ($entry) {
-            return $entry->account->account_type === 'expense' && 
+            return $entry->account->account_type === 'expense' &&
                    $entry->account->account_category === 'expense_other';
         })->sum('amount');
 
         $this->total_expenses = $salary_expense + $operational_expense + $admin_expense + $tax_expense + $other_expense;
         $this->net_profit = $this->total_revenue - $this->total_expenses;
-        
+
         // Store breakdown in summary_data
         $this->summary_data = [
             'total_salary_expense' => $salary_expense,
@@ -98,7 +98,7 @@ class ProfitLossPeriod extends Model
             'total_tax_expense' => $tax_expense,
             'total_other_expense' => $other_expense,
         ];
-        
+
         $this->save();
     }
 
@@ -106,7 +106,13 @@ class ProfitLossPeriod extends Model
     {
         $entries = $this->entries()->with('account')->get()->groupBy('account.account_type');
 
-        $revenue_entries = collect(($entries->get('revenue', collect()))->all())->groupBy('account.account_category');
+        $revenue_entries = collect(($entries->get('revenue', collect()))->all())->groupBy(function ($entry) {
+            if ($entry->reference_type === 'other_income') {
+                return 'revenue_other';
+            }
+
+            return $entry->account?->account_category ?? 'revenue_main';
+        });
         $expense_entries = collect(($entries->get('expense', collect()))->all())->groupBy('account.account_category');
 
         $serializeEntries = function ($collection) {
@@ -155,19 +161,19 @@ class ProfitLossPeriod extends Model
         // Separate other income by category for detailed reporting
         $other_income_entries = $revenue_entries->get('revenue_other', collect());
         $other_income_breakdown = [
-            'bunga_mandiri' => $other_income_entries->filter(function($entry) {
-                return isset($entry->additional_data['category']) &&
-                       $entry->additional_data['category'] === 'Bunga Bank Mandiri';
+            'bunga_mandiri' => $other_income_entries->filter(function ($entry) {
+                return data_get($entry->additional_data, 'category') === 'Bunga Bank Mandiri';
             }),
-            'bunga_bca' => $other_income_entries->filter(function($entry) {
-                return isset($entry->additional_data['category']) &&
-                       $entry->additional_data['category'] === 'Bunga Bank BCA';
-            }),
-            'lainnya' => $other_income_entries->filter(function($entry) {
-                return isset($entry->additional_data['category']) &&
-                       $entry->additional_data['category'] === 'Lainnya';
+            'bunga_bca' => $other_income_entries->filter(function ($entry) {
+                return data_get($entry->additional_data, 'category') === 'Bunga Bank BCA';
             }),
         ];
+        $other_income_breakdown['lainnya'] = $other_income_entries->reject(function ($entry) {
+            return in_array(data_get($entry->additional_data, 'category'), [
+                'Bunga Bank Mandiri',
+                'Bunga Bank BCA',
+            ], true);
+        });
 
         $summary = $this->summary_data ?? [];
         $taxExpenseEntries = $expense_entries->get('expense_tax', collect());
