@@ -10,6 +10,8 @@ use App\Models\PettyCashCategory;
 use App\Models\PettyCashBalance;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
+use App\Models\ProfitLossEntry;
+use App\Models\ProfitLossPeriod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -142,7 +144,8 @@ class PettyCashController extends Controller
 
         $request->validate($rules);
 
-        DB::transaction(function () use ($request) {
+        $pettyCash = null;
+        DB::transaction(function () use ($request, &$pettyCash) {
             // Calculate balance after transaction using the date
             $balanceBeforeTransaction = PettyCashBalance::calculateBalanceUpToDate($request->transaction_date, false);
 
@@ -198,6 +201,8 @@ class PettyCashController extends Controller
                 PettyCashBalance::updateBalanceForDate($futureBalance->balance_date);
             }
         });
+
+        $this->syncProfitLossEntry($pettyCash);
 
         return redirect()->route('admin-keuangan.petty-cash.index')
             ->with('success', 'Transaksi petty cash berhasil ditambahkan.');
@@ -343,6 +348,10 @@ class PettyCashController extends Controller
             }
         });
 
+        $pettyCash->refresh();
+        $pettyCash->loadMissing('category');
+        $this->syncProfitLossEntry($pettyCash);
+
         return redirect()->route('admin-keuangan.petty-cash.index')
             ->with('success', 'Transaksi petty cash berhasil diperbarui.');
     }
@@ -369,6 +378,10 @@ class PettyCashController extends Controller
             foreach ($futureBalances as $futureBalance) {
                 PettyCashBalance::updateBalanceForDate($futureBalance->balance_date);
             }
+
+            ProfitLossEntry::where('reference_type', 'petty_cash_transaction')
+                ->where('reference_id', $pettyCash->id)
+                ->delete();
         });
 
         return redirect()->route('admin-keuangan.petty-cash.index')
@@ -545,6 +558,15 @@ class PettyCashController extends Controller
             }
         });
 
+        $approvedTransactions = PettyCashTransaction::with('category')
+            ->whereIn('id', $request->transaction_ids)
+            ->where('status', 'approved')
+            ->get();
+
+        foreach ($approvedTransactions as $transaction) {
+            $this->syncProfitLossEntry($transaction);
+        }
+
         return redirect()->back()
             ->with('success', count($request->transaction_ids) . ' transaksi berhasil disetujui.');
     }
@@ -625,5 +647,56 @@ class PettyCashController extends Controller
 
         return redirect()->route('admin-keuangan.petty-cash.pending-approval')
             ->with('success', 'Transaksi berhasil diperbarui.');
+    }
+
+    private function syncProfitLossEntry(?PettyCashTransaction $transaction): void
+    {
+        if (!$transaction) {
+            return;
+        }
+
+        if ($transaction->type !== 'expense' || $transaction->status !== 'approved') {
+            ProfitLossEntry::where('reference_type', 'petty_cash_transaction')
+                ->where('reference_id', $transaction->id)
+                ->delete();
+            return;
+        }
+
+        if (!$transaction->transaction_date) {
+            return;
+        }
+
+        $period = ProfitLossPeriod::active()
+            ->whereDate('start_date', '<=', $transaction->transaction_date)
+            ->whereDate('end_date', '>=', $transaction->transaction_date)
+            ->where('status', '!=', 'closed')
+            ->orderByDesc('start_date')
+            ->first();
+
+        if (!$period) {
+            \Log::warning('Petty cash P&L sync skipped: no active period', [
+                'petty_cash_id' => $transaction->id,
+                'transaction_date' => $transaction->transaction_date,
+            ]);
+            return;
+        }
+
+        ProfitLossEntry::where('reference_type', 'petty_cash_transaction')
+            ->where('reference_id', $transaction->id)
+            ->where('period_id', '!=', $period->id)
+            ->delete();
+
+        try {
+            $creatorId = Auth::id() ?? $transaction->approved_by ?? $transaction->user_id;
+            $entry = ProfitLossEntry::createFromPettyCash($transaction, $period->id, $creatorId);
+            if ($entry) {
+                $period->calculateTotals();
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Petty cash P&L sync failed', [
+                'petty_cash_id' => $transaction->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

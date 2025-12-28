@@ -6,7 +6,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                         <button
                             @click="goBack"
                             class="text-gray-400 hover:text-gray-600"
@@ -33,7 +33,7 @@
                         <button
                             v-if="summary.total_outstanding > 0"
                             @click="openPaymentModal"
-                            class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
                             <CreditCard class="w-4 h-4 mr-2" />
                             Mark Payment
@@ -41,17 +41,27 @@
 
                         <button
                             v-if="canPostVat"
-                            @click="postVatPayable"
-                            class="inline-flex items-center px-4 py-2 bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                            :disabled="postingVat"
+                            @click="postVatPayable11"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :disabled="postingVat11"
                         >
                             <FileText class="w-4 h-4 mr-2" />
-                            {{ postingVat ? 'Posting...' : 'Post VAT Payable' }}
+                            {{ postingVat11 ? 'Posting...' : 'Post VAT Payable 11%' }}
+                        </button>
+
+                        <button
+                            v-if="canPostVat"
+                            @click="postVatPayable11_1"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :disabled="postingVat11_1"
+                        >
+                            <FileText class="w-4 h-4 mr-2" />
+                            {{ postingVat11_1 ? 'Posting...' : 'Post VAT Payable 1.1%' }}
                         </button>
 
                         <button
                             @click="openEditModal"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
                             <Edit class="w-4 h-4 mr-2" />
                             Edit Details
@@ -722,7 +732,8 @@ const showPaymentModal = ref(false)
 const showEditModal = ref(false)
 const showAdditionalCostModal = ref(false)
 const processing = ref(false)
-const postingVat = ref(false)
+const postingVat11 = ref(false)
+const postingVat11_1 = ref(false)
 
 const paymentForm = useForm({
     amount: '',
@@ -1057,21 +1068,41 @@ const getComponentLabel = (type) => {
     return labels[type] || type
 }
 
-const postVatPayable = () => {
-    if (!canPostVat.value || postingVat.value || !payable.value) {
+const postVatPayable11 = () => {
+    if (!canPostVat.value || postingVat11.value || !payable.value) {
         return
     }
-    const ok = window.confirm('Post outstanding ke VAT Payable dan tutup hutang ini?')
+    const ok = window.confirm('Post outstanding ke VAT Payable 11% dan tutup hutang ini?')
     if (!ok) {
         return
     }
-    postingVat.value = true
+    postingVat11.value = true
     router.post(
-        route('admin-keuangan.account-payables.post-vat', payable.value.id),
+        route('admin-keuangan.account-payables.post-vat-11', payable.value.id),
         {},
         {
             onFinish: () => {
-                postingVat.value = false
+                postingVat11.value = false
+            }
+        }
+    )
+}
+
+const postVatPayable11_1 = () => {
+    if (!canPostVat.value || postingVat11_1.value || !payable.value) {
+        return
+    }
+    const ok = window.confirm('Post outstanding ke VAT Payable 1.1% dan tutup hutang ini?')
+    if (!ok) {
+        return
+    }
+    postingVat11_1.value = true
+    router.post(
+        route('admin-keuangan.account-payables.post-vat-1-1', payable.value.id),
+        {},
+        {
+            onFinish: () => {
+                postingVat11_1.value = false
             }
         }
     )

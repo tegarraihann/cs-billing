@@ -125,38 +125,81 @@ class AccountPayableController extends Controller
      */
     public function postVatPayable(AccountPayable $accountPayable)
     {
+        $accountCode = ChartOfAccount::idByCode('2110') ? '2110' : (ChartOfAccount::idByCode('2111') ? '2111' : null);
+        if (!$accountCode) {
+            return redirect()->back()->withErrors(['error' => 'Akun VAT Payable (2110/2111) belum dikonfigurasi.']);
+        }
+
+        $label = $accountCode === '2110' ? '11%' : '1.1%';
+        return $this->postVatPayableByAccount($accountPayable, $accountCode, $label);
+    }
+
+    /**
+     * Post outstanding payable to VAT Payable 11% (2110).
+     */
+    public function postVatPayable11(AccountPayable $accountPayable)
+    {
+        return $this->postVatPayableByAccount($accountPayable, '2110', '11%');
+    }
+
+    /**
+     * Post outstanding payable to VAT Payable 1.1% (2111).
+     */
+    public function postVatPayable11_1(AccountPayable $accountPayable)
+    {
+        return $this->postVatPayableByAccount($accountPayable, '2111', '1.1%');
+    }
+
+    private function postVatPayableByAccount(AccountPayable $accountPayable, string $accountCode, string $label)
+    {
         if ($accountPayable->outstanding_amount <= 0) {
             return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable.']);
         }
 
-        $accountId = ChartOfAccount::idByCode('2110') ?: ChartOfAccount::idByCode('2111');
+        $accountId = ChartOfAccount::idByCode($accountCode);
         if (!$accountId) {
-            return redirect()->back()->withErrors(['error' => 'Akun VAT Payable (2110/2111) belum dikonfigurasi.']);
+            return redirect()->back()->withErrors(['error' => "Akun VAT Payable {$label} belum dikonfigurasi."]);
         }
+
+        $accountPayable->syncComponents();
+        $accountPayable->load('components');
 
         $amount = (float) $accountPayable->outstanding_amount;
         $now = now();
+        $paymentMethod = 'VAT Payable ' . $label;
+        $paymentNotes = 'Posted to VAT Payable ' . $label;
 
-        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now) {
+        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now, $label, $paymentMethod, $paymentNotes) {
             FinancialPositionAdjustment::create([
                 'account_id' => $accountId,
                 'effective_date' => $now->toDateString(),
                 'amount' => $amount,
-                'notes' => 'Post VAT Payable dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
+                'notes' => 'Post VAT Payable ' . $label . ' dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
                 'created_by' => auth()->id(),
             ]);
 
-            $accountPayable->paid_amount = $accountPayable->paid_amount + $amount;
-            $accountPayable->outstanding_amount = 0;
-            $accountPayable->status = 'paid';
-            $accountPayable->payment_date = $now;
-            $accountPayable->payment_method = 'VAT Payable Posting';
-            $accountPayable->payment_notes = trim(($accountPayable->payment_notes ? $accountPayable->payment_notes . "\n" : '') . 'Posted to VAT Payable');
-            $accountPayable->paid_by = auth()->id();
-            $accountPayable->save();
+            if ($accountPayable->components->isEmpty()) {
+                $accountPayable->markAsPaid($amount, $paymentMethod, $paymentNotes);
+                return;
+            }
+
+            foreach ($accountPayable->components as $component) {
+                $outstanding = (float) $component->outstanding_amount;
+                if ($outstanding <= 0) {
+                    continue;
+                }
+
+                $accountPayable->recordPaymentToComponent(
+                    $component,
+                    $outstanding,
+                    $paymentMethod,
+                    $paymentNotes,
+                    $now
+                );
+            }
         });
 
-        return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable dan status ditutup.');
+        return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable ' . $label . ' dan status ditutup.');
     }
 
     /**

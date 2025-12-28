@@ -592,6 +592,8 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{accountPayable}/reimbursement-items', 'reimbursementItems')->name('reimbursement-items');
         Route::post('/{accountPayable}/mark-as-paid', 'markAsPaid')->name('mark-as-paid');
         Route::post('/{accountPayable}/post-vat', 'postVatPayable')->name('post-vat');
+        Route::post('/{accountPayable}/post-vat-11', 'postVatPayable11')->name('post-vat-11');
+        Route::post('/{accountPayable}/post-vat-1-1', 'postVatPayable11_1')->name('post-vat-1-1');
         Route::post('/{accountPayable}/update-due-date', 'updateDueDate')->name('update-due-date');
         Route::post('/{accountPayable}/update-vendor-invoice', 'updateVendorInvoice')->name('update-vendor-invoice');
         Route::post('/{accountPayable}/components', 'storeAdditionalComponent')->name('components.store');
