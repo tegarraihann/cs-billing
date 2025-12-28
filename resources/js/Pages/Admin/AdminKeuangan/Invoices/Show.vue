@@ -103,6 +103,20 @@
                             </span>
                         </div>
                         <div class="flex justify-between">
+                            <span class="text-gray-600">Down Payment (DP):</span>
+                            <span class="font-medium">
+                                {{ hasDownPayment ? formatCurrency(downPaymentAmount) : '-' }}
+                            </span>
+                        </div>
+                        <div v-if="hasDownPayment" class="flex justify-between">
+                            <span class="text-gray-600">Tanggal DP:</span>
+                            <span class="font-medium">{{ formatDate(invoice.down_payment_date) }}</span>
+                        </div>
+                        <div v-if="hasDownPayment && invoice.down_payment_notes" class="flex justify-between">
+                            <span class="text-gray-600">Catatan DP:</span>
+                            <span class="font-medium text-right">{{ invoice.down_payment_notes }}</span>
+                        </div>
+                        <div class="flex justify-between">
                             <span class="text-gray-600">Status Laba Rugi:</span>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                 :class="invoice.posted_to_profit_loss ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'">
@@ -351,9 +365,17 @@
                                 <span class="text-sm text-gray-600">Subtotal Main:</span>
                                 <span class="text-sm font-medium">{{ formatCurrency(getMainTotal) }}</span>
                             </div>
+                            <div v-if="hasDownPayment && invoice.invoice_type === 'main'" class="flex justify-between">
+                                <span class="text-sm text-gray-600">Down Payment (-):</span>
+                                <span class="text-sm font-medium text-red-700">- {{ formatCurrency(downPaymentAmount) }}</span>
+                            </div>
                             <div class="flex justify-between pt-2 border-t border-blue-200">
                                 <span class="text-lg font-semibold text-blue-800">Total Main:</span>
-                                <span class="text-lg font-bold text-blue-800">{{ formatCurrency(getMainTotal) }}</span>
+                                <span class="text-lg font-bold text-blue-800">{{
+                                    formatCurrency(hasDownPayment && invoice.invoice_type === 'main'
+                                        ? mainTotalAfterDownPayment
+                                        : getMainTotal)
+                                }}</span>
                             </div>
                         </div>
                     </div>
@@ -807,8 +829,19 @@
                             </div>
                             <div class="flex justify-between pt-3 border-t border-sage-400">
                                 <span class="text-xl font-bold text-sage-800">Grand Total:</span>
-                                <span class="text-xl font-bold text-sage-800">{{ formatCurrency(getMainTotal +
-                                    getReimbursementTotal) }}</span>
+                                <span class="text-xl font-bold text-sage-800">{{
+                                    formatCurrency(combinedTotalBeforeDownPayment)
+                                }}</span>
+                            </div>
+                            <div v-if="hasDownPayment" class="flex justify-between text-sm text-red-700">
+                                <span>Down Payment (-):</span>
+                                <span class="font-medium">- {{ formatCurrency(downPaymentAmount) }}</span>
+                            </div>
+                            <div v-if="hasDownPayment" class="flex justify-between pt-2 border-t border-sage-300">
+                                <span class="text-lg font-bold text-sage-800">Total After DP:</span>
+                                <span class="text-lg font-bold text-sage-800">{{
+                                    formatCurrency(combinedTotalAfterDownPayment)
+                                }}</span>
                             </div>
                         </div>
                     </div>
@@ -1442,6 +1475,24 @@ const getMainTotal = computed(() => {
 
 const getReimbursementTotal = computed(() => {
     return getReimbursementItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+const downPaymentAmount = computed(() => {
+    return Number(props.invoice?.down_payment_amount || 0);
+});
+
+const hasDownPayment = computed(() => downPaymentAmount.value > 0);
+
+const mainTotalAfterDownPayment = computed(() => {
+    return Math.max(getMainTotal.value - downPaymentAmount.value, 0);
+});
+
+const combinedTotalBeforeDownPayment = computed(() => {
+    return getMainTotal.value + getReimbursementTotal.value;
+});
+
+const combinedTotalAfterDownPayment = computed(() => {
+    return Math.max(combinedTotalBeforeDownPayment.value - downPaymentAmount.value, 0);
 });
 
 const reimbursementCurrency = computed(() => {
