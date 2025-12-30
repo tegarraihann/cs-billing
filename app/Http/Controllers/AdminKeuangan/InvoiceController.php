@@ -235,6 +235,8 @@ class InvoiceController extends Controller
             'down_payment_amount' => 'nullable|numeric|min:0',
             'down_payment_date' => 'nullable|date',
             'down_payment_notes' => 'nullable|string|max:1000',
+            'vat_rate' => ['nullable', 'numeric', Rule::in([0, 11, 1.1, '0', '11', '1.1'])],
+            'pph23_rate' => ['nullable', 'numeric', Rule::in([0, 0.5, 2, '0', '0.5', '2'])],
         ]);
 
         $salesOrder = SalesOrder::findOrFail($validated['sales_order_id']);
@@ -296,6 +298,9 @@ class InvoiceController extends Controller
             $customerId = $customer->id;
         }
 
+        $vatRate = isset($validated['vat_rate']) ? (float) $validated['vat_rate'] : 0;
+        $pph23Rate = isset($validated['pph23_rate']) ? (float) $validated['pph23_rate'] : 0;
+
         $invoice = Invoice::create([
             'invoice_number' => $this->generateInvoiceNumberByType($salesOrder, $validated['invoice_type']),
             'invoice_type' => $validated['invoice_type'],
@@ -327,6 +332,8 @@ class InvoiceController extends Controller
             'down_payment_amount' => $validated['down_payment_amount'] ?? 0,
             'down_payment_date' => $validated['down_payment_date'],
             'down_payment_notes' => $validated['down_payment_notes'],
+            'vat_rate' => $vatRate > 0 ? $vatRate : null,
+            'pph23_rate' => $pph23Rate > 0 ? $pph23Rate : null,
             'status' => 'draft'
         ]);
 
@@ -644,11 +651,13 @@ class InvoiceController extends Controller
             'items.*.rate' => 'required|numeric|min:0',
               'items.*.currency' => 'required|string|max:3',
               'items.*.vendor_id' => 'nullable|exists:vendors,id',
-            'items.*.item_ref' => 'nullable|string|max:100',
-            'down_payment_amount' => 'nullable|numeric|min:0',
-            'down_payment_date' => 'nullable|date',
-            'down_payment_notes' => 'nullable|string|max:1000',
-        ]);
+              'items.*.item_ref' => 'nullable|string|max:100',
+              'down_payment_amount' => 'nullable|numeric|min:0',
+              'down_payment_date' => 'nullable|date',
+              'down_payment_notes' => 'nullable|string|max:1000',
+              'vat_rate' => ['nullable', 'numeric', Rule::in([0, 11, 1.1, '0', '11', '1.1'])],
+              'pph23_rate' => ['nullable', 'numeric', Rule::in([0, 0.5, 2, '0', '0.5', '2'])],
+          ]);
 
         $optionalFields = [
             'shipper',
@@ -670,10 +679,12 @@ class InvoiceController extends Controller
             'container_no',
             'container_size',
             'remarks',
-            'down_payment_amount',
-            'down_payment_date',
-            'down_payment_notes',
-        ];
+              'down_payment_amount',
+              'down_payment_date',
+              'down_payment_notes',
+              'vat_rate',
+              'pph23_rate',
+          ];
 
         foreach ($optionalFields as $field) {
             if (!array_key_exists($field, $validated)) {
@@ -684,7 +695,7 @@ class InvoiceController extends Controller
         $invoiceDate = Carbon::parse($validated['invoice_date']);
         $dueDate = $invoiceDate->copy()->addDays($validated['term_days']);
 
-        $invoice->update([
+          $invoice->update([
             'invoice_date' => $invoiceDate,
             'term_days' => $validated['term_days'],
             'due_date' => $dueDate,
@@ -705,11 +716,17 @@ class InvoiceController extends Controller
             'eta' => $validated['eta'],
             'container_no' => $validated['container_no'],
             'container_size' => $validated['container_size'],
-            'remarks' => $validated['remarks'],
-            'down_payment_amount' => $validated['down_payment_amount'] ?? 0,
-            'down_payment_date' => $validated['down_payment_date'],
-            'down_payment_notes' => $validated['down_payment_notes']
-        ]);
+              'remarks' => $validated['remarks'],
+              'down_payment_amount' => $validated['down_payment_amount'] ?? 0,
+              'down_payment_date' => $validated['down_payment_date'],
+              'down_payment_notes' => $validated['down_payment_notes'],
+              'vat_rate' => isset($validated['vat_rate']) && (float) $validated['vat_rate'] > 0
+                  ? (float) $validated['vat_rate']
+                  : null,
+              'pph23_rate' => isset($validated['pph23_rate']) && (float) $validated['pph23_rate'] > 0
+                  ? (float) $validated['pph23_rate']
+                  : null,
+          ]);
 
         $existingReimbursementIds = $invoice->reimbursementRecords()->pluck('id')->all();
         $linkedReimbursementItemIds = [];
@@ -934,7 +951,11 @@ class InvoiceController extends Controller
 
         // Calculate totals for customer-visible items only
         $subtotal = $customerVisibleItems->sum('amount');
-        $total = $subtotal - ($invoice->down_payment_amount ?? 0);
+        $vatRate = (float) ($invoice->vat_rate ?? 0);
+        $vatAmount = $vatRate > 0 ? round($subtotal * ($vatRate / 100), 2) : 0;
+        $pph23Rate = (float) ($invoice->pph23_rate ?? 0);
+        $pph23Amount = $pph23Rate > 0 ? round($subtotal * ($pph23Rate / 100), 2) : 0;
+        $total = $subtotal + $vatAmount - ($invoice->down_payment_amount ?? 0);
 
         // Create a copy of invoice with only customer-visible items
         $mainInvoice = $invoice->replicate();
@@ -944,6 +965,10 @@ class InvoiceController extends Controller
 
         // Override subtotal and total with calculated values
         $mainInvoice->subtotal = $subtotal;
+        $mainInvoice->vat_rate = $vatRate > 0 ? $vatRate : null;
+        $mainInvoice->vat_amount = $vatAmount;
+        $mainInvoice->pph23_rate = $pph23Rate > 0 ? $pph23Rate : null;
+        $mainInvoice->pph23_amount = $pph23Amount;
         $mainInvoice->total = $total;
 
         // Set current timestamp for print time
@@ -1019,7 +1044,11 @@ class InvoiceController extends Controller
 
         // Calculate totals for customer-visible items only
         $subtotal = $customerVisibleItems->sum('amount');
-        $total = $subtotal - ($invoice->down_payment_amount ?? 0);
+        $vatRate = (float) ($invoice->vat_rate ?? 0);
+        $vatAmount = $vatRate > 0 ? round($subtotal * ($vatRate / 100), 2) : 0;
+        $pph23Rate = (float) ($invoice->pph23_rate ?? 0);
+        $pph23Amount = $pph23Rate > 0 ? round($subtotal * ($pph23Rate / 100), 2) : 0;
+        $total = $subtotal + $vatAmount - ($invoice->down_payment_amount ?? 0);
 
         // Create a copy of invoice with only customer-visible items
         $mainInvoice = $invoice->replicate();
@@ -1029,6 +1058,10 @@ class InvoiceController extends Controller
 
         // Override subtotal and total with calculated values
         $mainInvoice->subtotal = $subtotal;
+        $mainInvoice->vat_rate = $vatRate > 0 ? $vatRate : null;
+        $mainInvoice->vat_amount = $vatAmount;
+        $mainInvoice->pph23_rate = $pph23Rate > 0 ? $pph23Rate : null;
+        $mainInvoice->pph23_amount = $pph23Amount;
         $mainInvoice->total = $total;
 
         // Set current timestamp for print time
@@ -1121,11 +1154,7 @@ class InvoiceController extends Controller
             $validated['payment_notes']
         );
 
-        // Jika pembayaran kurang dari total, catat selisih sebagai adjustment VAT Payable (2110)
-        $difference = round(max(0, ($invoice->total ?? 0) - $validated['paid_amount']), 2);
-        if ($difference > 0) {
-            $this->recordVatPayableAdjustment($difference, $validated['paid_date'], $invoice);
-        }
+        // VAT Payable dipost manual lewat tombol di detail piutang setelah status paid.
 
         return redirect()->route('admin-keuangan.invoices.show', $invoice)
             ->with('success', 'Pembayaran berhasil dikonfirmasi.');

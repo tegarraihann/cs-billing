@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\ReimbursementItem;
 use App\Models\AccountReceivable;
 use App\Models\BankTransaction;
+use App\Models\ChartOfAccount;
+use App\Models\FinancialPositionAdjustment;
 
 class Invoice extends Model
 {
@@ -53,6 +55,14 @@ class Invoice extends Model
         'down_payment_amount',
         'down_payment_date',
         'down_payment_notes',
+        'vat_rate',
+        'vat_amount',
+        'vat_posted_at',
+        'vat_posted_account_id',
+        'pph23_rate',
+        'pph23_amount',
+        'pph23_posted_at',
+        'pph23_posted_account_id',
         'posted_to_profit_loss',
         'posted_to_profit_loss_at',
         'posted_by',
@@ -78,6 +88,14 @@ class Invoice extends Model
         'paid_amount' => 'decimal:2',
         'down_payment_amount' => 'decimal:2',
         'down_payment_date' => 'date',
+        'vat_rate' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'vat_posted_at' => 'datetime',
+        'vat_posted_account_id' => 'integer',
+        'pph23_rate' => 'decimal:2',
+        'pph23_amount' => 'decimal:2',
+        'pph23_posted_at' => 'datetime',
+        'pph23_posted_account_id' => 'integer',
         'posted_to_profit_loss' => 'boolean',
         'posted_to_profit_loss_at' => 'datetime',
         'profit_loss_entries' => 'array'
@@ -239,11 +257,149 @@ class Invoice extends Model
         // Only calculate totals from billable items (customer-facing)
         // Operational costs should not be included in customer invoice totals
         $subtotal = $this->customerVisibleItems()->sum('amount');
-        $total = $subtotal - ($this->down_payment_amount ?? 0);
+        $vatAmount = $this->calculateVatAmount($subtotal);
+        $pph23Amount = $this->calculatePph23Amount($subtotal);
+        $total = $subtotal + $vatAmount - ($this->down_payment_amount ?? 0);
         $this->update([
             'subtotal' => $subtotal,
+            'vat_amount' => $vatAmount,
+            'pph23_amount' => $pph23Amount,
             'total' => $total
         ]);
+    }
+
+    public function calculateVatAmount(?float $baseAmount = null): float
+    {
+        $rate = (float) ($this->vat_rate ?? 0);
+        if ($rate <= 0) {
+            return 0;
+        }
+
+        $base = $baseAmount ?? (float) $this->customerVisibleItems()->sum('amount');
+
+        return round($base * ($rate / 100), 2);
+    }
+
+    public function calculatePph23Amount(?float $baseAmount = null): float
+    {
+        $rate = (float) ($this->pph23_rate ?? 0);
+        if ($rate <= 0) {
+            return 0;
+        }
+
+        $base = $baseAmount ?? (float) $this->customerVisibleItems()->sum('amount');
+
+        return round($base * ($rate / 100), 2);
+    }
+
+    public function hasVat(): bool
+    {
+        return (float) ($this->vat_amount ?? 0) > 0 && (float) ($this->vat_rate ?? 0) > 0;
+    }
+
+    public function hasPph23(): bool
+    {
+        return (float) ($this->pph23_amount ?? 0) > 0 && (float) ($this->pph23_rate ?? 0) > 0;
+    }
+
+    public function isVatPosted(): bool
+    {
+        return $this->vat_posted_at !== null;
+    }
+
+    public function isPph23Posted(): bool
+    {
+        return $this->pph23_posted_at !== null;
+    }
+
+    public function postVatPayable(?Carbon $paymentDate = null, ?int $userId = null): bool
+    {
+        if (!$this->hasVat() || $this->isVatPosted()) {
+            return false;
+        }
+
+        $rate = (float) $this->vat_rate;
+        $accountCode = abs($rate - 1.1) < 0.01 ? '2111' : '2110';
+        $accountId = ChartOfAccount::idByCode($accountCode);
+
+        if (!$accountId) {
+            return false;
+        }
+
+        $effectiveDate = ($paymentDate ?? now())->toDateString();
+
+        FinancialPositionAdjustment::create([
+            'account_id' => $accountId,
+            'effective_date' => $effectiveDate,
+            'amount' => (float) $this->vat_amount,
+            'notes' => 'VAT Payable dari Invoice ' . $this->invoice_number,
+            'created_by' => $userId ?? auth()->id(),
+        ]);
+
+        $this->update([
+            'vat_posted_at' => now(),
+            'vat_posted_account_id' => $accountId,
+        ]);
+
+        return true;
+    }
+
+    public function postPph23Receivable(?float $amount = null, ?Carbon $effectiveDate = null, ?int $userId = null): bool
+    {
+        if (!$this->hasPph23() || $this->isPph23Posted()) {
+            return false;
+        }
+
+        $rate = (float) $this->pph23_rate;
+        $account = $this->resolvePph23ReceivableAccount($rate);
+        if (!$account) {
+            return false;
+        }
+
+        $amountToPost = $amount ?? (float) $this->pph23_amount;
+        if ($amountToPost <= 0) {
+            return false;
+        }
+
+        $effective = ($effectiveDate ?? now())->toDateString();
+
+        FinancialPositionAdjustment::create([
+            'account_id' => $account->id,
+            'effective_date' => $effective,
+            'amount' => $amountToPost,
+            'notes' => 'PPH 23 Receivable dari Invoice ' . $this->invoice_number,
+            'created_by' => $userId ?? auth()->id(),
+        ]);
+
+        $this->update([
+            'pph23_posted_at' => now(),
+            'pph23_posted_account_id' => $account->id,
+        ]);
+
+        return true;
+    }
+
+    private function resolvePph23ReceivableAccount(float $rate): ?ChartOfAccount
+    {
+        $accountCode = abs($rate - 0.5) < 0.01 ? '1220' : '1221';
+        $accountName = abs($rate - 0.5) < 0.01
+            ? 'VAT Receivable PPH 23 0.5%'
+            : 'VAT Receivable PPH 23 2%';
+
+        $account = ChartOfAccount::where('account_code', $accountCode)->first();
+        if ($account) {
+            return $account;
+        }
+
+        $account = ChartOfAccount::where('account_name', $accountName)->first();
+        if ($account) {
+            return $account;
+        }
+
+        return ChartOfAccount::where('account_name', 'like', '%PPH%23%')
+            ->where('account_name', 'like', '%' . rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.') . '%')
+            ->where('account_type', 'asset')
+            ->first();
     }
 
     // New profit calculation methods for operational costs
@@ -364,7 +520,7 @@ class Invoice extends Model
 
     public function getTotalAfterDownPaymentAttribute()
     {
-        return $this->subtotal - ($this->down_payment_amount ?? 0);
+        return ($this->subtotal + ($this->vat_amount ?? 0)) - ($this->down_payment_amount ?? 0);
     }
 
     public function hasDownPayment()

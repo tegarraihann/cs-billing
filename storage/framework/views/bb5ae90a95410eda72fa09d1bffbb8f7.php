@@ -186,14 +186,39 @@
         <div class="section-title">REVENUE</div>
 
         <?php
-            $serviceRevenueEntries = $reportData['revenues']['main'] ?? [];
-            $serviceRevenueTotal = collect($serviceRevenueEntries)->sum(fn($entry) => data_get($entry, 'amount', 0));
+            $mainRevenueEntries = collect($reportData['revenues']['main'] ?? []);
+            $otherRevenueEntries = collect($reportData['revenues']['other'] ?? []);
+            $allRevenueEntries = $mainRevenueEntries->merge($otherRevenueEntries);
 
-            $interestMandiri = (float) data_get($reportData, 'revenues.other_income_breakdown.bunga_mandiri.total', 0);
-            $interestBca = (float) data_get($reportData, 'revenues.other_income_breakdown.bunga_bca.total', 0);
-            $interestTotal = $interestMandiri + $interestBca;
+            $isInterestEntry = function ($entry) {
+                $name = strtolower((string) data_get($entry, 'account.account_name', ''));
+                $desc = strtolower((string) data_get($entry, 'description', ''));
+                $cat = strtolower((string) data_get($entry, 'additional_data.category', ''));
+                $combined = $name . ' ' . $desc . ' ' . $cat;
 
-            $otherIncomeTotal = (float) data_get($reportData, 'revenues.other_income_breakdown.lainnya.total', 0);
+                return str_contains($combined, 'bunga bank')
+                    || str_contains($combined, 'interest')
+                    || str_contains($combined, 'bunga');
+            };
+
+            $interestEntries = $allRevenueEntries->filter($isInterestEntry);
+            $interestTotal = $interestEntries->sum(fn($entry) => data_get($entry, 'amount', 0));
+
+            $otherIncomeEntries = $allRevenueEntries->filter(function ($entry) use ($isInterestEntry) {
+                if ($isInterestEntry($entry)) {
+                    return false;
+                }
+                if (data_get($entry, 'reference_type') === 'other_income') {
+                    return true;
+                }
+                return data_get($entry, 'account.account_category') === 'revenue_other';
+            });
+            $otherIncomeTotal = $otherIncomeEntries->sum(fn($entry) => data_get($entry, 'amount', 0));
+
+            $serviceRevenueTotal = (float) data_get($reportData, 'revenues.total', 0) - $interestTotal - $otherIncomeTotal;
+            if ($serviceRevenueTotal < 0) {
+                $serviceRevenueTotal = 0;
+            }
         ?>
 
         <div class="item" style="background-color: #e8f2e8;">
@@ -226,49 +251,144 @@
             $salaryEntries = data_get($reportData, 'expenses.salary', []);
             $adminEntries = data_get($reportData, 'expenses.admin', []);
             $otherEntries = data_get($reportData, 'expenses.other', []);
+            $marketingEntries = data_get($reportData, 'expenses.marketing', []);
 
             $allExpenseEntries = collect($salaryEntries)
                 ->merge(collect($operationalGrouped)->flatMap(fn($cat) => $cat['entries'] ?? []))
                 ->merge($adminEntries)
-                ->merge($otherEntries);
+                ->merge($otherEntries)
+                ->merge($marketingEntries);
 
-            $sumByKeyword = function ($keywords) use ($allExpenseEntries) {
-                $keywords = (array) $keywords;
-                return $allExpenseEntries
-                    ->filter(function ($entry) use ($keywords) {
-                        $name = strtolower((string) data_get($entry, 'account.account_name', ''));
-                        $desc = strtolower((string) data_get($entry, 'description', ''));
-                        $cat = strtolower((string) data_get($entry, 'additional_data.category_name', ''));
-                        foreach ($keywords as $kw) {
-                            $kw = strtolower($kw);
-                            if ($kw !== '' && (str_contains($name, $kw) || str_contains($desc, $kw) || str_contains($cat, $kw))) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    })
-                    ->sum(fn($e) => data_get($e, 'amount', 0));
+            $normalizeText = function ($value) {
+                return strtolower(trim((string) $value));
             };
 
+            $matchesAny = function ($haystack, array $keywords) {
+                foreach ($keywords as $keyword) {
+                    $keyword = strtolower($keyword);
+                    if ($keyword !== '' && str_contains($haystack, $keyword)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            $isPettyCashEntry = function ($entry) {
+                return data_get($entry, 'reference_type') === 'petty_cash_transaction'
+                    || data_get($entry, 'entry_type') === 'auto_petty_cash';
+            };
+
+            $expenseTotals = [
+                'Salaries Expense' => 0,
+                'Rent Expense' => 0,
+                'outside assignments expense' => 0,
+                'Operational Expense' => 0,
+                'Electricity, Water & Internet Expense' => 0,
+                'E-Toll & Gasoline Expense' => 0,
+                'IPL Expense' => 0,
+                'Equipment Expense' => 0,
+                'Marketing Comission Expense' => 0,
+                'Entertainment Expense' => 0,
+                'Maintenance Expenses' => 0,
+                'Supplies Expense' => 0,
+                'Other Expense' => 0,
+                'Administrative Bank Expense' => 0,
+                'Monthly Card Expense' => 0,
+            ];
+
+            $assignExpenseLine = function ($entry) use ($normalizeText, $matchesAny) {
+                $name = $normalizeText(data_get($entry, 'account.account_name', ''));
+                $desc = $normalizeText(data_get($entry, 'description', ''));
+                $cat = $normalizeText(data_get($entry, 'additional_data.category_name', ''));
+                $pcat = $normalizeText(data_get($entry, 'additional_data.category', ''));
+                $text = trim($name . ' ' . $desc . ' ' . $cat . ' ' . $pcat);
+
+                $accountCategory = data_get($entry, 'account.account_category');
+                if ($accountCategory === 'expense_salary') {
+                    return 'Salaries Expense';
+                }
+
+                if ($matchesAny($text, ['monthly card', 'card', 'kartu'])) {
+                    return 'Monthly Card Expense';
+                }
+                if ($matchesAny($text, ['bunga bank', 'interest'])) {
+                    return 'Administrative Bank Expense';
+                }
+                if ($matchesAny($text, ['admin bank', 'bank admin'])) {
+                    return 'Administrative Bank Expense';
+                }
+                if ($matchesAny($text, ['electric', 'listrik', 'water', 'air', 'internet'])) {
+                    return 'Electricity, Water & Internet Expense';
+                }
+                if ($matchesAny($text, ['delivery', 'pengiriman', 'dokumen', 'invoice'])) {
+                    return 'E-Toll & Gasoline Expense';
+                }
+                if ($matchesAny($text, ['ipl'])) {
+                    return 'IPL Expense';
+                }
+                if ($matchesAny($text, ['marketing', 'komisi', 'commission'])) {
+                    return 'Marketing Comission Expense';
+                }
+                if ($matchesAny($text, ['entertain'])) {
+                    return 'Entertainment Expense';
+                }
+                if ($matchesAny($text, ['vehicle', 'kendaraan', 'fleet'])) {
+                    return 'Operational Expense';
+                }
+                if ($matchesAny($text, ['equipment', 'peralatan', 'pemeliharaan', 'maintenance'])) {
+                    return 'Equipment Expense';
+                }
+                if ($matchesAny($text, ['supplies', 'atk'])) {
+                    return 'Supplies Expense';
+                }
+                if ($matchesAny($text, ['service', 'jasa'])) {
+                    return 'Maintenance Expenses';
+                }
+                if ($matchesAny($text, ['rent', 'sewa'])) {
+                    return 'Rent Expense';
+                }
+                if ($matchesAny($text, ['operational', 'operasional', 'trucking', 'handling'])) {
+                    return 'Operational Expense';
+                }
+
+                return null;
+            };
+
+            foreach ($allExpenseEntries as $entry) {
+                $amount = (float) data_get($entry, 'amount', 0);
+                if ($amount == 0) {
+                    continue;
+                }
+
+                $line = $assignExpenseLine($entry);
+                if ($line) {
+                    $expenseTotals[$line] += $amount;
+                    continue;
+                }
+
+                if ($isPettyCashEntry($entry)) {
+                    $expenseTotals['outside assignments expense'] += $amount;
+                } else {
+                    $expenseTotals['Other Expense'] += $amount;
+                }
+            }
+
             $expenseLines = collect([
-                ['label' => 'Salaries Expense', 'amount' => collect($salaryEntries)->sum(fn($e) => data_get($e, 'amount', 0))],
-                ['label' => 'Rent Expense', 'amount' => $sumByKeyword(['rent', 'sewa'])],
-                ['label' => 'General & Administrative Expense', 'amount' => $sumByKeyword(['petty', 'administrative'])],
-                ['label' => 'Operating Expense', 'amount' => $sumByKeyword(['operational', 'operasional', 'lain', 'truck', 'trucking'])],
-                ['label' => 'Electricity, Water & Internet Expense', 'amount' => $sumByKeyword(['electric', 'listrik', 'water', 'air', 'internet'])],
-                ['label' => 'Delivery Expense', 'amount' => $sumByKeyword(['delivery', 'pengiriman', 'dokumen'])],
-                ['label' => 'IPL Expense', 'amount' => $sumByKeyword(['ipl'])],
-                ['label' => 'Vehicle Maintenance Expense', 'amount' => $sumByKeyword(['vehicle', 'kendaraan', 'fleet'])],
-                ['label' => 'Equipment Maintenance Expense', 'amount' => $sumByKeyword(['equipment', 'peralatan', 'maintenance'])],
-                ['label' => 'Marketing Comission Expense', 'amount' => $sumByKeyword(['marketing', 'komisi'])],
-                ['label' => 'Depreciation Expense - Equipment', 'amount' => $sumByKeyword(['depreciation', 'penyusutan'])],
-                ['label' => 'Entertainment Expense', 'amount' => $sumByKeyword(['entertain'])],
-                ['label' => 'Service Expense', 'amount' => $sumByKeyword(['service'])],
-                ['label' => 'Supplies Expense', 'amount' => $sumByKeyword(['supplies', 'atk'])],
-                ['label' => 'Other Expense', 'amount' => $sumByKeyword(['other', 'lain'])],
-                ['label' => 'Administrative Bank Expense', 'amount' => $sumByKeyword(['admin bank', 'bank admin'])],
-                ['label' => 'Bank Interest Expense', 'amount' => $sumByKeyword(['interest', 'bunga bank'])],
-                ['label' => 'Monthly Card Expense', 'amount' => $sumByKeyword(['card', 'kartu'])],
+                ['label' => 'Salaries Expense', 'amount' => $expenseTotals['Salaries Expense']],
+                ['label' => 'Rent Expense', 'amount' => $expenseTotals['Rent Expense']],
+                ['label' => 'outside assignments expense', 'amount' => $expenseTotals['outside assignments expense']],
+                ['label' => 'Operational Expense', 'amount' => $expenseTotals['Operational Expense']],
+                ['label' => 'Electricity, Water & Internet Expense', 'amount' => $expenseTotals['Electricity, Water & Internet Expense']],
+                ['label' => 'E-Toll & Gasoline Expense', 'amount' => $expenseTotals['E-Toll & Gasoline Expense']],
+                ['label' => 'IPL Expense', 'amount' => $expenseTotals['IPL Expense']],
+                ['label' => 'Equipment Expense', 'amount' => $expenseTotals['Equipment Expense']],
+                ['label' => 'Marketing Comission Expense', 'amount' => $expenseTotals['Marketing Comission Expense']],
+                ['label' => 'Entertainment Expense', 'amount' => $expenseTotals['Entertainment Expense']],
+                ['label' => 'Maintenance Expenses', 'amount' => $expenseTotals['Maintenance Expenses']],
+                ['label' => 'Supplies Expense', 'amount' => $expenseTotals['Supplies Expense']],
+                ['label' => 'Other Expense', 'amount' => $expenseTotals['Other Expense']],
+                ['label' => 'Administrative Bank Expense', 'amount' => $expenseTotals['Administrative Bank Expense']],
+                ['label' => 'Monthly Card Expense', 'amount' => $expenseTotals['Monthly Card Expense']],
             ]);
         ?>
 

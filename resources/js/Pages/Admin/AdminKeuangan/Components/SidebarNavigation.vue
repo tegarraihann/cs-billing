@@ -304,7 +304,20 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    <span class="font-medium">Chart Of Accounts</span>
+                    <span class="font-medium">Operational Cost Categories</span>
+                </a>
+
+                <!-- Chart of Accounts -->
+                <a :href="route('admin-keuangan.chart-of-accounts.index')"
+                    class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.chart-of-accounts.*')
+                            ? 'bg-sage-100 text-sage-800 shadow-sm'
+                            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                        ">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18S10.832 18.477 12 19.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span class="font-medium">Chart of Accounts</span>
                 </a>
 
                 <!-- Master Package Units -->
@@ -402,6 +415,9 @@ const route = window.route || function (name, params) {
         'admin-keuangan.service-types.edit': '/admin-keuangan/service-types/:id/edit',
         'admin-keuangan.operational-cost-categories.index': '/admin-keuangan/operational-cost-categories',
         'admin-keuangan.operational-cost-categories.create': '/admin-keuangan/operational-cost-categories/create',
+        'admin-keuangan.chart-of-accounts.index': '/admin-keuangan/chart-of-accounts',
+        'admin-keuangan.chart-of-accounts.create': '/admin-keuangan/chart-of-accounts/create',
+        'admin-keuangan.chart-of-accounts.edit': '/admin-keuangan/chart-of-accounts/:id/edit',
         'admin-keuangan.master-package-units.index': '/admin-keuangan/master-package-units',
         'admin-keuangan.master-package-units.create': '/admin-keuangan/master-package-units/create',
     };
@@ -427,6 +443,7 @@ const isActive = (routePattern) => {
             'admin-keuangan.shipment-types.': '/admin-keuangan/shipment-types',
             'admin-keuangan.service-types.': '/admin-keuangan/service-types',
             'admin-keuangan.operational-cost-categories.': '/admin-keuangan/operational-cost-categories',
+            'admin-keuangan.chart-of-accounts.': '/admin-keuangan/chart-of-accounts',
             'admin-keuangan.master-package-units.': '/admin-keuangan/master-package-units',
         };
 
@@ -457,6 +474,7 @@ const isActive = (routePattern) => {
         'admin-keuangan.shipment-types': '/admin-keuangan/shipment-types',
         'admin-keuangan.service-types': '/admin-keuangan/service-types',
         'admin-keuangan.operational-cost-categories': '/admin-keuangan/operational-cost-categories',
+        'admin-keuangan.chart-of-accounts': '/admin-keuangan/chart-of-accounts',
         'admin-keuangan.master-package-units': '/admin-keuangan/master-package-units',
     };
 

@@ -402,6 +402,11 @@ class AccountReceivable extends Model
             return strtolower($item->item_type ?? '') === 'reimbursement';
         })->sum('amount');
 
+        $vatAmount = (float) ($invoice->vat_amount ?? 0);
+        if ($vatAmount > 0) {
+            $mainAmount += $vatAmount;
+        }
+
         if ($invoice->invoice_type === 'main' && $mainAmount <= 0) {
             $mainAmount = (float) $invoice->total;
         }

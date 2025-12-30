@@ -1,143 +1,125 @@
 <template>
   <AdminKeuanganLayout>
-    <Head title="Tambah Satuan Package" />
+    <Head title="Add Package Unit" />
 
     <div class="py-6">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
-          <div class="flex items-center space-x-3 mb-2">
-            <Link
-              :href="route('admin-keuangan.master-package-units.index')"
-              class="text-sage-600 hover:text-sage-800 transition-colors"
-            >
-              <ArrowLeft class="w-5 h-5" />
-            </Link>
-            <h1 class="text-2xl font-bold text-sage-800">Tambah Satuan Package</h1>
-          </div>
-          <p class="text-sm text-sage-600">
-            Buat satuan packaging baru untuk digunakan di Sales Order dan Invoice
-          </p>
+          <Link
+            :href="route('admin-keuangan.master-package-units.index')"
+            class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+          >
+            <ArrowLeft class="w-4 h-4 mr-2" />
+            Back to Master Package Units
+          </Link>
+          <h1 class="text-2xl font-bold text-gray-900">Add Package Unit</h1>
+          <p class="mt-1 text-sm text-gray-600">Create a new unit for packaging selection</p>
         </div>
 
-        <!-- Form -->
-        <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-          <form @submit.prevent="submit">
-            <div class="space-y-6">
-              <!-- Code -->
+        <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
+          <div class="px-6 py-8">
+            <form @submit.prevent="submit" class="space-y-6">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Kode Satuan <span class="text-red-500">*</span>
+                <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
+                  Unit Code <span class="text-red-500">*</span>
                 </label>
                 <input
+                  id="code"
                   v-model="form.code"
                   type="text"
-                  required
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                  :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.code }"
+                  placeholder="Example: PLT, CTN, BOX"
                   maxlength="10"
-                  placeholder="e.g., PLT, CTN, BOX"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  :class="{ 'border-red-500': form.errors.code }"
                 />
-                <p v-if="form.errors.code" class="mt-1 text-sm text-red-600">
+                <div v-if="form.errors.code" class="mt-1 text-sm text-red-600">
                   {{ form.errors.code }}
-                </p>
-                <p class="mt-1 text-xs text-gray-500">
-                  Maksimal 10 karakter, gunakan huruf kapital
-                </p>
+                </div>
               </div>
 
-              <!-- Name -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Nama Satuan <span class="text-red-500">*</span>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                  Unit Name <span class="text-red-500">*</span>
                 </label>
                 <input
+                  id="name"
                   v-model="form.name"
                   type="text"
-                  required
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                  :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.name }"
+                  placeholder="Example: Pallet, Carton, Box"
                   maxlength="50"
-                  placeholder="e.g., Pallet, Carton, Box"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  :class="{ 'border-red-500': form.errors.name }"
                 />
-                <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">
+                <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">
                   {{ form.errors.name }}
-                </p>
+                </div>
               </div>
 
-              <!-- Description -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Deskripsi
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                  Description
                 </label>
                 <textarea
+                  id="description"
                   v-model="form.description"
-                  rows="3"
+                  rows="4"
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                  placeholder="Optional description..."
                   maxlength="255"
-                  placeholder="Deskripsi tambahan tentang satuan ini..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  :class="{ 'border-red-500': form.errors.description }"
                 ></textarea>
-                <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
+                <div v-if="form.errors.description" class="mt-1 text-sm text-red-600">
                   {{ form.errors.description }}
-                </p>
+                </div>
               </div>
 
-              <!-- Sort Order -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Urutan Tampil
+                <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">
+                  Sort Order
                 </label>
                 <input
+                  id="sort_order"
                   v-model="form.sort_order"
                   type="number"
                   min="0"
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
+                  :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': form.errors.sort_order }"
                   placeholder="0"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                  :class="{ 'border-red-500': form.errors.sort_order }"
                 />
-                <p v-if="form.errors.sort_order" class="mt-1 text-sm text-red-600">
+                <div v-if="form.errors.sort_order" class="mt-1 text-sm text-red-600">
                   {{ form.errors.sort_order }}
-                </p>
-                <p class="mt-1 text-xs text-gray-500">
-                  Angka kecil akan tampil di urutan atas
-                </p>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Lower numbers appear first.</p>
               </div>
 
-              <!-- Status -->
-              <div>
-                <label class="flex items-center">
+              <div class="flex items-center">
+                <label class="flex items-center cursor-pointer">
                   <input
                     v-model="form.is_active"
                     type="checkbox"
-                    class="rounded border-gray-300 text-sage-600 shadow-sm focus:ring-sage-500"
+                    class="h-4 w-4 text-sage-600 focus:ring-sage-500 border-gray-300 rounded"
                   />
-                  <span class="ml-2 text-sm text-gray-700">Aktif</span>
+                  <span class="ml-2 block text-sm text-gray-900">Active Status</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">
-                  Satuan aktif akan muncul di dropdown form
-                </p>
               </div>
-            </div>
 
-            <!-- Actions -->
-            <div class="mt-8 flex items-center justify-end space-x-3">
-              <Link
-                :href="route('admin-keuangan.master-package-units.index')"
-                class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Batal
-              </Link>
-              <button
-                type="submit"
-                :disabled="form.processing"
-                class="px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 transition-colors flex items-center"
-              >
-                <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
-              </button>
-            </div>
-          </form>
+              <div class="mt-8 flex justify-end space-x-3">
+                <Link
+                  :href="route('admin-keuangan.master-package-units.index')"
+                  class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  :disabled="processing"
+                  class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50"
+                >
+                  <Loader2 v-if="processing" class="animate-spin -ml-1 mr-2 h-4 w-4" />
+                  {{ processing ? 'Saving...' : 'Save Package Unit' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -145,19 +127,22 @@
 </template>
 
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ArrowLeft, Loader2 } from 'lucide-vue-next'
-import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import { computed } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
+import { ArrowLeft, Loader2 } from 'lucide-vue-next';
 
 const form = useForm({
   code: '',
   name: '',
   description: '',
   sort_order: 0,
-  is_active: true
-})
+  is_active: true,
+});
+
+const processing = computed(() => form.processing);
 
 const submit = () => {
-  form.post(route('admin-keuangan.master-package-units.store'))
-}
+  form.post(route('admin-keuangan.master-package-units.store'));
+};
 </script>

@@ -28,7 +28,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'CURRENT ASSET',
-                    'account_codes' => ['1120', '1130', '1140', '1110', '1200', '1210', '1300', '1400'],
+                    'account_codes' => ['1120', '1130', '1140', '1110', '1200', '1210', '1220', '1221', '1230', '1231', '1300', '1400'],
                 ],
                 [
                     'title' => 'FIXED ASSET',
@@ -41,7 +41,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'CURRENT LIABILITIES',
-                    'account_codes' => ['2100', '2110', '2111', '5450', '5451'],
+                    'account_codes' => ['2100', '2110', '2111', '2112', '2113', '5450', '5451'],
                 ],
             ],
         ],
@@ -183,11 +183,14 @@ class FinancialPositionService
             '1110' => $this->calculatePettyCashBalance($cutoff),
             '1200' => $this->calculateAccountsReceivableBalance($cutoff),
             '1210' => $this->calculateOtherIncomeReceivablesBalance($cutoff),
+            '1220', '1221' => $this->calculatePph23ReceivableBalance($accountCode, $cutoff),
+            '1230', '1231' => $this->calculateVatReceivableBalance($accountCode, $cutoff),
             '1300' => $this->calculateSuppliesBalance($cutoff),
             '1510' => $this->calculateEquipmentBalance($cutoff),
             '1515' => $this->calculateEquipmentAccumulatedBalance($cutoff),
             '1400' => $this->calculatePrepaidRentBalance($cutoff),
             '2110', '2111' => $this->calculateVatPayableBalance($accountCode, $cutoff),
+            '2112', '2113' => $this->calculatePph23PayableBalance($accountCode, $cutoff),
             '5450', '5451' => $this->calculateTaxExpensePayableBalance($accountCode, $cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3100' => $this->calculatePaidInCapitalBalance($accountCode, $cutoff),
@@ -286,6 +289,81 @@ class FinancialPositionService
      * Prioritas: manual override bila ada, otherwise sum FinancialPositionAdjustment s/d cutoff.
      */
     private function calculateVatPayableBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $query = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('amount');
+        $records = $query->count();
+
+        return [
+            'amount' => round($amount, 2),
+            'source' => 'auto',
+            'meta' => [
+                'records' => $records,
+            ],
+        ];
+    }
+
+    /**
+     * Calculate VAT Receivable (PPN Masukan) balance from adjustments (akun 1230/1231).
+     */
+    private function calculateVatReceivableBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $query = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('amount');
+        $records = $query->count();
+
+        return [
+            'amount' => round($amount, 2),
+            'source' => 'auto',
+            'meta' => [
+                'records' => $records,
+            ],
+        ];
+    }
+
+    /**
+     * Calculate VAT Receivable PPh23 balance from adjustments (akun 1220/1221).
+     */
+    private function calculatePph23ReceivableBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $query = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('amount');
+        $records = $query->count();
+
+        return [
+            'amount' => round($amount, 2),
+            'source' => 'auto',
+            'meta' => [
+                'records' => $records,
+            ],
+        ];
+    }
+
+    /**
+     * Calculate VAT Payable PPh23 balance from adjustments (akun 2112/2113).
+     */
+    private function calculatePph23PayableBalance(string $accountCode, Carbon $cutoff): array
     {
         $accountId = ChartOfAccount::idByCode($accountCode);
         if (!$accountId) {

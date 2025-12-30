@@ -10,6 +10,7 @@ use App\Models\PettyCashCategory;
 use App\Models\PettyCashBalance;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
+use App\Models\ChartOfAccount;
 use App\Models\ProfitLossEntry;
 use App\Models\ProfitLossPeriod;
 use Illuminate\Support\Facades\Auth;
@@ -98,11 +99,15 @@ class PettyCashController extends Controller
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
         $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']);
+        $expenseAccounts = ChartOfAccount::where('account_type', 'expense')
+            ->orderBy('account_code')
+            ->get(['id', 'account_code', 'account_name']);
 
         return Inertia::render('Admin/AdminKeuangan/PettyCash/Create', [
             'categories' => $categories,
             'currentBalance' => $currentBalance,
             'bankAccounts' => $bankAccounts,
+            'expenseAccounts' => $expenseAccounts,
         ]);
     }
 
@@ -124,18 +129,13 @@ class PettyCashController extends Controller
         // Category is only required for expense transactions
         if ($request->type === 'expense') {
             $rules['category_id'] = 'required|exists:petty_cash_categories,id';
+            $rules['pl_account_id'] = 'required|exists:chart_of_accounts,id';
         } else {
             $rules['category_id'] = 'nullable|exists:petty_cash_categories,id';
+            $rules['pl_account_id'] = 'nullable|exists:chart_of_accounts,id';
         }
 
         // Bank account is required for topup/refund
-        $rules['bank_account_id'] = [
-            Rule::requiredIf(in_array($request->type, ['topup', 'refund'])),
-            'nullable',
-            'exists:bank_accounts,id'
-        ];
-
-        // Bank account is required for topup/refund (agar mengurangi saldo bank)
         $rules['bank_account_id'] = [
             Rule::requiredIf(in_array($request->type, ['topup', 'refund'])),
             'nullable',
@@ -166,6 +166,7 @@ class PettyCashController extends Controller
                 'transaction_date' => $request->transaction_date,
                 'description' => $request->description,
                 'category_id' => $request->type === 'expense' ? $request->category_id : null,
+                'pl_account_id' => $request->type === 'expense' ? $request->pl_account_id : null,
                 'amount' => $request->amount,
                 'type' => $request->type,
                 'so_number' => $request->so_number,
@@ -228,6 +229,9 @@ class PettyCashController extends Controller
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
         $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']);
+        $expenseAccounts = ChartOfAccount::where('account_type', 'expense')
+            ->orderBy('account_code')
+            ->get(['id', 'account_code', 'account_name']);
         $linkedBankAccountId = BankTransaction::where('reference_id', $pettyCash->id)
             ->whereIn('reference_type', ['petty_cash_topup', 'petty_cash_refund'])
             ->value('bank_account_id');
@@ -237,6 +241,7 @@ class PettyCashController extends Controller
             'categories' => $categories,
             'currentBalance' => $currentBalance,
             'bankAccounts' => $bankAccounts,
+            'expenseAccounts' => $expenseAccounts,
             'linkedBankAccountId' => $linkedBankAccountId,
         ]);
     }
@@ -259,9 +264,17 @@ class PettyCashController extends Controller
         // Category is only required for expense transactions
         if ($request->type === 'expense') {
             $rules['category_id'] = 'required|exists:petty_cash_categories,id';
+            $rules['pl_account_id'] = 'required|exists:chart_of_accounts,id';
         } else {
             $rules['category_id'] = 'nullable|exists:petty_cash_categories,id';
+            $rules['pl_account_id'] = 'nullable|exists:chart_of_accounts,id';
         }
+
+        $rules['bank_account_id'] = [
+            Rule::requiredIf(in_array($request->type, ['topup', 'refund'])),
+            'nullable',
+            'exists:bank_accounts,id'
+        ];
 
         $request->validate($rules);
 
@@ -289,6 +302,7 @@ class PettyCashController extends Controller
                 'transaction_date' => $request->transaction_date,
                 'description' => $request->description,
                 'category_id' => $request->type === 'expense' ? $request->category_id : null,
+                'pl_account_id' => $request->type === 'expense' ? $request->pl_account_id : null,
                 'amount' => $request->amount,
                 'type' => $request->type,
                 'so_number' => $request->so_number,

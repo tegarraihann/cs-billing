@@ -92,6 +92,30 @@
               </p>
             </div>
 
+            <!-- Akun Beban (P&L) -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                Akun Beban (P&L) <span v-if="form.type === 'expense'" class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.pl_account_id"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                :class="{ 'border-red-300': errors.pl_account_id }"
+                :disabled="form.type !== 'expense'"
+              >
+                <option value="">Pilih Akun</option>
+                <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
+                  {{ account.account_code }} - {{ account.account_name }}
+                </option>
+              </select>
+              <p v-if="errors.pl_account_id" class="mt-1 text-sm text-red-600">
+                {{ errors.pl_account_id }}
+              </p>
+              <p v-if="form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
+                Akun P&L hanya untuk transaksi pengeluaran
+              </p>
+            </div>
+
             <!-- Sumber Bank (untuk Top Up / Refund) -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
@@ -258,6 +282,10 @@ const props = defineProps({
     type: Array,
     required: true
   },
+  expenseAccounts: {
+    type: Array,
+    default: () => []
+  },
   bankAccounts: {
     type: Array,
     required: true
@@ -281,6 +309,7 @@ const form = useForm({
   transaction_date: new Date().toISOString().split('T')[0],
   description: '',
   category_id: '',
+  pl_account_id: '',
   amount: '',
   type: '',
   bank_account_id: '',
@@ -288,6 +317,8 @@ const form = useForm({
   notes: '',
   receipt_file: null
 })
+
+const expenseAccounts = computed(() => props.expenseAccounts ?? [])
 
 // Computed
 const today = computed(() => {
@@ -317,6 +348,7 @@ const isDisabled = computed(() => {
   if (!form.transaction_date || !form.type || !form.amount || !form.description) return true
   // jika expense, wajib kategori
   if (form.type === 'expense' && !form.category_id) return true
+  if (form.type === 'expense' && !form.pl_account_id) return true
   // jika topup/refund, wajib bank
   if (['topup', 'refund'].includes(form.type) && !form.bank_account_id) return true
   // amount harus > 0
@@ -328,12 +360,25 @@ const isDisabled = computed(() => {
 watch(() => form.type, (newType) => {
   if (newType !== 'expense') {
     form.category_id = ''
+    form.pl_account_id = ''
+  } else if (!form.pl_account_id && expenseAccounts.value.length > 0) {
+    form.pl_account_id = expenseAccounts.value[0].id
   }
 
   if (!['topup', 'refund'].includes(newType)) {
     form.bank_account_id = ''
   }
 })
+
+watch(
+  expenseAccounts,
+  (options) => {
+    if (form.type === 'expense' && !form.pl_account_id && options.length > 0) {
+      form.pl_account_id = options[0].id
+    }
+  },
+  { immediate: true }
+)
 
 // Methods
 const formatCurrency = (amount) => {

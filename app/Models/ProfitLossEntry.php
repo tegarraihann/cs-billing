@@ -222,8 +222,15 @@ class ProfitLossEntry extends Model
 
     public static function createFromPettyCash($petty_cash, $period_id, $created_by)
     {
-        // Skip if category is null (data integrity issue)
-        if (!$petty_cash->category) {
+        $expense_account = null;
+
+        if (!empty($petty_cash->pl_account_id)) {
+            $expense_account = ChartOfAccount::where('id', $petty_cash->pl_account_id)
+                ->where('account_type', 'expense')
+                ->first();
+        }
+
+        if (!$expense_account && !$petty_cash->category) {
             \Log::warning('Petty Cash has no category - Skipping', [
                 'petty_cash_id' => $petty_cash->id,
                 'description' => $petty_cash->description ?? 'N/A',
@@ -232,8 +239,7 @@ class ProfitLossEntry extends Model
             return null;
         }
 
-        $expense_account = null;
-
+        if (!$expense_account) {
         switch ($petty_cash->category->name) {
             // Old mapping (may not be used anymore)
             case 'Beban Listrik dan Air':
@@ -311,16 +317,19 @@ class ProfitLossEntry extends Model
                     $expense_account = ChartOfAccount::where('account_code', '5303')->first();
                 }
         }
+        }
 
         if (!$expense_account) {
             \Log::error('Petty Cash to Profit Loss - Account Not Found', [
-                'category_name' => $petty_cash->category->name,
+                'category_name' => $petty_cash->category?->name,
                 'petty_cash_id' => $petty_cash->id,
                 'available_expense_accounts' => ChartOfAccount::where('account_type', 'expense')->pluck('account_name', 'account_code')->toArray()
             ]);
 
-            throw new \Exception('Expense account not found for category: ' . $petty_cash->category->name . '. Please create expense account in Chart of Accounts first.');
+            throw new \Exception('Expense account not found for category: ' . ($petty_cash->category?->name ?? 'Unknown') . '. Please create expense account in Chart of Accounts first.');
         }
+
+        $categoryName = $petty_cash->category?->name ?? 'Petty Cash';
 
         $entry = self::firstOrNew([
             'period_id' => $period_id,
@@ -329,12 +338,12 @@ class ProfitLossEntry extends Model
         ]);
 
         $entry->account_id = $expense_account->id;
-        $entry->description = 'Beban ' . $petty_cash->category->name . ' - ' . $petty_cash->description;
+        $entry->description = 'Beban ' . $categoryName . ' - ' . $petty_cash->description;
         $entry->amount = $petty_cash->amount;
         $entry->entry_type = 'auto_petty_cash';
         $entry->transaction_date = $petty_cash->transaction_date;
         $entry->additional_data = [
-            'category' => $petty_cash->category->name,
+            'category' => $categoryName,
             'description' => $petty_cash->description,
             'amount' => $petty_cash->amount,
         ];

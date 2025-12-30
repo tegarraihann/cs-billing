@@ -165,98 +165,91 @@ class AccountReceivableController extends Controller
     public function postVatPayable(AccountReceivable $accountReceivable)
     {
         $accountReceivable->loadMissing(['invoice', 'customer']);
-
-        if ($accountReceivable->outstanding_amount <= 0) {
-            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable.']);
+        $invoice = $accountReceivable->invoice;
+        if (!$invoice) {
+            return redirect()->back()->withErrors(['error' => 'Invoice tidak ditemukan.']);
         }
 
-        $accountId = ChartOfAccount::idByCode('2110') ?: ChartOfAccount::idByCode('2111');
-        if (!$accountId) {
-            return redirect()->back()->withErrors(['error' => 'Akun VAT Payable (2110/2111) belum dikonfigurasi.']);
+        if ($accountReceivable->status !== 'paid' || $invoice->status !== 'paid') {
+            return redirect()->back()->withErrors(['error' => 'Piutang harus lunas sebelum diposting ke VAT Payable.']);
         }
 
-        $amount = (float) $accountReceivable->outstanding_amount;
+        if (!$invoice->hasVat()) {
+            return redirect()->back()->withErrors(['error' => 'Invoice tidak memiliki PPN yang dapat diposting.']);
+        }
+
+        if ($invoice->isVatPosted()) {
+            return redirect()->back()->withErrors(['error' => 'VAT Payable untuk invoice ini sudah diposting.']);
+        }
+
         $now = now();
 
-        DB::transaction(function () use ($accountReceivable, $amount, $accountId, $now) {
+        DB::transaction(function () use ($invoice, $now) {
+            $invoice->postVatPayable(Carbon::parse($now), auth()->id());
+        });
+
+        return redirect()->back()->with('success', 'VAT Payable berhasil diposting ke Financial Position.');
+    }
+
+    /**
+     * Post VAT Payable 11% to Financial Position and close AR.
+     */
+    public function postVatPayable11(AccountReceivable $accountReceivable)
+    {
+        return $this->postVatPayableByAccount($accountReceivable, '2110', '11%');
+    }
+
+    /**
+     * Post VAT Payable 1.1% to Financial Position and close AR.
+     */
+    public function postVatPayable11_1(AccountReceivable $accountReceivable)
+    {
+        return $this->postVatPayableByAccount($accountReceivable, '2111', '1.1%');
+    }
+
+    private function postVatPayableByAccount(AccountReceivable $accountReceivable, string $accountCode, string $label)
+    {
+        $accountReceivable->loadMissing(['invoice', 'customer']);
+        $invoice = $accountReceivable->invoice;
+        if (!$invoice) {
+            return redirect()->back()->withErrors(['error' => 'Invoice tidak ditemukan.']);
+        }
+
+        if ($accountReceivable->status !== 'paid' || $invoice->status !== 'paid') {
+            return redirect()->back()->withErrors(['error' => 'Piutang harus lunas sebelum diposting ke VAT Payable.']);
+        }
+
+        if (!$invoice->hasVat()) {
+            return redirect()->back()->withErrors(['error' => 'Invoice tidak memiliki PPN yang dapat diposting.']);
+        }
+
+        if ($invoice->isVatPosted()) {
+            return redirect()->back()->withErrors(['error' => 'VAT Payable untuk invoice ini sudah diposting.']);
+        }
+
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return redirect()->back()->withErrors(['error' => "Akun VAT Payable {$label} belum dikonfigurasi."]);
+        }
+
+        $effectiveDate = now()->toDateString();
+
+        DB::transaction(function () use ($invoice, $accountId, $accountCode, $label, $effectiveDate) {
             FinancialPositionAdjustment::create([
                 'account_id' => $accountId,
-                'effective_date' => $now->toDateString(),
-                'amount' => $amount,
-                'notes' => 'Post VAT Payable dari AR ' . $accountReceivable->invoice_number,
+                'effective_date' => $effectiveDate,
+                'amount' => (float) $invoice->vat_amount,
+                'notes' => 'VAT Payable ' . $label . ' dari Invoice ' . $invoice->invoice_number,
                 'created_by' => auth()->id(),
             ]);
 
-            // Catat beban pajak ke P&L (pengurang profit)
-            $invoice = $accountReceivable->invoice;
-            $periodId = null;
-            if ($invoice && $invoice->invoice_date) {
-                $periodId = ProfitLossPeriod::active()
-                    ->whereDate('start_date', '<=', $invoice->invoice_date)
-                    ->whereDate('end_date', '>=', $invoice->invoice_date)
-                    ->orderBy('start_date')
-                    ->value('id');
-            }
-
-            if ($periodId) {
-                $expenseAccount = ChartOfAccount::where('account_category', 'expense_tax')->first();
-                if ($expenseAccount) {
-                    ProfitLossEntry::updateOrCreate(
-                        [
-                            'period_id' => $periodId,
-                            'reference_type' => 'invoice',
-                            'reference_id' => $invoice?->id,
-                            'entry_type' => 'auto_tax_vat',
-                        ],
-                        [
-                            'account_id' => $expenseAccount->id,
-                            'description' => 'Beban Pajak (VAT) - ' . ($invoice?->invoice_number ?? $accountReceivable->invoice_number),
-                            'amount' => $amount,
-                            'transaction_date' => $now->toDateString(),
-                            'notes' => 'Auto dari Post VAT Payable AR ' . $accountReceivable->invoice_number,
-                            'additional_data' => [
-                                'invoice_number' => $invoice?->invoice_number,
-                                'customer_name' => $accountReceivable->customer->company_name ?? $accountReceivable->customer_name ?? '',
-                            ],
-                            'created_by' => auth()->id(),
-                        ]
-                    );
-                }
-            }
-
-            // Tutup semua komponen/outstanding AR
-            $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
-            $accountReceivable->load('components');
-
-            $remaining = $amount;
-            $components = $accountReceivable->components;
-
-            if ($components->isEmpty()) {
-                $accountReceivable->recordPayment(
-                    $remaining,
-                    'Posted to VAT Payable',
-                    null,
-                    Carbon::parse($now)
-                );
-            } else {
-                foreach ($components as $component) {
-                    $out = (float) $component->outstanding_amount;
-                    if ($out <= 0 || $remaining <= 0) {
-                        continue;
-                    }
-                    $pay = min($out, $remaining);
-                    $accountReceivable->recordPayment(
-                        $pay,
-                        'Posted to VAT Payable',
-                        $component,
-                        Carbon::parse($now)
-                    );
-                    $remaining -= $pay;
-                }
-            }
+            $invoice->update([
+                'vat_posted_at' => now(),
+                'vat_posted_account_id' => $accountId,
+            ]);
         });
 
-        return redirect()->back()->with('success', 'Outstanding diposting ke VAT Payable dan piutang ditutup.');
+        return redirect()->back()->with('success', "VAT Payable {$label} berhasil diposting ke Financial Position.");
     }
 
     /**
@@ -269,6 +262,13 @@ class AccountReceivableController extends Controller
         ]);
 
         $accountReceivable->loadMissing(['invoice', 'customer']);
+        $invoice = $accountReceivable->invoice;
+
+        if ($invoice && $invoice->hasVat() && (float) ($invoice->pph23_rate ?? 0) > 0) {
+            return redirect()->back()->withErrors([
+                'error' => 'Invoice ini menggunakan PPh23 dengan PPN. Gunakan aksi Post VAT Receivable PPh23.',
+            ]);
+        }
 
         if ($accountReceivable->outstanding_amount <= 0) {
             return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting.']);
@@ -365,6 +365,94 @@ class AccountReceivableController extends Controller
         return redirect()->back()->with('success', 'Outstanding diposting ke beban pajak dan piutang ditutup.');
     }
 
+    /**
+     * Post outstanding AR to VAT Receivable PPh23 (0.5% / 2%) and close AR.
+     */
+    public function postPph23Receivable(AccountReceivable $accountReceivable, Request $request)
+    {
+        $validated = $request->validate([
+            'tax_rate' => ['required', Rule::in(['0.5', '2', 0.5, 2])],
+        ]);
+
+        $accountReceivable->loadMissing(['invoice', 'customer']);
+        $invoice = $accountReceivable->invoice;
+
+        if (!$invoice) {
+            return redirect()->back()->withErrors(['error' => 'Invoice tidak ditemukan.']);
+        }
+
+        if ($accountReceivable->status !== 'paid' || $invoice->status !== 'paid') {
+            return redirect()->back()->withErrors(['error' => 'Piutang harus lunas sebelum diposting ke VAT Receivable PPh23.']);
+        }
+
+        if (!$invoice->hasVat() || (float) ($invoice->pph23_rate ?? 0) <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Invoice ini tidak memiliki PPh23 yang dapat diposting.']);
+        }
+
+        if ($invoice->isPph23Posted()) {
+            return redirect()->back()->withErrors(['error' => 'PPH23 untuk invoice ini sudah diposting.']);
+        }
+
+        $rate = (float) $validated['tax_rate'];
+        if (abs($rate - (float) $invoice->pph23_rate) > 0.01) {
+            return redirect()->back()->withErrors(['error' => 'Tarif PPh23 tidak sesuai dengan invoice.']);
+        }
+
+        $pph23Amount = (float) ($invoice->pph23_amount ?? 0);
+        if ($pph23Amount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Nilai PPh23 tidak valid untuk diposting.']);
+        }
+
+        $receivableAccount = $this->resolvePph23ReceivableAccount($rate);
+        if (!$receivableAccount) {
+            return redirect()->back()->withErrors(['error' => 'Akun VAT Receivable PPh23 belum dikonfigurasi.']);
+        }
+
+        $amount = $pph23Amount;
+        $now = now();
+
+        DB::transaction(function () use ($accountReceivable, $invoice, $amount, $receivableAccount, $rate, $now) {
+            $invoice->postPph23Receivable($amount, Carbon::parse($now), auth()->id());
+
+            $accountReceivable->syncComponentsFromInvoice($invoice);
+            $accountReceivable->load('components');
+
+            $remaining = $accountReceivable->outstanding_amount;
+            $components = $accountReceivable->components;
+
+            if ($remaining <= 0.01) {
+                return;
+            }
+
+            if ($components->isEmpty()) {
+                $accountReceivable->recordPayment(
+                    $remaining,
+                    'Posted to VAT Receivable PPh23 ' . $rate . '%',
+                    null,
+                    Carbon::parse($now)
+                );
+                return;
+            }
+
+            foreach ($components as $component) {
+                $out = (float) $component->outstanding_amount;
+                if ($out <= 0 || $remaining <= 0) {
+                    continue;
+                }
+                $pay = min($out, $remaining);
+                $accountReceivable->recordPayment(
+                    $pay,
+                    'Posted to VAT Receivable PPh23 ' . $rate . '%',
+                    $component,
+                    Carbon::parse($now)
+                );
+                $remaining -= $pay;
+            }
+        });
+
+        return redirect()->back()->with('success', 'Outstanding diposting ke VAT Receivable PPh23 dan piutang ditutup.');
+    }
+
     private function resolveTaxExpenseAccount(float $rate): ?ChartOfAccount
     {
         $rateKey = $rate === 0.5 ? '0.5' : '2';
@@ -391,6 +479,29 @@ class AccountReceivableController extends Controller
         }
 
         return $account;
+    }
+
+    private function resolvePph23ReceivableAccount(float $rate): ?ChartOfAccount
+    {
+        $accountCode = abs($rate - 0.5) < 0.01 ? '1220' : '1221';
+        $accountName = abs($rate - 0.5) < 0.01
+            ? 'VAT Receivable PPH 23 0.5%'
+            : 'VAT Receivable PPH 23 2%';
+
+        $account = ChartOfAccount::where('account_code', $accountCode)->first();
+        if ($account) {
+            return $account;
+        }
+
+        $account = ChartOfAccount::where('account_name', $accountName)->first();
+        if ($account) {
+            return $account;
+        }
+
+        return ChartOfAccount::where('account_name', 'like', '%PPH%23%')
+            ->where('account_name', 'like', '%' . rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.') . '%')
+            ->where('account_type', 'asset')
+            ->first();
     }
 
     /**

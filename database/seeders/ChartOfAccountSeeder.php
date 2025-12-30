@@ -60,6 +60,8 @@ class ChartOfAccountSeeder extends Seeder
 
             ['code' => '1200', 'name' => 'Piutang Usaha', 'type' => 'asset', 'category' => 'asset_receivable', 'parent' => '1000', 'sort' => 60],
             ['code' => '1210', 'name' => 'Other Receivables', 'type' => 'asset', 'category' => 'asset_receivable', 'parent' => '1000', 'sort' => 61],
+            ['code' => '1230', 'name' => 'VAT Receivable 11%', 'type' => 'asset', 'category' => 'asset_receivable', 'parent' => '1000', 'sort' => 62],
+            ['code' => '1231', 'name' => 'VAT Receivable 1.1%', 'type' => 'asset', 'category' => 'asset_receivable', 'parent' => '1000', 'sort' => 63],
             ['code' => '1300', 'name' => 'Supplies', 'type' => 'asset', 'category' => 'asset_inventory', 'parent' => '1000', 'sort' => 70],
             ['code' => '1400', 'name' => 'Prepaid Rent', 'type' => 'asset', 'category' => 'asset_prepaid', 'parent' => '1000', 'sort' => 80],
 

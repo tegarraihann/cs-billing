@@ -3,6 +3,17 @@
 
         <Head title="Detail Piutang" />
 
+        <AlertDialog
+            :show="alertDialog.show"
+            :type="alertDialog.type"
+            :title="alertDialog.title"
+            :message="alertDialog.message"
+            :confirm-text="alertDialog.confirmText"
+            :cancel-text="alertDialog.cancelText"
+            @confirm="handleAlertConfirm"
+            @close="closeAlert"
+        />
+
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Header -->
@@ -26,15 +37,22 @@
                             </span>
                         </span>
 
-                        <button
+                        <SplitActionButton
                             v-if="canPostVat"
-                            @click="postVatPayable"
-                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            :label="postingVat ? 'Posting...' : `Post VAT Payable ${vatRateLabel}`"
+                            :icon="FileText"
+                            :on-click="postVatPayable"
                             :disabled="postingVat"
-                        >
-                            <FileText class="w-4 h-4 mr-2" />
-                            {{ postingVat ? 'Posting...' : 'Post VAT Payable' }}
-                        </button>
+                            :items="vatActionItems"
+                        />
+                        <SplitActionButton
+                            v-if="canPostPph23Receivable"
+                            :label="postingPph23 ? 'Posting...' : `Post VAT Receivable PPh23 ${pph23Rate}%`"
+                            :icon="Percent"
+                            :on-click="() => postPph23Receivable()"
+                            :disabled="postingPph23"
+                            :items="pph23ActionItems"
+                        />
                         <button
                             v-if="canPostTaxExpense"
                             @click="postTaxExpense(0.5)"
@@ -349,6 +367,8 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import AlertDialog from '@/Components/AlertDialog.vue'
+import SplitActionButton from '@/Components/SplitActionButton.vue'
 import { ArrowLeft, CreditCard, FileText, Percent } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -363,7 +383,38 @@ const showPaymentModal = ref(false)
 const processing = ref(false)
 const postingVat = ref(false)
 const postingTax = ref(false)
+const postingPph23 = ref(false)
 const amountError = ref('')
+
+const alertDialog = reactive({
+    show: false,
+    type: 'confirm',
+    title: '',
+    message: '',
+    confirmText: 'Post',
+    cancelText: 'Batal',
+    onConfirm: null
+})
+
+const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+    alertDialog.show = true
+    alertDialog.type = 'confirm'
+    alertDialog.title = title
+    alertDialog.message = message
+    alertDialog.onConfirm = onConfirm
+}
+
+const closeAlert = () => {
+    alertDialog.show = false
+    alertDialog.onConfirm = null
+}
+
+const handleAlertConfirm = () => {
+    if (alertDialog.onConfirm) {
+        alertDialog.onConfirm()
+    }
+    closeAlert()
+}
 
 const paymentForm = reactive({
     amount: '',
@@ -400,11 +451,70 @@ const selectedComponent = computed(() => {
 })
 
 const canPostVat = computed(() => {
-    return (props.receivable?.outstanding_amount || 0) > 0 && props.receivable?.status !== 'paid'
+    const vatAmount = props.receivable?.invoice?.vat_amount || 0
+    const vatPosted = props.receivable?.invoice?.vat_posted_at
+    return vatAmount > 0 && props.receivable?.status === 'paid' && !vatPosted
 })
 
+const vatRate = computed(() => {
+    const rate = parseFloat(props.receivable?.invoice?.vat_rate || 0)
+    return Number.isNaN(rate) ? 0 : rate
+})
+
+const vatRateLabel = computed(() => {
+    if (Math.abs(vatRate.value - 11) < 0.01) return '11%'
+    if (Math.abs(vatRate.value - 1.1) < 0.01) return '1.1%'
+    return 'sesuai invoice'
+})
+
+const vatActionItems = computed(() => ([
+    {
+        label: postingVat.value ? 'Posting...' : 'Post VAT Payable 11%',
+        icon: FileText,
+        disabled: postingVat.value || (vatRate.value > 0 && Math.abs(vatRate.value - 11) > 0.01),
+        onClick: postVatPayable11
+    },
+    {
+        label: postingVat.value ? 'Posting...' : 'Post VAT Payable 1.1%',
+        icon: FileText,
+        disabled: postingVat.value || (vatRate.value > 0 && Math.abs(vatRate.value - 1.1) > 0.01),
+        onClick: postVatPayable11_1
+    }
+]))
+
+const pph23Rate = computed(() => {
+    const rate = parseFloat(props.receivable?.invoice?.pph23_rate || 0)
+    return Number.isNaN(rate) ? 0 : rate
+})
+
+const hasPph23WithVat = computed(() => {
+    const vatAmount = props.receivable?.invoice?.vat_amount || 0
+    return pph23Rate.value > 0 && vatAmount > 0
+})
+
+const canPostPph23Receivable = computed(() => {
+    const pph23Amount = props.receivable?.invoice?.pph23_amount || 0
+    const pph23Posted = props.receivable?.invoice?.pph23_posted_at
+    return hasPph23WithVat.value && pph23Amount > 0 && props.receivable?.status === 'paid' && !pph23Posted
+})
+
+const pph23ActionItems = computed(() => ([
+    {
+        label: postingPph23.value ? 'Posting...' : 'Post VAT Receivable PPh23 0.5%',
+        icon: Percent,
+        disabled: postingPph23.value || Math.abs(pph23Rate.value - 0.5) > 0.01,
+        onClick: () => postPph23Receivable(0.5)
+    },
+    {
+        label: postingPph23.value ? 'Posting...' : 'Post VAT Receivable PPh23 2%',
+        icon: Percent,
+        disabled: postingPph23.value || Math.abs(pph23Rate.value - 2) > 0.01,
+        onClick: () => postPph23Receivable(2)
+    }
+]))
+
 const canPostTaxExpense = computed(() => {
-    return (props.receivable?.outstanding_amount || 0) > 0 && !props.receivable?.tax_writeoff_at
+    return (props.receivable?.outstanding_amount || 0) > 0 && !props.receivable?.tax_writeoff_at && !hasPph23WithVat.value
 })
 
 const getComponentLabel = (type) => {
@@ -643,21 +753,65 @@ const postVatPayable = () => {
     if (!canPostVat.value || postingVat.value) {
         return
     }
+    openConfirm(
+        `Post VAT Payable ${vatRateLabel.value} untuk invoice ${props.receivable?.invoice_number}?`,
+        () => {
+            postingVat.value = true
+            router.post(
+                route('admin-keuangan.account-receivables.post-vat', props.receivable.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVat.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable'
+    )
+}
 
-    const ok = window.confirm('Post outstanding ke VAT Payable dan tutup piutang?')
-    if (!ok) {
+const postVatPayable11 = () => {
+    if (!canPostVat.value || postingVat.value) {
         return
     }
+    openConfirm(
+        `Post VAT Payable 11% untuk invoice ${props.receivable?.invoice_number}?`,
+        () => {
+            postingVat.value = true
+            router.post(
+                route('admin-keuangan.account-receivables.post-vat-11', props.receivable.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVat.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable'
+    )
+}
 
-    postingVat.value = true
-    router.post(
-        route('admin-keuangan.account-receivables.post-vat', props.receivable.id),
-        {},
-        {
-            onFinish: () => {
-                postingVat.value = false
-            }
-        }
+const postVatPayable11_1 = () => {
+    if (!canPostVat.value || postingVat.value) {
+        return
+    }
+    openConfirm(
+        `Post VAT Payable 1.1% untuk invoice ${props.receivable?.invoice_number}?`,
+        () => {
+            postingVat.value = true
+            router.post(
+                route('admin-keuangan.account-receivables.post-vat-1-1', props.receivable.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVat.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable'
     )
 }
 
@@ -680,6 +834,30 @@ const postTaxExpense = (rate) => {
                 postingTax.value = false
             }
         }
+    )
+}
+
+const postPph23Receivable = (rateOverride = null) => {
+    if (!canPostPph23Receivable.value || postingPph23.value) {
+        return
+    }
+
+    const rateLabel = rateOverride ?? (pph23Rate.value ? pph23Rate.value : 0)
+    openConfirm(
+        `Post VAT Receivable PPh23 ${rateLabel}% untuk invoice ${props.receivable?.invoice_number}?`,
+        () => {
+            postingPph23.value = true
+            router.post(
+                route('admin-keuangan.account-receivables.post-pph23-receivable', props.receivable.id),
+                { tax_rate: rateLabel },
+                {
+                    onFinish: () => {
+                        postingPph23.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Receivable PPh23'
     )
 }
 </script>

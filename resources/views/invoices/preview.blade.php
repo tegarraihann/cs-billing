@@ -680,12 +680,24 @@
                     </div>
                 </div>
 
-                <div class="totals-section">
-                    <div class="subtotal-line">SUB TOTAL {{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</div>
-                    @if($invoice->hasDownPayment())
-                    <div style="height: 4px;"></div>
-                    <div class="subtotal-line">DOWN PAYMENT (-) {{ number_format($invoice->down_payment_amount, 2) }}</div>
-                    @endif
+                  <div class="totals-section">
+                      <div class="subtotal-line">SUB TOTAL {{ number_format($invoice->subtotal ?? $invoice->total ?? 2289828, 2) }}</div>
+                      @if(($invoice->vat_amount ?? 0) > 0)
+                      <div style="height: 4px;"></div>
+                      <div class="subtotal-line">
+                          VAT {{ rtrim(rtrim(number_format($invoice->vat_rate ?? 0, 2, '.', ''), '0'), '.') }}% {{ number_format($invoice->vat_amount ?? 0, 2) }}
+                      </div>
+                      @endif
+                      @if(($invoice->pph23_amount ?? 0) > 0)
+                      <div style="height: 4px;"></div>
+                      <div class="subtotal-line">
+                          PPH 23 {{ rtrim(rtrim(number_format($invoice->pph23_rate ?? 0, 2, '.', ''), '0'), '.') }}% (-) {{ number_format($invoice->pph23_amount ?? 0, 2) }}
+                      </div>
+                      @endif
+                      @if($invoice->hasDownPayment())
+                      <div style="height: 4px;"></div>
+                      <div class="subtotal-line">DOWN PAYMENT (-) {{ number_format($invoice->down_payment_amount, 2) }}</div>
+                      @endif
                     <div style="height: 8px;"></div>
                     <div class="total-line">TOTAL {{ number_format($invoice->total ?? 2289828, 2) }}</div>
                 </div>

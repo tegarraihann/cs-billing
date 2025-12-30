@@ -2,6 +2,17 @@
     <AdminKeuanganLayout>
         <Head title="Detail Hutang" />
 
+        <AlertDialog
+            :show="alertDialog.show"
+            :type="alertDialog.type"
+            :title="alertDialog.title"
+            :message="alertDialog.message"
+            :confirm-text="alertDialog.confirmText"
+            :cancel-text="alertDialog.cancelText"
+            @confirm="handleAlertConfirm"
+            @close="closeAlert"
+        />
+
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Header -->
@@ -39,25 +50,23 @@
                             Mark Payment
                         </button>
 
-                        <button
-                            v-if="canPostVat"
-                            @click="postVatPayable11"
-                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-amber-700 focus:bg-amber-700 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                            :disabled="postingVat11"
-                        >
-                            <FileText class="w-4 h-4 mr-2" />
-                            {{ postingVat11 ? 'Posting...' : 'Post VAT Payable 11%' }}
-                        </button>
+                            <SplitActionButton
+                                v-if="canPostVat"
+                                :label="postingVat11 ? 'Posting...' : 'Post VAT Payable'"
+                            :icon="FileText"
+                            :on-click="postVatPayable11"
+                            :disabled="postingVat11 || postingVat11_1 || postingPph23_05 || postingPph23_2"
+                            :items="vatActionItems"
+                        />
 
-                        <button
-                            v-if="canPostVat"
-                            @click="postVatPayable11_1"
-                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                            :disabled="postingVat11_1"
-                        >
-                            <FileText class="w-4 h-4 mr-2" />
-                            {{ postingVat11_1 ? 'Posting...' : 'Post VAT Payable 1.1%' }}
-                        </button>
+                        <SplitActionButton
+                            v-if="canPostVatReceivable"
+                            :label="postingVatReceivable11 ? 'Posting...' : 'Post VAT Receivable'"
+                            :icon="FileText"
+                            :on-click="postVatReceivable11"
+                            :disabled="postingVatReceivable11 || postingVatReceivable11_1"
+                            :items="vatReceivableActionItems"
+                        />
 
                         <button
                             @click="openEditModal"
@@ -673,7 +682,9 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { router, Head, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import { ArrowLeft, CreditCard, Edit, Plus, ChevronDown, FileText } from 'lucide-vue-next'
+import { ArrowLeft, CreditCard, Edit, Plus, FileText, Percent } from 'lucide-vue-next'
+import AlertDialog from '@/Components/AlertDialog.vue'
+import SplitActionButton from '@/Components/SplitActionButton.vue'
 
 const props = defineProps({
     payable: Object,
@@ -734,6 +745,40 @@ const showAdditionalCostModal = ref(false)
 const processing = ref(false)
 const postingVat11 = ref(false)
 const postingVat11_1 = ref(false)
+const postingVatReceivable11 = ref(false)
+const postingVatReceivable11_1 = ref(false)
+const postingPph23_05 = ref(false)
+const postingPph23_2 = ref(false)
+
+const alertDialog = reactive({
+    show: false,
+    type: 'confirm',
+    title: '',
+    message: '',
+    confirmText: 'Post',
+    cancelText: 'Batal',
+    onConfirm: null
+})
+
+const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+    alertDialog.show = true
+    alertDialog.type = 'confirm'
+    alertDialog.title = title
+    alertDialog.message = message
+    alertDialog.onConfirm = onConfirm
+}
+
+const closeAlert = () => {
+    alertDialog.show = false
+    alertDialog.onConfirm = null
+}
+
+const handleAlertConfirm = () => {
+    if (alertDialog.onConfirm) {
+        alertDialog.onConfirm()
+    }
+    closeAlert()
+}
 
 const paymentForm = useForm({
     amount: '',
@@ -781,6 +826,49 @@ const activeVendorName = computed(() => payable.value?.vendor?.nama_vendor ?? pa
 const activeDaysOverdue = computed(() => payable.value?.days_overdue ?? 0)
 const overdueDays = computed(() => activeDaysOverdue.value)
 const canPostVat = computed(() => (summary.value.total_outstanding || 0) > 0 && summaryStatus.value !== 'paid')
+const canPostVatReceivable = computed(() => summaryStatus.value === 'paid' && !payable.value?.vat_receivable_posted_at)
+
+const vatActionItems = computed(() => [
+    {
+        label: postingVat11.value ? 'Posting...' : 'Post VAT Payable 11%',
+        icon: FileText,
+        onClick: postVatPayable11,
+        disabled: !canPostVat.value || postingVat11.value || postingVat11_1.value || postingPph23_05.value || postingPph23_2.value
+    },
+    {
+        label: postingVat11_1.value ? 'Posting...' : 'Post VAT Payable 1.1%',
+        icon: FileText,
+        onClick: postVatPayable11_1,
+        disabled: !canPostVat.value || postingVat11.value || postingVat11_1.value || postingPph23_05.value || postingPph23_2.value
+    },
+    {
+        label: postingPph23_05.value ? 'Posting...' : 'Post VAT Payable PPh23 0.5%',
+        icon: Percent,
+        onClick: postPph23Payable05,
+        disabled: !canPostVat.value || postingVat11.value || postingVat11_1.value || postingPph23_05.value || postingPph23_2.value
+    },
+    {
+        label: postingPph23_2.value ? 'Posting...' : 'Post VAT Payable PPh23 2%',
+        icon: Percent,
+        onClick: postPph23Payable2,
+        disabled: !canPostVat.value || postingVat11.value || postingVat11_1.value || postingPph23_05.value || postingPph23_2.value
+    }
+])
+
+const vatReceivableActionItems = computed(() => [
+    {
+        label: postingVatReceivable11.value ? 'Posting...' : 'Post VAT Receivable 11%',
+        icon: FileText,
+        onClick: postVatReceivable11,
+        disabled: !canPostVatReceivable.value || postingVatReceivable11.value || postingVatReceivable11_1.value
+    },
+    {
+        label: postingVatReceivable11_1.value ? 'Posting...' : 'Post VAT Receivable 1.1%',
+        icon: FileText,
+        onClick: postVatReceivable11_1,
+        disabled: !canPostVatReceivable.value || postingVatReceivable11.value || postingVatReceivable11_1.value
+    }
+])
 
 const headerSubtitle = computed(() => {
     if (summary.value.sales_order?.order_number) {
@@ -1072,19 +1160,21 @@ const postVatPayable11 = () => {
     if (!canPostVat.value || postingVat11.value || !payable.value) {
         return
     }
-    const ok = window.confirm('Post outstanding ke VAT Payable 11% dan tutup hutang ini?')
-    if (!ok) {
-        return
-    }
-    postingVat11.value = true
-    router.post(
-        route('admin-keuangan.account-payables.post-vat-11', payable.value.id),
-        {},
-        {
-            onFinish: () => {
-                postingVat11.value = false
-            }
-        }
+    openConfirm(
+        `Post VAT Payable 11% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        () => {
+            postingVat11.value = true
+            router.post(
+                route('admin-keuangan.account-payables.post-vat-11', payable.value.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVat11.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable'
     )
 }
 
@@ -1092,19 +1182,109 @@ const postVatPayable11_1 = () => {
     if (!canPostVat.value || postingVat11_1.value || !payable.value) {
         return
     }
-    const ok = window.confirm('Post outstanding ke VAT Payable 1.1% dan tutup hutang ini?')
-    if (!ok) {
+    openConfirm(
+        `Post VAT Payable 1.1% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        () => {
+            postingVat11_1.value = true
+            router.post(
+                route('admin-keuangan.account-payables.post-vat-1-1', payable.value.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVat11_1.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable'
+    )
+}
+
+const postVatReceivable11 = () => {
+    if (!canPostVatReceivable.value || postingVatReceivable11.value || !payable.value) {
         return
     }
-    postingVat11_1.value = true
-    router.post(
-        route('admin-keuangan.account-payables.post-vat-1-1', payable.value.id),
-        {},
-        {
-            onFinish: () => {
-                postingVat11_1.value = false
-            }
-        }
+    openConfirm(
+        `Post VAT Receivable 11% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        () => {
+            postingVatReceivable11.value = true
+            router.post(
+                route('admin-keuangan.account-payables.post-vat-receivable-11', payable.value.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVatReceivable11.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Receivable'
+    )
+}
+
+const postVatReceivable11_1 = () => {
+    if (!canPostVatReceivable.value || postingVatReceivable11_1.value || !payable.value) {
+        return
+    }
+    openConfirm(
+        `Post VAT Receivable 1.1% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        () => {
+            postingVatReceivable11_1.value = true
+            router.post(
+                route('admin-keuangan.account-payables.post-vat-receivable-1-1', payable.value.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingVatReceivable11_1.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Receivable'
+    )
+}
+
+const postPph23Payable05 = () => {
+    if (!canPostVat.value || postingPph23_05.value || !payable.value) {
+        return
+    }
+    openConfirm(
+        `Post VAT Payable PPh23 0.5% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        () => {
+            postingPph23_05.value = true
+            router.post(
+                route('admin-keuangan.account-payables.post-pph23-0-5', payable.value.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingPph23_05.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable PPh23'
+    )
+}
+
+const postPph23Payable2 = () => {
+    if (!canPostVat.value || postingPph23_2.value || !payable.value) {
+        return
+    }
+    openConfirm(
+        `Post VAT Payable PPh23 2% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        () => {
+            postingPph23_2.value = true
+            router.post(
+                route('admin-keuangan.account-payables.post-pph23-2', payable.value.id),
+                {},
+                {
+                    onFinish: () => {
+                        postingPph23_2.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post VAT Payable PPh23'
     )
 }
 

@@ -92,6 +92,30 @@
               </p>
             </div>
 
+            <!-- Akun Beban (P&L) -->
+            <div>
+              <label class="block text-sm font-medium text-sage-700 mb-2">
+                Akun Beban (P&L) <span v-if="form.type === 'expense'" class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.pl_account_id"
+                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
+                :class="{ 'border-red-300': errors.pl_account_id }"
+                :disabled="form.type !== 'expense'"
+              >
+                <option value="">Pilih Akun</option>
+                <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
+                  {{ account.account_code }} - {{ account.account_name }}
+                </option>
+              </select>
+              <p v-if="errors.pl_account_id" class="mt-1 text-sm text-red-600">
+                {{ errors.pl_account_id }}
+              </p>
+              <p v-if="form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
+                Akun P&L hanya untuk transaksi pengeluaran
+              </p>
+            </div>
+
             <!-- Sumber Bank (untuk Top Up / Refund) -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
@@ -247,7 +271,7 @@
             </Link>
             <button
               type="submit"
-              :disabled="processing || willBeNegative"
+              :disabled="processing || willBeNegative || (form.type === 'expense' && !form.pl_account_id)"
               class="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               :class="willBeNegative ? 'bg-red-600 hover:bg-red-700' : 'bg-sage-600 hover:bg-sage-700'"
             >
@@ -284,6 +308,10 @@ const props = defineProps({
     type: Array,
     required: true
   },
+  expenseAccounts: {
+    type: Array,
+    default: () => []
+  },
   bankAccounts: {
     type: Array,
     required: true
@@ -311,6 +339,7 @@ const form = useForm({
   transaction_date: props.transaction.transaction_date,
   description: props.transaction.description,
   category_id: props.transaction.category_id,
+  pl_account_id: props.transaction.pl_account_id || '',
   amount: props.transaction.amount,
   type: props.transaction.type,
   bank_account_id: props.linkedBankAccountId || '',
@@ -318,6 +347,8 @@ const form = useForm({
   notes: props.transaction.notes || '',
   receipt_file: null
 })
+
+const expenseAccounts = computed(() => props.expenseAccounts ?? [])
 
 // Computed
 const today = computed(() => {
@@ -357,12 +388,25 @@ const willBeNegative = computed(() => {
 watch(() => form.type, (newType) => {
   if (newType !== 'expense') {
     form.category_id = ''
+    form.pl_account_id = ''
+  } else if (!form.pl_account_id && expenseAccounts.value.length > 0) {
+    form.pl_account_id = expenseAccounts.value[0].id
   }
 
   if (!['topup', 'refund'].includes(newType)) {
     form.bank_account_id = ''
   }
 })
+
+watch(
+  expenseAccounts,
+  (options) => {
+    if (form.type === 'expense' && !form.pl_account_id && options.length > 0) {
+      form.pl_account_id = options[0].id
+    }
+  },
+  { immediate: true }
+)
 
 // Methods
 const formatCurrency = (amount) => {

@@ -38,6 +38,7 @@ class PettyCashTransaction extends Model
         'transaction_date',
         'description',
         'category_id',
+        'pl_account_id',
         'template_id',
         'categorization_method',
         'auto_generated',

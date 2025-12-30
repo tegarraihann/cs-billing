@@ -745,14 +745,35 @@
                     {{ number_format($calculatedSubtotal ?? $invoice->subtotal ?? 0, 2) }}
                 </td>
             </tr>
-            <tr>
-                <td class="bank-label-col" style="color: #0000">BANK NUMBER</td>
-                <td class="bank-value-col" style="color: #0000">:
-                    {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
-                </td>
-                <td class="total-label-col"></td>
-                <td class="total-value-col"></td>
-            </tr>
+          <tr>
+              <td class="bank-label-col" style="color: #0000">BANK NUMBER</td>
+              <td class="bank-value-col" style="color: #0000">:
+                  {{ $invoice->bank_number ?? $invoice->bank_account ?? '122-00-12330539' }}
+              </td>
+              @if(($invoice->vat_amount ?? 0) > 0)
+                  <td class="total-label-col">
+                      VAT {{ rtrim(rtrim(number_format($invoice->vat_rate ?? 0, 2, '.', ''), '0'), '.') }}%
+                  </td>
+                  <td class="total-value-col">
+                      {{ number_format($invoice->vat_amount ?? 0, 2) }}
+                  </td>
+              @else
+                  <td class="total-label-col"></td>
+                  <td class="total-value-col"></td>
+              @endif
+          </tr>
+          @if(($invoice->pph23_amount ?? 0) > 0)
+          <tr>
+              <td class="bank-label-col" style="color: #0000"></td>
+              <td class="bank-value-col" style="color: #0000"></td>
+              <td class="total-label-col">
+                  PPH 23 {{ rtrim(rtrim(number_format($invoice->pph23_rate ?? 0, 2, '.', ''), '0'), '.') }}% (-)
+              </td>
+              <td class="total-value-col">
+                  {{ number_format($invoice->pph23_amount ?? 0, 2) }}
+              </td>
+          </tr>
+          @endif
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
                 <td class="bank-value-col" style="color: #0000">:

@@ -150,6 +150,84 @@ class AccountPayableController extends Controller
         return $this->postVatPayableByAccount($accountPayable, '2111', '1.1%');
     }
 
+    /**
+     * Post outstanding payable to VAT Payable PPh23 0.5% (2112).
+     */
+    public function postPph23Payable05(AccountPayable $accountPayable)
+    {
+        return $this->postPph23Payable($accountPayable, 0.5);
+    }
+
+    /**
+     * Post outstanding payable to VAT Payable PPh23 2% (2113).
+     */
+    public function postPph23Payable2(AccountPayable $accountPayable)
+    {
+        return $this->postPph23Payable($accountPayable, 2);
+    }
+
+    /**
+     * Post VAT Receivable 11% (PPN Masukan) after payable is paid.
+     */
+    public function postVatReceivable11(AccountPayable $accountPayable)
+    {
+        return $this->postVatReceivable($accountPayable, 11, '1230', '11%');
+    }
+
+    /**
+     * Post VAT Receivable 1.1% (PPN Masukan) after payable is paid.
+     */
+    public function postVatReceivable11_1(AccountPayable $accountPayable)
+    {
+        return $this->postVatReceivable($accountPayable, 1.1, '1231', '1.1%');
+    }
+
+    private function postVatReceivable(AccountPayable $accountPayable, float $rate, string $accountCode, string $label)
+    {
+        if ($accountPayable->status !== 'paid') {
+            return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang paid.']);
+        }
+
+        if ($accountPayable->vat_receivable_posted_at) {
+            return redirect()->back()->withErrors(['error' => 'VAT Receivable sudah diposting untuk hutang ini.']);
+        }
+
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return redirect()->back()->withErrors(['error' => "Akun VAT Receivable {$label} belum dikonfigurasi."]);
+        }
+
+        $baseAmount = (float) $accountPayable->amount;
+        $vatAmount = round($baseAmount * ($rate / 100), 2);
+
+        if ($vatAmount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Nominal VAT Receivable tidak valid.']);
+        }
+
+        $effectiveDate = $accountPayable->payment_date
+            ? Carbon::parse($accountPayable->payment_date)->toDateString()
+            : now()->toDateString();
+
+        DB::transaction(function () use ($accountPayable, $accountId, $vatAmount, $rate, $label, $effectiveDate) {
+            FinancialPositionAdjustment::create([
+                'account_id' => $accountId,
+                'effective_date' => $effectiveDate,
+                'amount' => $vatAmount,
+                'notes' => 'Post VAT Receivable ' . $label . ' dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
+                'created_by' => auth()->id(),
+            ]);
+
+            $accountPayable->update([
+                'vat_receivable_rate' => $rate,
+                'vat_receivable_amount' => $vatAmount,
+                'vat_receivable_posted_at' => now(),
+                'vat_receivable_account_id' => $accountId,
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'VAT Receivable ' . $label . ' berhasil diposting ke Financial Position.');
+    }
+
     private function postVatPayableByAccount(AccountPayable $accountPayable, string $accountCode, string $label)
     {
         if ($accountPayable->outstanding_amount <= 0) {
@@ -200,6 +278,82 @@ class AccountPayableController extends Controller
         });
 
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable ' . $label . ' dan status ditutup.');
+    }
+
+    private function postPph23Payable(AccountPayable $accountPayable, float $rate)
+    {
+        if ($accountPayable->outstanding_amount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable PPh23.']);
+        }
+
+        $account = $this->resolvePph23PayableAccount($rate);
+        if (!$account) {
+            return redirect()->back()->withErrors(['error' => 'Akun VAT Payable PPh23 belum dikonfigurasi.']);
+        }
+
+        $accountPayable->syncComponents();
+        $accountPayable->load('components');
+
+        $amount = (float) $accountPayable->outstanding_amount;
+        $now = now();
+        $label = rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.');
+        $paymentMethod = 'VAT Payable PPh23 ' . $label . '%';
+        $paymentNotes = 'Posted to VAT Payable PPh23 ' . $label . '%';
+
+        DB::transaction(function () use ($accountPayable, $amount, $account, $now, $paymentMethod, $paymentNotes, $label) {
+            FinancialPositionAdjustment::create([
+                'account_id' => $account->id,
+                'effective_date' => $now->toDateString(),
+                'amount' => $amount,
+                'notes' => 'Post VAT Payable PPh23 ' . $label . '% dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
+                'created_by' => auth()->id(),
+            ]);
+
+            if ($accountPayable->components->isEmpty()) {
+                $accountPayable->markAsPaid($amount, $paymentMethod, $paymentNotes);
+                return;
+            }
+
+            foreach ($accountPayable->components as $component) {
+                $outstanding = (float) $component->outstanding_amount;
+                if ($outstanding <= 0) {
+                    continue;
+                }
+
+                $accountPayable->recordPaymentToComponent(
+                    $component,
+                    $outstanding,
+                    $paymentMethod,
+                    $paymentNotes,
+                    $now
+                );
+            }
+        });
+
+        return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable PPh23 dan status ditutup.');
+    }
+
+    private function resolvePph23PayableAccount(float $rate): ?ChartOfAccount
+    {
+        $accountCode = abs($rate - 0.5) < 0.01 ? '2112' : '2113';
+        $accountName = abs($rate - 0.5) < 0.01
+            ? 'VAT Payable PPH 23 0.5%'
+            : 'VAT Payable PPH 23 2%';
+
+        $account = ChartOfAccount::where('account_code', $accountCode)->first();
+        if ($account) {
+            return $account;
+        }
+
+        $account = ChartOfAccount::where('account_name', $accountName)->first();
+        if ($account) {
+            return $account;
+        }
+
+        return ChartOfAccount::where('account_name', 'like', '%PPH%23%')
+            ->where('account_name', 'like', '%' . rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.') . '%')
+            ->where('account_type', 'liability')
+            ->first();
     }
 
     /**
@@ -1010,6 +1164,10 @@ class AccountPayableController extends Controller
             'vendor_bank_account' => $payable->vendor_bank_account,
             'vendor_account_name' => $payable->vendor_account_name,
             'days_overdue' => $payable->days_overdue,
+            'vat_receivable_rate' => $payable->vat_receivable_rate !== null ? (float) $payable->vat_receivable_rate : null,
+            'vat_receivable_amount' => $payable->vat_receivable_amount !== null ? (float) $payable->vat_receivable_amount : null,
+            'vat_receivable_posted_at' => $payable->vat_receivable_posted_at?->toDateTimeString(),
+            'vat_receivable_account_id' => $payable->vat_receivable_account_id,
             'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
             'vendor' => $payable->vendor ? [
                 'id' => $payable->vendor->id,

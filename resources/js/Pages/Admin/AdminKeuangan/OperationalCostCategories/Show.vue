@@ -1,15 +1,16 @@
 <template>
   <AdminKeuanganLayout>
+    <Head title="Operational Cost Category Details" />
     <div class="min-h-screen bg-sage-50 p-4 sm:p-6 lg:p-8">
       <!-- Header Section -->
       <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6 mb-6">
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold text-sage-800">
-              Detail Kategori Biaya Operasional
+              Operational Cost Category Details
             </h1>
             <p class="text-sage-600 mt-1">
-              Informasi lengkap kategori biaya operasional
+              Detailed information about this category
             </p>
           </div>
           <div class="flex items-center space-x-3">
@@ -49,7 +50,7 @@
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span>Kembali</span>
+              <span>Back</span>
             </Link>
           </div>
         </div>
@@ -61,14 +62,14 @@
           <div class="bg-white rounded-lg shadow-sm border border-sage-200">
             <div class="p-6 border-b border-sage-200">
               <h2 class="text-lg font-semibold text-sage-800">
-                Informasi Kategori
+                Category Information
               </h2>
             </div>
             <div class="p-6 space-y-6">
               <!-- Nama Kategori -->
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">
-                  Nama Kategori
+                  Category Name
                 </label>
                 <div class="text-lg font-semibold text-sage-900">
                   {{ operationalCostCategory.name }}
@@ -78,10 +79,10 @@
               <!-- Deskripsi -->
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">
-                  Deskripsi
+                  Description
                 </label>
                 <div class="text-sage-800 whitespace-pre-wrap">
-                  {{ operationalCostCategory.description || 'Tidak ada deskripsi' }}
+                  {{ operationalCostCategory.description || 'No description provided' }}
                 </div>
               </div>
 
@@ -98,7 +99,7 @@
                       : 'bg-red-100 text-red-800'
                   ]"
                 >
-                  {{ operationalCostCategory.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                  {{ operationalCostCategory.is_active ? 'Active' : 'Inactive' }}
                 </span>
               </div>
             </div>
@@ -111,14 +112,14 @@
           <div class="bg-white rounded-lg shadow-sm border border-sage-200">
             <div class="p-6 border-b border-sage-200">
               <h3 class="text-lg font-semibold text-sage-800">
-                Informasi Audit
+                Audit Information
               </h3>
             </div>
             <div class="p-6 space-y-4">
               <!-- Dibuat Oleh -->
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Dibuat Oleh
+                  Created By
                 </label>
                 <div class="text-sm text-sage-800">
                   {{ operationalCostCategory.creator?.name || '-' }}
@@ -128,7 +129,7 @@
               <!-- Tanggal Dibuat -->
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Tanggal Dibuat
+                  Created At
                 </label>
                 <div class="text-sm text-sage-800">
                   {{ formatDate(operationalCostCategory.created_at) }}
@@ -138,7 +139,7 @@
               <!-- Diperbarui Oleh -->
               <div v-if="operationalCostCategory.updater">
                 <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Diperbarui Oleh
+                  Updated By
                 </label>
                 <div class="text-sm text-sage-800">
                   {{ operationalCostCategory.updater.name }}
@@ -148,7 +149,7 @@
               <!-- Tanggal Diperbarui -->
               <div v-if="operationalCostCategory.updated_at !== operationalCostCategory.created_at">
                 <label class="block text-sm font-medium text-sage-700 mb-1">
-                  Tanggal Diperbarui
+                  Updated At
                 </label>
                 <div class="text-sm text-sage-800">
                   {{ formatDate(operationalCostCategory.updated_at) }}
@@ -161,7 +162,7 @@
           <div class="bg-white rounded-lg shadow-sm border border-sage-200">
             <div class="p-6 border-b border-sage-200">
               <h3 class="text-lg font-semibold text-sage-800">
-                Aksi Cepat
+                Quick Actions
               </h3>
             </div>
             <div class="p-6 space-y-3">
@@ -182,7 +183,7 @@
                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                   />
                 </svg>
-                <span>Edit Kategori</span>
+                <span>Edit Category</span>
               </Link>
 
               <button
@@ -202,7 +203,7 @@
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                <span>Hapus Kategori</span>
+                <span>Delete Category</span>
               </button>
             </div>
           </div>
@@ -216,23 +217,23 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     >
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Konfirmasi Hapus</h3>
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
         <p class="text-sm text-gray-600 mb-6">
-          Apakah Anda yakin ingin menghapus kategori "{{ operationalCostCategory.name }}"?
-          Tindakan ini tidak dapat dibatalkan.
+          Are you sure you want to delete category "{{ operationalCostCategory.name }}"?
+          This action cannot be undone.
         </p>
         <div class="flex justify-end space-x-3">
           <button
             @click="showDeleteModal = false"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
           >
-            Batal
+            Cancel
           </button>
           <button
             @click="deleteCategory"
             class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
-            Hapus
+            Delete
           </button>
         </div>
       </div>
@@ -242,7 +243,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 const props = defineProps({
@@ -279,7 +280,7 @@ const deleteCategory = () => {
 const formatDate = (dateString) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
-  return date.toLocaleDateString('id-ID', {
+  return date.toLocaleDateString('en-GB', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

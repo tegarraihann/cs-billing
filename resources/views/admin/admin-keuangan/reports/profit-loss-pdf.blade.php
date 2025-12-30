@@ -285,20 +285,18 @@
             $expenseTotals = [
                 'Salaries Expense' => 0,
                 'Rent Expense' => 0,
-                'General & Administrative Expense' => 0,
-                'Operating Expense' => 0,
+                'outside assignments expense' => 0,
+                'Operational Expense' => 0,
                 'Electricity, Water & Internet Expense' => 0,
-                'Delivery Expense' => 0,
+                'E-Toll & Gasoline Expense' => 0,
                 'IPL Expense' => 0,
-                'Vehicle Maintenance Expense' => 0,
-                'Equipment Maintenance Expense' => 0,
+                'Equipment Expense' => 0,
                 'Marketing Comission Expense' => 0,
                 'Entertainment Expense' => 0,
-                'Service Expense' => 0,
+                'Maintenance Expenses' => 0,
                 'Supplies Expense' => 0,
                 'Other Expense' => 0,
                 'Administrative Bank Expense' => 0,
-                'Bank Interest Expense' => 0,
                 'Monthly Card Expense' => 0,
             ];
 
@@ -318,7 +316,7 @@
                     return 'Monthly Card Expense';
                 }
                 if ($matchesAny($text, ['bunga bank', 'interest'])) {
-                    return 'Bank Interest Expense';
+                    return 'Administrative Bank Expense';
                 }
                 if ($matchesAny($text, ['admin bank', 'bank admin'])) {
                     return 'Administrative Bank Expense';
@@ -327,7 +325,7 @@
                     return 'Electricity, Water & Internet Expense';
                 }
                 if ($matchesAny($text, ['delivery', 'pengiriman', 'dokumen', 'invoice'])) {
-                    return 'Delivery Expense';
+                    return 'E-Toll & Gasoline Expense';
                 }
                 if ($matchesAny($text, ['ipl'])) {
                     return 'IPL Expense';
@@ -339,22 +337,22 @@
                     return 'Entertainment Expense';
                 }
                 if ($matchesAny($text, ['vehicle', 'kendaraan', 'fleet'])) {
-                    return 'Vehicle Maintenance Expense';
+                    return 'Operational Expense';
                 }
                 if ($matchesAny($text, ['equipment', 'peralatan', 'pemeliharaan', 'maintenance'])) {
-                    return 'Equipment Maintenance Expense';
+                    return 'Equipment Expense';
                 }
                 if ($matchesAny($text, ['supplies', 'atk'])) {
                     return 'Supplies Expense';
                 }
                 if ($matchesAny($text, ['service', 'jasa'])) {
-                    return 'Service Expense';
+                    return 'Maintenance Expenses';
                 }
                 if ($matchesAny($text, ['rent', 'sewa'])) {
                     return 'Rent Expense';
                 }
                 if ($matchesAny($text, ['operational', 'operasional', 'trucking', 'handling'])) {
-                    return 'Operating Expense';
+                    return 'Operational Expense';
                 }
 
                 return null;
@@ -373,7 +371,7 @@
                 }
 
                 if ($isPettyCashEntry($entry)) {
-                    $expenseTotals['General & Administrative Expense'] += $amount;
+                    $expenseTotals['outside assignments expense'] += $amount;
                 } else {
                     $expenseTotals['Other Expense'] += $amount;
                 }
@@ -382,20 +380,18 @@
             $expenseLines = collect([
                 ['label' => 'Salaries Expense', 'amount' => $expenseTotals['Salaries Expense']],
                 ['label' => 'Rent Expense', 'amount' => $expenseTotals['Rent Expense']],
-                ['label' => 'General & Administrative Expense', 'amount' => $expenseTotals['General & Administrative Expense']],
-                ['label' => 'Operating Expense', 'amount' => $expenseTotals['Operating Expense']],
+                ['label' => 'outside assignments expense', 'amount' => $expenseTotals['outside assignments expense']],
+                ['label' => 'Operational Expense', 'amount' => $expenseTotals['Operational Expense']],
                 ['label' => 'Electricity, Water & Internet Expense', 'amount' => $expenseTotals['Electricity, Water & Internet Expense']],
-                ['label' => 'Delivery Expense', 'amount' => $expenseTotals['Delivery Expense']],
+                ['label' => 'E-Toll & Gasoline Expense', 'amount' => $expenseTotals['E-Toll & Gasoline Expense']],
                 ['label' => 'IPL Expense', 'amount' => $expenseTotals['IPL Expense']],
-                ['label' => 'Vehicle Maintenance Expense', 'amount' => $expenseTotals['Vehicle Maintenance Expense']],
-                ['label' => 'Equipment Maintenance Expense', 'amount' => $expenseTotals['Equipment Maintenance Expense']],
+                ['label' => 'Equipment Expense', 'amount' => $expenseTotals['Equipment Expense']],
                 ['label' => 'Marketing Comission Expense', 'amount' => $expenseTotals['Marketing Comission Expense']],
                 ['label' => 'Entertainment Expense', 'amount' => $expenseTotals['Entertainment Expense']],
-                ['label' => 'Service Expense', 'amount' => $expenseTotals['Service Expense']],
+                ['label' => 'Maintenance Expenses', 'amount' => $expenseTotals['Maintenance Expenses']],
                 ['label' => 'Supplies Expense', 'amount' => $expenseTotals['Supplies Expense']],
                 ['label' => 'Other Expense', 'amount' => $expenseTotals['Other Expense']],
                 ['label' => 'Administrative Bank Expense', 'amount' => $expenseTotals['Administrative Bank Expense']],
-                ['label' => 'Bank Interest Expense', 'amount' => $expenseTotals['Bank Interest Expense']],
                 ['label' => 'Monthly Card Expense', 'amount' => $expenseTotals['Monthly Card Expense']],
             ]);
         @endphp

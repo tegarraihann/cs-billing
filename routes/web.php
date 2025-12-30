@@ -577,7 +577,10 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{accountReceivable}/payment-data', 'paymentData')->name('payment-data');
         Route::post('/{accountReceivable}/record-payment', 'recordPayment')->name('record-payment');
         Route::post('/{accountReceivable}/post-vat', 'postVatPayable')->name('post-vat');
+        Route::post('/{accountReceivable}/post-vat-11', 'postVatPayable11')->name('post-vat-11');
+        Route::post('/{accountReceivable}/post-vat-1-1', 'postVatPayable11_1')->name('post-vat-1-1');
         Route::post('/{accountReceivable}/post-tax-expense', 'postTaxExpense')->name('post-tax-expense');
+        Route::post('/{accountReceivable}/post-pph23-receivable', 'postPph23Receivable')->name('post-pph23-receivable');
         Route::get('/customers/{customer}/generate-soa', 'generateSOA')->name('generate-soa');
         Route::get('/customers/{customer}/receivables', 'getByCustomer')->name('get-by-customer');
         Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');
@@ -594,6 +597,10 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{accountPayable}/post-vat', 'postVatPayable')->name('post-vat');
         Route::post('/{accountPayable}/post-vat-11', 'postVatPayable11')->name('post-vat-11');
         Route::post('/{accountPayable}/post-vat-1-1', 'postVatPayable11_1')->name('post-vat-1-1');
+        Route::post('/{accountPayable}/post-vat-receivable-11', 'postVatReceivable11')->name('post-vat-receivable-11');
+        Route::post('/{accountPayable}/post-vat-receivable-1-1', 'postVatReceivable11_1')->name('post-vat-receivable-1-1');
+        Route::post('/{accountPayable}/post-pph23-0-5', 'postPph23Payable05')->name('post-pph23-0-5');
+        Route::post('/{accountPayable}/post-pph23-2', 'postPph23Payable2')->name('post-pph23-2');
         Route::post('/{accountPayable}/update-due-date', 'updateDueDate')->name('update-due-date');
         Route::post('/{accountPayable}/update-vendor-invoice', 'updateVendorInvoice')->name('update-vendor-invoice');
         Route::post('/{accountPayable}/components', 'storeAdditionalComponent')->name('components.store');
@@ -751,6 +758,17 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{serviceType}/edit', 'edit')->name('edit');
         Route::put('/{serviceType}', 'update')->name('update');
         Route::delete('/{serviceType}', 'destroy')->name('destroy');
+    });
+
+    // Chart of Account Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\ChartOfAccountController::class)->prefix('chart-of-accounts')->name('chart-of-accounts.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{chartOfAccount}', 'show')->name('show');
+        Route::get('/{chartOfAccount}/edit', 'edit')->name('edit');
+        Route::put('/{chartOfAccount}', 'update')->name('update');
+        Route::delete('/{chartOfAccount}', 'destroy')->name('destroy');
     });
 
     // API route for getting active package units

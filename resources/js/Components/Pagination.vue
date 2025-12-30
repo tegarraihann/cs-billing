@@ -67,6 +67,12 @@
             >
               {{ page }}
             </div>
+            <div
+              v-else-if="page === '...'"
+              class="relative inline-flex items-center px-4 py-2 border border-sage-300 bg-white text-sm font-medium text-sage-500 cursor-default"
+            >
+              ...
+            </div>
             <!-- Page Link -->
             <Link
               v-else
@@ -150,8 +156,6 @@ const pageNumbers = computed(() => {
 })
 
 const getPageUrl = (page) => {
-  if (page === '...') return null
-  
   const url = new URL(props.data.path, window.location.origin)
   const params = new URLSearchParams(window.location.search)
   

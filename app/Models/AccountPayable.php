@@ -34,6 +34,10 @@ class AccountPayable extends Model
         'created_by',
         'paid_by',
         'account_id',
+        'vat_receivable_rate',
+        'vat_receivable_amount',
+        'vat_receivable_posted_at',
+        'vat_receivable_account_id',
     ];
 
     protected $casts = [
@@ -45,6 +49,10 @@ class AccountPayable extends Model
         'outstanding_amount' => 'decimal:2',
         'days_overdue' => 'integer',
         'account_id' => 'integer',
+        'vat_receivable_rate' => 'decimal:2',
+        'vat_receivable_amount' => 'decimal:2',
+        'vat_receivable_posted_at' => 'datetime',
+        'vat_receivable_account_id' => 'integer',
     ];
 
     protected static function booted(): void
