@@ -403,12 +403,12 @@ class AccountReceivable extends Model
         })->sum('amount');
 
         $vatAmount = (float) ($invoice->vat_amount ?? 0);
-        if ($vatAmount > 0) {
-            $mainAmount += $vatAmount;
-        }
 
         if ($invoice->invoice_type === 'main' && $mainAmount <= 0) {
-            $mainAmount = (float) $invoice->total;
+            $mainAmount = (float) ($invoice->subtotal ?? 0);
+            if ($mainAmount <= 0) {
+                $mainAmount = max(0, (float) $invoice->total - $vatAmount);
+            }
         }
 
         if ($invoice->invoice_type === 'reimbursement' && $debitAmount <= 0) {
@@ -416,7 +416,7 @@ class AccountReceivable extends Model
         }
 
         if ($invoice->invoice_type === 'combined' && $mainAmount <= 0 && $debitAmount > 0) {
-            $mainAmount = max(0, (float) $invoice->total - $debitAmount);
+            $mainAmount = max(0, (float) $invoice->total - $debitAmount - $vatAmount);
         }
 
         $payloads = [];
@@ -437,11 +437,19 @@ class AccountReceivable extends Model
             ];
         }
 
+        if ($vatAmount > 0) {
+            $payloads[] = [
+                'component_type' => 'vat',
+                'description' => 'VAT',
+                'amount' => $vatAmount,
+            ];
+        }
+
         if (empty($payloads) && (float) $invoice->total > 0) {
             $payloads[] = [
                 'component_type' => 'main',
                 'description' => 'Invoice Main',
-                'amount' => (float) $invoice->total,
+                'amount' => max(0, (float) $invoice->total - $vatAmount),
             ];
         }
 
@@ -477,6 +485,7 @@ class AccountReceivable extends Model
     {
         return match ($type) {
             'debit_note' => 'Debit Note',
+            'vat' => 'VAT',
             default => 'Invoice Main',
         };
     }

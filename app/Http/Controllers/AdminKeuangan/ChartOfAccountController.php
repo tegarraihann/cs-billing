@@ -5,6 +5,7 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ChartOfAccountController extends Controller
@@ -47,6 +48,24 @@ class ChartOfAccountController extends Controller
             ->distinct()
             ->orderBy('account_category')
             ->pluck('account_category')
+            ->values();
+
+        $enumCategories = collect();
+        $column = DB::selectOne("SHOW COLUMNS FROM chart_of_accounts LIKE 'account_category'");
+        if ($column && isset($column->Type)) {
+            $matches = [];
+            if (preg_match("/^enum\\((.*)\\)$/", $column->Type, $matches)) {
+                $enumCategories = collect(str_getcsv($matches[1], ',', "'"))
+                    ->filter()
+                    ->map(fn ($value) => trim($value))
+                    ->values();
+            }
+        }
+
+        $categories = $categories
+            ->merge($enumCategories)
+            ->unique()
+            ->sort()
             ->values();
 
         $parentAccounts = ChartOfAccount::ordered()

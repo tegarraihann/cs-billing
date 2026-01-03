@@ -11,21 +11,21 @@
               </div>
               <div>
                 <h1 class="text-2xl font-semibold text-gray-900">{{ vendor.nama_vendor }}</h1>
-                <p class="mt-1 text-sm text-gray-600">Detail informasi vendor</p>
+                <p class="mt-1 text-sm text-gray-600">Vendor details and profile</p>
               </div>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
               <a
                 :href="route('admin-keuangan.vendors.pdf', vendor.id)"
                 target="_blank"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-sage-600 text-sm font-medium text-white hover:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 <FileText class="mr-2 h-4 w-4" />
                 Export PDF
               </a>
               <Link
                 :href="route('admin-keuangan.vendors.edit', vendor.id)"
-                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-600 hover:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
               >
                 <Edit class="mr-2 h-4 w-4" />
                 Edit
@@ -35,49 +35,49 @@
                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 <ArrowLeft class="mr-2 h-4 w-4" />
-                Kembali
+                Back
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Vendor Information -->
-        <div class="lg:col-span-1">
+        <div class="lg:col-span-2">
           <div class="bg-white shadow overflow-hidden sm:rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">Informasi Vendor</h3>
+              <h3 class="text-lg font-medium text-gray-900">Vendor Information</h3>
             </div>
 
             <div class="p-6">
-              <div class="space-y-6">
-                <!-- ID Vendor -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Vendor ID -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">ID Vendor</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Vendor ID</label>
                   <p class="text-gray-900 font-medium">#{{ vendor.id }}</p>
                 </div>
 
-                <!-- Nama Vendor -->
+                <!-- Vendor Name -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Nama Vendor
+                    Vendor Name
                   </label>
                   <p class="text-gray-900">{{ vendor.nama_vendor }}</p>
                 </div>
 
-                <!-- PIC -->
+                <!-- Primary Contact (PIC) -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    PIC (Person In Charge)
+                    Primary Contact (PIC)
                   </label>
                   <p class="text-gray-900">{{ vendor.pic || '-' }}</p>
                 </div>
 
-                <!-- No HP -->
+                <!-- Mobile Phone -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    No HP
+                    Mobile Phone
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.no_hp || '-' }}</p>
                 </div>
@@ -90,26 +90,26 @@
                   <p class="text-gray-900">{{ vendor.email || '-' }}</p>
                 </div>
 
-                <!-- No Kantor -->
+                <!-- Office Phone -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    No Kantor
+                    Office Phone
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.no_kantor || '-' }}</p>
                 </div>
 
-                <!-- Nomor Rekening -->
+                <!-- Account Number -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Nomor Rekening
+                    Account Number
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.nomor_rekening }}</p>
                 </div>
 
-                <!-- Nama Rekening -->
+                <!-- Account Name -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Nama Rekening
+                    Account Name
                   </label>
                   <p class="text-gray-900">{{ vendor.nama_rekening }}</p>
                 </div>
@@ -117,44 +117,44 @@
                 <!-- NIB -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    NIB (Nomor Induk Berusaha)
+                    NIB (Business Registration ID)
                   </label>
                   <p class="text-gray-900 font-mono">{{ vendor.nib || '-' }}</p>
                 </div>
 
-                <!-- Foto Vendor -->
-                <div>
+                <!-- Vendor Photo -->
+                <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Foto Vendor
+                    Vendor Photo
                   </label>
                   <div v-if="vendor.photo_path">
                     <img 
-                      :src="`/storage/${vendor.photo_path}`" 
-                      alt="Foto Vendor" 
+                      :src="`/storage/${vendor.photo_path}`"
+                      alt="Vendor Photo"
                       class="w-32 h-32 object-cover rounded-lg border border-gray-200 mt-2"
                     />
                   </div>
-                  <p v-else class="text-gray-500 italic">Tidak ada foto</p>
+                  <p v-else class="text-gray-500 italic">No photo available</p>
                 </div>
 
-                <!-- Dokumen Legal -->
-                <div>
+                <!-- Legal Document -->
+                <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Dokumen Legal
+                    Legal Document
                   </label>
                   <div v-if="vendor.legal_document_path">
-                    <a 
-                      :href="`/storage/${vendor.legal_document_path}`" 
+                    <a
+                      :href="`/storage/${vendor.legal_document_path}`"
                       target="_blank"
                       class="inline-flex items-center px-4 py-2 mt-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                     >
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                       </svg>
-                      Lihat Dokumen
+                      View Document
                     </a>
                   </div>
-                  <p v-else class="text-gray-500 italic">Tidak ada dokumen</p>
+                  <p v-else class="text-gray-500 italic">No document available</p>
                 </div>
               </div>
             </div>
@@ -165,7 +165,7 @@
         <div class="lg:col-span-1">
           <div class="bg-white shadow overflow-hidden sm:rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">Informasi Sistem</h3>
+              <h3 class="text-lg font-medium text-gray-900">System Information</h3>
             </div>
 
             <div class="p-6">
@@ -173,7 +173,7 @@
                 <!-- Tanggal Dibuat -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Tanggal Dibuat
+                    Created Date
                   </label>
                   <p class="text-gray-900">{{ formatDateTime(vendor.created_at) }}</p>
                 </div>
@@ -181,7 +181,7 @@
                 <!-- Terakhir Diperbarui -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Terakhir Diperbarui
+                    Last Updated
                   </label>
                   <p class="text-gray-900">{{ formatDateTime(vendor.updated_at) }}</p>
                 </div>
@@ -195,46 +195,8 @@
                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
                       <circle cx="4" cy="4" r="3" />
                     </svg>
-                    Aktif
+                    Active
                   </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="mt-6">
-            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Aksi</h3>
-              </div>
-
-              <div class="p-6">
-                <div class="space-y-3">
-                  <a
-                    :href="route('admin-keuangan.vendors.pdf', vendor.id)"
-                    target="_blank"
-                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                  >
-                    <FileText class="w-4 h-4 mr-2" />
-                    Export PDF
-                  </a>
-
-                  <Link
-                    :href="route('admin-keuangan.vendors.edit', vendor.id)"
-                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
-                  >
-                    <Edit class="w-4 h-4 mr-2" />
-                    Edit Vendor
-                  </Link>
-
-                  <button
-                    @click="deleteVendor"
-                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    <Trash2 class="w-4 h-4 mr-2" />
-                    Hapus Vendor
-                  </button>
                 </div>
               </div>
             </div>
@@ -269,7 +231,7 @@ const route = (name, params) => {
 };
 
 const formatDateTime = (dateString) => {
-  return new Date(dateString).toLocaleString("id-ID", {
+  return new Date(dateString).toLocaleString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -279,7 +241,7 @@ const formatDateTime = (dateString) => {
 };
 
 const deleteVendor = () => {
-  if (confirm(`Apakah Anda yakin ingin menghapus vendor "${props.vendor.nama_vendor}"?`)) {
+  if (confirm(`Are you sure you want to delete vendor "${props.vendor.nama_vendor}"?`)) {
     router.delete(route("admin-keuangan.vendors.destroy", props.vendor.id), {
       onSuccess: () => {
         // Redirect will be handled by the controller
@@ -291,14 +253,6 @@ const deleteVendor = () => {
 
 <style scoped>
 /* Custom Sage Colors */
-.bg-sage-600 {
-  background-color: #7ba169;
-}
-
-.bg-sage-700 {
-  background-color: #6b8f5e;
-}
-
 .hover\:bg-sage-700:hover {
   background-color: #6b8f5e;
 }

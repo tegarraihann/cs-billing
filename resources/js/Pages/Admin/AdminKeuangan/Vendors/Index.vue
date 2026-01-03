@@ -6,8 +6,8 @@
         <div class="px-6 py-4 border-b border-gray-200">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 class="text-2xl font-semibold text-gray-900">Master Data Vendor</h1>
-              <p class="mt-1 text-sm text-gray-600">Kelola data vendor untuk transaksi</p>
+              <h1 class="text-2xl font-semibold text-gray-900">Vendor Master Data</h1>
+              <p class="mt-1 text-sm text-gray-600">Manage vendor records for transactions</p>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
               <a
@@ -23,7 +23,7 @@
                 class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
               >
                 <Plus class="mr-2 h-4 w-4" />
-                Tambah Vendor
+                Add Vendor
               </Link>
             </div>
           </div>
@@ -36,11 +36,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Search Input -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Cari Data</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
               <input
                 v-model="form.search"
                 type="text"
-                placeholder="Cari nama vendor, PIC, HP, email, kantor, nomor rekening, nama rekening, NIB..."
+                placeholder="Search vendor name, contact, phone, email, office, account number, account name, NIB..."
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500 sm:text-sm"
               />
             </div>
@@ -51,7 +51,7 @@
                 @click="search"
                 class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
               >
-                Cari
+                Search
               </button>
             </div>
           </div>
@@ -61,9 +61,9 @@
       <!-- Vendors Table -->
       <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">Daftar Vendor</h3>
+          <h3 class="text-lg font-medium text-gray-900">Vendor List</h3>
           <p class="mt-1 text-sm text-gray-600">
-            Total: {{ vendors?.total || 0 }} data
+            Total: {{ vendors?.total || 0 }} records
           </p>
         </div>
 
@@ -75,37 +75,37 @@
                   ID
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nama Vendor
+                  Vendor Name
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  PIC
+                  Contact
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  No HP
+                  Phone
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Email
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  No Kantor
+                  Office Phone
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nomor Rekening
+                  Account Number
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nama Rekening
+                  Account Name
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   NIB
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status Dokumen
+                  Document Status
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tanggal Dibuat
+                  Created Date
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
+                  Delete
                 </th>
               </tr>
             </thead>
@@ -113,7 +113,8 @@
               <tr
                 v-for="vendor in vendors.data"
                 :key="vendor.id"
-                class="hover:bg-gray-50"
+                class="hover:bg-gray-50 cursor-pointer"
+                @click="goToDetail(vendor)"
               >
                 <!-- ID -->
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
@@ -164,13 +165,13 @@
                 <td class="px-6 py-4 text-sm">
                   <div class="flex space-x-1">
                     <span v-if="vendor.photo_path" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Foto
+                      Photo
                     </span>
                     <span v-if="vendor.legal_document_path" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       Legal
                     </span>
                     <span v-if="!vendor.photo_path && !vendor.legal_document_path" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Kosong
+                      None
                     </span>
                   </div>
                 </td>
@@ -182,37 +183,13 @@
 
                 <!-- Actions -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div class="flex items-center space-x-2">
-                    <Link
-                      :href="route('admin-keuangan.vendors.show', vendor.id)"
-                      class="text-sage-800 p-2 rounded-md"
-                      title="Lihat Detail"
-                    >
-                      <Eye class="h-4 w-4" />
-                    </Link>
-                    <Link
-                      :href="route('admin-keuangan.vendors.edit', vendor.id)"
-                      class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
-                      title="Edit Vendor"
-                    >
-                      <Edit class="h-4 w-4" />
-                    </Link>
-                    <a
-                      :href="route('admin-keuangan.vendors.pdf', vendor.id)"
-                      target="_blank"
-                      class="text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50"
-                      title="Export PDF"
-                    >
-                      <FileText class="h-4 w-4" />
-                    </a>
-                    <button
-                      @click="deleteVendor(vendor.id)"
-                      class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
-                      title="Hapus Vendor"
-                    >
-                      <Trash2 class="h-4 w-4" />
-                    </button>
-                  </div>
+                  <button
+                    @click.stop="deleteVendor(vendor.id)"
+                    class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
+                    title="Delete Vendor"
+                  >
+                    <Trash2 class="h-4 w-4" />
+                  </button>
                 </td>
               </tr>
 
@@ -221,8 +198,8 @@
                 <td colspan="12" class="px-6 py-12 text-center">
                   <div class="flex flex-col items-center">
                     <Users class="h-12 w-12 text-gray-300 mb-4" />
-                    <h3 class="text-sm font-medium text-gray-900 mb-1">Tidak ada data vendor</h3>
-                    <p class="text-sm text-gray-500">Belum ada data vendor yang tersedia</p>
+                    <h3 class="text-sm font-medium text-gray-900 mb-1">No vendor data</h3>
+                    <p class="text-sm text-gray-500">There are no vendor records yet</p>
                   </div>
                 </td>
               </tr>
@@ -244,7 +221,7 @@ import { reactive, watch, computed } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
-import { Eye, Edit, Trash2, Users, Plus, FileText, FileDown } from "lucide-vue-next";
+import { Trash2, Users, Plus, FileDown } from "lucide-vue-next";
 
 const props = defineProps({
   vendors: Object,
@@ -254,7 +231,6 @@ const props = defineProps({
 // Route helper definitions
 const routes = {
   'admin-keuangan.vendors.export.pdf': '/admin-keuangan/vendors/export/pdf',
-  'admin-keuangan.vendors.pdf': (id) => `/admin-keuangan/vendors/${id}/pdf`,
 };
 
 // Override global route function for this component
@@ -292,15 +268,19 @@ const search = () => {
   });
 };
 
+const goToDetail = (vendor) => {
+  router.get(route("admin-keuangan.vendors.show", vendor.id));
+};
+
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("id-ID");
+  return new Date(dateString).toLocaleDateString("en-US");
 };
 
 const deleteVendor = (vendorId) => {
-  if (confirm("Apakah Anda yakin ingin menghapus vendor ini?")) {
+  if (confirm("Are you sure you want to delete this vendor?")) {
     router.delete(route("admin-keuangan.vendors.destroy", vendorId), {
       onSuccess: () => {
-        alert("Vendor berhasil dihapus!");
+        alert("Vendor deleted successfully!");
       },
     });
   }
@@ -352,4 +332,3 @@ watch(
   border-color: #8db580;
 }
 </style>
-

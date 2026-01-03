@@ -554,8 +554,11 @@ class AccountReceivableController extends Controller
         }
 
         if ($component && $validated['amount'] > $component->outstanding_amount) {
+            $componentLabel = $component->component_type === 'debit_note'
+                ? 'Debit Note'
+                : ($component->component_type === 'vat' ? 'VAT' : 'Invoice Main');
             return redirect()->back()->withErrors([
-                'amount' => 'Amount cannot exceed outstanding balance for ' . ($component->component_type === 'debit_note' ? 'Debit Note' : 'Invoice Main') . ' (Rp ' . number_format($component->outstanding_amount, 0, ',', '.') . ')'
+                'amount' => 'Amount cannot exceed outstanding balance for ' . $componentLabel . ' (Rp ' . number_format($component->outstanding_amount, 0, ',', '.') . ')'
             ])->withInput();
         }
 
@@ -587,7 +590,9 @@ class AccountReceivableController extends Controller
             }
 
             $componentLabel = $component
-                ? ($component->component_type === 'debit_note' ? 'Debit Note' : 'Invoice Main')
+                ? ($component->component_type === 'debit_note'
+                    ? 'Debit Note'
+                    : ($component->component_type === 'vat' ? 'VAT' : 'Invoice Main'))
                 : 'Invoice';
 
             // Record bank transaction (Customer Payment = Credit to bank)

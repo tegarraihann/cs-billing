@@ -1,14 +1,14 @@
 <template>
   <AdminKeuanganLayout>
-    <Head title="Dashboard Finance" />
+    <Head title="Finance Dashboard" />
 
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Dashboard Finance</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola operasi keuangan, penagihan, dan pembayaran secara efisien</p>
+            <h1 class="text-2xl font-bold text-gray-900">Finance Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage financial operations, billing, and payments efficiently.</p>
           </div>
         </div>
 
@@ -82,12 +82,12 @@
         <!-- Monthly Profit Trends -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6" v-if="monthlyProfits && monthlyProfits.length > 0">
           <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Tren Profit 6 Bulan Terakhir</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Last 6 Months Profit Trend</h3>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Gross Revenue</th>
                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Operational Costs</th>
                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Net Profit</th>
@@ -219,8 +219,8 @@
 
               <div v-if="recentTransactions.length === 0" class="text-center py-12">
                 <FileText class="mx-auto h-12 w-12 text-gray-400" />
-                <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada transaksi</h3>
-                <p class="mt-1 text-sm text-gray-500">Belum ada transaksi keuangan terbaru</p>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No transactions yet</h3>
+                <p class="mt-1 text-sm text-gray-500">No recent financial transactions.</p>
               </div>
             </div>
           </div>

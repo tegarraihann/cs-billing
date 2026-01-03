@@ -38,6 +38,7 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => '5230', 'name' => 'ATK & Supplies', 'type' => 'expense', 'category' => 'expense_operational', 'parent' => '5200', 'sort' => 23],
             ['code' => '5240', 'name' => 'Komunikasi', 'type' => 'expense', 'category' => 'expense_operational', 'parent' => '5200', 'sort' => 24],
             ['code' => '5250', 'name' => 'Maintenance', 'type' => 'expense', 'category' => 'expense_operational', 'parent' => '5200', 'sort' => 25],
+            ['code' => '5225', 'name' => 'Consumption Expense', 'type' => 'expense', 'category' => 'expense_consumption', 'parent' => '5200', 'sort' => 26],
 
             ['code' => '5300', 'name' => 'Beban Administrasi', 'type' => 'expense', 'category' => 'expense_admin', 'parent' => '5000', 'sort' => 30],
             ['code' => '5310', 'name' => 'Listrik & Air', 'type' => 'expense', 'category' => 'expense_utilities', 'parent' => '5300', 'sort' => 31],

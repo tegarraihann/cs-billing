@@ -518,7 +518,9 @@ const canPostTaxExpense = computed(() => {
 })
 
 const getComponentLabel = (type) => {
-    return type === 'debit_note' ? 'Debit Note' : 'Invoice Main'
+    if (type === 'debit_note') return 'Debit Note'
+    if (type === 'vat') return 'VAT'
+    return 'Invoice Main'
 }
 
 watch(componentOptions, (options) => {

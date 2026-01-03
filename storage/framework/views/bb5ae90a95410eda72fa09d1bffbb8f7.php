@@ -252,10 +252,14 @@
             $adminEntries = data_get($reportData, 'expenses.admin', []);
             $otherEntries = data_get($reportData, 'expenses.other', []);
             $marketingEntries = data_get($reportData, 'expenses.marketing', []);
+            $consumptionEntries = data_get($reportData, 'expenses.consumption', []);
+            $outsideEntries = data_get($reportData, 'expenses.outside', []);
 
             $allExpenseEntries = collect($salaryEntries)
                 ->merge(collect($operationalGrouped)->flatMap(fn($cat) => $cat['entries'] ?? []))
                 ->merge($adminEntries)
+                ->merge($consumptionEntries)
+                ->merge($outsideEntries)
                 ->merge($otherEntries)
                 ->merge($marketingEntries);
 
@@ -273,15 +277,10 @@
                 return false;
             };
 
-            $isPettyCashEntry = function ($entry) {
-                return data_get($entry, 'reference_type') === 'petty_cash_transaction'
-                    || data_get($entry, 'entry_type') === 'auto_petty_cash';
-            };
-
             $expenseTotals = [
                 'Salaries Expense' => 0,
                 'Rent Expense' => 0,
-                'outside assignments expense' => 0,
+                'Outside Assignments Expense' => 0,
                 'Operational Expense' => 0,
                 'Electricity, Water & Internet Expense' => 0,
                 'E-Toll & Gasoline Expense' => 0,
@@ -291,6 +290,7 @@
                 'Entertainment Expense' => 0,
                 'Maintenance Expenses' => 0,
                 'Supplies Expense' => 0,
+                'Consumption Expense' => 0,
                 'Other Expense' => 0,
                 'Administrative Bank Expense' => 0,
                 'Monthly Card Expense' => 0,
@@ -306,6 +306,12 @@
                 $accountCategory = data_get($entry, 'account.account_category');
                 if ($accountCategory === 'expense_salary') {
                     return 'Salaries Expense';
+                }
+                if ($accountCategory === 'expense_consumption') {
+                    return 'Consumption Expense';
+                }
+                if ($accountCategory === 'expense_outside') {
+                    return 'Outside Assignments Expense';
                 }
 
                 if ($matchesAny($text, ['monthly card', 'card', 'kartu'])) {
@@ -341,6 +347,12 @@
                 if ($matchesAny($text, ['supplies', 'atk'])) {
                     return 'Supplies Expense';
                 }
+                if ($matchesAny($text, ['consumption', 'konsumsi', 'galon', 'snack', 'makan', 'minum'])) {
+                    return 'Consumption Expense';
+                }
+                if ($matchesAny($text, ['outside assignment', 'dinas', 'luar kota', 'luar negeri'])) {
+                    return 'Outside Assignments Expense';
+                }
                 if ($matchesAny($text, ['service', 'jasa'])) {
                     return 'Maintenance Expenses';
                 }
@@ -366,17 +378,13 @@
                     continue;
                 }
 
-                if ($isPettyCashEntry($entry)) {
-                    $expenseTotals['outside assignments expense'] += $amount;
-                } else {
-                    $expenseTotals['Other Expense'] += $amount;
-                }
+                $expenseTotals['Other Expense'] += $amount;
             }
 
             $expenseLines = collect([
                 ['label' => 'Salaries Expense', 'amount' => $expenseTotals['Salaries Expense']],
                 ['label' => 'Rent Expense', 'amount' => $expenseTotals['Rent Expense']],
-                ['label' => 'outside assignments expense', 'amount' => $expenseTotals['outside assignments expense']],
+                ['label' => 'Outside Assignments Expense', 'amount' => $expenseTotals['Outside Assignments Expense']],
                 ['label' => 'Operational Expense', 'amount' => $expenseTotals['Operational Expense']],
                 ['label' => 'Electricity, Water & Internet Expense', 'amount' => $expenseTotals['Electricity, Water & Internet Expense']],
                 ['label' => 'E-Toll & Gasoline Expense', 'amount' => $expenseTotals['E-Toll & Gasoline Expense']],
@@ -386,6 +394,7 @@
                 ['label' => 'Entertainment Expense', 'amount' => $expenseTotals['Entertainment Expense']],
                 ['label' => 'Maintenance Expenses', 'amount' => $expenseTotals['Maintenance Expenses']],
                 ['label' => 'Supplies Expense', 'amount' => $expenseTotals['Supplies Expense']],
+                ['label' => 'Consumption Expense', 'amount' => $expenseTotals['Consumption Expense']],
                 ['label' => 'Other Expense', 'amount' => $expenseTotals['Other Expense']],
                 ['label' => 'Administrative Bank Expense', 'amount' => $expenseTotals['Administrative Bank Expense']],
                 ['label' => 'Monthly Card Expense', 'amount' => $expenseTotals['Monthly Card Expense']],

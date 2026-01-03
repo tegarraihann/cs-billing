@@ -188,6 +188,10 @@ class AccountPayableController extends Controller
             return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang paid.']);
         }
 
+        if (($accountPayable->outstanding_amount ?? 0) > 0) {
+            return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang lunas.']);
+        }
+
         if ($accountPayable->vat_receivable_posted_at) {
             return redirect()->back()->withErrors(['error' => 'VAT Receivable sudah diposting untuk hutang ini.']);
         }
@@ -197,7 +201,8 @@ class AccountPayableController extends Controller
             return redirect()->back()->withErrors(['error' => "Akun VAT Receivable {$label} belum dikonfigurasi."]);
         }
 
-        $baseAmount = (float) $accountPayable->amount;
+        $paidAmount = (float) ($accountPayable->paid_amount ?? 0);
+        $baseAmount = $paidAmount > 0 ? $paidAmount : (float) $accountPayable->amount;
         $vatAmount = round($baseAmount * ($rate / 100), 2);
 
         if ($vatAmount <= 0) {

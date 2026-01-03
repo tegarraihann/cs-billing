@@ -826,7 +826,10 @@ const activeVendorName = computed(() => payable.value?.vendor?.nama_vendor ?? pa
 const activeDaysOverdue = computed(() => payable.value?.days_overdue ?? 0)
 const overdueDays = computed(() => activeDaysOverdue.value)
 const canPostVat = computed(() => (summary.value.total_outstanding || 0) > 0 && summaryStatus.value !== 'paid')
-const canPostVatReceivable = computed(() => summaryStatus.value === 'paid' && !payable.value?.vat_receivable_posted_at)
+const canPostVatReceivable = computed(() => {
+    const outstanding = summary.value.total_outstanding ?? 0
+    return summaryStatus.value === 'paid' && Number(outstanding) <= 0 && !payable.value?.vat_receivable_posted_at
+})
 
 const vatActionItems = computed(() => [
     {
