@@ -151,7 +151,7 @@ class AccountPayableController extends Controller
     }
 
     /**
-     * Post outstanding payable to VAT Payable PPh23 0.5% (2112).
+     * Post outstanding payable to VAT Payable PPh23 0.5% (2114).
      */
     public function postPph23Payable05(AccountPayable $accountPayable)
     {
@@ -159,7 +159,7 @@ class AccountPayableController extends Controller
     }
 
     /**
-     * Post outstanding payable to VAT Payable PPh23 2% (2113).
+     * Post outstanding payable to VAT Payable PPh23 2% (2115).
      */
     public function postPph23Payable2(AccountPayable $accountPayable)
     {
@@ -340,7 +340,7 @@ class AccountPayableController extends Controller
 
     private function resolvePph23PayableAccount(float $rate): ?ChartOfAccount
     {
-        $accountCode = abs($rate - 0.5) < 0.01 ? '2112' : '2113';
+        $accountCode = abs($rate - 0.5) < 0.01 ? '2114' : '2115';
         $accountName = abs($rate - 0.5) < 0.01
             ? 'VAT Payable PPH 23 0.5%'
             : 'VAT Payable PPH 23 2%';

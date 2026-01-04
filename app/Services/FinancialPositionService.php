@@ -41,7 +41,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'CURRENT LIABILITIES',
-                    'account_codes' => ['2100', '2110', '2111', '2112', '2113', '5450', '5451'],
+                    'account_codes' => ['2100', '2110', '2111', '2114', '2115', '5450', '5451'],
                 ],
             ],
         ],
@@ -190,7 +190,7 @@ class FinancialPositionService
             '1515' => $this->calculateEquipmentAccumulatedBalance($cutoff),
             '1400' => $this->calculatePrepaidRentBalance($cutoff),
             '2110', '2111' => $this->calculateVatPayableBalance($accountCode, $cutoff),
-            '2112', '2113' => $this->calculatePph23PayableBalance($accountCode, $cutoff),
+            '2114', '2115' => $this->calculatePph23PayableBalance($accountCode, $cutoff),
             '5450', '5451' => $this->calculateTaxExpensePayableBalance($accountCode, $cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
             '3100' => $this->calculatePaidInCapitalBalance($accountCode, $cutoff),
@@ -361,7 +361,7 @@ class FinancialPositionService
     }
 
     /**
-     * Calculate VAT Payable PPh23 balance from adjustments (akun 2112/2113).
+     * Calculate VAT Payable PPh23 balance from adjustments (akun 2114/2115).
      */
     private function calculatePph23PayableBalance(string $accountCode, Carbon $cutoff): array
     {

@@ -37,41 +37,6 @@
                             </span>
                         </span>
 
-                        <SplitActionButton
-                            v-if="canPostVat"
-                            :label="postingVat ? 'Posting...' : `Post VAT Payable ${vatRateLabel}`"
-                            :icon="FileText"
-                            :on-click="postVatPayable"
-                            :disabled="postingVat"
-                            :items="vatActionItems"
-                        />
-                        <SplitActionButton
-                            v-if="canPostPph23Receivable"
-                            :label="postingPph23 ? 'Posting...' : `Post VAT Receivable PPh23 ${pph23Rate}%`"
-                            :icon="Percent"
-                            :on-click="() => postPph23Receivable()"
-                            :disabled="postingPph23"
-                            :items="pph23ActionItems"
-                        />
-                        <button
-                            v-if="canPostTaxExpense"
-                            @click="postTaxExpense(0.5)"
-                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                            :disabled="postingTax"
-                        >
-                            <Percent class="w-4 h-4 mr-2" />
-                            {{ postingTax ? 'Posting...' : 'Post Beban Pajak 0.5%' }}
-                        </button>
-                        <button
-                            v-if="canPostTaxExpense"
-                            @click="postTaxExpense(2)"
-                            class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                            :disabled="postingTax"
-                        >
-                            <Percent class="w-4 h-4 mr-2" />
-                            {{ postingTax ? 'Posting...' : 'Post Beban Pajak 2%' }}
-                        </button>
-
                         <button v-if="receivable.status !== 'paid'" @click="openPaymentModal"
                             class="inline-flex items-center justify-center px-4 py-2 min-w-[170px] bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <CreditCard class="w-4 h-4 mr-2" />
@@ -217,6 +182,9 @@
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Status
                                         </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -238,6 +206,76 @@
                                                 class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
                                                 {{ getStatusText(component.status) }}
                                             </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right">
+                                            <div class="relative inline-flex justify-end w-full" @click.stop>
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex items-center justify-center rounded-md border border-sage-300 bg-white px-2.5 py-2 text-sage-700 hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition"
+                                                    @click.stop="toggleActionMenu(component.id)"
+                                                    aria-label="Receivable actions"
+                                                >
+                                                    <MoreVertical class="h-4 w-4" />
+                                                </button>
+                                                <div
+                                                    v-if="isActionMenuOpen(component.id)"
+                                                    class="absolute right-0 z-20 mt-2 w-64 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                                                    @click.stop
+                                                >
+                                                    <div class="py-1">
+                                                        <button
+                                                            type="button"
+                                                            class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="!canPostVat || postingVat || (vatRate > 0 && Math.abs(vatRate - 11) > 0.01)"
+                                                            @click="handleAction(postVatPayable11, !canPostVat || postingVat || (vatRate > 0 && Math.abs(vatRate - 11) > 0.01))"
+                                                        >
+                                                            Post VAT Payable 11%
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="!canPostVat || postingVat || (vatRate > 0 && Math.abs(vatRate - 1.1) > 0.01)"
+                                                            @click="handleAction(postVatPayable11_1, !canPostVat || postingVat || (vatRate > 0 && Math.abs(vatRate - 1.1) > 0.01))"
+                                                        >
+                                                            Post VAT Payable 1.1%
+                                                        </button>
+                                                        <div class="my-1 border-t border-gray-100"></div>
+                                                        <button
+                                                            type="button"
+                                                            class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="!canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 0.5) > 0.01"
+                                                            @click="handleAction(() => postPph23Receivable(0.5), !canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 0.5) > 0.01)"
+                                                        >
+                                                            Post VAT Receivable PPh23 0.5%
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="!canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 2) > 0.01"
+                                                            @click="handleAction(() => postPph23Receivable(2), !canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 2) > 0.01)"
+                                                        >
+                                                            Post VAT Receivable PPh23 2%
+                                                        </button>
+                                                        <div class="my-1 border-t border-gray-100"></div>
+                                                        <button
+                                                            type="button"
+                                                            class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="!canPostTaxExpense || postingTax"
+                                                            @click="handleAction(() => postTaxExpense(0.5), !canPostTaxExpense || postingTax)"
+                                                        >
+                                                            Post Tax Expense 0.5%
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="!canPostTaxExpense || postingTax"
+                                                            @click="handleAction(() => postTaxExpense(2), !canPostTaxExpense || postingTax)"
+                                                        >
+                                                            Post Tax Expense 2%
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -364,12 +402,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import AlertDialog from '@/Components/AlertDialog.vue'
-import SplitActionButton from '@/Components/SplitActionButton.vue'
-import { ArrowLeft, CreditCard, FileText, Percent } from 'lucide-vue-next'
+import { ArrowLeft, CreditCard, FileText, MoreVertical } from 'lucide-vue-next'
 
 const props = defineProps({
     receivable: Object,
@@ -385,6 +422,7 @@ const postingVat = ref(false)
 const postingTax = ref(false)
 const postingPph23 = ref(false)
 const amountError = ref('')
+const activeActionMenuId = ref(null)
 
 const alertDialog = reactive({
     show: false,
@@ -415,6 +453,32 @@ const handleAlertConfirm = () => {
     }
     closeAlert()
 }
+
+const toggleActionMenu = (id) => {
+    activeActionMenuId.value = activeActionMenuId.value === id ? null : id
+}
+
+const isActionMenuOpen = (id) => activeActionMenuId.value === id
+
+const closeActionMenu = () => {
+    activeActionMenuId.value = null
+}
+
+const handleAction = (action, disabled = false) => {
+    if (disabled || typeof action !== 'function') {
+        return
+    }
+    closeActionMenu()
+    action()
+}
+
+onMounted(() => {
+    window.addEventListener('click', closeActionMenu)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('click', closeActionMenu)
+})
 
 const paymentForm = reactive({
     amount: '',
@@ -461,26 +525,6 @@ const vatRate = computed(() => {
     return Number.isNaN(rate) ? 0 : rate
 })
 
-const vatRateLabel = computed(() => {
-    if (Math.abs(vatRate.value - 11) < 0.01) return '11%'
-    if (Math.abs(vatRate.value - 1.1) < 0.01) return '1.1%'
-    return 'sesuai invoice'
-})
-
-const vatActionItems = computed(() => ([
-    {
-        label: postingVat.value ? 'Posting...' : 'Post VAT Payable 11%',
-        icon: FileText,
-        disabled: postingVat.value || (vatRate.value > 0 && Math.abs(vatRate.value - 11) > 0.01),
-        onClick: postVatPayable11
-    },
-    {
-        label: postingVat.value ? 'Posting...' : 'Post VAT Payable 1.1%',
-        icon: FileText,
-        disabled: postingVat.value || (vatRate.value > 0 && Math.abs(vatRate.value - 1.1) > 0.01),
-        onClick: postVatPayable11_1
-    }
-]))
 
 const pph23Rate = computed(() => {
     const rate = parseFloat(props.receivable?.invoice?.pph23_rate || 0)
@@ -498,20 +542,6 @@ const canPostPph23Receivable = computed(() => {
     return hasPph23WithVat.value && pph23Amount > 0 && props.receivable?.status === 'paid' && !pph23Posted
 })
 
-const pph23ActionItems = computed(() => ([
-    {
-        label: postingPph23.value ? 'Posting...' : 'Post VAT Receivable PPh23 0.5%',
-        icon: Percent,
-        disabled: postingPph23.value || Math.abs(pph23Rate.value - 0.5) > 0.01,
-        onClick: () => postPph23Receivable(0.5)
-    },
-    {
-        label: postingPph23.value ? 'Posting...' : 'Post VAT Receivable PPh23 2%',
-        icon: Percent,
-        disabled: postingPph23.value || Math.abs(pph23Rate.value - 2) > 0.01,
-        onClick: () => postPph23Receivable(2)
-    }
-]))
 
 const canPostTaxExpense = computed(() => {
     return (props.receivable?.outstanding_amount || 0) > 0 && !props.receivable?.tax_writeoff_at && !hasPph23WithVat.value
@@ -751,28 +781,6 @@ const soaUrl = computed(() => {
     return `/admin-keuangan/account-receivables/customers/${customerId}/generate-soa`
 })
 
-const postVatPayable = () => {
-    if (!canPostVat.value || postingVat.value) {
-        return
-    }
-    openConfirm(
-        `Post VAT Payable ${vatRateLabel.value} untuk invoice ${props.receivable?.invoice_number}?`,
-        () => {
-            postingVat.value = true
-            router.post(
-                route('admin-keuangan.account-receivables.post-vat', props.receivable.id),
-                {},
-                {
-                    onFinish: () => {
-                        postingVat.value = false
-                    }
-                }
-            )
-        },
-        'Konfirmasi Post VAT Payable'
-    )
-}
-
 const postVatPayable11 = () => {
     if (!canPostVat.value || postingVat.value) {
         return
@@ -822,20 +830,21 @@ const postTaxExpense = (rate) => {
         return
     }
 
-    const ok = window.confirm(`Post outstanding ke Beban Pajak ${rate}% dan tutup piutang?`)
-    if (!ok) {
-        return
-    }
-
-    postingTax.value = true
-    router.post(
-        route('admin-keuangan.account-receivables.post-tax-expense', props.receivable.id),
-        { tax_rate: rate },
-        {
-            onFinish: () => {
-                postingTax.value = false
-            }
-        }
+    openConfirm(
+        `Post outstanding ke Tax Expense ${rate}% dan tutup piutang?`,
+        () => {
+            postingTax.value = true
+            router.post(
+                route('admin-keuangan.account-receivables.post-tax-expense', props.receivable.id),
+                { tax_rate: rate },
+                {
+                    onFinish: () => {
+                        postingTax.value = false
+                    }
+                }
+            )
+        },
+        'Konfirmasi Post Tax Expense'
     )
 }
 
