@@ -141,6 +141,11 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class)->billable();
     }
 
+    public function mainBillableItems()
+    {
+        return $this->hasMany(InvoiceItem::class)->billable()->customerVisible();
+    }
+
     public function operationalCosts()
     {
         return $this->hasMany(InvoiceItem::class)->operationalCost();
@@ -257,8 +262,9 @@ class Invoice extends Model
         // Only calculate totals from billable items (customer-facing)
         // Operational costs should not be included in customer invoice totals
         $subtotal = $this->customerVisibleItems()->sum('amount');
-        $vatAmount = $this->calculateVatAmount($subtotal);
-        $pph23Amount = $this->calculatePph23Amount($subtotal);
+        $vatBase = $this->mainBillableItems()->sum('amount');
+        $vatAmount = $this->calculateVatAmount($vatBase);
+        $pph23Amount = $this->calculatePph23Amount($vatBase);
         $total = $subtotal + $vatAmount - ($this->down_payment_amount ?? 0);
         $this->update([
             'subtotal' => $subtotal,
@@ -275,7 +281,7 @@ class Invoice extends Model
             return 0;
         }
 
-        $base = $baseAmount ?? (float) $this->customerVisibleItems()->sum('amount');
+        $base = $baseAmount ?? (float) $this->mainBillableItems()->sum('amount');
 
         return round($base * ($rate / 100), 2);
     }
@@ -287,7 +293,7 @@ class Invoice extends Model
             return 0;
         }
 
-        $base = $baseAmount ?? (float) $this->customerVisibleItems()->sum('amount');
+        $base = $baseAmount ?? (float) $this->mainBillableItems()->sum('amount');
 
         return round($base * ($rate / 100), 2);
     }

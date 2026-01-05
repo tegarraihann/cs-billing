@@ -200,7 +200,7 @@
                 <!-- Down Payment Section -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
                     <h3 class="text-lg font-semibold text-sage-800 mb-4">Down Payment (DP)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah DP</label>
                             <input type="number" v-model="form.down_payment_amount" step="0.01" min="0"
@@ -233,7 +233,7 @@
                 <!-- VAT Section -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
                     <h3 class="text-lg font-semibold text-sage-800 mb-4">VAT (PPN)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">VAT Rate</label>
                             <select v-model="form.vat_rate"
@@ -257,7 +257,7 @@
                 <!-- PPh23 Section -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
                     <h3 class="text-lg font-semibold text-sage-800 mb-4">PPh 23 (Withholding)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">PPh 23 Rate</label>
                             <select v-model="form.pph23_rate"
@@ -745,6 +745,43 @@
                             <div class="text-purple-600 font-medium">Profit Margin</div>
                             <div class="text-xl font-bold text-purple-800">{{ calculateProfitMargin() }}%</div>
                             <div class="text-xs text-purple-500">Net profit percentage</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-white rounded-lg p-4 border border-blue-200">
+                        <h4 class="text-sm font-semibold text-blue-800 mb-3">Detail Perhitungan</h4>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <div class="flex items-center justify-between">
+                                <span>Main Invoice</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(calculateGrossRevenue()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>VAT</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(calculateVatAmount()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1 border-t border-b border-blue-100">
+                                <span>Total Main Invoice + VAT</span>
+                                <span class="font-semibold text-blue-900">{{ formatCurrency(calculateGrossRevenue() + calculateVatAmount()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Reimbursement</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(calculateReimbursementTotal()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1 border-t border-b border-blue-100">
+                                <span>Total Invoice + Reimbursement</span>
+                                <span class="font-semibold text-blue-900">{{ formatCurrency(calculateGrossRevenue() + calculateVatAmount() + calculateReimbursementTotal()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-blue-100">
+                                <span>Operational Costs</span>
+                                <span class="font-semibold text-red-700">{{ formatCurrency(calculateOperationalTotal()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Net Profit</span>
+                                <span class="font-semibold text-green-700">{{ formatCurrency(calculateNetProfit()) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Profit Percentage</span>
+                                <span class="font-semibold text-purple-700">{{ calculateProfitMargin() }}%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1491,6 +1528,11 @@ const calculateTotal = () => {
     }, 0);
 
     return mainTotal + reimbursementTotal + calculateVatAmount();
+};
+
+const calculateNetInvoiceTotal = () => {
+    const downPayment = normalizeNumber(form.down_payment_amount || 0);
+    return calculateGrossRevenue() + calculateVatAmount() - downPayment;
 };
 
 const formatCurrency = (amount, options = {}) => {

@@ -779,28 +779,35 @@
                         <h4 class="text-sm font-semibold text-gray-800 mb-3">Detail Perhitungan:</h4>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Gross Revenue (Items yang dapat ditagih):</span>
-                                <span class="font-medium text-green-700">{{ formatCurrency(getGrossRevenue) }}</span>
+                                <span class="text-gray-600">Main Invoice</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(getGrossRevenue) }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Operational Costs (Biaya internal):</span>
-                                <span class="font-medium text-red-700">- {{ formatCurrency(getOperationalCostsTotal)
-                                    }}</span>
+                                <span class="text-gray-600">VAT</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(vatAmount) }}</span>
                             </div>
-                            <hr class="border-gray-300">
+                            <div class="flex justify-between py-1 border-t border-b border-gray-200">
+                                <span class="text-gray-700">Total Main Invoice + VAT</span>
+                                <span class="font-semibold text-blue-700">{{ formatCurrency(getGrossRevenue + vatAmount) }}</span>
+                            </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Reimbursement (Cost Neutral - Tidak mengurangi
-                                    profit):</span>
-                                <span class="font-medium text-orange-700">{{ formatCurrency(getReimbursementTotal)
-                                    }}</span>
+                                <span class="text-gray-600">Reimbursement</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(getReimbursementTotal) }}</span>
                             </div>
-                            <hr class="border-gray-300">
+                            <div class="flex justify-between py-1 border-t border-b border-gray-200">
+                                <span class="text-gray-700">Total Invoice + Reimbursement</span>
+                                <span class="font-semibold text-blue-700">{{ formatCurrency(getGrossRevenue + vatAmount + getReimbursementTotal) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Operational Costs</span>
+                                <span class="font-medium text-red-700">- {{ formatCurrency(getOperationalCostsTotal) }}</span>
+                            </div>
                             <div class="flex justify-between font-semibold">
-                                <span class="text-gray-800">Net Profit:</span>
-                                <span class="text-blue-700">{{ formatCurrency(getNetProfit) }}</span>
+                                <span class="text-gray-800">Net Profit</span>
+                                <span class="text-green-700">{{ formatCurrency(getNetProfit) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Profit Margin:</span>
+                                <span class="text-gray-600">Profit Percentage</span>
                                 <span class="text-purple-700 font-medium">{{ getProfitMargin }}%</span>
                             </div>
                         </div>
@@ -1475,6 +1482,10 @@ const getMainTotal = computed(() => {
 
 const getReimbursementTotal = computed(() => {
     return getReimbursementItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+});
+
+const vatAmount = computed(() => {
+    return Number(props.invoice?.vat_amount || 0);
 });
 
 const downPaymentAmount = computed(() => {
