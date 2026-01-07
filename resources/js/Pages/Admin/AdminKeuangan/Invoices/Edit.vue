@@ -240,30 +240,6 @@
                     </div>
                 </div>
 
-                <!-- PPh23 Section -->
-                <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">PPh 23 (Withholding)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">PPh 23 Rate</label>
-                            <select v-model="form.pph23_rate"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                <option value="">No PPh 23</option>
-                                <option value="0.5">0.5%</option>
-                                <option value="2">2%</option>
-                            </select>
-                            <div v-if="errors.pph23_rate" class="text-red-500 text-sm mt-1">
-                                {{ errors.pph23_rate }}
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">PPh 23 Amount</label>
-                            <input type="text" :value="formatCurrency(calculatePph23Amount())"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly />
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Invoice Items -->
                 <div class="space-y-6">
                     <!-- Main Invoice Items (Table Style) -->
@@ -754,7 +730,6 @@ const form = useForm({
     down_payment_date: formatDateForInput(props.invoice.down_payment_date),
     down_payment_notes: props.invoice.down_payment_notes || '',
     vat_rate: props.invoice.vat_rate || '',
-    pph23_rate: props.invoice.pph23_rate || '',
     items: []
 })
 
@@ -865,19 +840,6 @@ const calculateProfitMargin = () => {
 
 const calculateVatAmount = () => {
     const rate = parseFloat(form.vat_rate)
-    if (Number.isNaN(rate) || rate <= 0) {
-        return 0
-    }
-
-    const baseAmount = mainItems.value.reduce((total, item) => {
-        return total + (parseFloat(item.amount || 0))
-    }, 0)
-
-    return Math.round((baseAmount * (rate / 100)) * 100) / 100
-}
-
-const calculatePph23Amount = () => {
-    const rate = parseFloat(form.pph23_rate)
     if (Number.isNaN(rate) || rate <= 0) {
         return 0
     }

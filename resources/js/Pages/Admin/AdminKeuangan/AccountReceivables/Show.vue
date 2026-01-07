@@ -243,16 +243,16 @@
                                                         <button
                                                             type="button"
                                                             class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            :disabled="!canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 0.5) > 0.01"
-                                                            @click="handleAction(() => postPph23Receivable(0.5), !canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 0.5) > 0.01)"
+                                                            :disabled="!canPostPph23Receivable || postingPph23"
+                                                            @click="handleAction(() => postPph23Receivable(0.5), !canPostPph23Receivable || postingPph23)"
                                                         >
                                                             Post VAT Receivable PPh23 0.5%
                                                         </button>
                                                         <button
                                                             type="button"
                                                             class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            :disabled="!canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 2) > 0.01"
-                                                            @click="handleAction(() => postPph23Receivable(2), !canPostPph23Receivable || postingPph23 || Math.abs(pph23Rate - 2) > 0.01)"
+                                                            :disabled="!canPostPph23Receivable || postingPph23"
+                                                            @click="handleAction(() => postPph23Receivable(2), !canPostPph23Receivable || postingPph23)"
                                                         >
                                                             Post VAT Receivable PPh23 2%
                                                         </button>
@@ -526,25 +526,15 @@ const vatRate = computed(() => {
 })
 
 
-const pph23Rate = computed(() => {
-    const rate = parseFloat(props.receivable?.invoice?.pph23_rate || 0)
-    return Number.isNaN(rate) ? 0 : rate
-})
-
-const hasPph23WithVat = computed(() => {
-    const vatAmount = props.receivable?.invoice?.vat_amount || 0
-    return pph23Rate.value > 0 && vatAmount > 0
-})
-
 const canPostPph23Receivable = computed(() => {
-    const pph23Amount = props.receivable?.invoice?.pph23_amount || 0
     const pph23Posted = props.receivable?.invoice?.pph23_posted_at
-    return hasPph23WithVat.value && pph23Amount > 0 && props.receivable?.status === 'paid' && !pph23Posted
+    const outstanding = props.receivable?.outstanding_amount || 0
+    return outstanding > 0 && !pph23Posted && !!props.receivable?.invoice
 })
 
 
 const canPostTaxExpense = computed(() => {
-    return (props.receivable?.outstanding_amount || 0) > 0 && !props.receivable?.tax_writeoff_at && !hasPph23WithVat.value
+    return (props.receivable?.outstanding_amount || 0) > 0 && !props.receivable?.tax_writeoff_at && !props.receivable?.invoice?.pph23_posted_at
 })
 
 const getComponentLabel = (type) => {
@@ -853,7 +843,7 @@ const postPph23Receivable = (rateOverride = null) => {
         return
     }
 
-    const rateLabel = rateOverride ?? (pph23Rate.value ? pph23Rate.value : 0)
+    const rateLabel = rateOverride ?? 0
     openConfirm(
         `Post VAT Receivable PPh23 ${rateLabel}% untuk invoice ${props.receivable?.invoice_number}?`,
         () => {

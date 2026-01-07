@@ -18,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
                 return new \Barryvdh\DomPDF\PDF($app['dompdf'], $app['config'], $app['files'], $app['view']);
             });
         }
-        
+
         if (!$this->app->bound('dompdf')) {
             $this->app->singleton('dompdf', function ($app) {
                 $dompdf = new \Dompdf\Dompdf();
@@ -30,9 +30,11 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap any application services.
+     * Aktifkan forceScheme jika menggunakan Tunnel untuk HTTPS
      */
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        // URL::forceScheme(scheme: 'https');
     }
 }

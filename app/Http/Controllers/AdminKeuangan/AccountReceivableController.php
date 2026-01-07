@@ -381,26 +381,14 @@ class AccountReceivableController extends Controller
             return redirect()->back()->withErrors(['error' => 'Invoice tidak ditemukan.']);
         }
 
-        if ($accountReceivable->status !== 'paid' || $invoice->status !== 'paid') {
-            return redirect()->back()->withErrors(['error' => 'Piutang harus lunas sebelum diposting ke VAT Receivable PPh23.']);
-        }
-
-        if (!$invoice->hasVat() || (float) ($invoice->pph23_rate ?? 0) <= 0) {
-            return redirect()->back()->withErrors(['error' => 'Invoice ini tidak memiliki PPh23 yang dapat diposting.']);
-        }
-
         if ($invoice->isPph23Posted()) {
             return redirect()->back()->withErrors(['error' => 'PPH23 untuk invoice ini sudah diposting.']);
         }
 
         $rate = (float) $validated['tax_rate'];
-        if (abs($rate - (float) $invoice->pph23_rate) > 0.01) {
-            return redirect()->back()->withErrors(['error' => 'Tarif PPh23 tidak sesuai dengan invoice.']);
-        }
-
-        $pph23Amount = (float) ($invoice->pph23_amount ?? 0);
-        if ($pph23Amount <= 0) {
-            return redirect()->back()->withErrors(['error' => 'Nilai PPh23 tidak valid untuk diposting.']);
+        $outstandingAmount = (float) ($accountReceivable->outstanding_amount ?? 0);
+        if ($outstandingAmount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Outstanding piutang tidak valid untuk diposting.']);
         }
 
         $receivableAccount = $this->resolvePph23ReceivableAccount($rate);
@@ -408,16 +396,16 @@ class AccountReceivableController extends Controller
             return redirect()->back()->withErrors(['error' => 'Akun VAT Receivable PPh23 belum dikonfigurasi.']);
         }
 
-        $amount = $pph23Amount;
+        $amount = $outstandingAmount;
         $now = now();
 
         DB::transaction(function () use ($accountReceivable, $invoice, $amount, $receivableAccount, $rate, $now) {
-            $invoice->postPph23Receivable($amount, Carbon::parse($now), auth()->id());
+            $invoice->postPph23Receivable($amount, Carbon::parse($now), auth()->id(), $rate);
 
             $accountReceivable->syncComponentsFromInvoice($invoice);
             $accountReceivable->load('components');
 
-            $remaining = $accountReceivable->outstanding_amount;
+            $remaining = min($amount, (float) $accountReceivable->outstanding_amount);
             $components = $accountReceivable->components;
 
             if ($remaining <= 0.01) {

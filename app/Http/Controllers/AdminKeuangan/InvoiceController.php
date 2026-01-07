@@ -236,7 +236,6 @@ class InvoiceController extends Controller
             'down_payment_date' => 'nullable|date',
             'down_payment_notes' => 'nullable|string|max:1000',
             'vat_rate' => ['nullable', 'numeric', Rule::in([0, 11, 1.1, '0', '11', '1.1'])],
-            'pph23_rate' => ['nullable', 'numeric', Rule::in([0, 0.5, 2, '0', '0.5', '2'])],
         ]);
 
         $salesOrder = SalesOrder::findOrFail($validated['sales_order_id']);
@@ -299,8 +298,6 @@ class InvoiceController extends Controller
         }
 
         $vatRate = isset($validated['vat_rate']) ? (float) $validated['vat_rate'] : 0;
-        $pph23Rate = isset($validated['pph23_rate']) ? (float) $validated['pph23_rate'] : 0;
-
         $invoice = Invoice::create([
             'invoice_number' => $this->generateInvoiceNumberByType($salesOrder, $validated['invoice_type']),
             'invoice_type' => $validated['invoice_type'],
@@ -333,7 +330,6 @@ class InvoiceController extends Controller
             'down_payment_date' => $validated['down_payment_date'],
             'down_payment_notes' => $validated['down_payment_notes'],
             'vat_rate' => $vatRate > 0 ? $vatRate : null,
-            'pph23_rate' => $pph23Rate > 0 ? $pph23Rate : null,
             'status' => 'draft'
         ]);
 
@@ -656,7 +652,6 @@ class InvoiceController extends Controller
               'down_payment_date' => 'nullable|date',
               'down_payment_notes' => 'nullable|string|max:1000',
               'vat_rate' => ['nullable', 'numeric', Rule::in([0, 11, 1.1, '0', '11', '1.1'])],
-              'pph23_rate' => ['nullable', 'numeric', Rule::in([0, 0.5, 2, '0', '0.5', '2'])],
           ]);
 
         $optionalFields = [
@@ -683,7 +678,6 @@ class InvoiceController extends Controller
               'down_payment_date',
               'down_payment_notes',
               'vat_rate',
-              'pph23_rate',
           ];
 
         foreach ($optionalFields as $field) {
@@ -722,9 +716,6 @@ class InvoiceController extends Controller
               'down_payment_notes' => $validated['down_payment_notes'],
               'vat_rate' => isset($validated['vat_rate']) && (float) $validated['vat_rate'] > 0
                   ? (float) $validated['vat_rate']
-                  : null,
-              'pph23_rate' => isset($validated['pph23_rate']) && (float) $validated['pph23_rate'] > 0
-                  ? (float) $validated['pph23_rate']
                   : null,
           ]);
 
@@ -953,8 +944,6 @@ class InvoiceController extends Controller
         $subtotal = $customerVisibleItems->sum('amount');
         $vatRate = (float) ($invoice->vat_rate ?? 0);
         $vatAmount = $vatRate > 0 ? round($subtotal * ($vatRate / 100), 2) : 0;
-        $pph23Rate = (float) ($invoice->pph23_rate ?? 0);
-        $pph23Amount = $pph23Rate > 0 ? round($subtotal * ($pph23Rate / 100), 2) : 0;
         $total = $subtotal + $vatAmount - ($invoice->down_payment_amount ?? 0);
 
         // Create a copy of invoice with only customer-visible items
@@ -967,8 +956,6 @@ class InvoiceController extends Controller
         $mainInvoice->subtotal = $subtotal;
         $mainInvoice->vat_rate = $vatRate > 0 ? $vatRate : null;
         $mainInvoice->vat_amount = $vatAmount;
-        $mainInvoice->pph23_rate = $pph23Rate > 0 ? $pph23Rate : null;
-        $mainInvoice->pph23_amount = $pph23Amount;
         $mainInvoice->total = $total;
 
         // Set current timestamp for print time
@@ -1046,8 +1033,6 @@ class InvoiceController extends Controller
         $subtotal = $customerVisibleItems->sum('amount');
         $vatRate = (float) ($invoice->vat_rate ?? 0);
         $vatAmount = $vatRate > 0 ? round($subtotal * ($vatRate / 100), 2) : 0;
-        $pph23Rate = (float) ($invoice->pph23_rate ?? 0);
-        $pph23Amount = $pph23Rate > 0 ? round($subtotal * ($pph23Rate / 100), 2) : 0;
         $total = $subtotal + $vatAmount - ($invoice->down_payment_amount ?? 0);
 
         // Create a copy of invoice with only customer-visible items
@@ -1060,8 +1045,6 @@ class InvoiceController extends Controller
         $mainInvoice->subtotal = $subtotal;
         $mainInvoice->vat_rate = $vatRate > 0 ? $vatRate : null;
         $mainInvoice->vat_amount = $vatAmount;
-        $mainInvoice->pph23_rate = $pph23Rate > 0 ? $pph23Rate : null;
-        $mainInvoice->pph23_amount = $pph23Amount;
         $mainInvoice->total = $total;
 
         // Set current timestamp for print time

@@ -762,18 +762,6 @@
                   <td class="total-value-col"></td>
               @endif
           </tr>
-          @if(($invoice->pph23_amount ?? 0) > 0)
-          <tr>
-              <td class="bank-label-col" style="color: #0000"></td>
-              <td class="bank-value-col" style="color: #0000"></td>
-              <td class="total-label-col">
-                  PPH 23 {{ rtrim(rtrim(number_format($invoice->pph23_rate ?? 0, 2, '.', ''), '0'), '.') }}% (-)
-              </td>
-              <td class="total-value-col">
-                  {{ number_format($invoice->pph23_amount ?? 0, 2) }}
-              </td>
-          </tr>
-          @endif
             <tr>
                 <td class="bank-label-col" style="color: #0000">ACCOUNT NAME</td>
                 <td class="bank-value-col" style="color: #0000">:

@@ -264,7 +264,7 @@ class Invoice extends Model
         $subtotal = $this->customerVisibleItems()->sum('amount');
         $vatBase = $this->mainBillableItems()->sum('amount');
         $vatAmount = $this->calculateVatAmount($vatBase);
-        $pph23Amount = $this->calculatePph23Amount($vatBase);
+        $pph23Amount = 0;
         $total = $subtotal + $vatAmount - ($this->down_payment_amount ?? 0);
         $this->update([
             'subtotal' => $subtotal,
@@ -350,13 +350,17 @@ class Invoice extends Model
         return true;
     }
 
-    public function postPph23Receivable(?float $amount = null, ?Carbon $effectiveDate = null, ?int $userId = null): bool
+    public function postPph23Receivable(?float $amount = null, ?Carbon $effectiveDate = null, ?int $userId = null, ?float $rateOverride = null): bool
     {
-        if (!$this->hasPph23() || $this->isPph23Posted()) {
+        if ($this->isPph23Posted()) {
             return false;
         }
 
-        $rate = (float) $this->pph23_rate;
+        $rate = $rateOverride ?? (float) $this->pph23_rate;
+        if ($rate <= 0) {
+            return false;
+        }
+
         $account = $this->resolvePph23ReceivableAccount($rate);
         if (!$account) {
             return false;
@@ -378,6 +382,8 @@ class Invoice extends Model
         ]);
 
         $this->update([
+            'pph23_rate' => $rate,
+            'pph23_amount' => $amountToPost,
             'pph23_posted_at' => now(),
             'pph23_posted_account_id' => $account->id,
         ]);
