@@ -59,6 +59,11 @@ class AccountPayableComponent extends Model
         return $this->component_type === 'reimbursement';
     }
 
+    public function isVatReimbursement(): bool
+    {
+        return $this->component_type === 'vat_reimbursement';
+    }
+
     // Get component label
     public function getComponentLabel(): string
     {
@@ -66,6 +71,7 @@ class AccountPayableComponent extends Model
             'vendor_payment' => 'Pembayaran Vendor',
             'operational_cost' => 'Biaya Operational',
             'reimbursement' => 'Reimbursement',
+            'vat_reimbursement' => 'VAT Reimbursement',
             default => $this->component_type,
         };
     }

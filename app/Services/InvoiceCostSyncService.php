@@ -32,6 +32,14 @@ class InvoiceCostSyncService
             return;
         }
 
+        if ($component->component_type === 'vat_reimbursement') {
+            Log::info('InvoiceCostSyncService: skipped VAT reimbursement component sync', [
+                'component_id' => $component->id,
+                'account_payable_id' => $accountPayable?->id,
+            ]);
+            return;
+        }
+
         if (!$salesOrder) {
             Log::info('InvoiceCostSyncService: skipped sync because sales order was not found', [
                 'account_payable_id' => $accountPayable?->id,
@@ -116,6 +124,8 @@ class InvoiceCostSyncService
     {
         $itemRef = 'ap_component_' . $component->id;
 
+        $isReimbursement = $component->component_type === 'reimbursement';
+
         $payload = [
             'description' => $this->buildItemDescription($component),
             'quantity' => 1,
@@ -124,12 +134,10 @@ class InvoiceCostSyncService
             'currency' => 'IDR',
             'amount' => (float) $component->amount,
             'item_ref' => $itemRef,
-            'item_type' => $component->component_type === 'reimbursement'
-                ? 'reimbursement'
-                : 'operational_cost',
+            'item_type' => $isReimbursement ? 'reimbursement' : 'operational_cost',
             'vendor_id' => $component->vendor_id,
-            'include_in_customer_invoice' => $component->component_type === 'reimbursement',
-            'is_hidden_from_customer' => $component->component_type !== 'reimbursement',
+            'include_in_customer_invoice' => $isReimbursement,
+            'is_hidden_from_customer' => !$isReimbursement,
         ];
 
         $invoiceItem = InvoiceItem::updateOrCreate(
@@ -145,7 +153,7 @@ class InvoiceCostSyncService
             return false;
         }
 
-        if ($component->component_type === 'reimbursement') {
+        if ($isReimbursement) {
             $this->linkReimbursementRecord($component, $invoice);
         }
 
@@ -242,7 +250,7 @@ class InvoiceCostSyncService
             $componentId = (int) $matches[1];
             $component = AccountPayableComponent::find($componentId);
 
-            if (!$this->isManualComponent($component)) {
+            if (!$this->isManualComponent($component) || ($component && $component->component_type === 'vat_reimbursement')) {
                 $item->delete();
                 $removed = true;
                 Log::info('InvoiceCostSyncService: removed non-manual component item from invoice', [

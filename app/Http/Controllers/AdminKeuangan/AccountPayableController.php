@@ -676,17 +676,23 @@ class AccountPayableController extends Controller
     )
     {
         $validated = $request->validate([
-            'component_type' => ['required', Rule::in(['operational_cost', 'reimbursement'])],
+            'component_type' => ['required', Rule::in(['operational_cost', 'reimbursement', 'vat_reimbursement'])],
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
             'category_id' => 'nullable|exists:operational_cost_categories,id',
             'vendor_id' => 'nullable|exists:vendors,id',
             'notes' => 'nullable|string|max:500',
+            'vat_rate' => ['nullable', 'numeric', Rule::in([11, 1.1, '11', '1.1'])],
         ]);
 
         if ($validated['component_type'] === 'operational_cost' && empty($validated['category_id'])) {
             return redirect()->back()
                 ->withErrors(['category_id' => 'Kategori biaya wajib diisi untuk biaya operasional.'])
+                ->withInput();
+        }
+        if ($validated['component_type'] === 'vat_reimbursement' && empty($validated['vat_rate'])) {
+            return redirect()->back()
+                ->withErrors(['vat_rate' => 'VAT rate wajib diisi untuk VAT reimbursement.'])
                 ->withInput();
         }
 
@@ -729,6 +735,10 @@ class AccountPayableController extends Controller
                         'category_name' => $category?->name,
                         'notes' => $validated['notes'] ?? null,
                         'source' => 'account_payable_manual_entry',
+                        'vat_rate' => $validated['component_type'] === 'vat_reimbursement'
+                            ? (float) $validated['vat_rate']
+                            : null,
+                        'vat_reimbursement' => $validated['component_type'] === 'vat_reimbursement',
                     ],
                 ]);
 

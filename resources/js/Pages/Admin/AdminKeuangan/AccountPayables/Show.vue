@@ -558,11 +558,25 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
                                     <option value="operational_cost">Biaya Operasional (Internal)</option>
                                     <option value="reimbursement">Reimbursement (Ter-tagih)</option>
+                                    <option value="vat_reimbursement">VAT Reimbursement Vendor</option>
                                 </select>
                                 <p class="text-xs text-gray-500 mt-1">
                                     Biaya operasional hanya memengaruhi profit. Reimbursement akan otomatis masuk ke
-                                    invoice
-                                    reimbursement.
+                                    invoice reimbursement. VAT reimbursement tidak masuk invoice customer dan akan
+                                    dipost ke Financial Position setelah hutang paid.
+                                </p>
+                            </div>
+                            <div v-if="shouldShowVatRateField" class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">VAT Rate *</label>
+                                <select v-model="additionalCostForm.vat_rate"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                                    :required="shouldShowVatRateField">
+                                    <option value="">-- Pilih VAT Rate --</option>
+                                    <option value="11">11%</option>
+                                    <option value="1.1">1.1%</option>
+                                </select>
+                                <p v-if="additionalCostForm.errors.vat_rate" class="text-sm text-red-600 mt-1">
+                                    {{ additionalCostForm.errors.vat_rate }}
                                 </p>
                             </div>
                             <div class="mb-4">
@@ -863,7 +877,8 @@ const additionalCostForm = useForm({
     amount: '',
     category_id: '',
     vendor_id: '',
-    notes: ''
+    notes: '',
+    vat_rate: ''
 })
 
 const additionalCostContext = ref({
@@ -925,6 +940,7 @@ const selectedComponentIdProp = computed(() => {
 const operationalCostCategories = computed(() => props.operationalCostCategories ?? [])
 const reimbursementItems = computed(() => props.reimbursementItems ?? [])
 const isCategoryLocked = computed(() => additionalCostContext.value.categoryLocked)
+const shouldShowVatRateField = computed(() => additionalCostForm.component_type === 'vat_reimbursement')
 const requiresCategory = computed(() => {
     if (additionalCostForm.component_type !== 'operational_cost') {
         return false
@@ -1019,6 +1035,13 @@ watch(
     (type) => {
         if (type !== 'operational_cost') {
             additionalCostForm.category_id = ''
+        }
+        if (type !== 'vat_reimbursement') {
+            additionalCostForm.vat_rate = ''
+            return
+        }
+        if (!additionalCostForm.vat_rate) {
+            additionalCostForm.vat_rate = '11'
         }
     }
 )
@@ -1122,7 +1145,8 @@ const getComponentLabel = (type) => {
     const labels = {
         'vendor_payment': 'Pembayaran Vendor',
         'operational_cost': 'Biaya Operational',
-        'reimbursement': 'Reimbursement'
+        'reimbursement': 'Reimbursement',
+        'vat_reimbursement': 'VAT Reimbursement'
     }
     return labels[type] || type
 }

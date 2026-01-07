@@ -9,6 +9,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Models\Vendor;
 use App\Models\SalesOrderVendorItem;
+use App\Models\ChartOfAccount;
+use App\Models\FinancialPositionAdjustment;
+use Illuminate\Support\Facades\DB;
 
 class AccountPayable extends Model
 {
@@ -1171,6 +1174,8 @@ class AccountPayable extends Model
         $component->status = $this->determineComponentStatus($component);
         $component->save();
 
+        $this->postVatReceivableForComponent($component);
+
         // Recalculate totals
         $summary = $this->recalculateTotals(false);
 
@@ -1192,6 +1197,74 @@ class AccountPayable extends Model
         $this->save();
 
         return true;
+    }
+
+    protected function postVatReceivableForComponent(AccountPayableComponent $component): void
+    {
+        if ($component->component_type !== 'vat_reimbursement') {
+            return;
+        }
+
+        if ($component->status !== 'paid') {
+            return;
+        }
+
+        $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+        if (!empty($relatedItems['vat_posted_at'])) {
+            return;
+        }
+
+        $rate = data_get($relatedItems, 'vat_rate');
+        if (!$rate) {
+            return;
+        }
+
+        $rateValue = (float) $rate;
+        $accountCode = abs($rateValue - 1.1) < 0.01 ? '1231' : '1230';
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            \Log::error('AP VAT reimbursement post failed: account missing', [
+                'account_code' => $accountCode,
+                'account_payable_id' => $this->id,
+                'component_id' => $component->id,
+            ]);
+            return;
+        }
+
+        $amount = (float) $component->amount;
+        if ($amount <= 0) {
+            return;
+        }
+
+        $effectiveDate = $this->payment_date
+            ? Carbon::parse($this->payment_date)->toDateString()
+            : now()->toDateString();
+
+        try {
+            DB::transaction(function () use ($accountId, $amount, $effectiveDate, $component, $relatedItems, $rateValue) {
+                FinancialPositionAdjustment::create([
+                    'account_id' => $accountId,
+                    'effective_date' => $effectiveDate,
+                    'amount' => $amount,
+                    'notes' => 'Post VAT Receivable ' . rtrim(rtrim(number_format($rateValue, 2, '.', ''), '0'), '.')
+                        . '% dari AP ' . ($this->vendor_invoice_number ?? $this->id),
+                    'created_by' => auth()->id(),
+                ]);
+
+                $updatedRelatedItems = $relatedItems;
+                $updatedRelatedItems['vat_posted_at'] = now()->toDateTimeString();
+                $updatedRelatedItems['vat_posted_account_id'] = $accountId;
+                $updatedRelatedItems['vat_posted_amount'] = $amount;
+                $component->related_items = $updatedRelatedItems;
+                $component->save();
+            });
+        } catch (\Throwable $e) {
+            \Log::error('AP VAT reimbursement post failed', [
+                'account_payable_id' => $this->id,
+                'component_id' => $component->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
