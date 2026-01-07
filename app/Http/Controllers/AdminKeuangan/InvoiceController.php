@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
+use App\Models\AccountPayableComponent;
 use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
 use App\Models\OperationalCostCategory;
@@ -930,20 +931,39 @@ class InvoiceController extends Controller
             // 3. Not hidden from customer
             // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
             $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+            $description = strtolower(trim($item->description ?? ''));
+            $isReimbursementItem = $itemType === 'reimbursement' ||
+                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
                                   strpos($itemRef, 'reimbur') !== false ||
                                   strpos($itemRef, 'reimb_') !== false;
+            $isVatItem = false;
+            if ($itemRef !== '') {
+                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
+            }
+            if (!$isVatItem && $description !== '') {
+                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
+            }
 
-            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+            return $itemType !== 'operational_cost' &&
                    ($item->include_in_customer_invoice ?? true) &&
                    !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+                   !$isReimbursementItem &&
+                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
         });
 
         // Calculate totals for customer-visible items only
         $subtotal = $customerVisibleItems->sum('amount');
         $vatRate = (float) ($invoice->vat_rate ?? 0);
-        $vatAmount = $vatRate > 0 ? round($subtotal * ($vatRate / 100), 2) : 0;
+        $vatBase = $customerVisibleItems->filter(function ($item) {
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+            return $itemType === 'billable';
+        })->sum('amount');
+        $vatAmount = $vatRate > 0 ? round($vatBase * ($vatRate / 100), 2) : 0;
+        if ($vatAmount <= 0 && (float) ($invoice->vat_amount ?? 0) > 0) {
+            $vatAmount = (float) $invoice->vat_amount;
+            $vatRate = (float) ($invoice->vat_rate ?? $vatRate);
+        }
         $total = $subtotal + $vatAmount - ($invoice->down_payment_amount ?? 0);
 
         // Create a copy of invoice with only customer-visible items
@@ -1019,20 +1039,39 @@ class InvoiceController extends Controller
             // 3. Not hidden from customer
             // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
             $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+            $description = strtolower(trim($item->description ?? ''));
+            $isReimbursementItem = $itemType === 'reimbursement' ||
+                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
                                   strpos($itemRef, 'reimbur') !== false ||
                                   strpos($itemRef, 'reimb_') !== false;
+            $isVatItem = false;
+            if ($itemRef !== '') {
+                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
+            }
+            if (!$isVatItem && $description !== '') {
+                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
+            }
 
-            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+            return $itemType !== 'operational_cost' &&
                    ($item->include_in_customer_invoice ?? true) &&
                    !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+                   !$isReimbursementItem &&
+                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
         });
 
         // Calculate totals for customer-visible items only
         $subtotal = $customerVisibleItems->sum('amount');
         $vatRate = (float) ($invoice->vat_rate ?? 0);
-        $vatAmount = $vatRate > 0 ? round($subtotal * ($vatRate / 100), 2) : 0;
+        $vatBase = $customerVisibleItems->filter(function ($item) {
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+            return $itemType === 'billable';
+        })->sum('amount');
+        $vatAmount = $vatRate > 0 ? round($vatBase * ($vatRate / 100), 2) : 0;
+        if ($vatAmount <= 0 && (float) ($invoice->vat_amount ?? 0) > 0) {
+            $vatAmount = (float) $invoice->vat_amount;
+            $vatRate = (float) ($invoice->vat_rate ?? $vatRate);
+        }
         $total = $subtotal + $vatAmount - ($invoice->down_payment_amount ?? 0);
 
         // Create a copy of invoice with only customer-visible items
@@ -1202,14 +1241,25 @@ class InvoiceController extends Controller
             // 3. Not hidden from customer
             // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
             $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+            $description = strtolower(trim($item->description ?? ''));
+            $isReimbursementItem = $itemType === 'reimbursement' ||
+                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
                                   strpos($itemRef, 'reimbur') !== false ||
                                   strpos($itemRef, 'reimb_') !== false;
+            $isVatItem = false;
+            if ($itemRef !== '') {
+                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
+            }
+            if (!$isVatItem && $description !== '') {
+                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
+            }
 
-            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+            return $itemType !== 'operational_cost' &&
                    ($item->include_in_customer_invoice ?? true) &&
                    !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+                   !$isReimbursementItem &&
+                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
         });
 
         // Create a copy of invoice with only customer-visible items
@@ -1235,14 +1285,25 @@ class InvoiceController extends Controller
             // 3. Not hidden from customer
             // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
             $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $isReimbursementItem = in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+            $description = strtolower(trim($item->description ?? ''));
+            $isReimbursementItem = $itemType === 'reimbursement' ||
+                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
                                   strpos($itemRef, 'reimbur') !== false ||
                                   strpos($itemRef, 'reimb_') !== false;
+            $isVatItem = false;
+            if ($itemRef !== '') {
+                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
+            }
+            if (!$isVatItem && $description !== '') {
+                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
+            }
 
-            return ($item->item_type ?? 'billable') !== 'operational_cost' &&
+            return $itemType !== 'operational_cost' &&
                    ($item->include_in_customer_invoice ?? true) &&
                    !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem; // Exclude reimbursement items from main invoice
+                   !$isReimbursementItem &&
+                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
         });
 
         // Create a copy of invoice with only customer-visible items
@@ -1600,6 +1661,22 @@ class InvoiceController extends Controller
             $reimbursement = null;
             $itemRef = strtolower(trim($item->item_ref ?? ''));
 
+            $component = null;
+            if ($itemRef && preg_match('/ap_component_(\d+)/', $itemRef, $matches)) {
+                $component = AccountPayableComponent::find((int) $matches[1]);
+                $reimbursementId = data_get($component?->related_items, 'reimbursement_item_id');
+                if ($reimbursementId) {
+                    $reimbursement = ReimbursementItem::find((int) $reimbursementId);
+                }
+
+                if (!$reimbursement && $component) {
+                    $reimbursement = ReimbursementItem::query()
+                        ->where('sales_order_id', $invoice->sales_order_id)
+                        ->where('receipt_info->component_id', $component->id)
+                        ->first();
+                }
+            }
+
             if ($itemRef && preg_match('/reimb(?:ursement)?[_-]?(\d+)/', $itemRef, $matches)) {
                 $reimbursement = ReimbursementItem::find((int) $matches[1]);
             }
@@ -1618,6 +1695,22 @@ class InvoiceController extends Controller
                     'category' => $reimbursement->category ?? 'general',
                     'created_by' => $reimbursement->created_by ?? $defaultUserId,
                 ]);
+            }
+
+            if ($component && $reimbursement) {
+                $receiptInfo = $reimbursement->receipt_info ?? [];
+                if (!is_array($receiptInfo)) {
+                    $receiptInfo = json_decode($receiptInfo, true) ?: [];
+                }
+
+                if (empty($receiptInfo['component_id'])) {
+                    $receiptInfo['component_id'] = $component->id;
+                }
+                if (empty($receiptInfo['source'])) {
+                    $receiptInfo['source'] = 'account_payable_component';
+                }
+
+                $reimbursement->receipt_info = empty($receiptInfo) ? null : $receiptInfo;
             }
 
             $reimbursement->sales_order_id = $invoice->sales_order_id;
