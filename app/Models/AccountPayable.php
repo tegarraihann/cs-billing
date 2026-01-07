@@ -894,7 +894,28 @@ class AccountPayable extends Model
 
         return $this->salesOrder->reimbursementItems
             ->filter(function ($item) {
-                return (float) ($item->amount ?? 0) > 0 && ($item->status ?? null) !== 'paid';
+                if ((float) ($item->amount ?? 0) <= 0) {
+                    return false;
+                }
+
+                if (($item->status ?? null) === 'paid') {
+                    return false;
+                }
+
+                $receiptInfo = $item->receipt_info ?? [];
+                if (!is_array($receiptInfo)) {
+                    $receiptInfo = json_decode($receiptInfo, true) ?: [];
+                }
+
+                if (($receiptInfo['source'] ?? null) === 'account_payable_component') {
+                    return false;
+                }
+
+                if (!empty($receiptInfo['component_id'])) {
+                    return false;
+                }
+
+                return true;
             })
             ->map(function ($item) use ($payableVendorId, $payableVendorName) {
                 $entryVendorId = $this->normalizeVendorIdentifier($item->vendor_id ?? $item->vendor?->id ?? null);
