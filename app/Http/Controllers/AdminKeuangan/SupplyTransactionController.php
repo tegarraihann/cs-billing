@@ -79,7 +79,7 @@ class SupplyTransactionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'quantity' => ['nullable', 'numeric', 'min:0.01'],
             'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
-            'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'other'])],
+            'source_type' => ['required', Rule::in(['bank', 'petty_cash'])],
             'bank_account_id' => ['nullable', 'required_if:source_type,bank', 'exists:bank_accounts,id'],
             'petty_cash_category_id' => ['nullable', 'required_if:source_type,petty_cash', 'exists:petty_cash_categories,id'],
             'reference_number' => ['nullable', 'string', 'max:100'],

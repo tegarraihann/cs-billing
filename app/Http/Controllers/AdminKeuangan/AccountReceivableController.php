@@ -386,59 +386,56 @@ class AccountReceivableController extends Controller
         }
 
         $rate = (float) $validated['tax_rate'];
-        $outstandingAmount = (float) ($accountReceivable->outstanding_amount ?? 0);
-        if ($outstandingAmount <= 0) {
-            return redirect()->back()->withErrors(['error' => 'Outstanding piutang tidak valid untuk diposting.']);
-        }
 
         $receivableAccount = $this->resolvePph23ReceivableAccount($rate);
         if (!$receivableAccount) {
             return redirect()->back()->withErrors(['error' => 'Akun VAT Receivable PPh23 belum dikonfigurasi.']);
         }
 
-        $amount = $outstandingAmount;
         $now = now();
+
+        $accountReceivable->syncComponentsFromInvoice($invoice);
+        $accountReceivable->load('components');
+        $mainComponent = $accountReceivable->components->firstWhere('component_type', 'main');
+        $mainOutstanding = (float) ($mainComponent?->outstanding_amount ?? 0);
+
+        if ($mainOutstanding <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Outstanding main invoice tidak valid untuk diposting.']);
+        }
+
+        $amount = $mainOutstanding;
 
         DB::transaction(function () use ($accountReceivable, $invoice, $amount, $receivableAccount, $rate, $now) {
             $invoice->postPph23Receivable($amount, Carbon::parse($now), auth()->id(), $rate);
 
             $accountReceivable->syncComponentsFromInvoice($invoice);
             $accountReceivable->load('components');
+            $mainComponent = $accountReceivable->components->firstWhere('component_type', 'main');
 
-            $remaining = min($amount, (float) $accountReceivable->outstanding_amount);
-            $components = $accountReceivable->components;
-
-            if ($remaining <= 0.01) {
+            if (!$mainComponent || (float) $mainComponent->outstanding_amount <= 0) {
                 return;
             }
 
-            if ($components->isEmpty()) {
+            $payAmount = min($amount, (float) $mainComponent->outstanding_amount);
+
+            if ($accountReceivable->components->isEmpty()) {
                 $accountReceivable->recordPayment(
-                    $remaining,
+                    $payAmount,
                     'Posted to VAT Receivable PPh23 ' . $rate . '%',
                     null,
                     Carbon::parse($now)
                 );
                 return;
             }
-
-            foreach ($components as $component) {
-                $out = (float) $component->outstanding_amount;
-                if ($out <= 0 || $remaining <= 0) {
-                    continue;
-                }
-                $pay = min($out, $remaining);
-                $accountReceivable->recordPayment(
-                    $pay,
-                    'Posted to VAT Receivable PPh23 ' . $rate . '%',
-                    $component,
-                    Carbon::parse($now)
-                );
-                $remaining -= $pay;
-            }
+            $accountReceivable->recordPayment(
+                $payAmount,
+                'Posted to VAT Receivable PPh23 ' . $rate . '%',
+                $mainComponent,
+                Carbon::parse($now)
+            );
         });
 
-        return redirect()->back()->with('success', 'Outstanding diposting ke VAT Receivable PPh23 dan piutang ditutup.');
+        return redirect()->back()->with('success', 'Outstanding main invoice diposting ke VAT Receivable PPh23.');
     }
 
     private function resolveTaxExpenseAccount(float $rate): ?ChartOfAccount

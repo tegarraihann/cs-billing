@@ -236,7 +236,6 @@
                                     required
                                 >
                                     <option value="">Pilih sumber dana</option>
-                                    <option value="other">Lainnya</option>
                                     <option value="bank">Bank</option>
                                     <option value="petty_cash">Petty Cash</option>
                                 </select>
@@ -540,7 +539,7 @@ const submitTopup = () => {
         onSuccess: () => {
             topupForm.reset()
             topupForm.transaction_date = today
-            topupForm.source_type = 'other'
+            topupForm.source_type = ''
             topupForm.petty_cash_category_id = ''
             selectedTopupCategoryId.value = pettyCashCategories.value[0]?.id || ''
             closeTopupModal()
@@ -578,7 +577,7 @@ const resetFilters = () => {
 const openTopupModal = () => {
     topupForm.reset()
     topupForm.transaction_date = today
-    topupForm.source_type = 'other'
+    topupForm.source_type = ''
     topupForm.pl_account_id = defaultExpenseAccountId.value
     topupForm.bank_account_id = ''
     topupForm.petty_cash_category_id = ''
