@@ -41,6 +41,14 @@ class AccountPayable extends Model
         'vat_receivable_amount',
         'vat_receivable_posted_at',
         'vat_receivable_account_id',
+        'vat_payable_rate',
+        'vat_payable_amount',
+        'vat_payable_posted_at',
+        'vat_payable_account_id',
+        'pph23_payable_rate',
+        'pph23_payable_amount',
+        'pph23_payable_posted_at',
+        'pph23_payable_account_id',
     ];
 
     protected $casts = [
@@ -56,6 +64,14 @@ class AccountPayable extends Model
         'vat_receivable_amount' => 'decimal:2',
         'vat_receivable_posted_at' => 'datetime',
         'vat_receivable_account_id' => 'integer',
+        'vat_payable_rate' => 'decimal:2',
+        'vat_payable_amount' => 'decimal:2',
+        'vat_payable_posted_at' => 'datetime',
+        'vat_payable_account_id' => 'integer',
+        'pph23_payable_rate' => 'decimal:2',
+        'pph23_payable_amount' => 'decimal:2',
+        'pph23_payable_posted_at' => 'datetime',
+        'pph23_payable_account_id' => 'integer',
     ];
 
     protected static function booted(): void

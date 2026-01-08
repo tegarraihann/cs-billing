@@ -240,7 +240,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-right">
-                                                <div v-if="hasVatActions(component)"
+                                                <div v-if="hasVatActions()"
                                                     class="relative inline-flex justify-end w-full" @click.stop>
                                                     <button type="button"
                                                         class="inline-flex items-center justify-center rounded-md border border-sage-300 bg-white px-2.5 py-2 text-sage-700 hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition"
@@ -252,32 +252,28 @@
                                                         class="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
                                                         @click.stop>
                                                         <div class="py-1">
-                                                            <button v-if="canPostVatForComponent(component)"
-                                                                type="button"
-                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                :disabled="isPostingVat"
-                                                                @click="handleVatAction(postVatPayable11)">
+                                                            <button type="button"
+                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                :disabled="isPostingVat || !canPostVatPayable"
+                                                                @click="canPostVatPayable && handleVatAction(postVatPayable11)">
                                                                 Post VAT Payable 11%
                                                             </button>
-                                                            <button v-if="canPostVatForComponent(component)"
-                                                                type="button"
-                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                :disabled="isPostingVat"
-                                                                @click="handleVatAction(postVatPayable11_1)">
+                                                            <button type="button"
+                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                :disabled="isPostingVat || !canPostVatPayable"
+                                                                @click="canPostVatPayable && handleVatAction(postVatPayable11_1)">
                                                                 Post VAT Payable 1.1%
                                                             </button>
-                                                            <button v-if="canPostVatForComponent(component)"
-                                                                type="button"
-                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                :disabled="isPostingVat"
-                                                                @click="handleVatAction(postPph23Payable05)">
+                                                            <button type="button"
+                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                :disabled="isPostingVat || !canPostPph23Payable"
+                                                                @click="canPostPph23Payable && handleVatAction(postPph23Payable05)">
                                                                 Post VAT Payable PPh23 0.5%
                                                             </button>
-                                                            <button v-if="canPostVatForComponent(component)"
-                                                                type="button"
-                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                :disabled="isPostingVat"
-                                                                @click="handleVatAction(postPph23Payable2)">
+                                                            <button type="button"
+                                                                class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                :disabled="isPostingVat || !canPostPph23Payable"
+                                                                @click="canPostPph23Payable && handleVatAction(postPph23Payable2)">
                                                                 Post VAT Payable PPh23 2%
                                                             </button>
                                                             <div class="my-1 border-t border-gray-100"></div>
@@ -803,14 +799,26 @@ const summary = computed(() => {
 })
 
 const summaryStatus = computed(() => summary.value.status ?? payable.value?.status ?? 'unpaid')
+const payableStatus = computed(() => payable.value?.status ?? summaryStatus.value ?? 'unpaid')
+const payableOutstanding = computed(() => Number(payable.value?.outstanding_amount ?? summary.value.total_outstanding ?? 0))
 const activeVendorName = computed(() => payable.value?.vendor?.nama_vendor ?? payable.value?.vendor_name ?? '-')
 const activeDaysOverdue = computed(() => payable.value?.days_overdue ?? 0)
 const overdueDays = computed(() => activeDaysOverdue.value)
-const canPostVat = computed(() => (summary.value.total_outstanding || 0) > 0 && summaryStatus.value !== 'paid')
-const canPostVatReceivable = computed(() => {
-    const outstanding = summary.value.total_outstanding ?? 0
-    return summaryStatus.value === 'paid' && Number(outstanding) <= 0 && !payable.value?.vat_receivable_posted_at
-})
+const canPostVatPayable = computed(() => (
+    payableOutstanding.value > 0 &&
+    payableStatus.value !== 'paid' &&
+    !payable.value?.vat_payable_posted_at
+))
+const canPostPph23Payable = computed(() => (
+    payableOutstanding.value > 0 &&
+    payableStatus.value !== 'paid' &&
+    !payable.value?.pph23_payable_posted_at
+))
+const canPostVatReceivable = computed(() => (
+    payableStatus.value === 'paid' &&
+    payableOutstanding.value <= 0 &&
+    !payable.value?.vat_receivable_posted_at
+))
 
 const activeVatMenuId = ref(null)
 
@@ -823,14 +831,7 @@ const isPostingVat = computed(() => (
     || postingVatReceivable11_1.value
 ))
 
-const canPostVatForComponent = (component) => {
-    const outstanding = Number(component?.outstanding_amount ?? 0)
-    return canPostVat.value && outstanding > 0
-}
-
-const hasVatActions = (component) => (
-    canPostVatForComponent(component) || canPostVatReceivable.value
-)
+const hasVatActions = () => Boolean(payable.value)
 
 const toggleVatMenu = (componentId) => {
     activeVatMenuId.value = activeVatMenuId.value === componentId ? null : componentId
@@ -1152,7 +1153,7 @@ const getComponentLabel = (type) => {
 }
 
 const postVatPayable11 = () => {
-    if (!canPostVat.value || postingVat11.value || !payable.value) {
+    if (!canPostVatPayable.value || postingVat11.value || !payable.value) {
         return
     }
     openConfirm(
@@ -1174,7 +1175,7 @@ const postVatPayable11 = () => {
 }
 
 const postVatPayable11_1 = () => {
-    if (!canPostVat.value || postingVat11_1.value || !payable.value) {
+    if (!canPostVatPayable.value || postingVat11_1.value || !payable.value) {
         return
     }
     openConfirm(
@@ -1240,7 +1241,7 @@ const postVatReceivable11_1 = () => {
 }
 
 const postPph23Payable05 = () => {
-    if (!canPostVat.value || postingPph23_05.value || !payable.value) {
+    if (!canPostPph23Payable.value || postingPph23_05.value || !payable.value) {
         return
     }
     openConfirm(
@@ -1262,7 +1263,7 @@ const postPph23Payable05 = () => {
 }
 
 const postPph23Payable2 = () => {
-    if (!canPostVat.value || postingPph23_2.value || !payable.value) {
+    if (!canPostPph23Payable.value || postingPph23_2.value || !payable.value) {
         return
     }
     openConfirm(

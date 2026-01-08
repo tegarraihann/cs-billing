@@ -830,6 +830,10 @@
                                     }}</span>
                             </div>
                             <div class="flex justify-between">
+                                <span class="text-sm text-gray-700">{{ vatRateLabel }}:</span>
+                                <span class="text-sm font-medium text-gray-700">{{ formatCurrency(vatAmount) }}</span>
+                            </div>
+                            <div class="flex justify-between">
                                 <span class="text-sm text-orange-700">Total Reimbursement Items:</span>
                                 <span class="text-sm font-medium text-orange-700">{{
                                     formatCurrency(getReimbursementTotal) }}</span>
@@ -1488,6 +1492,15 @@ const vatAmount = computed(() => {
     return Number(props.invoice?.vat_amount || 0);
 });
 
+const vatRateLabel = computed(() => {
+    const rate = Number(props.invoice?.vat_rate || 0);
+    if (!rate) {
+        return 'Total VAT';
+    }
+    const formatted = rate % 1 === 0 ? rate.toFixed(0) : rate.toString();
+    return `Total VAT (${formatted}%)`;
+});
+
 const downPaymentAmount = computed(() => {
     return Number(props.invoice?.down_payment_amount || 0);
 });
@@ -1499,7 +1512,7 @@ const mainTotalAfterDownPayment = computed(() => {
 });
 
 const combinedTotalBeforeDownPayment = computed(() => {
-    return getMainTotal.value + getReimbursementTotal.value;
+    return getMainTotal.value + vatAmount.value + getReimbursementTotal.value;
 });
 
 const combinedTotalAfterDownPayment = computed(() => {

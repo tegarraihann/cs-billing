@@ -239,6 +239,10 @@ class AccountPayableController extends Controller
             return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable.']);
         }
 
+        if ($accountPayable->vat_payable_posted_at) {
+            return redirect()->back()->withErrors(['error' => 'VAT Payable sudah diposting untuk hutang ini.']);
+        }
+
         $accountId = ChartOfAccount::idByCode($accountCode);
         if (!$accountId) {
             return redirect()->back()->withErrors(['error' => "Akun VAT Payable {$label} belum dikonfigurasi."]);
@@ -252,13 +256,22 @@ class AccountPayableController extends Controller
         $paymentMethod = 'VAT Payable ' . $label;
         $paymentNotes = 'Posted to VAT Payable ' . $label;
 
-        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now, $label, $paymentMethod, $paymentNotes) {
+        $rateValue = $accountCode === '2111' ? 1.1 : 11;
+
+        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now, $label, $paymentMethod, $paymentNotes, $rateValue) {
             FinancialPositionAdjustment::create([
                 'account_id' => $accountId,
                 'effective_date' => $now->toDateString(),
                 'amount' => $amount,
                 'notes' => 'Post VAT Payable ' . $label . ' dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
                 'created_by' => auth()->id(),
+            ]);
+
+            $accountPayable->update([
+                'vat_payable_rate' => $rateValue,
+                'vat_payable_amount' => $amount,
+                'vat_payable_posted_at' => now(),
+                'vat_payable_account_id' => $accountId,
             ]);
 
             if ($accountPayable->components->isEmpty()) {
@@ -291,6 +304,10 @@ class AccountPayableController extends Controller
             return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable PPh23.']);
         }
 
+        if ($accountPayable->pph23_payable_posted_at) {
+            return redirect()->back()->withErrors(['error' => 'VAT Payable PPh23 sudah diposting untuk hutang ini.']);
+        }
+
         $account = $this->resolvePph23PayableAccount($rate);
         if (!$account) {
             return redirect()->back()->withErrors(['error' => 'Akun VAT Payable PPh23 belum dikonfigurasi.']);
@@ -305,13 +322,20 @@ class AccountPayableController extends Controller
         $paymentMethod = 'VAT Payable PPh23 ' . $label . '%';
         $paymentNotes = 'Posted to VAT Payable PPh23 ' . $label . '%';
 
-        DB::transaction(function () use ($accountPayable, $amount, $account, $now, $paymentMethod, $paymentNotes, $label) {
+        DB::transaction(function () use ($accountPayable, $amount, $account, $now, $paymentMethod, $paymentNotes, $label, $rate) {
             FinancialPositionAdjustment::create([
                 'account_id' => $account->id,
                 'effective_date' => $now->toDateString(),
                 'amount' => $amount,
                 'notes' => 'Post VAT Payable PPh23 ' . $label . '% dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
                 'created_by' => auth()->id(),
+            ]);
+
+            $accountPayable->update([
+                'pph23_payable_rate' => $rate,
+                'pph23_payable_amount' => $amount,
+                'pph23_payable_posted_at' => now(),
+                'pph23_payable_account_id' => $account->id,
             ]);
 
             if ($accountPayable->components->isEmpty()) {
@@ -1183,6 +1207,14 @@ class AccountPayableController extends Controller
             'vat_receivable_amount' => $payable->vat_receivable_amount !== null ? (float) $payable->vat_receivable_amount : null,
             'vat_receivable_posted_at' => $payable->vat_receivable_posted_at?->toDateTimeString(),
             'vat_receivable_account_id' => $payable->vat_receivable_account_id,
+            'vat_payable_rate' => $payable->vat_payable_rate !== null ? (float) $payable->vat_payable_rate : null,
+            'vat_payable_amount' => $payable->vat_payable_amount !== null ? (float) $payable->vat_payable_amount : null,
+            'vat_payable_posted_at' => $payable->vat_payable_posted_at?->toDateTimeString(),
+            'vat_payable_account_id' => $payable->vat_payable_account_id,
+            'pph23_payable_rate' => $payable->pph23_payable_rate !== null ? (float) $payable->pph23_payable_rate : null,
+            'pph23_payable_amount' => $payable->pph23_payable_amount !== null ? (float) $payable->pph23_payable_amount : null,
+            'pph23_payable_posted_at' => $payable->pph23_payable_posted_at?->toDateTimeString(),
+            'pph23_payable_account_id' => $payable->pph23_payable_account_id,
             'vendor_name' => $payable->vendor->nama_vendor ?? $payable->vendor_name,
             'vendor' => $payable->vendor ? [
                 'id' => $payable->vendor->id,
