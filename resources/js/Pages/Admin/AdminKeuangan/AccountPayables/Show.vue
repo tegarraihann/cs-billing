@@ -799,8 +799,8 @@ const summary = computed(() => {
 })
 
 const summaryStatus = computed(() => summary.value.status ?? payable.value?.status ?? 'unpaid')
-const payableStatus = computed(() => payable.value?.status ?? summaryStatus.value ?? 'unpaid')
-const payableOutstanding = computed(() => Number(payable.value?.outstanding_amount ?? summary.value.total_outstanding ?? 0))
+const payableStatus = computed(() => summaryStatus.value ?? payable.value?.status ?? 'unpaid')
+const payableOutstanding = computed(() => Number(summary.value.total_outstanding ?? payable.value?.outstanding_amount ?? 0))
 const activeVendorName = computed(() => payable.value?.vendor?.nama_vendor ?? payable.value?.vendor_name ?? '-')
 const activeDaysOverdue = computed(() => payable.value?.days_overdue ?? 0)
 const overdueDays = computed(() => activeDaysOverdue.value)
@@ -811,8 +811,7 @@ const canPostVatPayable = computed(() => (
 ))
 const canPostPph23Payable = computed(() => (
     payableOutstanding.value > 0 &&
-    payableStatus.value !== 'paid' &&
-    !payable.value?.pph23_payable_posted_at
+    payableStatus.value !== 'paid'
 ))
 const canPostVatReceivable = computed(() => (
     payableStatus.value === 'paid' &&

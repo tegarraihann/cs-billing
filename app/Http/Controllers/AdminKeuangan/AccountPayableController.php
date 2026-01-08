@@ -300,14 +300,6 @@ class AccountPayableController extends Controller
 
     private function postPph23Payable(AccountPayable $accountPayable, float $rate)
     {
-        if ($accountPayable->outstanding_amount <= 0) {
-            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding yang dapat diposting ke VAT Payable PPh23.']);
-        }
-
-        if ($accountPayable->pph23_payable_posted_at) {
-            return redirect()->back()->withErrors(['error' => 'VAT Payable PPh23 sudah diposting untuk hutang ini.']);
-        }
-
         $account = $this->resolvePph23PayableAccount($rate);
         if (!$account) {
             return redirect()->back()->withErrors(['error' => 'Akun VAT Payable PPh23 belum dikonfigurasi.']);
@@ -316,13 +308,23 @@ class AccountPayableController extends Controller
         $accountPayable->syncComponents();
         $accountPayable->load('components');
 
-        $amount = (float) $accountPayable->outstanding_amount;
+        $currentOutstanding = (float) $accountPayable->components->sum('outstanding_amount');
+        if ($currentOutstanding <= 0) {
+            $currentOutstanding = (float) $accountPayable->outstanding_amount;
+        }
+
+        if ($currentOutstanding <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Tidak ada outstanding baru yang dapat diposting ke VAT Payable PPh23.']);
+        }
+
+        $alreadyPosted = (float) ($accountPayable->pph23_payable_amount ?? 0);
+        $amount = $currentOutstanding;
         $now = now();
         $label = rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.');
         $paymentMethod = 'VAT Payable PPh23 ' . $label . '%';
         $paymentNotes = 'Posted to VAT Payable PPh23 ' . $label . '%';
 
-        DB::transaction(function () use ($accountPayable, $amount, $account, $now, $paymentMethod, $paymentNotes, $label, $rate) {
+        DB::transaction(function () use ($accountPayable, $amount, $alreadyPosted, $account, $now, $paymentMethod, $paymentNotes, $label, $rate) {
             FinancialPositionAdjustment::create([
                 'account_id' => $account->id,
                 'effective_date' => $now->toDateString(),
@@ -333,8 +335,8 @@ class AccountPayableController extends Controller
 
             $accountPayable->update([
                 'pph23_payable_rate' => $rate,
-                'pph23_payable_amount' => $amount,
-                'pph23_payable_posted_at' => now(),
+                'pph23_payable_amount' => $alreadyPosted + $amount,
+                'pph23_payable_posted_at' => $now,
                 'pph23_payable_account_id' => $account->id,
             ]);
 
@@ -343,19 +345,22 @@ class AccountPayableController extends Controller
                 return;
             }
 
+            $remaining = $amount;
             foreach ($accountPayable->components as $component) {
                 $outstanding = (float) $component->outstanding_amount;
-                if ($outstanding <= 0) {
+                if ($outstanding <= 0 || $remaining <= 0) {
                     continue;
                 }
 
+                $payAmount = min($outstanding, $remaining);
                 $accountPayable->recordPaymentToComponent(
                     $component,
-                    $outstanding,
+                    $payAmount,
                     $paymentMethod,
                     $paymentNotes,
                     $now
                 );
+                $remaining -= $payAmount;
             }
         });
 
