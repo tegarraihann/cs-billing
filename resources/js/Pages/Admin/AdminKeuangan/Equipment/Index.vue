@@ -199,6 +199,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sumber Dana *</label>
                             <select v-model="purchaseForm.source_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500">
+                                <option value="">Pilih sumber dana</option>
                                 <option value="bank">Transfer Bank</option>
                                 <option value="petty_cash">Petty Cash</option>
                             </select>
@@ -370,7 +371,7 @@ const purchaseForm = useForm({
     amount: '',
     description: '',
     reference_number: '',
-    source_type: 'bank',
+    source_type: '',
     bank_account_id: '',
     petty_cash_category_id: '',
     pl_account_id: '',
@@ -402,7 +403,9 @@ watch(
 const openPurchaseModal = () => {
     purchaseForm.reset()
     purchaseForm.transaction_date = new Date().toISOString().split('T')[0]
-    purchaseForm.source_type = 'bank'
+    purchaseForm.source_type = ''
+    purchaseForm.bank_account_id = ''
+    purchaseForm.petty_cash_category_id = ''
     purchaseForm.pl_account_id = defaultExpenseAccountId.value
     showPurchaseModal.value = true
 }
