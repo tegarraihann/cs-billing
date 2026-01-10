@@ -1190,8 +1190,6 @@ class AccountPayable extends Model
         $component->status = $this->determineComponentStatus($component);
         $component->save();
 
-        $this->postVatReceivableForComponent($component);
-
         // Recalculate totals
         $summary = $this->recalculateTotals(false);
 
