@@ -266,27 +266,27 @@
                                                             </button>
                                                             <button type="button"
                                                                 class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                :disabled="isPostingVat || !canPostPph23Payable"
-                                                                @click="canPostPph23Payable && handleVatAction(postPph23Payable05)">
+                                                                :disabled="isPostingVat || !canPostPph23PayableFor(component)"
+                                                                @click="canPostPph23PayableFor(component) && handleVatAction(postPph23Payable05, component)">
                                                                 Post VAT Payable PPh23 0.5%
                                                             </button>
                                                             <button type="button"
                                                                 class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                :disabled="isPostingVat || !canPostPph23Payable"
-                                                                @click="canPostPph23Payable && handleVatAction(postPph23Payable2)">
+                                                                :disabled="isPostingVat || !canPostPph23PayableFor(component)"
+                                                                @click="canPostPph23PayableFor(component) && handleVatAction(postPph23Payable2, component)">
                                                                 Post VAT Payable PPh23 2%
                                                             </button>
                                                             <div class="my-1 border-t border-gray-100"></div>
                                                             <button type="button"
                                                                 class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                :disabled="isPostingVat || !canPostVatReceivable"
-                                                                @click="canPostVatReceivable && handleVatAction(postVatReceivable11)">
+                                                                :disabled="isPostingVat || !canPostVatReceivableFor(component)"
+                                                                @click="canPostVatReceivableFor(component) && handleVatAction(postVatReceivable11, component)">
                                                                 Post VAT Receivable 11%
                                                             </button>
                                                             <button type="button"
                                                                 class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                :disabled="isPostingVat || !canPostVatReceivable"
-                                                                @click="canPostVatReceivable && handleVatAction(postVatReceivable11_1)">
+                                                                :disabled="isPostingVat || !canPostVatReceivableFor(component)"
+                                                                @click="canPostVatReceivableFor(component) && handleVatAction(postVatReceivable11_1, component)">
                                                                 Post VAT Receivable 1.1%
                                                             </button>
                                                         </div>
@@ -813,11 +813,16 @@ const canPostPph23Payable = computed(() => (
     payableOutstanding.value > 0 &&
     payableStatus.value !== 'paid'
 ))
-const canPostVatReceivable = computed(() => (
-    payableStatus.value === 'paid' &&
-    payableOutstanding.value <= 0 &&
-    !payable.value?.vat_receivable_posted_at
-))
+const canPostPph23PayableFor = (component) => (
+    canPostPph23Payable.value &&
+    Number(component?.outstanding_amount ?? 0) > 0
+)
+const canPostVatReceivableFor = (component) => (
+    component?.component_type === 'vat_reimbursement' &&
+    Number(component?.outstanding_amount ?? 0) <= 0 &&
+    component?.status === 'paid' &&
+    !component?.vat_receivable_posted_at
+)
 
 const activeVatMenuId = ref(null)
 
@@ -842,9 +847,9 @@ const closeVatMenu = () => {
     activeVatMenuId.value = null
 }
 
-const handleVatAction = (action) => {
+const handleVatAction = (action, payload = null) => {
     closeVatMenu()
-    action()
+    action(payload)
 }
 
 onMounted(() => {
@@ -1195,17 +1200,23 @@ const postVatPayable11_1 = () => {
     )
 }
 
-const postVatReceivable11 = () => {
-    if (!canPostVatReceivable.value || postingVatReceivable11.value || !payable.value) {
+const postVatReceivable11 = (component = null) => {
+    if (!payable.value || postingVatReceivable11.value) {
         return
     }
+    if (!canPostVatReceivableFor(component)) {
+        return
+    }
+    const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
         `Post VAT Receivable 11% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingVatReceivable11.value = true
             router.post(
-                route('admin-keuangan.account-payables.post-vat-receivable-11', payable.value.id),
-                {},
+                route('admin-keuangan.account-payables.post-vat-receivable-11', targetPayableId),
+                {
+                    component_id: component?.id ?? null
+                },
                 {
                     onFinish: () => {
                         postingVatReceivable11.value = false
@@ -1217,17 +1228,23 @@ const postVatReceivable11 = () => {
     )
 }
 
-const postVatReceivable11_1 = () => {
-    if (!canPostVatReceivable.value || postingVatReceivable11_1.value || !payable.value) {
+const postVatReceivable11_1 = (component = null) => {
+    if (!payable.value || postingVatReceivable11_1.value) {
         return
     }
+    if (!canPostVatReceivableFor(component)) {
+        return
+    }
+    const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
         `Post VAT Receivable 1.1% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingVatReceivable11_1.value = true
             router.post(
-                route('admin-keuangan.account-payables.post-vat-receivable-1-1', payable.value.id),
-                {},
+                route('admin-keuangan.account-payables.post-vat-receivable-1-1', targetPayableId),
+                {
+                    component_id: component?.id ?? null
+                },
                 {
                     onFinish: () => {
                         postingVatReceivable11_1.value = false
@@ -1239,17 +1256,20 @@ const postVatReceivable11_1 = () => {
     )
 }
 
-const postPph23Payable05 = () => {
+const postPph23Payable05 = (component = null) => {
     if (!canPostPph23Payable.value || postingPph23_05.value || !payable.value) {
         return
     }
+    const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
         `Post VAT Payable PPh23 0.5% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingPph23_05.value = true
             router.post(
-                route('admin-keuangan.account-payables.post-pph23-0-5', payable.value.id),
-                {},
+                route('admin-keuangan.account-payables.post-pph23-0-5', targetPayableId),
+                {
+                    component_id: component?.id ?? null
+                },
                 {
                     onFinish: () => {
                         postingPph23_05.value = false
@@ -1261,17 +1281,20 @@ const postPph23Payable05 = () => {
     )
 }
 
-const postPph23Payable2 = () => {
+const postPph23Payable2 = (component = null) => {
     if (!canPostPph23Payable.value || postingPph23_2.value || !payable.value) {
         return
     }
+    const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
         `Post VAT Payable PPh23 2% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingPph23_2.value = true
             router.post(
-                route('admin-keuangan.account-payables.post-pph23-2', payable.value.id),
-                {},
+                route('admin-keuangan.account-payables.post-pph23-2', targetPayableId),
+                {
+                    component_id: component?.id ?? null
+                },
                 {
                     onFinish: () => {
                         postingPph23_2.value = false

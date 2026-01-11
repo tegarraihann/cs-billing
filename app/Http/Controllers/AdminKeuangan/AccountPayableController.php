@@ -153,47 +153,67 @@ class AccountPayableController extends Controller
     /**
      * Post outstanding payable to VAT Payable PPh23 0.5% (2114).
      */
-    public function postPph23Payable05(AccountPayable $accountPayable)
+    public function postPph23Payable05(Request $request, AccountPayable $accountPayable)
     {
-        return $this->postPph23Payable($accountPayable, 0.5);
+        return $this->postPph23Payable($accountPayable, 0.5, $request->input('component_id'));
     }
 
     /**
      * Post outstanding payable to VAT Payable PPh23 2% (2115).
      */
-    public function postPph23Payable2(AccountPayable $accountPayable)
+    public function postPph23Payable2(Request $request, AccountPayable $accountPayable)
     {
-        return $this->postPph23Payable($accountPayable, 2);
+        return $this->postPph23Payable($accountPayable, 2, $request->input('component_id'));
     }
 
     /**
      * Post VAT Receivable 11% (PPN Masukan) after payable is paid.
      */
-    public function postVatReceivable11(AccountPayable $accountPayable)
+    public function postVatReceivable11(Request $request, AccountPayable $accountPayable)
     {
-        return $this->postVatReceivable($accountPayable, 11, '1230', '11%');
+        return $this->postVatReceivable($accountPayable, 11, '1230', '11%', $request->input('component_id'));
     }
 
     /**
      * Post VAT Receivable 1.1% (PPN Masukan) after payable is paid.
      */
-    public function postVatReceivable11_1(AccountPayable $accountPayable)
+    public function postVatReceivable11_1(Request $request, AccountPayable $accountPayable)
     {
-        return $this->postVatReceivable($accountPayable, 1.1, '1231', '1.1%');
+        return $this->postVatReceivable($accountPayable, 1.1, '1231', '1.1%', $request->input('component_id'));
     }
 
-    private function postVatReceivable(AccountPayable $accountPayable, float $rate, string $accountCode, string $label)
+    private function postVatReceivable(AccountPayable $accountPayable, float $rate, string $accountCode, string $label, ?int $componentId = null)
     {
-        if ($accountPayable->status !== 'paid') {
-            return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang paid.']);
-        }
+        $targetComponent = null;
+        if ($componentId) {
+            $targetComponent = $accountPayable->components()->whereKey($componentId)->first();
+            if (!$targetComponent) {
+                return redirect()->back()->withErrors(['error' => 'Komponen VAT tidak ditemukan untuk hutang ini.']);
+            }
+            if ($targetComponent->component_type !== 'vat_reimbursement') {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting dari komponen VAT.']);
+            }
+            if ($targetComponent->status !== 'paid') {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah komponen paid.']);
+            }
+            if ((float) ($targetComponent->outstanding_amount ?? 0) > 0) {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah komponen lunas.']);
+            }
+            if ($targetComponent->vat_receivable_posted_at) {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable sudah diposting untuk komponen ini.']);
+            }
+        } else {
+            if ($accountPayable->status !== 'paid') {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang paid.']);
+            }
 
-        if (($accountPayable->outstanding_amount ?? 0) > 0) {
-            return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang lunas.']);
-        }
+            if (($accountPayable->outstanding_amount ?? 0) > 0) {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah hutang lunas.']);
+            }
 
-        if ($accountPayable->vat_receivable_posted_at) {
-            return redirect()->back()->withErrors(['error' => 'VAT Receivable sudah diposting untuk hutang ini.']);
+            if ($accountPayable->vat_receivable_posted_at) {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable sudah diposting untuk hutang ini.']);
+            }
         }
 
         $accountId = ChartOfAccount::idByCode($accountCode);
@@ -201,9 +221,15 @@ class AccountPayableController extends Controller
             return redirect()->back()->withErrors(['error' => "Akun VAT Receivable {$label} belum dikonfigurasi."]);
         }
 
-        $paidAmount = (float) ($accountPayable->paid_amount ?? 0);
-        $baseAmount = $paidAmount > 0 ? $paidAmount : (float) $accountPayable->amount;
-        $vatAmount = round($baseAmount * ($rate / 100), 2);
+        if ($targetComponent) {
+            $paidAmount = (float) ($targetComponent->paid_amount ?? 0);
+            $vatAmount = $paidAmount > 0 ? $paidAmount : (float) $targetComponent->amount;
+            $vatAmount = round($vatAmount, 2);
+        } else {
+            $paidAmount = (float) ($accountPayable->paid_amount ?? 0);
+            $baseAmount = $paidAmount > 0 ? $paidAmount : (float) $accountPayable->amount;
+            $vatAmount = round($baseAmount * ($rate / 100), 2);
+        }
 
         if ($vatAmount <= 0) {
             return redirect()->back()->withErrors(['error' => 'Nominal VAT Receivable tidak valid.']);
@@ -213,21 +239,33 @@ class AccountPayableController extends Controller
             ? Carbon::parse($accountPayable->payment_date)->toDateString()
             : now()->toDateString();
 
-        DB::transaction(function () use ($accountPayable, $accountId, $vatAmount, $rate, $label, $effectiveDate) {
+        DB::transaction(function () use ($accountPayable, $targetComponent, $accountId, $vatAmount, $rate, $label, $effectiveDate) {
+            $sourceLabel = $targetComponent
+                ? ($targetComponent->description ?: 'VAT Reimbursement')
+                : ($accountPayable->vendor_invoice_number ?? $accountPayable->id);
             FinancialPositionAdjustment::create([
                 'account_id' => $accountId,
                 'effective_date' => $effectiveDate,
                 'amount' => $vatAmount,
-                'notes' => 'Post VAT Receivable ' . $label . ' dari AP ' . ($accountPayable->vendor_invoice_number ?? $accountPayable->id),
+                'notes' => 'Post VAT Receivable ' . $label . ' dari AP ' . $sourceLabel,
                 'created_by' => auth()->id(),
             ]);
 
-            $accountPayable->update([
-                'vat_receivable_rate' => $rate,
-                'vat_receivable_amount' => $vatAmount,
-                'vat_receivable_posted_at' => now(),
-                'vat_receivable_account_id' => $accountId,
-            ]);
+            if ($targetComponent) {
+                $targetComponent->update([
+                    'vat_receivable_rate' => $rate,
+                    'vat_receivable_amount' => $vatAmount,
+                    'vat_receivable_posted_at' => now(),
+                    'vat_receivable_account_id' => $accountId,
+                ]);
+            } else {
+                $accountPayable->update([
+                    'vat_receivable_rate' => $rate,
+                    'vat_receivable_amount' => $vatAmount,
+                    'vat_receivable_posted_at' => now(),
+                    'vat_receivable_account_id' => $accountId,
+                ]);
+            }
         });
 
         return redirect()->back()->with('success', 'VAT Receivable ' . $label . ' berhasil diposting ke Financial Position.');
@@ -298,7 +336,7 @@ class AccountPayableController extends Controller
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable ' . $label . ' dan status ditutup.');
     }
 
-    private function postPph23Payable(AccountPayable $accountPayable, float $rate)
+    private function postPph23Payable(AccountPayable $accountPayable, float $rate, $componentId = null)
     {
         $account = $this->resolvePph23PayableAccount($rate);
         if (!$account) {
@@ -308,7 +346,17 @@ class AccountPayableController extends Controller
         $accountPayable->syncComponents();
         $accountPayable->load('components');
 
-        $currentOutstanding = (float) $accountPayable->components->sum('outstanding_amount');
+        $targetComponent = null;
+        if ($componentId) {
+            $targetComponent = $accountPayable->components->firstWhere('id', (int) $componentId);
+            if (!$targetComponent) {
+                return redirect()->back()->withErrors(['error' => 'Komponen hutang tidak ditemukan.']);
+            }
+        }
+
+        $currentOutstanding = $targetComponent
+            ? (float) $targetComponent->outstanding_amount
+            : (float) $accountPayable->components->sum('outstanding_amount');
         if ($currentOutstanding <= 0) {
             $currentOutstanding = (float) $accountPayable->outstanding_amount;
         }
@@ -324,7 +372,7 @@ class AccountPayableController extends Controller
         $paymentMethod = 'VAT Payable PPh23 ' . $label . '%';
         $paymentNotes = 'Posted to VAT Payable PPh23 ' . $label . '%';
 
-        DB::transaction(function () use ($accountPayable, $amount, $alreadyPosted, $account, $now, $paymentMethod, $paymentNotes, $label, $rate) {
+        DB::transaction(function () use ($accountPayable, $amount, $alreadyPosted, $account, $now, $paymentMethod, $paymentNotes, $label, $rate, $targetComponent) {
             FinancialPositionAdjustment::create([
                 'account_id' => $account->id,
                 'effective_date' => $now->toDateString(),
@@ -339,6 +387,17 @@ class AccountPayableController extends Controller
                 'pph23_payable_posted_at' => $now,
                 'pph23_payable_account_id' => $account->id,
             ]);
+
+            if ($targetComponent) {
+                $accountPayable->recordPaymentToComponent(
+                    $targetComponent,
+                    $amount,
+                    $paymentMethod,
+                    $paymentNotes,
+                    $now
+                );
+                return;
+            }
 
             if ($accountPayable->components->isEmpty()) {
                 $accountPayable->markAsPaid($amount, $paymentMethod, $paymentNotes);
@@ -1233,22 +1292,26 @@ class AccountPayableController extends Controller
                 'id' => $payable->paidByUser->id,
                 'name' => $payable->paidByUser->name,
             ] : null,
-            'components' => $payable->components->map(function ($component) {
-                return [
-                    'id' => $component->id,
-                    'component_type' => $component->component_type,
-                    'description' => $component->description,
-                    'amount' => (float) $component->amount,
-                    'paid_amount' => (float) $component->paid_amount,
-                    'outstanding_amount' => (float) $component->outstanding_amount,
-                    'status' => $component->status,
-                    'due_date' => $this->formatDateValue($component->due_date),
-                    'recipient_name' => $component->recipient_name,
-                    'related_items' => $component->related_items,
-                ];
-            })->values()->all(),
-        ];
-    }
+              'components' => $payable->components->map(function ($component) {
+                  return [
+                      'id' => $component->id,
+                      'component_type' => $component->component_type,
+                      'description' => $component->description,
+                      'amount' => (float) $component->amount,
+                      'paid_amount' => (float) $component->paid_amount,
+                      'outstanding_amount' => (float) $component->outstanding_amount,
+                      'status' => $component->status,
+                      'due_date' => $this->formatDateValue($component->due_date),
+                      'recipient_name' => $component->recipient_name,
+                      'vat_receivable_rate' => $component->vat_receivable_rate !== null ? (float) $component->vat_receivable_rate : null,
+                      'vat_receivable_amount' => $component->vat_receivable_amount !== null ? (float) $component->vat_receivable_amount : null,
+                      'vat_receivable_posted_at' => $component->vat_receivable_posted_at?->toDateTimeString(),
+                      'vat_receivable_account_id' => $component->vat_receivable_account_id,
+                      'related_items' => $component->related_items,
+                  ];
+              })->values()->all(),
+          ];
+      }
 
     private function determineOverallStatus(float $outstanding, float $paid): string
     {

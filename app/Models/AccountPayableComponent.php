@@ -22,6 +22,10 @@ class AccountPayableComponent extends Model
         'recipient_name',
         'vendor_id',
         'related_items',
+        'vat_receivable_rate',
+        'vat_receivable_amount',
+        'vat_receivable_posted_at',
+        'vat_receivable_account_id',
     ];
 
     protected $casts = [
@@ -30,6 +34,9 @@ class AccountPayableComponent extends Model
         'outstanding_amount' => 'decimal:2',
         'due_date' => 'date',
         'related_items' => 'array',
+        'vat_receivable_rate' => 'decimal:2',
+        'vat_receivable_amount' => 'decimal:2',
+        'vat_receivable_posted_at' => 'datetime',
     ];
 
     // Relationships
