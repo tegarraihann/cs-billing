@@ -234,7 +234,9 @@ class AccountReceivableController extends Controller
 
         $effectiveDate = now()->toDateString();
 
-        DB::transaction(function () use ($invoice, $accountId, $accountCode, $label, $effectiveDate) {
+        $noteEntry = 'Posted to VAT Payable ' . $label;
+
+        DB::transaction(function () use ($invoice, $accountId, $accountCode, $label, $effectiveDate, $accountReceivable, $noteEntry) {
             FinancialPositionAdjustment::create([
                 'account_id' => $accountId,
                 'effective_date' => $effectiveDate,
@@ -247,6 +249,9 @@ class AccountReceivableController extends Controller
                 'vat_posted_at' => now(),
                 'vat_posted_account_id' => $accountId,
             ]);
+
+            $accountReceivable->notes = $this->appendReceivableNote($accountReceivable->notes, $noteEntry);
+            $accountReceivable->save();
         });
 
         return redirect()->back()->with('success', "VAT Payable {$label} berhasil diposting ke Financial Position.");
@@ -487,6 +492,20 @@ class AccountReceivableController extends Controller
             ->where('account_name', 'like', '%' . rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.') . '%')
             ->where('account_type', 'asset')
             ->first();
+    }
+
+    private function appendReceivableNote(?string $currentNotes, string $noteEntry): string
+    {
+        $currentNotes = $currentNotes ?? '';
+        if (trim($currentNotes) === '') {
+            return $noteEntry;
+        }
+
+        if (str_contains($currentNotes, $noteEntry)) {
+            return $currentNotes;
+        }
+
+        return $currentNotes . "\n" . $noteEntry;
     }
 
     /**

@@ -605,6 +605,8 @@ class FinancialPositionService
         }
 
         $record = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereNotNull('notes')
+            ->whereRaw('LOWER(notes) LIKE ?', ['manual%'])
             ->whereDate('effective_date', '<=', $cutoff->toDateString())
             ->orderByDesc('effective_date')
             ->orderByDesc('created_at')

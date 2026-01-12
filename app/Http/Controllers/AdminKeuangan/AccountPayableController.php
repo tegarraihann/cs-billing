@@ -304,7 +304,9 @@ class AccountPayableController extends Controller
 
         $rateValue = $accountCode === '2111' ? 1.1 : 11;
 
-        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now, $label, $paymentMethod, $paymentNotes, $rateValue) {
+        $noteEntry = $paymentNotes;
+
+        DB::transaction(function () use ($accountPayable, $amount, $accountId, $now, $label, $paymentMethod, $paymentNotes, $rateValue, $noteEntry) {
             FinancialPositionAdjustment::create([
                 'account_id' => $accountId,
                 'effective_date' => $now->toDateString(),
@@ -339,6 +341,10 @@ class AccountPayableController extends Controller
                     $now
                 );
             }
+
+            $accountPayable->refresh();
+            $accountPayable->payment_notes = $this->appendPaymentNote($accountPayable->payment_notes, $noteEntry);
+            $accountPayable->save();
         });
 
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable ' . $label . ' dan status ditutup.');
@@ -409,7 +415,9 @@ class AccountPayableController extends Controller
         $paymentMethod = 'VAT Payable PPh23 ' . $label . '%';
         $paymentNotes = 'Posted to VAT Payable PPh23 ' . $label . '%';
 
-        DB::transaction(function () use ($accountPayable, $amount, $alreadyPosted, $account, $now, $paymentMethod, $paymentNotes, $label, $rate, $targetComponent) {
+        $noteEntry = $paymentNotes;
+
+        DB::transaction(function () use ($accountPayable, $amount, $alreadyPosted, $account, $now, $paymentMethod, $paymentNotes, $label, $rate, $targetComponent, $noteEntry) {
             FinancialPositionAdjustment::create([
                 'account_id' => $account->id,
                 'effective_date' => $now->toDateString(),
@@ -458,6 +466,10 @@ class AccountPayableController extends Controller
                 );
                 $remaining -= $payAmount;
             }
+
+            $accountPayable->refresh();
+            $accountPayable->payment_notes = $this->appendPaymentNote($accountPayable->payment_notes, $noteEntry);
+            $accountPayable->save();
         });
 
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable PPh23 dan status ditutup.');

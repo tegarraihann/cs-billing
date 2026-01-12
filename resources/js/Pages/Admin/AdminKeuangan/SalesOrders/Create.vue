@@ -515,43 +515,49 @@
 
                                         <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
                                             <div v-for="(cost, index) in form.other_costs" :key="index"
-                                                class="border border-orange-200 rounded-lg p-3 bg-white">
+                                                class="relative border border-orange-200 rounded-lg p-3 bg-white">
+                                                <button type="button" @click="removeOtherCost(index)"
+                                                    class="absolute bottom-1 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                                                    :disabled="form.other_costs.length <= 1">
+                                                    <Trash2 class="w-4 h-4" />
+                                                </button>
                                                 <div class="grid grid-cols-12 gap-3">
-                                                    <div class="col-span-4">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Deskripsi
                                                             Biaya</label>
                                                         <input v-model="cost.description" type="text"
                                                             placeholder="Contoh: Biaya handling, dokumen, dll"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
-                                                    <div class="col-span-2">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Jumlah
                                                             Biaya</label>
                                                         <input v-model="cost.amount" type="number" min="0" step="0.01"
                                                             placeholder="0"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
-                                                    <div class="col-span-2">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
-                                                        <select v-model="cost.category"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
-                                                            <option value="">Pilih kategori</option>
-                                                            <option v-for="category in operationalCostCategories"
-                                                                :key="category.id" :value="category.name"
-                                                                :title="category.description">
-                                                                {{ category.name }}
-                                                            </option>
-                                                        </select>
+                                                        <SearchableSelect
+                                                            v-model="cost.category"
+                                                            :options="baseOperationalCostCategoryOptions"
+                                                            placeholder="Pilih kategori"
+                                                            label-field="label"
+                                                            value-field="value"
+                                                            sub-label-field="description"
+                                                            :search-fields="['label', 'description']"
+                                                            :input-class="`w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${baseOperationalCostCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
+                                                        />
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Vendor /
                                                             Penerima</label>
                                                         <select v-model="cost.vendor_id"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
                                                             <option value="">-- Belum Ditentukan --</option>
                                                             <option value="internal">-- Internal (Divisi Operational) --</option>
                                                             <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
@@ -560,13 +566,6 @@
                                                         </select>
                                                         <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah tahu akan
                                                             dibayar ke siapa</p>
-                                                    </div>
-                                                    <div class="col-span-1 flex items-center justify-center">
-                                                        <button type="button" @click="removeOtherCost(index)"
-                                                            class="w-full px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                                                            :disabled="form.other_costs.length <= 1">
-                                                            <Trash2 class="w-4 h-4" />
-                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -582,15 +581,11 @@
                                             </div>
 
                                             <!-- Bottom Add Button for Other Costs -->
-                                            <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
+                                            <div class="mt-6 pt-4 border-t border-orange-200">
                                                 <button type="button" @click="addOtherCost"
-                                                    class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                    </svg>
-                                                    Tambah Biaya Lagi
+                                                    class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-orange-200 rounded-lg text-orange-700 hover:border-orange-300 hover:bg-orange-50 transition-colors">
+                                                    <Plus class="w-5 h-5 mb-1" />
+                                                    <span class="text-sm font-medium">Tambah Biaya Lagi</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -629,40 +624,39 @@
                                         <div v-if="reimbursementItems && reimbursementItems.length > 0"
                                             class="space-y-3">
                                             <div v-for="(item, index) in reimbursementItems" :key="index"
-                                                class="border border-purple-200 rounded-lg p-3 bg-white">
+                                                class="relative border border-purple-200 rounded-lg p-3 pb-8 bg-white">
+                                                <button type="button" @click="removeReimbursementItem(index)"
+                                                    class="absolute bottom-2 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
+                                                    <Trash2 class="w-4 h-4" />
+                                                </button>
                                                 <div class="grid grid-cols-12 gap-3">
-                                                    <div class="col-span-4">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Deskripsi</label>
                                                         <input v-model="item.description" type="text"
                                                             placeholder="Contoh: Transport, Akomodasi, dll"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
-                                                    <div class="col-span-2">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Jumlah</label>
                                                         <input v-model="item.amount" type="number" min="0" step="0.01"
                                                             placeholder="0"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
-                                                    <div class="col-span-2">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
-                                                        <select
+                                                        <SearchableSelect
                                                             v-model="item.category"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-                                                            :disabled="reimbursementCategoryOptions.length === 0"
-                                                        >
-                                                            <option value="" disabled>Pilih Kategori</option>
-                                                            <option
-                                                                v-for="category in reimbursementCategoryOptions"
-                                                                :key="category.value"
-                                                                :value="category.value"
-                                                                :title="category.description"
-                                                            >
-                                                                {{ category.label }}
-                                                            </option>
-                                                        </select>
+                                                            :options="reimbursementCategoryOptions"
+                                                            placeholder="Pilih kategori"
+                                                            label-field="label"
+                                                            value-field="value"
+                                                            sub-label-field="description"
+                                                            :search-fields="['label', 'description']"
+                                                            :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
+                                                        />
                                                         <p
                                                             v-if="reimbursementCategoryOptions.length === 0"
                                                             class="text-xs text-purple-600 mt-1"
@@ -670,11 +664,11 @@
                                                             Kategori belum tersedia. Silakan tambah master Operational Cost Categories terlebih dahulu.
                                                         </p>
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Vendor / Penerima</label>
                                                         <select v-model="item.vendor_id"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
                                                             <option value="">-- Belum Ditentukan --</option>
                                                             <option value="internal">-- Internal (Divisi Operational) --</option>
                                                             <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
@@ -682,12 +676,6 @@
                                                             </option>
                                                         </select>
                                                         <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah tahu akan dibayar ke siapa</p>
-                                                    </div>
-                                                    <div class="col-span-1 flex items-center justify-center">
-                                                        <button type="button" @click="removeReimbursementItem(index)"
-                                                            class="w-full px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                            <Trash2 class="w-4 h-4" />
-                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div class="mt-2">
@@ -711,15 +699,11 @@
                                             </div>
 
                                             <!-- Bottom Add Button for Reimbursement -->
-                                            <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
+                                            <div class="mt-6 pt-4 border-t border-purple-200">
                                                 <button type="button" @click="addReimbursementItem"
-                                                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                    </svg>
-                                                    Tambah Reimbursement Lagi
+                                                    class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-purple-200 rounded-lg text-purple-700 hover:border-purple-300 hover:bg-purple-50 transition-colors">
+                                                    <Plus class="w-5 h-5 mb-1" />
+                                                    <span class="text-sm font-medium">Tambah Reimbursement Lagi</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1411,4 +1395,3 @@ const submit = () => {
     border-color: #8db580;
 }
 </style>
-

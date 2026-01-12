@@ -501,16 +501,17 @@
                                                     <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
-                                                        <select v-model="cost.category_id"
-                                                            @change="onOtherCostCategoryChange(cost)"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
-                                                            <option value="">Pilih kategori</option>
-                                                            <option v-for="category in operationalCostCategories"
-                                                                :key="category.id" :value="category.id"
-                                                                :title="category.description">
-                                                                {{ category.name }}
-                                                            </option>
-                                                        </select>
+                                                        <SearchableSelect
+                                                            v-model="cost.category_id"
+                                                            :options="operationalCostCategorySelectOptions"
+                                                            placeholder="Pilih kategori"
+                                                            label-field="label"
+                                                            value-field="value"
+                                                            sub-label-field="description"
+                                                            :search-fields="['label', 'description']"
+                                                            :input-class="`w-full px-2 py-1 pr-8 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${operationalCostCategorySelectOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
+                                                            @select="() => onOtherCostCategoryChange(cost)"
+                                                        />
                                                     </div>
                                                     <div class="col-span-3">
                                                         <label
@@ -600,21 +601,16 @@
                                                     <div class="col-span-2">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
-                                                        <select
+                                                        <SearchableSelect
                                                             v-model="item.category"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-                                                            :disabled="reimbursementCategoryOptions.length === 0"
-                                                        >
-                                                            <option value="" disabled>Pilih Kategori</option>
-                                                            <option
-                                                                v-for="category in reimbursementCategoryOptions"
-                                                                :key="category.value"
-                                                                :value="category.value"
-                                                                :title="category.description"
-                                                            >
-                                                                {{ category.label }}
-                                                            </option>
-                                                        </select>
+                                                            :options="reimbursementCategoryOptions"
+                                                            placeholder="Pilih kategori"
+                                                            label-field="label"
+                                                            value-field="value"
+                                                            sub-label-field="description"
+                                                            :search-fields="['label', 'description']"
+                                                            :input-class="`w-full px-2 py-1 pr-8 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
+                                                        />
                                                         <p
                                                             v-if="reimbursementCategoryOptions.length === 0"
                                                             class="text-xs text-purple-600 mt-1"
@@ -944,6 +940,13 @@ const serviceTypeOptions = computed(() => {
 });
 
 const operationalCostCategories = computed(() => props.operationalCostCategories ?? []);
+const operationalCostCategorySelectOptions = computed(() => {
+    return (operationalCostCategories.value ?? []).map(category => ({
+        value: category.id,
+        label: category.name,
+        description: category.description || "",
+    }));
+});
 
 const serviceTypeMap = computed(() => {
     return (props.serviceTypes ?? []).reduce((acc, type) => {
