@@ -110,18 +110,15 @@
                             <label class="block text-sm font-medium text-sage-700 mb-2">
                                 Kategori <span class="text-red-500">*</span>
                             </label>
-                            <select
+                            <SearchableSelect
                                 v-model="form.category"
-                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                                :class="{ 'border-red-300': form.errors.category }"
-                                :disabled="categoryOptions.length === 0"
-                                required
-                            >
-                                <option value="" disabled>Pilih Kategori</option>
-                                <option v-for="category in categoryOptions" :key="category" :value="category">
-                                    {{ category }}
-                                </option>
-                            </select>
+                                :options="categorySelectOptions"
+                                placeholder="Cari kategori..."
+                                label-field="label"
+                                value-field="value"
+                                :search-fields="['label']"
+                                :input-class="categoryInputClass"
+                            />
                             <p v-if="categoryOptions.length === 0" class="mt-1 text-xs text-sage-500">
                                 Tidak ada kategori aktif. Tambahkan kategori di master Operational Cost Categories sebelum mencatat pendapatan.
                             </p>
@@ -319,6 +316,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ref, computed, watch } from 'vue'
 import { ArrowLeft, Save, Upload, X, Info } from 'lucide-vue-next'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 const props = defineProps({
     categories: {
@@ -358,6 +356,18 @@ const form = useForm({
 
 const filePreview = ref('')
 const categoryOptions = computed(() => props.categories ?? [])
+const categorySelectOptions = computed(() =>
+    categoryOptions.value.map((category) => ({
+        label: category,
+        value: category,
+    }))
+)
+const categoryInputClass = computed(() => {
+    const base = 'w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm'
+    const error = form.errors?.category ? ' border-red-300' : ' border-sage-300'
+    const disabled = categoryOptions.value.length === 0 ? ' bg-gray-100 cursor-not-allowed pointer-events-none' : ''
+    return `${base}${error}${disabled}`
+})
 const customers = computed(() => props.customers ?? [])
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const revenueAccounts = computed(() => props.revenueAccounts ?? [])

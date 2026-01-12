@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AdminKeuangan;
 
 use App\Http\Controllers\Controller;
 use App\Models\AccountPayable;
+use App\Models\AccountPayableComponent;
 use App\Models\Vendor;
 use App\Models\ReimbursementItem;
 use App\Models\BankAccount;
@@ -239,7 +240,9 @@ class AccountPayableController extends Controller
             ? Carbon::parse($accountPayable->payment_date)->toDateString()
             : now()->toDateString();
 
-        DB::transaction(function () use ($accountPayable, $targetComponent, $accountId, $vatAmount, $rate, $label, $effectiveDate) {
+        $noteEntry = $this->buildVatReceivableNote($accountPayable, $targetComponent, $vatAmount, $label);
+
+        DB::transaction(function () use ($accountPayable, $targetComponent, $accountId, $vatAmount, $rate, $label, $effectiveDate, $noteEntry) {
             $sourceLabel = $targetComponent
                 ? ($targetComponent->description ?: 'VAT Reimbursement')
                 : ($accountPayable->vendor_invoice_number ?? $accountPayable->id);
@@ -265,6 +268,11 @@ class AccountPayableController extends Controller
                     'vat_receivable_posted_at' => now(),
                     'vat_receivable_account_id' => $accountId,
                 ]);
+            }
+
+            if ($noteEntry) {
+                $accountPayable->payment_notes = $this->appendPaymentNote($accountPayable->payment_notes, $noteEntry);
+                $accountPayable->save();
             }
         });
 
@@ -334,6 +342,35 @@ class AccountPayableController extends Controller
         });
 
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable ' . $label . ' dan status ditutup.');
+    }
+
+    private function buildVatReceivableNote(AccountPayable $accountPayable, ?AccountPayableComponent $component, float $amount, string $label): string
+    {
+        $amountLabel = 'Rp ' . number_format($amount, 2, '.', ',');
+        $base = 'Posted VAT Receivable ' . $label;
+
+        if ($component) {
+            $componentLabel = $component->getComponentLabel();
+            $recipient = $component->recipient_name ?: '-';
+            return $base . ' - ' . $componentLabel . ' - ' . $recipient . ' (' . $amountLabel . ')';
+        }
+
+        $reference = $accountPayable->vendor_invoice_number ?? $accountPayable->id;
+        return $base . ' - AP ' . $reference . ' (' . $amountLabel . ')';
+    }
+
+    private function appendPaymentNote(?string $currentNotes, string $noteEntry): string
+    {
+        $currentNotes = $currentNotes ?? '';
+        if (trim($currentNotes) === '') {
+            return $noteEntry;
+        }
+
+        if (str_contains($currentNotes, $noteEntry)) {
+            return $currentNotes;
+        }
+
+        return $currentNotes . "\n" . $noteEntry;
     }
 
     private function postPph23Payable(AccountPayable $accountPayable, float $rate, $componentId = null)
