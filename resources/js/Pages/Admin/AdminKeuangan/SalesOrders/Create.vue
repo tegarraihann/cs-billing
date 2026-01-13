@@ -19,8 +19,8 @@
                             <div class="mt-4 sm:mt-0 flex space-x-3">
                                 <Link :href="route('admin-keuangan.sales-orders.index')"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                <ArrowLeft class="mr-2 h-4 w-4" />
-                                Kembali
+                                    <ArrowLeft class="mr-2 h-4 w-4" />
+                                    Kembali
                                 </Link>
                             </div>
                         </div>
@@ -186,7 +186,7 @@
                                         <input v-model="form.aju" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.aju" class="mt-2 text-sm text-red-600">{{ form.errors.aju
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">SPPB DATE</label>
@@ -214,14 +214,14 @@
                                         <input v-model="form.pol" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pol" class="mt-2 text-sm text-red-600">{{ form.errors.pol
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">POD</label>
                                         <input v-model="form.pod" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pod" class="mt-2 text-sm text-red-600">{{ form.errors.pod
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">GUDANG/UTC</label>
@@ -314,11 +314,12 @@
                                                     <select v-model="item.description"
                                                         class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
                                                         <option value="">Pilih Jenis Biaya</option>
-                                                        <option v-for="option in serviceTypeOptions"
-                                                            :key="option.value" :value="option.value">
+                                                        <option v-for="option in serviceTypeOptions" :key="option.value"
+                                                            :value="option.value">
                                                             {{ option.label }}
                                                         </option>
-                                                        <option v-if="item.description && !isKnownServiceType(item.description)"
+                                                        <option
+                                                            v-if="item.description && !isKnownServiceType(item.description)"
                                                             :value="item.description">
                                                             {{ item.description }}
                                                         </option>
@@ -437,12 +438,12 @@
                                             <div class="flex justify-between">
                                                 <span>Total Pemasukan (Selling):</span>
                                                 <span class="font-medium text-green-700">{{ formatCurrency(totalSelling)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span>Total Pengeluaran (Buying):</span>
                                                 <span class="font-medium text-red-700">{{ formatCurrency(totalBuying)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span>Biaya Operasional:</span>
@@ -459,7 +460,7 @@
                                                     Keseluruhan:</span>
                                                 <span class="text-sm font-bold text-red-800">{{
                                                     formatCurrency(totalBuying + totalOtherCosts + totalReimbursement)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div
                                                 class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
@@ -541,30 +542,30 @@
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
-                                                        <SearchableSelect
-                                                            v-model="cost.category"
+                                                        <SearchableSelect v-model="cost.category"
                                                             :options="baseOperationalCostCategoryOptions"
-                                                            placeholder="Pilih kategori"
-                                                            label-field="label"
-                                                            value-field="value"
-                                                            sub-label-field="description"
+                                                            placeholder="Pilih kategori" label-field="label"
+                                                            value-field="value" sub-label-field="description"
                                                             :search-fields="['label', 'description']"
-                                                            :input-class="`w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${baseOperationalCostCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
-                                                        />
+                                                            :input-class="`w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${baseOperationalCostCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Vendor /
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Vendor
+                                                            /
                                                             Penerima</label>
                                                         <select v-model="cost.vendor_id"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
                                                             <option value="">-- Belum Ditentukan --</option>
-                                                            <option value="internal">-- Internal (Divisi Operational) --</option>
-                                                            <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                                            <option value="internal">-- Internal (Divisi Operational) --
+                                                            </option>
+                                                            <option v-for="vendor in vendors" :key="vendor.id"
+                                                                :value="vendor.id">
                                                                 {{ vendor.nama_vendor }}
                                                             </option>
                                                         </select>
-                                                        <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah tahu akan
+                                                        <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah
+                                                            tahu akan
                                                             dibayar ke siapa</p>
                                                     </div>
                                                 </div>
@@ -647,35 +648,34 @@
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
-                                                        <SearchableSelect
-                                                            v-model="item.category"
+                                                        <SearchableSelect v-model="item.category"
                                                             :options="reimbursementCategoryOptions"
-                                                            placeholder="Pilih kategori"
-                                                            label-field="label"
-                                                            value-field="value"
-                                                            sub-label-field="description"
+                                                            placeholder="Pilih kategori" label-field="label"
+                                                            value-field="value" sub-label-field="description"
                                                             :search-fields="['label', 'description']"
-                                                            :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
-                                                        />
-                                                        <p
-                                                            v-if="reimbursementCategoryOptions.length === 0"
-                                                            class="text-xs text-purple-600 mt-1"
-                                                        >
-                                                            Kategori belum tersedia. Silakan tambah master Operational Cost Categories terlebih dahulu.
+                                                            :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
+                                                        <p v-if="reimbursementCategoryOptions.length === 0"
+                                                            class="text-xs text-purple-600 mt-1">
+                                                            Kategori belum tersedia. Silakan tambah master Operational
+                                                            Cost Categories terlebih dahulu.
                                                         </p>
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Vendor / Penerima</label>
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Vendor
+                                                            / Penerima</label>
                                                         <select v-model="item.vendor_id"
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
                                                             <option value="">-- Belum Ditentukan --</option>
-                                                            <option value="internal">-- Internal (Divisi Operational) --</option>
-                                                            <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                                                            <option value="internal">-- Internal (Divisi Operational) --
+                                                            </option>
+                                                            <option v-for="vendor in vendors" :key="vendor.id"
+                                                                :value="vendor.id">
                                                                 {{ vendor.nama_vendor }}
                                                             </option>
                                                         </select>
-                                                        <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah tahu akan dibayar ke siapa</p>
+                                                        <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah
+                                                            tahu akan dibayar ke siapa</p>
                                                     </div>
                                                 </div>
                                                 <div class="mt-2">
@@ -869,7 +869,7 @@
                                         <input v-model="form.top" type="text" placeholder="e.g., NET 30"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.top" class="mt-2 text-sm text-red-600">{{ form.errors.top
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -879,7 +879,7 @@
                                 class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
                                 <Link :href="route('admin-keuangan.sales-orders.index')"
                                     class="inline-flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                Batal
+                                    Batal
                                 </Link>
                                 <button type="submit" :disabled="form.processing"
                                     class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">

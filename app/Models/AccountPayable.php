@@ -817,15 +817,16 @@ class AccountPayable extends Model
 
                 $description = trim((string) ($entry['description'] ?? ''));
 
-                $lookupRef = $entry['id'] ?? null;
-                if ($lookupRef === null) {
-                    $lookupRef = md5(json_encode([
-                        'index' => $index,
+                $entryId = $entry['id'] ?? null;
+                if ($entryId !== null) {
+                    $lookupRef = 'vendor_breakdown_' . (string) $entryId;
+                } else {
+                    $lookupRef = 'vendor_breakdown_' . md5(json_encode([
+                        'vendor_id' => $entryVendorId,
+                        'vendor_name' => $entryVendorName,
                         'description' => $description,
                         'amount' => $amount,
                     ]));
-                } else {
-                    $lookupRef = 'vendor_breakdown_' . (string) $lookupRef . '_' . $index;
                 }
 
                 return [
@@ -877,11 +878,11 @@ class AccountPayable extends Model
                 $lookupRef = $entryId !== null
                     ? 'other_cost_' . $entryId
                     : 'other_cost_' . md5(json_encode([
-                        'index' => $index,
                         'description' => $description,
                         'amount' => $amount,
                         'vendor_id' => $entryVendorId,
                         'vendor_name' => $entryVendorName,
+                        'category' => $entry['category'] ?? null,
                     ]));
 
                 return [
@@ -1034,6 +1035,8 @@ class AccountPayable extends Model
             $component->id
         ) {
             $reference = 'manual_component_' . $component->id;
+        } elseif ($component->id) {
+            $reference = 'component_' . $component->id;
         }
 
         return $this->makeComponentLookupKey($component->component_type, $component->vendor_id, $reference);
