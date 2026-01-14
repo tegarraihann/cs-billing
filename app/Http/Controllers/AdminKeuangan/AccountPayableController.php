@@ -5,6 +5,7 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\AccountPayable;
 use App\Models\AccountPayableComponent;
+use App\Models\AccountPayableNote;
 use App\Models\Vendor;
 use App\Models\ReimbursementItem;
 use App\Models\BankAccount;
@@ -18,11 +19,11 @@ use App\Models\FinancialPositionAdjustment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use App\Services\InvoiceCostSyncService;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
 class AccountPayableController extends Controller
 {
@@ -92,6 +93,7 @@ class AccountPayableController extends Controller
         $groupPayables = $this->getPayablesForShow($accountPayable);
         $groupSummary = $this->buildGroupSummary($groupPayables, $accountPayable->salesOrder);
         $formattedGroupPayables = $groupPayables->map(fn (AccountPayable $payable) => $this->formatPayable($payable));
+        $paymentNotes = $this->buildPaymentNotesForGroup($groupPayables, $accountPayable->sales_order_id);
 
         $bankAccounts = BankAccount::all();
         $reimbursementItems = $this->mapReimbursementItems($accountPayable);
@@ -102,6 +104,7 @@ class AccountPayableController extends Controller
             'payable' => $this->formatPayable($accountPayable),
             'groupPayables' => $formattedGroupPayables,
             'groupSummary' => $groupSummary,
+            'paymentNotes' => $paymentNotes,
             'bankAccounts' => $bankAccounts,
             'reimbursementItems' => $reimbursementItems,
             'selectedComponentId' => $selectedComponentId,
@@ -271,8 +274,9 @@ class AccountPayableController extends Controller
             }
 
             if ($noteEntry) {
-                $accountPayable->payment_notes = $this->appendPaymentNote($accountPayable->payment_notes, $noteEntry);
+                $accountPayable->appendPaymentNote($noteEntry);
                 $accountPayable->save();
+                $accountPayable->logPaymentNote($noteEntry, $targetComponent?->id, 'vat_receivable');
             }
         });
 
@@ -343,8 +347,9 @@ class AccountPayableController extends Controller
             }
 
             $accountPayable->refresh();
-            $accountPayable->payment_notes = $this->appendPaymentNote($accountPayable->payment_notes, $noteEntry);
+            $accountPayable->appendPaymentNote($noteEntry);
             $accountPayable->save();
+            $accountPayable->logPaymentNote($noteEntry, null, 'vat_payable');
         });
 
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable ' . $label . ' dan status ditutup.');
@@ -365,18 +370,37 @@ class AccountPayableController extends Controller
         return $base . ' - AP ' . $reference . ' (' . $amountLabel . ')';
     }
 
-    private function appendPaymentNote(?string $currentNotes, string $noteEntry): string
+    private function buildPaymentNotesForGroup(Collection $groupPayables, ?int $salesOrderId): ?string
     {
-        $currentNotes = $currentNotes ?? '';
-        if (trim($currentNotes) === '') {
-            return $noteEntry;
+        $noteLines = collect();
+
+        if ($salesOrderId) {
+            $noteLines = AccountPayableNote::query()
+                ->where('sales_order_id', $salesOrderId)
+                ->orderBy('created_at')
+                ->pluck('note');
         }
 
-        if (str_contains($currentNotes, $noteEntry)) {
-            return $currentNotes;
+        $legacyNotes = $groupPayables
+            ->pluck('payment_notes')
+            ->filter()
+            ->flatMap(function (?string $notes) {
+                return preg_split('/\r?\n/', $notes ?? '') ?: [];
+            });
+
+        $noteLines = $noteLines->merge($legacyNotes);
+
+        $noteLines = $noteLines
+            ->map(fn ($note) => trim((string) $note))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($noteLines->isEmpty()) {
+            return null;
         }
 
-        return $currentNotes . "\n" . $noteEntry;
+        return $noteLines->implode("\n");
     }
 
     private function postPph23Payable(AccountPayable $accountPayable, float $rate, $componentId = null)
@@ -468,8 +492,9 @@ class AccountPayableController extends Controller
             }
 
             $accountPayable->refresh();
-            $accountPayable->payment_notes = $this->appendPaymentNote($accountPayable->payment_notes, $noteEntry);
+            $accountPayable->appendPaymentNote($noteEntry);
             $accountPayable->save();
+            $accountPayable->logPaymentNote($noteEntry, $targetComponent?->id, 'pph23_payable');
         });
 
         return redirect()->back()->with('success', 'Outstanding hutang diposting ke VAT Payable PPh23 dan status ditutup.');

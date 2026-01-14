@@ -302,7 +302,7 @@
                     </div>
 
                     <!-- Payment Information -->
-                    <div v-if="payable.payment_method || payable.payment_notes"
+                    <div v-if="payable.payment_method || displayPaymentNotes"
                         class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Information</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -316,10 +316,10 @@
                             </div>
                         </div>
 
-                        <div v-if="payable.payment_notes" class="mt-4">
+                        <div v-if="displayPaymentNotes" class="mt-4">
                             <label class="text-sm font-medium text-gray-500">Payment Notes</label>
                             <div class="mt-1 bg-gray-50 p-3 rounded-md">
-                                <p class="text-sm text-gray-700 whitespace-pre-line">{{ payable.payment_notes }}</p>
+                                <p class="text-sm text-gray-700 whitespace-pre-line">{{ displayPaymentNotes }}</p>
                             </div>
                         </div>
                     </div>
@@ -673,6 +673,10 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    paymentNotes: {
+        type: String,
+        default: ''
+    },
     bankAccounts: {
         type: Array,
         default: () => []
@@ -796,6 +800,10 @@ const summary = computed(() => {
         due_date: current?.payment_due_date ?? null,
         latest_vendor_invoice_date: current?.vendor_invoice_date ?? null
     }
+})
+
+const displayPaymentNotes = computed(() => {
+    return props.paymentNotes || props.payable?.payment_notes || ''
 })
 
 const summaryStatus = computed(() => summary.value.status ?? payable.value?.status ?? 'unpaid')

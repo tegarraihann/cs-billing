@@ -11,6 +11,7 @@ use App\Models\Vendor;
 use App\Models\SalesOrderVendorItem;
 use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
+use App\Models\AccountPayableNote;
 use Illuminate\Support\Facades\DB;
 
 class AccountPayable extends Model
@@ -118,6 +119,11 @@ class AccountPayable extends Model
         return $this->hasMany(AccountPayableComponent::class);
     }
 
+    public function notes(): HasMany
+    {
+        return $this->hasMany(AccountPayableNote::class);
+    }
+
     // Scopes
     public function scopeUnpaid($query)
     {
@@ -184,16 +190,25 @@ class AccountPayable extends Model
             $newStatus = 'partial';
         }
 
+        $mergedNotes = $this->payment_notes;
+        if ($notes) {
+            $mergedNotes = $this->buildPaymentNotes($mergedNotes, $notes);
+        }
+
         $this->update([
             'paid_amount' => $newPaidAmount,
             'outstanding_amount' => $newOutstandingAmount,
             'status' => $newStatus,
             'payment_date' => now(),
             'payment_method' => $paymentMethod,
-            'payment_notes' => $notes,
+            'payment_notes' => $mergedNotes,
             'paid_by' => auth()->id(),
             'days_overdue' => 0
         ]);
+
+        if ($notes) {
+            $this->logPaymentNote($notes, null, 'payment');
+        }
 
         return true;
     }
@@ -1207,13 +1222,58 @@ class AccountPayable extends Model
         $this->fill($summary);
         $this->payment_date = $paymentDate ?? now();
         $this->payment_method = $paymentMethod;
-        $this->payment_notes = $noteEntry
-            ? ($this->payment_notes ? $this->payment_notes . "\n" . $noteEntry : $noteEntry)
-            : $this->payment_notes;
+        if ($noteEntry) {
+            $this->payment_notes = $this->buildPaymentNotes($this->payment_notes, $noteEntry);
+        }
         $this->paid_by = auth()->id();
         $this->save();
 
+        if ($noteEntry) {
+            $this->logPaymentNote($noteEntry, $component->id, 'payment');
+        }
+
         return true;
+    }
+
+    protected function buildPaymentNotes(?string $currentNotes, string $noteEntry): string
+    {
+        $currentNotes = $currentNotes ?? '';
+        $noteEntry = trim($noteEntry);
+        if ($noteEntry === '') {
+            return $currentNotes;
+        }
+
+        if (trim($currentNotes) === '') {
+            return $noteEntry;
+        }
+
+        if (str_contains($currentNotes, $noteEntry)) {
+            return $currentNotes;
+        }
+
+        return $currentNotes . "\n" . $noteEntry;
+    }
+
+    public function appendPaymentNote(string $noteEntry): void
+    {
+        $this->payment_notes = $this->buildPaymentNotes($this->payment_notes, $noteEntry);
+    }
+
+    public function logPaymentNote(string $noteEntry, ?int $componentId = null, ?string $sourceType = null): void
+    {
+        $noteEntry = trim($noteEntry);
+        if ($noteEntry === '') {
+            return;
+        }
+
+        AccountPayableNote::create([
+            'sales_order_id' => $this->sales_order_id,
+            'account_payable_id' => $this->id,
+            'component_id' => $componentId,
+            'source_type' => $sourceType,
+            'note' => $noteEntry,
+            'created_by' => auth()->id(),
+        ]);
     }
 
     protected function postVatReceivableForComponent(AccountPayableComponent $component): void
