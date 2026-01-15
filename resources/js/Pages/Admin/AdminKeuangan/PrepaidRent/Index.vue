@@ -178,16 +178,15 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Biaya <span class="text-red-500">*</span>
                         </label>
-                        <select
+                        <SearchableSelect
                             v-model="topupForm.pl_account_id"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
-                            required
-                        >
-                            <option value="">Pilih biaya</option>
-                            <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
-                                {{ account.account_code }} - {{ account.account_name }}
-                            </option>
-                        </select>
+                            :options="expenseAccountOptions"
+                            placeholder="Cari biaya..."
+                            label-field="label"
+                            value-field="value"
+                            :search-fields="['label', 'code', 'name']"
+                            :input-class="topupPlAccountInputClass"
+                        />
                         <p v-if="topupForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ topupForm.errors.pl_account_id }}</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -345,6 +344,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { reactive, ref, computed, watch } from 'vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 const props = defineProps({
     transactions: Object,
@@ -376,6 +376,19 @@ const showAmortizationModal = ref(false)
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
 const expenseAccounts = computed(() => props.expenseAccounts ?? [])
+const expenseAccountOptions = computed(() =>
+    expenseAccounts.value.map((account) => ({
+        label: `${account.account_code} - ${account.account_name}`,
+        value: account.id,
+        code: account.account_code,
+        name: account.account_name,
+    }))
+)
+const topupPlAccountInputClass = computed(() => {
+    const base = 'w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:border-sage-500 focus:ring-sage-500'
+    const error = topupForm.errors?.pl_account_id ? ' border-red-300' : ' border-gray-300'
+    return `${base}${error}`
+})
 
 const filterForm = reactive({
     transaction_type: props.filters?.transaction_type ?? '',

@@ -244,16 +244,15 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Akun Beban (P&L)</label>
-                            <select
+                            <SearchableSelect
                                 v-model="topupForm.pl_account_id"
-                                class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
-                                required
-                            >
-                                <option value="">Pilih akun</option>
-                                <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
-                                    {{ acc.account_code }} - {{ acc.account_name }}
-                                </option>
-                            </select>
+                                :options="expenseAccountOptions"
+                                placeholder="Cari akun..."
+                                label-field="label"
+                                value-field="value"
+                                :search-fields="['label', 'code', 'name']"
+                                :input-class="topupPlAccountInputClass"
+                            />
                         </div>
                         <div v-if="topupForm.source_type === 'bank'">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Akun Bank</label>
@@ -369,16 +368,15 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Akun Beban (P&L)</label>
-                            <select
+                            <SearchableSelect
                                 v-model="usageForm.pl_account_id"
-                                class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
-                                required
-                            >
-                                <option value="">Pilih akun</option>
-                                <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
-                                    {{ acc.account_code }} - {{ acc.account_name }}
-                                </option>
-                            </select>
+                                :options="expenseAccountOptions"
+                                placeholder="Cari akun..."
+                                label-field="label"
+                                value-field="value"
+                                :search-fields="['label', 'code', 'name']"
+                                :input-class="usagePlAccountInputClass"
+                            />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
@@ -411,6 +409,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import { computed, reactive, ref, watch } from 'vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 const props = defineProps({
     transactions: Object,
@@ -429,6 +428,24 @@ const categories = computed(() => props.categories ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
 const selectedTopupCategoryId = ref(pettyCashCategories.value[0]?.id || '')
 const expenseAccounts = computed(() => props.expenseAccounts ?? [])
+const expenseAccountOptions = computed(() =>
+    expenseAccounts.value.map((account) => ({
+        label: `${account.account_code} - ${account.account_name}`,
+        value: account.id,
+        code: account.account_code,
+        name: account.account_name,
+    }))
+)
+const baseAccountInputClass =
+    'w-full px-3 py-2 pr-10 border rounded-md text-sm focus:border-sage-500 focus:ring focus:ring-sage-200'
+const topupPlAccountInputClass = computed(() => {
+    const error = topupForm.errors?.pl_account_id ? ' border-red-300' : ' border-gray-300'
+    return `${baseAccountInputClass}${error}`
+})
+const usagePlAccountInputClass = computed(() => {
+    const error = usageForm.errors?.pl_account_id ? ' border-red-300' : ' border-gray-300'
+    return `${baseAccountInputClass}${error}`
+})
 const defaultExpenseAccountId = computed(() => expenseAccounts.value[0]?.id || '')
 
 const today = new Date().toISOString().split('T')[0]

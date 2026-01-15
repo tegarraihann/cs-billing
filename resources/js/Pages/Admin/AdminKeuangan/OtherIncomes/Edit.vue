@@ -219,17 +219,16 @@
                         <label class="block text-sm font-medium text-sage-700 mb-2">
                             Akun Pendapatan (P&L) <span class="text-red-500">*</span>
                         </label>
-                        <select
+                        <SearchableSelect
                             v-model="form.pl_account_id"
-                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                            :class="{ 'border-red-300': form.errors.pl_account_id }"
+                            :options="plAccountOptions"
+                            placeholder="Cari akun..."
+                            label-field="label"
+                            value-field="value"
+                            :search-fields="['label', 'code', 'name']"
+                            :input-class="plAccountInputClass"
                             :disabled="otherIncome.posted_to_profit_loss"
-                        >
-                            <option value="">Pilih Akun</option>
-                            <option v-for="acc in revenueAccounts" :key="acc.id" :value="acc.id">
-                                {{ acc.account_code }} - {{ acc.account_name }}
-                            </option>
-                        </select>
+                        />
                         <p v-if="form.errors.pl_account_id" class="mt-1 text-sm text-red-600">
                             {{ form.errors.pl_account_id }}
                         </p>
@@ -327,6 +326,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ref, computed, watch } from 'vue'
 import { ArrowLeft, Save, Upload, X, AlertTriangle, FileText } from 'lucide-vue-next'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 const props = defineProps({
     otherIncome: {
@@ -387,6 +387,20 @@ const categoryOptions = computed(() => props.categories ?? [])
 const customers = computed(() => props.customers ?? [])
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const revenueAccounts = computed(() => props.revenueAccounts ?? [])
+const plAccountOptions = computed(() =>
+    revenueAccounts.value.map((account) => ({
+        label: `${account.account_code} - ${account.account_name}`,
+        value: account.id,
+        code: account.account_code,
+        name: account.account_name,
+    }))
+)
+const plAccountInputClass = computed(() => {
+    const base = 'w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm'
+    const error = form.errors?.pl_account_id ? ' border-red-300' : ' border-sage-300'
+    const disabled = props.otherIncome.posted_to_profit_loss ? ' bg-gray-100 cursor-not-allowed' : ''
+    return `${base}${error}${disabled}`
+})
 
 watch(
     categoryOptions,

@@ -6,7 +6,8 @@
         v-model="searchQuery"
         type="text"
         :placeholder="placeholder"
-        :class="inputClass"
+        :class="computedInputClass"
+        :disabled="disabled"
         @focus="showOptions = true"
         @input="handleInput"
         @keydown="handleKeydown"
@@ -88,6 +89,10 @@ const props = defineProps({
   inputClass: {
     type: String,
     default: 'w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -98,6 +103,13 @@ const showOptions = ref(false)
 const selectedIndex = ref(-1)
 const dropdown = ref(null)
 const searchInput = ref(null)
+
+const computedInputClass = computed(() => {
+  return [
+    props.inputClass,
+    props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+  ].filter(Boolean).join(' ')
+})
 
 // Find selected option and set search query
 const selectedOption = computed(() => {
@@ -129,6 +141,7 @@ const filteredOptions = computed(() => {
 })
 
 const handleInput = () => {
+  if (props.disabled) return
   showOptions.value = true
   selectedIndex.value = -1
 
@@ -140,7 +153,7 @@ const handleInput = () => {
 }
 
 const handleKeydown = (event) => {
-  if (!showOptions.value) return
+  if (props.disabled || !showOptions.value) return
 
   switch (event.key) {
     case 'ArrowDown':
@@ -165,6 +178,7 @@ const handleKeydown = (event) => {
 }
 
 const selectOption = (option) => {
+  if (props.disabled) return
   searchQuery.value = option[props.labelField]
   showOptions.value = false
   selectedIndex.value = -1
@@ -194,6 +208,13 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+})
+
+watch(() => props.disabled, (isDisabled) => {
+  if (isDisabled) {
+    showOptions.value = false
+    selectedIndex.value = -1
+  }
 })
 
 // Method to focus the input

@@ -97,8 +97,7 @@ class OtherIncomeController extends Controller
         $categories = OperationalCostCategory::orderBy('name')
             ->pluck('name')
             ->values();
-        $revenueAccounts = ChartOfAccount::where('account_type', 'revenue')
-            ->orderBy('account_code')
+        $revenueAccounts = ChartOfAccount::orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
 
         return Inertia::render('Admin/AdminKeuangan/OtherIncomes/Create', [
@@ -174,8 +173,7 @@ class OtherIncomeController extends Controller
             'customers' => Customer::select('id', 'company_name')->orderBy('company_name')->get(),
             'bankAccounts' => BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']),
             'linkedBankAccountId' => $linkedBankAccountId,
-            'revenueAccounts' => ChartOfAccount::where('account_type', 'revenue')
-                ->orderBy('account_code')
+            'revenueAccounts' => ChartOfAccount::orderBy('account_code')
                 ->get(['id', 'account_code', 'account_name']),
         ]);
     }

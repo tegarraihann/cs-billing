@@ -97,17 +97,14 @@
               <label class="block text-sm font-medium text-sage-700 mb-2">
                 Akun Beban (P&L) <span v-if="form.type === 'expense'" class="text-red-500">*</span>
               </label>
-              <select
+              <SearchableSelect
                 v-model="form.pl_account_id"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                :class="{ 'border-red-300': errors.pl_account_id }"
+                :options="plAccountOptions"
+                placeholder="Pilih Akun"
+                :input-class="plAccountInputClass"
                 :disabled="form.type !== 'expense'"
-              >
-                <option value="">Pilih Akun</option>
-                <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
-                  {{ account.account_code }} - {{ account.account_name }}
-                </option>
-              </select>
+                :search-fields="['label', 'code', 'name']"
+              />
               <p v-if="errors.pl_account_id" class="mt-1 text-sm text-red-600">
                 {{ errors.pl_account_id }}
               </p>
@@ -275,6 +272,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { Link, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 // Props
 const props = defineProps({
@@ -318,7 +316,16 @@ const form = useForm({
   receipt_file: null
 })
 
+const errors = computed(() => props.errors ?? {})
 const expenseAccounts = computed(() => props.expenseAccounts ?? [])
+const plAccountOptions = computed(() => {
+  return expenseAccounts.value.map((account) => ({
+    value: account.id,
+    label: `${account.account_code} - ${account.account_name}`,
+    code: account.account_code,
+    name: account.account_name
+  }))
+})
 
 // Computed
 const today = computed(() => {
@@ -354,6 +361,12 @@ const isDisabled = computed(() => {
   // amount harus > 0
   if (parseFloat(form.amount) <= 0) return true
   return false
+})
+
+const plAccountInputClass = computed(() => {
+  const base = 'w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm'
+  const border = errors.value?.pl_account_id ? 'border-red-300' : 'border-sage-300'
+  return `${base} ${border}`
 })
 
 // Watchers

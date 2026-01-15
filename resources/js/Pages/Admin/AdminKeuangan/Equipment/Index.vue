@@ -184,15 +184,15 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Akun Beban (P&L) *</label>
-                        <select
+                        <SearchableSelect
                             v-model="purchaseForm.pl_account_id"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
-                        >
-                            <option value="">Pilih akun</option>
-                            <option v-for="acc in expenseAccounts" :key="acc.id" :value="acc.id">
-                                {{ acc.account_code }} - {{ acc.account_name }}
-                            </option>
-                        </select>
+                            :options="expenseAccountOptions"
+                            placeholder="Cari akun..."
+                            label-field="label"
+                            value-field="value"
+                            :search-fields="['label', 'code', 'name']"
+                            :input-class="purchasePlAccountInputClass"
+                        />
                         <p v-if="purchaseForm.errors.pl_account_id" class="text-xs text-red-600 mt-1">{{ purchaseForm.errors.pl_account_id }}</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -320,6 +320,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { reactive, ref, computed, watch } from 'vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 const props = defineProps({
     transactions: Object,
@@ -356,6 +357,19 @@ const bankAccounts = computed(() => props.bankAccounts ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
 const expenseAccounts = computed(() => props.expenseAccounts ?? [])
 const defaultExpenseAccountId = computed(() => expenseAccounts.value[0]?.id || '')
+const expenseAccountOptions = computed(() =>
+    expenseAccounts.value.map((account) => ({
+        value: account.id,
+        label: `${account.account_code} - ${account.account_name}`,
+        code: account.account_code,
+        name: account.account_name
+    }))
+)
+const purchasePlAccountInputClass = computed(() => {
+    const base = 'w-full rounded-md border border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500 pr-10'
+    const error = purchaseForm.errors.pl_account_id ? ' border-red-300 focus:border-red-400 focus:ring-red-200' : ''
+    return `${base}${error}`
+})
 
 const filterForm = reactive({
     transaction_type: props.filters?.transaction_type ?? '',
