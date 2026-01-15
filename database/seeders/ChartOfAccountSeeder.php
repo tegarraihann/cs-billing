@@ -44,6 +44,7 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => '5310', 'name' => 'Listrik & Air', 'type' => 'expense', 'category' => 'expense_utilities', 'parent' => '5300', 'sort' => 31],
             ['code' => '5320', 'name' => 'Internet & Telepon', 'type' => 'expense', 'category' => 'expense_utilities', 'parent' => '5300', 'sort' => 32],
             ['code' => '5330', 'name' => 'Sewa Kantor', 'type' => 'expense', 'category' => 'expense_admin', 'parent' => '5300', 'sort' => 33],
+            ['code' => '5331', 'name' => 'Prepaid Rent Expense', 'type' => 'expense', 'category' => 'expense_admin', 'parent' => '5300', 'sort' => 34],
 
             ['code' => '5400', 'name' => 'Beban Marketing', 'type' => 'expense', 'category' => 'expense_marketing', 'parent' => '5000', 'sort' => 40],
             ['code' => '5410', 'name' => 'Promosi & Iklan', 'type' => 'expense', 'category' => 'expense_marketing', 'parent' => '5400', 'sort' => 41],

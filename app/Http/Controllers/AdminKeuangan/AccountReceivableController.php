@@ -289,10 +289,27 @@ class AccountReceivableController extends Controller
             return redirect()->back()->withErrors(['error' => 'Akun Beban Pajak belum dikonfigurasi.']);
         }
 
+        $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        $accountReceivable->load('components');
+        $mainComponent = $accountReceivable->components->firstWhere('component_type', 'main');
+
         $amount = (float) $accountReceivable->outstanding_amount;
+        $targetComponent = null;
+
+        if ($accountReceivable->components->isNotEmpty()) {
+            if (!$mainComponent) {
+                return redirect()->back()->withErrors(['error' => 'Komponen main invoice tidak ditemukan.']);
+            }
+            $targetComponent = $mainComponent;
+            $amount = (float) $mainComponent->outstanding_amount;
+        }
+
+        if ($amount <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Outstanding main invoice tidak valid untuk diposting.']);
+        }
         $now = now();
 
-        DB::transaction(function () use ($accountReceivable, $amount, $expenseAccount, $rate, $now) {
+        DB::transaction(function () use ($accountReceivable, $amount, $expenseAccount, $rate, $now, $targetComponent) {
             $invoice = $accountReceivable->invoice;
             $periodId = null;
 
@@ -335,39 +352,15 @@ class AccountReceivableController extends Controller
                 'tax_writeoff_account_id' => $expenseAccount->id,
             ]);
 
-            // Tutup semua komponen/outstanding AR
-            $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
-            $accountReceivable->load('components');
-
-            $remaining = $amount;
-            $components = $accountReceivable->components;
-
-            if ($components->isEmpty()) {
-                $accountReceivable->recordPayment(
-                    $remaining,
-                    'Posted to Tax Expense ' . $rate . '%',
-                    null,
-                    Carbon::parse($now)
-                );
-            } else {
-                foreach ($components as $component) {
-                    $out = (float) $component->outstanding_amount;
-                    if ($out <= 0 || $remaining <= 0) {
-                        continue;
-                    }
-                    $pay = min($out, $remaining);
-                    $accountReceivable->recordPayment(
-                        $pay,
-                        'Posted to Tax Expense ' . $rate . '%',
-                        $component,
-                        Carbon::parse($now)
-                    );
-                    $remaining -= $pay;
-                }
-            }
+            $accountReceivable->recordPayment(
+                $amount,
+                'Posted to Tax Expense ' . $rate . '%',
+                $targetComponent,
+                Carbon::parse($now)
+            );
         });
 
-        return redirect()->back()->with('success', 'Outstanding diposting ke beban pajak dan piutang ditutup.');
+        return redirect()->back()->with('success', 'Outstanding main invoice diposting ke beban pajak.');
     }
 
     /**

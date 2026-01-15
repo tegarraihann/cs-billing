@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Laporan Laba Rugi - {{ $period->period_name }}</title>
+    <title>Laporan Laba Rugi - <?php echo e($period->period_name); ?></title>
     <style>
         body {
             font-family: "Courier", monospace;
@@ -170,26 +170,22 @@
         <div class="company-name">PT. ESHAKA WIJAYA LOGISTICS</div>
         <div class="report-title">INCOME STATEMENT</div>
         <div class="period-info">
-            @php
+            <?php
                 $periodLabel = $period->start_date
                     ? \Carbon\Carbon::parse($period->start_date)->translatedFormat('F Y')
                     : $period->period_name;
-            @endphp
-            <strong>{{ mb_strtoupper($periodLabel, 'UTF-8') }} TRANSACTION PERIODE</strong>
+            ?>
+            <strong><?php echo e(mb_strtoupper($periodLabel, 'UTF-8')); ?> TRANSACTION PERIODE</strong>
         </div>
-        {{-- <div class="period-info">
-            Periode: {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}
-        </div> --}}
-        {{-- <div class="period-info">
-            Tanggal Cetak: {{ $generatedAt->format('d M Y H:i') }}
-        </div> --}}
+        
+        
     </div>
 
     <!-- PENDAPATAN -->
     <div class="section">
         <div class="section-title">REVENUE</div>
 
-        @php
+        <?php
             $mainRevenueEntries = collect($reportData['revenues']['main'] ?? []);
             $otherRevenueEntries = collect($reportData['revenues']['other'] ?? []);
             $allRevenueEntries = $mainRevenueEntries->merge($otherRevenueEntries);
@@ -223,26 +219,26 @@
             if ($serviceRevenueTotal < 0) {
                 $serviceRevenueTotal = 0;
             }
-        @endphp
+        ?>
 
         <div class="item" style="background-color: #e8f2e8;">
             <span class="item-name">Service Revenue</span>
-            <span class="item-amount">Rp {{ number_format($serviceRevenueTotal, 0, ',', '.') }}</span>
+            <span class="item-amount">Rp <?php echo e(number_format($serviceRevenueTotal, 0, ',', '.')); ?></span>
         </div>
 
         <div class="item" style="background-color: #e8f2e8;">
             <span class="item-name">Interest Revenue</span>
-            <span class="item-amount">Rp {{ number_format($interestTotal, 0, ',', '.') }}</span>
+            <span class="item-amount">Rp <?php echo e(number_format($interestTotal, 0, ',', '.')); ?></span>
         </div>
 
         <div class="item" style="background-color: #e8f2e8;">
             <span class="item-name">Other Income</span>
-            <span class="item-amount">Rp {{ number_format($otherIncomeTotal, 0, ',', '.') }}</span>
+            <span class="item-amount">Rp <?php echo e(number_format($otherIncomeTotal, 0, ',', '.')); ?></span>
         </div>
 
         <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold;">TOTAL REVENUES</span>
-            <span class="item-amount" style="font-weight: bold;">Rp {{ number_format($reportData['revenues']['total'] ?? 0, 0, ',', '.') }}</span>
+            <span class="item-amount" style="font-weight: bold;">Rp <?php echo e(number_format($reportData['revenues']['total'] ?? 0, 0, ',', '.')); ?></span>
         </div>
     </div>
 
@@ -250,7 +246,7 @@
     <div class="section">
         <div class="section-title">EXPENSES</div>
 
-        @php
+        <?php
             $operationalGrouped = data_get($reportData, 'expenses.operational.grouped', []);
             $salaryEntries = data_get($reportData, 'expenses.salary', []);
             $adminEntries = data_get($reportData, 'expenses.admin', []);
@@ -406,85 +402,87 @@
                 ['label' => 'Administrative Bank Expense', 'amount' => $expenseTotals['Administrative Bank Expense']],
                 ['label' => 'Monthly Card Expense', 'amount' => $expenseTotals['Monthly Card Expense']],
             ]);
-        @endphp
+        ?>
 
-        @if($expenseLines->count() > 0)
-            @foreach($expenseLines as $line)
+        <?php if($expenseLines->count() > 0): ?>
+            <?php $__currentLoopData = $expenseLines; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $line): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="item" style="background-color: #e8f2e8;">
-                    <span class="item-name">{{ $line['label'] }}</span>
-                    <span class="item-amount">Rp {{ number_format($line['amount'] ?? 0, 0, ',', '.') }}</span>
+                    <span class="item-name"><?php echo e($line['label']); ?></span>
+                    <span class="item-amount">Rp <?php echo e(number_format($line['amount'] ?? 0, 0, ',', '.')); ?></span>
                 </div>
-            @endforeach
-        @else
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        <?php else: ?>
             <div class="item" style="text-align: center; font-style: italic; color: #666;">
                 Tidak ada data expenses
             </div>
-        @endif
+        <?php endif; ?>
 
         <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold;">TOTAL EXPENSES</span>
-            <span class="item-amount" style="font-weight: bold;">Rp {{ number_format($reportData['expenses']['total'] ?? 0, 0, ',', '.') }}</span>
+            <span class="item-amount" style="font-weight: bold;">Rp <?php echo e(number_format($reportData['expenses']['total'] ?? 0, 0, ',', '.')); ?></span>
         </div>
-        @php
+        <?php
             $profitBeforeTax = ($reportData['revenues']['total'] ?? 0) - ($reportData['expenses']['total'] ?? 0);
-        @endphp
+        ?>
         <div class="total-row" style="background: #e6e6e6; border-top: 1px solid #999; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold">PROFIT BEFORE TAX EXPENSES</span>
-            <span class="item-amount" style="font-weight: bold">Rp {{ number_format($profitBeforeTax, 0, ',', '.') }}</span>
+            <span class="item-amount" style="font-weight: bold">Rp <?php echo e(number_format($profitBeforeTax, 0, ',', '.')); ?></span>
         </div>
     </div>
 
     <!-- TAX EXPENSES -->
-    @php
+    <?php
         $taxE05 = data_get($reportData, 'taxes.e05.total', 0);
         $tax2 = data_get($reportData, 'taxes.two_percent.total', 0);
         $totalTax = data_get($reportData, 'taxes.total', $taxE05 + $tax2);
         $netProfitMonthly = data_get($reportData, 'net_profit_closing', $profitBeforeTax - $totalTax);
-    @endphp
+    ?>
     <div class="section">
         <div class="section-title">TAX EXPENSES</div>
         <div class="item" style="background-color: #e8f2e8;">
             <span class="item-name">TAX EXPENSE 0.5%</span>
-            <span class="item-amount">Rp {{ number_format($taxE05, 0, ',', '.') }}</span>
+            <span class="item-amount">Rp <?php echo e(number_format($taxE05, 0, ',', '.')); ?></span>
         </div>
         <div class="item" style="background-color: #e8f2e8;">
             <span class="item-name">TAX EXPENSE 2%</span>
-            <span class="item-amount">Rp {{ number_format($tax2, 0, ',', '.') }}</span>
+            <span class="item-amount">Rp <?php echo e(number_format($tax2, 0, ',', '.')); ?></span>
         </div>
         <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold">TOTAL TAX EXPENSE</span>
-            <span class="item-amount">Rp {{ number_format($totalTax, 0, ',', '.') }}</span>
+            <span class="item-amount">Rp <?php echo e(number_format($totalTax, 0, ',', '.')); ?></span>
         </div>
         <div style="height: 24px;"></div>
         <div class="total-row" style="background: #e0e0e0; border-top: 1px solid #999; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold">PROFIT/LOSS FOR THE CURRENT PERIOD</span>
-            <span class="item-amount" style="font-weight: bold">Rp {{ number_format($netProfitMonthly, 0, ',', '.') }}</span>
+            <span class="item-amount" style="font-weight: bold">Rp <?php echo e(number_format($netProfitMonthly, 0, ',', '.')); ?></span>
         </div>
     </div>
 
     <!-- RINGKASAN -->
-    @php
+    <?php
         $totalRevenue = $reportData['revenues']['total'] ?? 0;
         $totalExpense = $reportData['expenses']['total'] ?? 0;
         $netProfit = $totalRevenue - $totalExpense;
         $isProfit = $netProfit >= 0;
-    @endphp
+    ?>
 
 
     <!-- Footer -->
     <div class="footer">
-        <div><strong>© {{ date('Y') }} PT. Eshaka Wijaya Logistics</strong></div>
+        <div><strong>© <?php echo e(date('Y')); ?> PT. Eshaka Wijaya Logistics</strong></div>
         <div>Laporan ini bersifat rahasia dan dibuat secara otomatis oleh sistem</div>
-        <div>Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }}</div>
+        <div>Dicetak pada: <?php echo e($generatedAt->format('d/m/Y H:i:s')); ?></div>
 
-        @if($period->status === 'closed' && $period->approved_at)
+        <?php if($period->status === 'closed' && $period->approved_at): ?>
             <div style="margin-top: 10px; font-weight: bold; color: #155724;">
                 ✓ LAPORAN TELAH DIFINALISASI
             </div>
             <div style="color: #155724;">
-                Tanggal Finalisasi: {{ \Carbon\Carbon::parse($period->approved_at)->format('d M Y H:i') }}
+                Tanggal Finalisasi: <?php echo e(\Carbon\Carbon::parse($period->approved_at)->format('d M Y H:i')); ?>
+
             </div>
-        @endif
+        <?php endif; ?>
     </div>
 </body>
 </html>
+<?php /**PATH C:\laragon\www\OfficeManagement\resources\views/admin/admin-keuangan/reports/profit-loss-pdf.blade.php ENDPATH**/ ?>
