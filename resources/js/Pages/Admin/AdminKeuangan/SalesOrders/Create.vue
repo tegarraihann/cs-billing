@@ -552,18 +552,12 @@
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Vendor
-                                                            /
-                                                            Penerima</label>
-                                                        <select v-model="cost.vendor_id"
-                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
-                                                            <option value="">-- Belum Ditentukan --</option>
-                                                            <option value="internal">-- Internal (Divisi Operational) --
-                                                            </option>
-                                                            <option v-for="vendor in vendors" :key="vendor.id"
-                                                                :value="vendor.id">
-                                                                {{ vendor.nama_vendor }}
-                                                            </option>
-                                                        </select>
+                                                            / Penerima</label>
+                                                        <SearchableSelect v-model="cost.vendor_id"
+                                                            :options="vendorSelectOptions"
+                                                            placeholder="Pilih vendor"
+                                                            :search-fields="['label']"
+                                                            :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
                                                         <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah
                                                             tahu akan
                                                             dibayar ke siapa</p>
@@ -664,16 +658,11 @@
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Vendor
                                                             / Penerima</label>
-                                                        <select v-model="item.vendor_id"
-                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500">
-                                                            <option value="">-- Belum Ditentukan --</option>
-                                                            <option value="internal">-- Internal (Divisi Operational) --
-                                                            </option>
-                                                            <option v-for="vendor in vendors" :key="vendor.id"
-                                                                :value="vendor.id">
-                                                                {{ vendor.nama_vendor }}
-                                                            </option>
-                                                        </select>
+                                                        <SearchableSelect v-model="item.vendor_id"
+                                                            :options="vendorSelectOptions"
+                                                            placeholder="Pilih vendor"
+                                                            :search-fields="['label']"
+                                                            :input-class="'w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
                                                         <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah
                                                             tahu akan dibayar ke siapa</p>
                                                     </div>
@@ -953,6 +942,20 @@ const customerOptions = computed(() => {
         company_name: customer.company_name,
         pic_name: customer.pic_name
     }));
+});
+
+const vendorSelectOptions = computed(() => {
+    const baseOptions = [
+        { value: '', label: '-- Belum Ditentukan --' },
+        { value: 'internal', label: '-- Internal (Divisi Operational) --' },
+    ];
+
+    const vendorOptions = (props.vendors ?? []).map(vendor => ({
+        value: vendor.id,
+        label: vendor.nama_vendor,
+    }));
+
+    return [...baseOptions, ...vendorOptions];
 });
 
 const serviceTypeOptions = computed(() => {

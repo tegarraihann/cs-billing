@@ -317,18 +317,21 @@
                 if ($accountCategory === 'expense_outside') {
                     return 'Outside Assignments Expense';
                 }
+                if ($accountCategory === 'expense_monthly_card') {
+                    return 'Monthly Card Expense';
+                }
 
                 if ($matchesAny($text, ['entertain'])) {
                     return 'Entertainment Expense';
+                }
+                if ($matchesAny($text, ['monthly card', 'kartu bulanan', 'card bulanan', 'biaya kartu', 'kartu kredit', 'kartu bank', 'bank card', 'card bank', 'admin kartu', 'potongan kartu', 'biaya kartu bank'])) {
+                    return 'Monthly Card Expense';
                 }
                 if ($matchesAny($text, ['bunga bank', 'interest'])) {
                     return 'Administrative Bank Expense';
                 }
                 if ($matchesAny($text, ['admin bank', 'bank admin'])) {
                     return 'Administrative Bank Expense';
-                }
-                if ($matchesAny($text, ['monthly card', 'kartu bulanan', 'card bulanan', 'biaya kartu', 'kartu kredit'])) {
-                    return 'Monthly Card Expense';
                 }
                 if ($matchesAny($text, ['electric', 'listrik', 'water', 'air', 'internet'])) {
                     return 'Electricity, Water & Internet Expense';

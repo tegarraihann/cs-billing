@@ -441,13 +441,11 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                         Vendor / Penerima
                                     </label>
-                                    <select v-model="item.vendor_id"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
-                                        <option value="">-- Internal (Divisi Operational) --</option>
-                                        <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
-                                            {{ vendor.nama_vendor }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect v-model="item.vendor_id"
+                                        :options="vendorSelectOptions"
+                                        placeholder="Pilih vendor"
+                                        :search-fields="['label']"
+                                        :input-class="'w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500'" />
                                     <p class="text-xs text-gray-600 mt-1">
                                         Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika
                                         internal
@@ -603,18 +601,17 @@
                                         class="px-3 py-2 border border-blue-200 rounded-lg bg-blue-50 text-sm text-blue-800">
                                         Biaya beli (COGS) otomatis dari Sales Order. Kategori tidak diperlukan.
                                     </div>
-                                    <select v-else v-model="cost.category_id" @change="onCategoryChange(index)" :class="[
-                                        'w-full px-3 py-2 border rounded-lg focus:ring-2',
-                                        cost.auto_generated
-                                            ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
-                                            : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    ]" :required="cost.source !== 'vendor_breakdown_buying'">
-                                        <option value="">-- Pilih Kategori Biaya --</option>
-                                        <option v-for="category in operationalCostCategories" :key="category.id"
-                                            :value="category.id">
-                                            {{ category.name }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect v-else v-model="cost.category_id"
+                                        :options="operationalCostCategoryOptions"
+                                        placeholder="Pilih kategori biaya"
+                                        :search-fields="['label']"
+                                        :input-class="[
+                                            'w-full px-3 py-2 pr-8 border rounded-lg focus:ring-2',
+                                            cost.auto_generated
+                                                ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
+                                                : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                        ].join(' ')"
+                                        :required="cost.source !== 'vendor_breakdown_buying'" />
                                 </div>
 
                                 <!-- Vendor Selection -->
@@ -625,17 +622,16 @@
                                     ]">
                                         Vendor / Penerima
                                     </label>
-                                    <select v-model="cost.vendor_id" :class="[
-                                        'w-full px-3 py-2 border rounded-lg focus:ring-2',
-                                        cost.auto_generated
-                                            ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
-                                            : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    ]">
-                                        <option value="">-- Internal (Divisi Operational) --</option>
-                                        <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
-                                            {{ vendor.nama_vendor }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect v-model="cost.vendor_id"
+                                        :options="vendorSelectOptions"
+                                        placeholder="Pilih vendor"
+                                        :search-fields="['label']"
+                                        :input-class="[
+                                            'w-full px-3 py-2 pr-8 border rounded-lg focus:ring-2',
+                                            cost.auto_generated
+                                                ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
+                                                : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                        ].join(' ')" />
                                     <p :class="[
                                         'text-xs mt-1',
                                         cost.auto_generated ? 'text-blue-600' : 'text-red-600'
@@ -786,10 +782,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, watch, computed } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import OperationalCostsSection from '@/Components/OperationalCostsSection.vue';
+import SearchableSelect from '@/Components/SearchableSelect.vue';
 
 const props = defineProps({
     salesOrders: Array,
@@ -817,6 +814,30 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+});
+
+const vendorSelectOptions = computed(() => {
+    const baseOptions = [
+        { value: '', label: '-- Internal (Divisi Operational) --' },
+    ];
+
+    const vendorOptions = (props.vendors ?? []).map(vendor => ({
+        value: vendor.id,
+        label: vendor.nama_vendor,
+    }));
+
+    return [...baseOptions, ...vendorOptions];
+});
+
+const operationalCostCategoryOptions = computed(() => {
+    const baseOptions = [{ value: '', label: '-- Pilih Kategori Biaya --' }];
+
+    const categoryOptions = (props.operationalCostCategories ?? []).map(category => ({
+        value: category.id,
+        label: category.name,
+    }));
+
+    return [...baseOptions, ...categoryOptions];
 });
 
 const route = window.route || function (name, params) {

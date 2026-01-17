@@ -183,16 +183,13 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                                <select
+                                <SearchableSelect
                                     v-model="selectedTopupCategoryId"
-                                    class="w-full rounded-md border-gray-300 text-sm focus:border-sage-500 focus:ring focus:ring-sage-200"
-                                    required
-                                >
-                                    <option value="">Pilih kategori</option>
-                                    <option v-for="cat in pettyCashCategories" :key="cat.id" :value="cat.id">
-                                        {{ cat.name }}
-                                    </option>
-                                </select>
+                                    :options="topupCategoryOptions"
+                                    placeholder="Pilih kategori"
+                                    :search-fields="['label']"
+                                    :input-class="topupCategoryInputClass"
+                                />
                             </div>
                         </div>
                         <div>
@@ -427,6 +424,14 @@ const props = defineProps({
 const categories = computed(() => props.categories ?? [])
 const pettyCashCategories = computed(() => props.pettyCashCategories ?? [])
 const selectedTopupCategoryId = ref(pettyCashCategories.value[0]?.id || '')
+const topupCategoryOptions = computed(() => {
+    const baseOptions = [{ value: '', label: 'Pilih kategori' }]
+    const options = pettyCashCategories.value.map((category) => ({
+        value: category.id,
+        label: category.name,
+    }))
+    return [...baseOptions, ...options]
+})
 const expenseAccounts = computed(() => props.expenseAccounts ?? [])
 const expenseAccountOptions = computed(() =>
     expenseAccounts.value.map((account) => ({
@@ -440,6 +445,10 @@ const baseAccountInputClass =
     'w-full px-3 py-2 pr-10 border rounded-md text-sm focus:border-sage-500 focus:ring focus:ring-sage-200'
 const topupPlAccountInputClass = computed(() => {
     const error = topupForm.errors?.pl_account_id ? ' border-red-300' : ' border-gray-300'
+    return `${baseAccountInputClass}${error}`
+})
+const topupCategoryInputClass = computed(() => {
+    const error = topupForm.errors?.petty_cash_category_id || topupForm.errors?.category ? ' border-red-300' : ' border-gray-300'
     return `${baseAccountInputClass}${error}`
 })
 const usagePlAccountInputClass = computed(() => {

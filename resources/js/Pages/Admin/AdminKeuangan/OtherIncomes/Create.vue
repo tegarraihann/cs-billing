@@ -57,15 +57,15 @@
                             <label class="block text-sm font-medium text-sage-700 mb-2">
                                 Customer
                             </label>
-                            <select
+                            <SearchableSelect
                                 v-model="form.customer_id"
-                                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                            >
-                                <option value="">- Tanpa Customer -</option>
-                                <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                                    {{ customer.company_name }}
-                                </option>
-                            </select>
+                                :options="customerSelectOptions"
+                                placeholder="Cari customer..."
+                                label-field="label"
+                                value-field="value"
+                                :search-fields="['label']"
+                                :input-class="customerInputClass"
+                            />
                             <p v-if="form.errors.customer_id" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.customer_id }}
                             </p>
@@ -381,6 +381,19 @@ const plAccountInputClass = computed(() => {
     return `${base}${error}`
 })
 const customers = computed(() => props.customers ?? [])
+const customerSelectOptions = computed(() => {
+    const baseOptions = [{ value: '', label: '- Tanpa Customer -' }]
+    const options = customers.value.map((customer) => ({
+        value: customer.id,
+        label: customer.company_name,
+    }))
+    return [...baseOptions, ...options]
+})
+const customerInputClass = computed(() => {
+    const base = 'w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm'
+    const error = form.errors?.customer_id ? ' border-red-300' : ' border-sage-300'
+    return `${base}${error}`
+})
 const bankAccounts = computed(() => props.bankAccounts ?? [])
 const revenueAccounts = computed(() => props.revenueAccounts ?? [])
 const isDisabled = computed(() => {

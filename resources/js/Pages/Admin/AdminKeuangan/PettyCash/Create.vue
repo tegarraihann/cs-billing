@@ -73,17 +73,14 @@
               <label class="block text-sm font-medium text-sage-700 mb-2">
                 Kategori <span v-if="form.type === 'expense'" class="text-red-500">*</span>
               </label>
-              <select
+              <SearchableSelect
                 v-model="form.category_id"
-                class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                :class="{ 'border-red-300': errors.category_id }"
+                :options="categorySelectOptions"
+                placeholder="Pilih kategori"
+                :search-fields="['label']"
+                :input-class="categoryInputClass"
                 :disabled="form.type !== 'expense'"
-              >
-                <option value="">Pilih Kategori</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
-                  {{ category.name }}
-                </option>
-              </select>
+              />
               <p v-if="errors.category_id" class="mt-1 text-sm text-red-600">
                 {{ errors.category_id }}
               </p>
@@ -361,6 +358,21 @@ const isDisabled = computed(() => {
   // amount harus > 0
   if (parseFloat(form.amount) <= 0) return true
   return false
+})
+
+const categorySelectOptions = computed(() => {
+  const baseOptions = [{ value: '', label: 'Pilih Kategori' }]
+  const options = (props.categories ?? []).map(category => ({
+    value: category.id,
+    label: category.name
+  }))
+  return [...baseOptions, ...options]
+})
+
+const categoryInputClass = computed(() => {
+  const base = 'w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm'
+  const border = errors.value?.category_id ? 'border-red-300' : 'border-sage-300'
+  return `${base} ${border}`
 })
 
 const plAccountInputClass = computed(() => {
