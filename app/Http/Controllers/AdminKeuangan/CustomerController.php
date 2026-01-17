@@ -30,7 +30,30 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->orderBy('created_at', 'desc')->paginate(15);
+        $trimmedName = "TRIM(customers.company_name)";
+        $upperTrimmedName = "UPPER(TRIM(customers.company_name))";
+        $sortKey = "TRIM(CASE " .
+            "WHEN {$upperTrimmedName} LIKE 'PT.%' THEN SUBSTRING({$trimmedName}, 4) " .
+            "WHEN {$upperTrimmedName} LIKE 'PT %' THEN SUBSTRING({$trimmedName}, 4) " .
+            "WHEN {$upperTrimmedName} LIKE 'PT%' THEN SUBSTRING({$trimmedName}, 3) " .
+            "WHEN {$upperTrimmedName} LIKE 'CV.%' THEN SUBSTRING({$trimmedName}, 4) " .
+            "WHEN {$upperTrimmedName} LIKE 'CV %' THEN SUBSTRING({$trimmedName}, 4) " .
+            "WHEN {$upperTrimmedName} LIKE 'CV%' THEN SUBSTRING({$trimmedName}, 3) " .
+            "WHEN {$upperTrimmedName} LIKE 'UD.%' THEN SUBSTRING({$trimmedName}, 4) " .
+            "WHEN {$upperTrimmedName} LIKE 'UD %' THEN SUBSTRING({$trimmedName}, 4) " .
+            "WHEN {$upperTrimmedName} LIKE 'UD%' THEN SUBSTRING({$trimmedName}, 3) " .
+            "WHEN {$upperTrimmedName} LIKE 'YAYASAN %' THEN SUBSTRING({$trimmedName}, 9) " .
+            "WHEN {$upperTrimmedName} LIKE 'KOPERASI %' THEN SUBSTRING({$trimmedName}, 10) " .
+            "WHEN {$upperTrimmedName} LIKE 'FIRMA %' THEN SUBSTRING({$trimmedName}, 7) " .
+            "ELSE {$trimmedName} END)";
+
+        $customers = $query
+            ->select('customers.*')
+            ->selectRaw("{$sortKey} as sort_name")
+            ->orderByRaw('sort_name asc')
+            ->orderByRaw("{$trimmedName} asc")
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return Inertia::render('Admin/AdminKeuangan/Customers/Index', [
             'customers' => $customers,
