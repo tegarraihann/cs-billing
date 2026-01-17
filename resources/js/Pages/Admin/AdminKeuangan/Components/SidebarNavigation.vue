@@ -307,6 +307,19 @@
                     <span class="font-medium">Operational Cost Categories</span>
                 </a>
 
+                <!-- Petty Cash Categories -->
+                <a :href="route('admin-keuangan.petty-cash-categories.index')"
+                    class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.petty-cash-categories.*')
+                            ? 'bg-sage-100 text-sage-800 shadow-sm'
+                            : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                        ">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2m0 0v8a2 2 0 002 2h10a2 2 0 002-2V9m0 0h4a1 1 0 011 1v2a1 1 0 01-1 1h-4" />
+                    </svg>
+                    <span class="font-medium">Petty Cash Categories</span>
+                </a>
+
                 <!-- Chart of Accounts -->
                 <a :href="route('admin-keuangan.chart-of-accounts.index')"
                     class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.chart-of-accounts.*')
@@ -415,6 +428,9 @@ const route = window.route || function (name, params) {
         'admin-keuangan.service-types.edit': '/admin-keuangan/service-types/:id/edit',
         'admin-keuangan.operational-cost-categories.index': '/admin-keuangan/operational-cost-categories',
         'admin-keuangan.operational-cost-categories.create': '/admin-keuangan/operational-cost-categories/create',
+        'admin-keuangan.petty-cash-categories.index': '/admin-keuangan/petty-cash-categories',
+        'admin-keuangan.petty-cash-categories.create': '/admin-keuangan/petty-cash-categories/create',
+        'admin-keuangan.petty-cash-categories.edit': '/admin-keuangan/petty-cash-categories/:id/edit',
         'admin-keuangan.chart-of-accounts.index': '/admin-keuangan/chart-of-accounts',
         'admin-keuangan.chart-of-accounts.create': '/admin-keuangan/chart-of-accounts/create',
         'admin-keuangan.chart-of-accounts.edit': '/admin-keuangan/chart-of-accounts/:id/edit',
@@ -443,6 +459,7 @@ const isActive = (routePattern) => {
             'admin-keuangan.shipment-types.': '/admin-keuangan/shipment-types',
             'admin-keuangan.service-types.': '/admin-keuangan/service-types',
             'admin-keuangan.operational-cost-categories.': '/admin-keuangan/operational-cost-categories',
+            'admin-keuangan.petty-cash-categories.': '/admin-keuangan/petty-cash-categories',
             'admin-keuangan.chart-of-accounts.': '/admin-keuangan/chart-of-accounts',
             'admin-keuangan.master-package-units.': '/admin-keuangan/master-package-units',
         };
@@ -474,6 +491,7 @@ const isActive = (routePattern) => {
         'admin-keuangan.shipment-types': '/admin-keuangan/shipment-types',
         'admin-keuangan.service-types': '/admin-keuangan/service-types',
         'admin-keuangan.operational-cost-categories': '/admin-keuangan/operational-cost-categories',
+        'admin-keuangan.petty-cash-categories': '/admin-keuangan/petty-cash-categories',
         'admin-keuangan.chart-of-accounts': '/admin-keuangan/chart-of-accounts',
         'admin-keuangan.master-package-units': '/admin-keuangan/master-package-units',
     };

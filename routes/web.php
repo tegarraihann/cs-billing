@@ -785,6 +785,16 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::delete('/{operationalCostCategory}', 'destroy')->name('destroy');
     });
 
+    // Petty Cash Category Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\PettyCashCategoryController::class)->prefix('petty-cash-categories')->name('petty-cash-categories.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{pettyCashCategory}/edit', 'edit')->name('edit');
+        Route::put('/{pettyCashCategory}', 'update')->name('update');
+        Route::delete('/{pettyCashCategory}', 'destroy')->name('destroy');
+    });
+
     // General Expenses Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\GeneralExpenseController::class)->prefix('general-expenses')->name('general-expenses.')->group(function () {
         Route::get('/', 'index')->name('index');
