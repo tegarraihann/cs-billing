@@ -595,15 +595,13 @@
                             </div>
                             <div v-if="shouldShowCategoryField" class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Biaya *</label>
-                                <select v-model="additionalCostForm.category_id"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                                    :required="shouldShowCategoryField">
-                                    <option value="">-- Pilih Kategori --</option>
-                                    <option v-for="category in operationalCostCategories" :key="category.id"
-                                        :value="String(category.id)">
-                                        {{ category.name }}
-                                    </option>
-                                </select>
+                                <SearchableSelect v-model="additionalCostForm.category_id"
+                                    :options="operationalCostCategoryOptions"
+                                    placeholder="Pilih kategori"
+                                    label-field="label"
+                                    value-field="value"
+                                    :search-fields="['label']"
+                                    :input-class="'w-full px-3 py-2 pr-8 border border-gray-300 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500'" />
                                 <p v-if="additionalCostForm.errors.category_id" class="text-sm text-red-600 mt-1">
                                     {{ additionalCostForm.errors.category_id }}
                                 </p>
@@ -618,13 +616,11 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Vendor / Penerima</label>
-                                <select v-model="additionalCostForm.vendor_id"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
-                                    <option value="">-- Internal (Divisi Operational) --</option>
-                                    <option v-for="vendor in vendors" :key="vendor.id" :value="String(vendor.id)">
-                                        {{ vendor.nama_vendor }}
-                                    </option>
-                                </select>
+                                <SearchableSelect v-model="additionalCostForm.vendor_id"
+                                    :options="vendorSelectOptions"
+                                    placeholder="Pilih vendor"
+                                    :search-fields="['label']"
+                                    :input-class="'w-full px-3 py-2 pr-8 border border-gray-300 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500'" />
                                 <p v-if="additionalCostForm.errors.vendor_id" class="text-sm text-red-600 mt-1">
                                     {{ additionalCostForm.errors.vendor_id }}
                                 </p>
@@ -662,6 +658,7 @@ import { router, Head, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, CreditCard, Edit, Plus, MoreVertical } from 'lucide-vue-next'
 import AlertDialog from '@/Components/AlertDialog.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 
 const props = defineProps({
     payable: Object,
@@ -961,6 +958,22 @@ const requiresCategory = computed(() => {
     return !additionalCostContext.value.categoryLocked
 })
 const shouldShowCategoryField = computed(() => requiresCategory.value)
+
+const operationalCostCategoryOptions = computed(() =>
+    operationalCostCategories.value.map(category => ({
+        value: String(category.id),
+        label: category.name
+    }))
+)
+
+const vendorSelectOptions = computed(() => {
+    const baseOptions = [{ value: '', label: '-- Internal (Divisi Operational) --' }]
+    const vendorOptions = (props.vendors ?? []).map(vendor => ({
+        value: String(vendor.id),
+        label: vendor.nama_vendor
+    }))
+    return [...baseOptions, ...vendorOptions]
+})
 
 const visibleComponents = computed(() => {
     if (!componentOptions.value.length) {

@@ -114,6 +114,7 @@
             <SummaryRow v-if="totalExpensesAdmin > 0" title="Administrative Expenses" :amount="totalExpensesAdmin" />
             <SummaryRow v-if="totalExpensesConsumption > 0" title="Consumption Expense" :amount="totalExpensesConsumption" />
             <SummaryRow v-if="totalExpensesOutside > 0" title="Outside Assignments Expense" :amount="totalExpensesOutside" />
+            <SummaryRow v-if="totalExpensesPrepaid > 0" title="Prepaid Rent Expense" :amount="totalExpensesPrepaid" />
             <SummaryRow v-if="totalExpensesTax > 0" title="Tax Expenses" :amount="totalExpensesTax" />
             <SummaryRow v-if="totalExpensesOther > 0" title="Other Expenses" :amount="totalExpensesOther" />
           </SectionCard>
@@ -181,6 +182,7 @@ const expensesConsumption = computed(() => props.reportData?.expenses?.consumpti
 const expensesOutside = computed(() => props.reportData?.expenses?.outside || [])
 const expensesTax = computed(() => props.reportData?.expenses?.tax || [])
 const expensesOther = computed(() => props.reportData?.expenses?.other || [])
+const expensesPrepaid = computed(() => props.reportData?.expenses?.prepaid || [])
 
 const totalExpensesSalary = computed(() => expensesSalary.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesAdmin = computed(() => expensesAdmin.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
@@ -188,6 +190,7 @@ const totalExpensesConsumption = computed(() => expensesConsumption.value.reduce
 const totalExpensesOutside = computed(() => expensesOutside.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesTax = computed(() => expensesTax.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesOther = computed(() => expensesOther.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const totalExpensesPrepaid = computed(() => expensesPrepaid.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 
 const isExporting = ref(false)
 const loading = ref(false)

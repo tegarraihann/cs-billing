@@ -87,6 +87,11 @@ class ProfitLossPeriod extends Model
                    $entry->account->account_category === 'expense_outside';
         })->sum('amount');
 
+        $prepaid_expense = $entries->filter(function ($entry) {
+            return $entry->account->account_type === 'expense' &&
+                   $entry->account->account_category === 'expense_prepaid';
+        })->sum('amount');
+
         $tax_expense = $entries->filter(function ($entry) {
             return $entry->account->account_type === 'expense' &&
                    $entry->account->account_category === 'expense_tax';
@@ -97,7 +102,7 @@ class ProfitLossPeriod extends Model
                    $entry->account->account_category === 'expense_other';
         })->sum('amount');
 
-        $this->total_expenses = $salary_expense + $operational_expense + $admin_expense + $consumption_expense + $outside_expense + $tax_expense + $other_expense;
+        $this->total_expenses = $salary_expense + $operational_expense + $admin_expense + $consumption_expense + $outside_expense + $prepaid_expense + $tax_expense + $other_expense;
         $this->net_profit = $this->total_revenue - $this->total_expenses;
 
         // Store breakdown in summary_data
@@ -107,6 +112,7 @@ class ProfitLossPeriod extends Model
             'total_admin_expense' => $admin_expense,
             'total_consumption_expense' => $consumption_expense,
             'total_outside_expense' => $outside_expense,
+            'total_prepaid_expense' => $prepaid_expense,
             'total_tax_expense' => $tax_expense,
             'total_other_expense' => $other_expense,
         ];
@@ -287,17 +293,18 @@ class ProfitLossPeriod extends Model
             ],
             'expenses' => [
                 'salary' => $serializeEntries($expense_entries->get('expense_salary', collect())),
-                'operational' => [
-                    'grouped' => $operationalByCategory,
-                    'total' => collect($operationalByCategory)->sum('total'),
-                ],
-                'admin' => $serializeEntries($expense_entries->get('expense_admin', collect())),
-                'consumption' => $serializeEntries($expense_entries->get('expense_consumption', collect())),
-                'outside' => $serializeEntries($expense_entries->get('expense_outside', collect())),
-                'tax' => $serializeEntries($expense_entries->get('expense_tax', collect())),
-                'other' => $serializeEntries($expense_entries->get('expense_other', collect())),
-                'total' => $this->total_expenses
+            'operational' => [
+                'grouped' => $operationalByCategory,
+                'total' => collect($operationalByCategory)->sum('total'),
             ],
+            'admin' => $serializeEntries($expense_entries->get('expense_admin', collect())),
+            'consumption' => $serializeEntries($expense_entries->get('expense_consumption', collect())),
+            'outside' => $serializeEntries($expense_entries->get('expense_outside', collect())),
+            'prepaid' => $serializeEntries($expense_entries->get('expense_prepaid', collect())),
+            'tax' => $serializeEntries($expense_entries->get('expense_tax', collect())),
+            'other' => $serializeEntries($expense_entries->get('expense_other', collect())),
+            'total' => $this->total_expenses
+        ],
             'taxes' => [
                 'e05' => [
                     'entries' => $serializeEntries($tax05Entries),
@@ -315,6 +322,7 @@ class ProfitLossPeriod extends Model
                 'total_admin_expense' => $summary['total_admin_expense'] ?? 0,
                 'total_consumption_expense' => $summary['total_consumption_expense'] ?? 0,
                 'total_outside_expense' => $summary['total_outside_expense'] ?? 0,
+                'total_prepaid_expense' => $summary['total_prepaid_expense'] ?? 0,
                 'total_tax_expense' => $summary['total_tax_expense'] ?? 0,
                 'total_other_expense' => $summary['total_other_expense'] ?? 0,
             ],

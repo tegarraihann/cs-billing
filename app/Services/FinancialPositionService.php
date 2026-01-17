@@ -72,6 +72,10 @@ class FinancialPositionService
         $liabilitiesTotal = 0;
         $equityTotal = 0;
 
+        $operationalExpense = null;
+        $currentYearEarnings = null;
+        $currentYearMeta = null;
+
         foreach ($this->structure as $key => $sectionConfig) {
             $sectionTotal = 0;
             $groups = [];
@@ -82,6 +86,35 @@ class FinancialPositionService
                     $accounts,
                     $cutoff
                 );
+
+                if ($key === 'equity') {
+                    if ($operationalExpense === null) {
+                        $operationalData = $this->getOperationalExpenseForYear($cutoff);
+                        $operationalExpense = (float) $operationalData['amount'];
+                        $currentYearMeta = $operationalData['meta'] ?? null;
+                    }
+
+                    $currentYearEarnings = $assetsTotal - $liabilitiesTotal - $operationalExpense;
+
+                    foreach ($rows as $index => $row) {
+                        if (($row['account_code'] ?? null) !== '3300') {
+                            continue;
+                        }
+
+                        $rows[$index]['amount'] = round($currentYearEarnings, 2);
+                        $rows[$index]['source'] = 'auto';
+                        $rows[$index]['details']['calculated'] = [
+                            'amount' => round($currentYearEarnings, 2),
+                            'source' => 'formula',
+                            'meta' => [
+                                'assets_total' => round($assetsTotal, 2),
+                                'liabilities_total' => round($liabilitiesTotal, 2),
+                                'operational_expense' => round($operationalExpense, 2),
+                                'period' => $currentYearMeta,
+                            ],
+                        ];
+                    }
+                }
 
                 $groupTotal = collect($rows)->sum('amount');
 
@@ -569,6 +602,36 @@ class FinancialPositionService
             'source' => 'auto',
             'meta' => [
                 'period_type' => 'monthly_aggregate',
+            ],
+        ];
+    }
+
+    private function getOperationalExpenseForYear(Carbon $cutoff): array
+    {
+        $year = $cutoff->year;
+
+        $yearlyPeriod = ProfitLossPeriod::where('period_type', 'yearly')
+            ->whereYear('start_date', $year)
+            ->whereYear('end_date', $year)
+            ->whereIn('status', ['published', 'closed'])
+            ->orderByDesc('end_date')
+            ->first();
+
+        if (!$yearlyPeriod) {
+            return [
+                'amount' => 0.0,
+                'meta' => [
+                    'period_id' => null,
+                    'period_type' => 'yearly',
+                ],
+            ];
+        }
+
+        return [
+            'amount' => (float) data_get($yearlyPeriod->summary_data, 'total_operational_expense', 0),
+            'meta' => [
+                'period_id' => $yearlyPeriod->id,
+                'period_type' => 'yearly',
             ],
         ];
     }

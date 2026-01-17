@@ -409,7 +409,7 @@
                     <span class="field-label">No. OF PKGS</span> :{{ $invoice->no_of_packages ? $invoice->no_of_packages . ' ' . strtoupper($invoice->package_unit ?? $invoice->salesOrder->package_unit ?? 'BAG') : '2760 BAG' }}
                 </div>
                 <div class="shipment-row">
-                    <span class="field-label">20'/40'/45'</span> :{{ $invoice->container_size ?? '3X20' }}
+                    <span class="field-label">20'/40'/45'</span> :{{ $invoice->party_lcl ?? $invoice->salesOrder->party_lcl ?? '-' }}
                 </div>
                 @if($invoice->salesOrder->container_no ?? null)
                 <div class="container-numbers">

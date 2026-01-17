@@ -282,56 +282,38 @@
                                         <div v-for="(item, index) in form.vendor_breakdown" :key="index"
                                             class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
                                             <!-- Row 1: Vendor Selection -->
-                                            <div class="grid grid-cols-12 gap-3">
-                                                <div class="col-span-11">
-                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                        Vendor</label>
-                                                    <select v-model="item.vendor_id" @change="onVendorSelect(index)"
-                                                        class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                                        <option value="">Pilih vendor...</option>
-                                                        <option v-for="vendorOption in vendors" :key="vendorOption.id"
-                                                            :value="vendorOption.id">
-                                                            {{ vendorOption.nama_vendor }}
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-span-1">
-                                                    <label
-                                                        class="block text-xs font-medium text-transparent mb-1">Del</label>
-                                                    <button type="button" @click="removeVendorItem(index)"
-                                                        class="w-full h-10 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors">
-                                                        ×
-                                                    </button>
-                                                </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Nama
+                                                    Vendor</label>
+                                                <SearchableSelect v-model="item.vendor_id"
+                                                    :options="vendorSelectOptions"
+                                                    placeholder="Pilih vendor..."
+                                                    :search-fields="['label']"
+                                                    :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'"
+                                                    @update:modelValue="() => onVendorSelect(index)" />
                                             </div>
 
-                                            <!-- Row 2: Service Description & RCVD INV -->
-                                            <div class="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label
-                                                        class="block text-xs font-medium text-sage-700 mb-1">Deskripsi
-                                                        Service / Jenis Biaya</label>
-                                                    <select v-model="item.description"
-                                                        class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                                        <option value="">Pilih Jenis Biaya</option>
-                                                        <option v-for="option in serviceTypeOptions" :key="option.value"
-                                                            :value="option.value">
-                                                            {{ option.label }}
-                                                        </option>
-                                                        <option
-                                                            v-if="item.description && !isKnownServiceType(item.description)"
-                                                            :value="item.description">
-                                                            {{ item.description }}
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label class="block text-xs font-medium text-sage-700 mb-1">RCVD
-                                                        INV</label>
-                                                    <input v-model="item.rcvd_inv" type="text"
-                                                        placeholder="Nomor invoice yang diterima"
-                                                        class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
-                                                </div>
+                                            <!-- Row 2: Service Description -->
+                                            <div>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Deskripsi
+                                                    Service / Jenis Biaya</label>
+                                                <SearchableSelect v-model="item.description"
+                                                    :options="getServiceTypeOptions(item.description)"
+                                                    placeholder="Pilih Jenis Biaya"
+                                                    label-field="label"
+                                                    value-field="value"
+                                                    sub-label-field="subLabel"
+                                                    :search-fields="['label', 'subLabel']"
+                                                    :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'" />
+                                            </div>
+
+                                            <!-- Row 3: RCVD INV -->
+                                            <div>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">RCVD
+                                                    INV</label>
+                                                <input v-model="item.rcvd_inv" type="text"
+                                                    placeholder="Nomor invoice yang diterima"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
                                             <!-- Row 2.5: Individual Remarks -->
@@ -344,7 +326,7 @@
                                             </div>
 
                                             <!-- Row 3: Buying & Selling Amounts -->
-                                            <div class="grid grid-cols-3 gap-3 p-3 bg-blue-50 rounded-lg">
+                                            <div class="grid grid-cols-1 gap-3 p-3 bg-blue-50 rounded-lg">
                                                 <div>
                                                     <label class="block text-xs font-medium text-blue-700 mb-1">Buying
                                                         Amount (Cost)</label>
@@ -371,7 +353,7 @@
 
                                             <!-- Row 4: Vendor Details (Auto-filled) -->
                                             <div v-if="item.vendor_id"
-                                                class="grid grid-cols-3 gap-3 p-3 bg-sage-50 rounded-lg">
+                                                class="grid grid-cols-1 gap-3 p-3 bg-sage-50 rounded-lg">
                                                 <div>
                                                     <label class="block text-xs font-medium text-sage-700 mb-1">Nama
                                                         Vendor</label>
@@ -388,6 +370,14 @@
                                                         Rekening</label>
                                                     <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
                                                 </div>
+                                            </div>
+                                            <div class="flex justify-end">
+                                                <button type="button" @click="removeVendorItem(index)"
+                                                    :disabled="form.vendor_breakdown.length <= 1"
+                                                    class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    <Trash2 class="w-4 h-4 mr-1" />
+                                                    Hapus Vendor
+                                                </button>
                                             </div>
                                         </div>
                                         <!-- Total Summary -->
@@ -962,6 +952,7 @@ const serviceTypeOptions = computed(() => {
     return (props.serviceTypes ?? []).map(type => ({
         value: type.code,
         label: type.code,
+        subLabel: type.description || ''
     }));
 });
 
@@ -977,6 +968,16 @@ const isKnownServiceType = (code) => {
         return false;
     }
     return Object.prototype.hasOwnProperty.call(serviceTypeMap.value, code);
+};
+
+const getServiceTypeOptions = (currentValue) => {
+    if (!currentValue || isKnownServiceType(currentValue)) {
+        return serviceTypeOptions.value;
+    }
+    return [
+        ...serviceTypeOptions.value,
+        { value: currentValue, label: currentValue, subLabel: '' }
+    ];
 };
 
 const reimbursementItems = ref([{ description: '', amount: 0, category: '', notes: '', vendor_id: '' }]);

@@ -516,13 +516,16 @@ class ProfitLossEntry extends Model
      */
     public static function createFromPrepaidRent(PrepaidRentTransaction $transaction, $period_id, $created_by)
     {
-        $expense_account = ChartOfAccount::where('account_code', '5330')->first()
+        $expense_account = ChartOfAccount::where('account_code', '5331')->first()
+            ?? ChartOfAccount::where('account_type', 'expense')
+                ->where('account_category', 'expense_prepaid')
+                ->first()
             ?? ChartOfAccount::where('account_type', 'expense')
                 ->where('account_category', 'expense_operational')
                 ->first();
 
         if (!$expense_account) {
-            throw new \Exception('Expense account for prepaid rent not found (expected account code 5330).');
+            throw new \Exception('Expense account for prepaid rent not found (expected account code 5331).');
         }
 
         $entry = self::firstOrNew([

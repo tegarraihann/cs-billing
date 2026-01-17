@@ -33,7 +33,24 @@ class VendorController extends Controller
             });
         }
 
-        $vendors = $query->orderBy('created_at', 'desc')->paginate(15);
+        $vendors = $query
+            ->orderByRaw("
+                TRIM(
+                    CASE
+                        WHEN nama_vendor LIKE 'PT %' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'PT.%' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'CV %' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'CV.%' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'UD %' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'UD.%' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'PD %' THEN SUBSTRING(nama_vendor, 4)
+                        WHEN nama_vendor LIKE 'PD.%' THEN SUBSTRING(nama_vendor, 4)
+                        ELSE nama_vendor
+                    END
+                ) asc
+            ")
+            ->orderBy('nama_vendor', 'asc')
+            ->paginate(15);
 
         return Inertia::render('Admin/AdminKeuangan/Vendors/Index', [
             'vendors' => $vendors,

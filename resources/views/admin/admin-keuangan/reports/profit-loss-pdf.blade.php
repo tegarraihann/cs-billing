@@ -258,12 +258,14 @@
             $marketingEntries = data_get($reportData, 'expenses.marketing', []);
             $consumptionEntries = data_get($reportData, 'expenses.consumption', []);
             $outsideEntries = data_get($reportData, 'expenses.outside', []);
+            $prepaidEntries = data_get($reportData, 'expenses.prepaid', []);
 
             $allExpenseEntries = collect($salaryEntries)
                 ->merge(collect($operationalGrouped)->flatMap(fn($cat) => $cat['entries'] ?? []))
                 ->merge($adminEntries)
                 ->merge($consumptionEntries)
                 ->merge($outsideEntries)
+                ->merge($prepaidEntries)
                 ->merge($otherEntries)
                 ->merge($marketingEntries);
 
