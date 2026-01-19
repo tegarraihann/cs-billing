@@ -1,6 +1,6 @@
 <template>
     <div
-        class="min-h-screen bg-gradient-to-br from-sage-50 via-sage-100 to-sage-200 flex items-center justify-center p-4">
+        class="relative min-h-screen bg-gradient-to-br from-sage-50 via-sage-100 to-sage-200 flex items-center justify-center p-4 overflow-hidden">
 
         <Head title="Sign In - Master Admin" />
 
@@ -14,6 +14,12 @@
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
             </svg>
+        </div>
+
+        <!-- Right Hero Logo -->
+        <div
+            class="absolute inset-y-0 right-0 hidden lg:flex items-end justify-end pr-0 pb-0 pointer-events-none z-0 translate-x-60 translate-y-24">
+            <img src="/images/logo/logo-hero.svg" alt="Logo" class="w-[40rem] xl:w-[50rem] opacity-85" />
         </div>
 
         <!-- Main Container -->
@@ -158,7 +164,7 @@
 
                         <Link v-if="canResetPassword" :href="route('password.request')"
                             class="text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors duration-200 hover:underline">
-                        Forgot your password?
+                            Forgot your password?
                         </Link>
                     </div>
 

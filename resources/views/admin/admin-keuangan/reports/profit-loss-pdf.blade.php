@@ -426,13 +426,18 @@
             </div>
         @endif
 
+        @php
+            $taxE05 = data_get($reportData, 'taxes.e05.total', 0);
+            $tax2 = data_get($reportData, 'taxes.two_percent.total', 0);
+            $totalTax = data_get($reportData, 'taxes.total', $taxE05 + $tax2);
+            $totalExpenses = $reportData['expenses']['total'] ?? 0;
+            $totalExpensesExTax = $totalExpenses - $totalTax;
+            $profitBeforeTax = ($reportData['revenues']['total'] ?? 0) - $totalExpensesExTax;
+        @endphp
         <div class="total-row" style="background: #f1f1f1; border-top: 1px solid #ccc; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold;">TOTAL EXPENSES</span>
-            <span class="item-amount" style="font-weight: bold;">Rp {{ number_format($reportData['expenses']['total'] ?? 0, 0, ',', '.') }}</span>
+            <span class="item-amount" style="font-weight: bold;">Rp {{ number_format($totalExpensesExTax, 0, ',', '.') }}</span>
         </div>
-        @php
-            $profitBeforeTax = ($reportData['revenues']['total'] ?? 0) - ($reportData['expenses']['total'] ?? 0);
-        @endphp
         <div class="total-row" style="background: #e6e6e6; border-top: 1px solid #999; padding: 8px 10px;">
             <span class="item-name" style="font-weight: bold">PROFIT BEFORE TAX EXPENSES</span>
             <span class="item-amount" style="font-weight: bold">Rp {{ number_format($profitBeforeTax, 0, ',', '.') }}</span>
@@ -441,9 +446,6 @@
 
     <!-- TAX EXPENSES -->
     @php
-        $taxE05 = data_get($reportData, 'taxes.e05.total', 0);
-        $tax2 = data_get($reportData, 'taxes.two_percent.total', 0);
-        $totalTax = data_get($reportData, 'taxes.total', $taxE05 + $tax2);
         $netProfitMonthly = data_get($reportData, 'net_profit_closing', $profitBeforeTax - $totalTax);
     @endphp
     <div class="section">

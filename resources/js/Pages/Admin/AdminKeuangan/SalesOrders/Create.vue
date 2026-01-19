@@ -198,14 +198,14 @@
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">SHIPMENT
                                             TYPE</label>
-                                        <select v-model="form.shipment_type"
-                                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                            <option value="">Pilih Shipment Type</option>
-                                            <option v-for="shipmentType in shipmentTypes" :key="shipmentType.id"
-                                                :value="shipmentType.code">
-                                                {{ shipmentType.name }}
-                                            </option>
-                                        </select>
+                                        <SearchableSelect v-model="form.shipment_type"
+                                            :options="shipmentTypeOptions"
+                                            placeholder="Pilih Shipment Type"
+                                            label-field="label"
+                                            value-field="value"
+                                            sub-label-field="description"
+                                            :search-fields="['label', 'description']"
+                                            :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500'" />
                                         <div v-if="form.errors.shipment_type" class="mt-2 text-sm text-red-600">{{
                                             form.errors.shipment_type }}</div>
                                     </div>
@@ -724,23 +724,15 @@
                                             <div class="relative flex w-full">
                                                 <input v-model="form.qty" type="number" min="0" placeholder="0.00"
                                                     class="w-28 px-3 py-2 border border-sage-300 rounded-l-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10" />
-                                                <div class="relative flex-1">
-                                                    <select v-model="form.package_unit"
-                                                        class="h-full w-full px-3 py-2 border-t border-r border-b border-sage-300 bg-white rounded-r-lg appearance-none cursor-pointer focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10 pr-8">
-                                                        <option value="">Unit</option>
-                                                        <option v-for="unit in packageUnits" :key="unit.code"
-                                                            :value="unit.code">
-                                                            {{ unit.code }}
-                                                        </option>
-                                                    </select>
-                                                    <div
-                                                        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                                        <svg class="w-4 h-4 text-sage-500" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                        </svg>
-                                                    </div>
+                                                <div class="flex-1">
+                                                    <SearchableSelect v-model="form.package_unit"
+                                                        :options="packageUnitOptions"
+                                                        placeholder="Unit"
+                                                        label-field="label"
+                                                        value-field="value"
+                                                        sub-label-field="description"
+                                                        :search-fields="['label', 'description']"
+                                                        :input-class="'h-full w-full px-3 py-2 pr-8 border-t border-r border-b border-sage-300 bg-white rounded-r-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10 text-sm'" />
                                                 </div>
                                             </div>
                                             <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{
@@ -934,6 +926,14 @@ const customerOptions = computed(() => {
     }));
 });
 
+const shipmentTypeOptions = computed(() => {
+    return (props.shipmentTypes ?? []).map(type => ({
+        value: type.code,
+        label: type.name,
+        description: type.description || ''
+    }));
+});
+
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
         { value: '', label: '-- Belum Ditentukan --' },
@@ -946,6 +946,14 @@ const vendorSelectOptions = computed(() => {
     }));
 
     return [...baseOptions, ...vendorOptions];
+});
+
+const packageUnitOptions = computed(() => {
+    return (props.packageUnits ?? []).map(unit => ({
+        value: unit.code,
+        label: unit.code,
+        description: unit.name || unit.description || ''
+    }));
 });
 
 const serviceTypeOptions = computed(() => {
