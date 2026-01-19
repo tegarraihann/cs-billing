@@ -39,7 +39,7 @@
                   Export PDF
                 </button>
                 <Link
-                  v-if="salesOrder.status === 'draft'"
+                  v-if="salesOrder.cs_can_edit"
                   :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
                 >
@@ -50,7 +50,7 @@
                   v-else
                   disabled
                   class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed"
-                  title="Shipping Order tidak dapat diedit (sudah dirilis)"
+                  :title="salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Shipping Order tidak dapat diedit (sudah dirilis)'"
                 >
                   <Pencil class="w-4 h-4 mr-2" />
                   Edit

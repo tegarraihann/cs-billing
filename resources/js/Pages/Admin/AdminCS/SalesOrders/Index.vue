@@ -186,12 +186,14 @@
                       <div class="flex items-center space-x-2">
                         <button
                           @click="releaseSalesOrder(salesOrder.id)"
-                          :disabled="isProcessedStatus(salesOrder.status)"
+                          :disabled="!salesOrder.cs_can_release"
                           class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors"
-                          :class="isProcessedStatus(salesOrder.status)
+                          :class="!salesOrder.cs_can_release
                             ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                             : 'text-sage-600 hover:text-sage-900 hover:bg-sage-100'"
-                          :title="isProcessedStatus(salesOrder.status) ? 'Sudah Diproses' : 'Rilis Shipping Order'"
+                          :title="!salesOrder.cs_can_release
+                            ? (salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Sudah Diproses')
+                            : 'Rilis Shipping Order'"
                         >
                           <Send class="w-4 h-4" />
                         </button>
@@ -205,7 +207,7 @@
                         </Link>
 
                         <Link
-                          v-if="salesOrder.status === 'draft'"
+                          v-if="salesOrder.cs_can_edit"
                           :href="route('admin-cs.sales-orders.edit', salesOrder.id)"
                           class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-full transition-colors"
                           title="Edit"
@@ -215,13 +217,13 @@
                         <span
                           v-else
                           class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                          title="Tidak dapat diedit (Shipping Order sudah diproses)"
+                          :title="salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Tidak dapat diedit (Shipping Order sudah diproses)'"
                         >
                           <Pencil class="w-4 h-4" />
                         </span>
 
                         <button
-                          v-if="salesOrder.status === 'draft'"
+                          v-if="salesOrder.cs_can_delete"
                           @click="deleteSalesOrder(salesOrder.id)"
                           class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
                           title="Hapus"
@@ -231,7 +233,7 @@
                         <span
                           v-else
                           class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                          title="Tidak dapat dihapus (Shipping Order sudah diproses)"
+                          :title="salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Tidak dapat dihapus (Shipping Order sudah diproses)'"
                         >
                           <Trash2 class="w-4 h-4" />
                         </span>

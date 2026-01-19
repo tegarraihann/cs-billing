@@ -38,6 +38,9 @@ class SalesOrderController extends Controller
         }
 
         $salesOrders = $query->orderBy('created_at', 'desc')->paginate(15);
+        $salesOrders->through(function (SalesOrder $salesOrder) {
+            return $this->prepareSalesOrderForCsView($salesOrder, true);
+        });
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Index', [
             'salesOrders' => $salesOrders,
@@ -271,6 +274,12 @@ class SalesOrderController extends Controller
      */
     public function edit(SalesOrder $salesOrder)
     {
+        if (!$this->canCsEdit($salesOrder)) {
+            return redirect()
+                ->route('admin-cs.sales-orders.show', $salesOrder->id)
+                ->withErrors(['error' => 'Sales order tidak dapat diedit setelah disetujui finance atau dibuat oleh finance.']);
+        }
+
         $vendors = \App\Models\Vendor::select('id', 'nama_vendor', 'nomor_rekening', 'nama_rekening', 'nib')
             ->orderBy('nama_vendor')
             ->get();
@@ -310,6 +319,12 @@ class SalesOrderController extends Controller
      */
     public function update(Request $request, SalesOrder $salesOrder)
     {
+        if (!$this->canCsEdit($salesOrder)) {
+            return redirect()
+                ->route('admin-cs.sales-orders.show', $salesOrder->id)
+                ->withErrors(['error' => 'Sales order tidak dapat diperbarui setelah disetujui finance atau dibuat oleh finance.']);
+        }
+
         // Normalize Indonesian number format before validation
         $this->normalizeNumericFields($request);
 
@@ -439,6 +454,12 @@ class SalesOrderController extends Controller
      */
     public function destroy(SalesOrder $salesOrder)
     {
+        if (!$this->canCsEdit($salesOrder)) {
+            return redirect()
+                ->route('admin-cs.sales-orders.index')
+                ->withErrors(['error' => 'Sales order tidak dapat dihapus setelah disetujui finance atau dibuat oleh finance.']);
+        }
+
         $salesOrder->delete();
 
         return redirect()
@@ -451,6 +472,10 @@ class SalesOrderController extends Controller
      */
     public function release(SalesOrder $salesOrder)
     {
+        if ($this->isFinanceCreated($salesOrder)) {
+            return redirect()->back()->withErrors(['error' => 'Sales order yang dibuat finance tidak dapat dirilis oleh CS.']);
+        }
+
         // Check if sales order can be released
         if ($salesOrder->status === 'released' || $salesOrder->status === 'confirmed' || $salesOrder->status === 'approved' || $salesOrder->status === 'rejected') {
             return redirect()->back()->withErrors(['error' => 'Sales order sudah diproses sebelumnya.']);
@@ -984,15 +1009,23 @@ class SalesOrderController extends Controller
         return array_values(array_unique($results));
     }
 
-    private function prepareSalesOrderForCsView(SalesOrder $salesOrder): array
+    private function prepareSalesOrderForCsView(SalesOrder $salesOrder, bool $forList = false): array
     {
         // Ensure related data needed for CS view is available
-        $salesOrder->loadMissing(['packageUnit', 'reimbursementItems']);
+        if (!$forList) {
+            $salesOrder->loadMissing(['packageUnit', 'reimbursementItems']);
+        }
+        $salesOrder->loadMissing(['creator']);
 
         $data = $salesOrder->toArray();
 
+        $isFinanceCreated = $this->isFinanceCreated($salesOrder);
+        $canEdit = $this->canCsEdit($salesOrder);
+        $canRelease = !$isFinanceCreated && !in_array($salesOrder->status, ['released', 'confirmed', 'approved', 'rejected'], true);
+        $canDelete = $canEdit;
+
         $snapshot = $salesOrder->cs_snapshot ?? null;
-        if ($snapshot) {
+        if ($snapshot && !$isFinanceCreated) {
             $overrideKeys = [
                 'order_number',
                 'ref_no',
@@ -1043,16 +1076,71 @@ class SalesOrderController extends Controller
                 }
             }
 
-            $data['reimbursement_items'] = $snapshot['reimbursement_items'] ?? [];
-        } else {
+            if (!$forList) {
+                $data['reimbursement_items'] = $snapshot['reimbursement_items'] ?? [];
+            }
+        } elseif (!$isFinanceCreated && !$forList) {
             $data['reimbursement_items'] = $salesOrder->reimbursementItems
                 ? $salesOrder->reimbursementItems->toArray()
                 : [];
         }
 
-        $packageUnitName = optional($salesOrder->packageUnit)->name;
+        $packageUnitName = $salesOrder->relationLoaded('packageUnit') ? optional($salesOrder->packageUnit)->name : null;
         $data['package_unit_label'] = $packageUnitName ?? ($data['package_unit'] ?? null);
 
+        $data['is_finance_created'] = $isFinanceCreated;
+        $data['cs_can_edit'] = $canEdit;
+        $data['cs_can_release'] = $canRelease;
+        $data['cs_can_delete'] = $canDelete;
+
+        if ($isFinanceCreated) {
+            $data = array_merge(
+                Arr::only($data, [
+                    'id',
+                    'order_number',
+                    'so_number',
+                    'status',
+                    'so_date',
+                    'created_at',
+                    'updated_at',
+                    'is_finance_created',
+                    'cs_can_edit',
+                    'cs_can_release',
+                    'cs_can_delete',
+                ]),
+                [
+                    'customer' => '-',
+                    'shipper' => '-',
+                    'shipment_type' => '-',
+                    'commodity' => '-',
+                    'qty' => null,
+                    'container_no' => [],
+                    'vendor_breakdown' => [],
+                    'other_costs' => [],
+                    'reimbursement_items' => [],
+                ]
+            );
+        }
+
         return $data;
+    }
+
+    private function isFinanceCreated(SalesOrder $salesOrder): bool
+    {
+        $salesOrder->loadMissing(['creator']);
+        return $salesOrder->creator && $salesOrder->creator->role === 'admin_keuangan';
+    }
+
+    private function canCsEdit(SalesOrder $salesOrder): bool
+    {
+        if ($this->isFinanceCreated($salesOrder)) {
+            return false;
+        }
+
+        if ($salesOrder->approved_at) {
+            return false;
+        }
+
+        return $salesOrder->status === 'draft';
     }
 }
