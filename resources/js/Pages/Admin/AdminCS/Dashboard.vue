@@ -90,9 +90,6 @@
                       Customer
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Selling
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -115,9 +112,6 @@
                       </a>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ order.customer }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {{ order.total_selling ? formatCurrency(order.total_selling) : '-' }}
-                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span
                         :class="getStatusBadge(order)"
@@ -131,7 +125,7 @@
                     </td>
                   </tr>
                   <tr v-if="recentSalesOrders.length === 0">
-                    <td colspan="5" class="px-6 py-12 text-center">
+                    <td colspan="4" class="px-6 py-12 text-center">
                       <FileText class="mx-auto h-12 w-12 text-gray-400" />
                       <h3 class="mt-2 text-sm font-medium text-gray-900">No sales orders</h3>
                       <p class="mt-1 text-sm text-gray-500">Belum ada sales orders terbaru</p>

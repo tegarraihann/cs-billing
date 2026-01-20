@@ -6,13 +6,13 @@
 
     <!-- Sidebar -->
     <aside
-        class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
+        class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
         :class="{
             'translate-x-0': isMobileSidebarOpen,
             '-translate-x-full': !isMobileSidebarOpen,
         }">
         <!-- Sidebar Header -->
-        <div class="px-6 py-6 border-b border-sage-200 flex-shrink-0">
+        <div class="px-6 h-16 border-b border-sage-200 flex-shrink-0 flex items-center">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-sage-600 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span class="font-medium">Dashboard</span>
+                <span class="font-normal">DASHBOARD</span>
             </a>
 
             <!-- Customers -->
@@ -52,7 +52,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span class="font-medium">Customer Management</span>
+                <span class="font-normal">CUSTOMER MANAGEMENT</span>
             </a>
 
             <!-- Vendors -->
@@ -65,7 +65,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <span class="font-medium">Vendor Management</span>
+                <span class="font-normal">VENDOR MANAGEMENT</span>
             </a>
 
             <!-- Sales Orders -->
@@ -78,7 +78,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span class="font-medium">Shipping Orders</span>
+                <span class="font-normal">SHIPPING ORDERS</span>
             </a>
 
             <!-- Invoices -->
@@ -91,7 +91,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span class="font-medium">Invoices</span>
+                <span class="font-normal">INVOICES</span>
             </a>
 
             <!-- Account Receivables (Piutang) -->
@@ -104,7 +104,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
-                <span class="font-medium">Piutang Management</span>
+                <span class="font-normal">PIUTANG MANAGEMENT</span>
             </a>
 
             <!-- Account Payables (Hutang) -->
@@ -117,7 +117,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span class="font-medium">Hutang Management</span>
+                <span class="font-normal">HUTANG MANAGEMENT</span>
             </a>
 
             <!-- Profit Reports -->
@@ -130,7 +130,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span class="font-medium">Profit Reports</span>
+                <span class="font-normal">PROFIT REPORTS</span>
             </a>
 
             <!-- Petty Cash -->
@@ -143,7 +143,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span class="font-medium">Petty Cash</span>
+                <span class="font-normal">PETTY CASH</span>
             </a>
 
             <!-- General Expenses -->
@@ -156,7 +156,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
                 </svg>
-                <span class="font-medium">Pengeluaran Lain-lain</span>
+                <span class="font-normal">PENGELUARAN LAIN-LAIN</span>
             </a>
 
             <!-- Other Income -->
@@ -169,7 +169,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span class="font-medium">Pendapatan Lain-lain</span>
+                <span class="font-normal">PENDAPATAN LAIN-LAIN</span>
             </a>
 
             <a :href="route('admin-keuangan.supplies.index')"
@@ -181,7 +181,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 17v-2H5a2 2 0 01-2-2v-1a2 2 0 012-2h4V8a3 3 0 016 0v2h4a2 2 0 012 2v1a2 2 0 01-2 2h-4v2a3 3 0 01-6 0z" />
                 </svg>
-                <span class="font-medium">Supplies</span>
+                <span class="font-normal">SUPPLIES</span>
             </a>
 
             <a :href="route('admin-keuangan.prepaid-rent.index')"
@@ -193,7 +193,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M8 7V5a3 3 0 013-3h2a3 3 0 013 3v2m4 0H4m14 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7" />
                 </svg>
-                <span class="font-medium">Prepaid Rent</span>
+                <span class="font-normal">PREPAID RENT</span>
             </a>
 
             <a :href="route('admin-keuangan.equipment.index')"
@@ -205,7 +205,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 7h16M4 12h8m-8 5h16M6 7V5a2 2 0 012-2h8a2 2 0 012 2v2" />
                 </svg>
-                <span class="font-medium">Equipment</span>
+                <span class="font-normal">EQUIPMENT</span>
             </a>
 
 
@@ -219,7 +219,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span class="font-medium">Income Statement</span>
+                <span class="font-normal">INCOME STATEMENT</span>
             </a>
 
             <!-- Financial Position -->
@@ -232,7 +232,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M8 4H6a2 2 0 00-2 2v2m0 0v10a2 2 0 002 2h2m-2-12h2m8-4h2a2 2 0 012 2v2m0 0v10a2 2 0 01-2 2h-2m2-12h-2M9 16h6m-6-4h6" />
                 </svg>
-                <span class="font-medium">Financial Position</span>
+                <span class="font-normal">FINANCIAL POSITION</span>
             </a>
 
             <!-- Bank Balance -->
@@ -245,7 +245,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
-                <span class="font-medium">Saldo Bank</span>
+                <span class="font-normal">SALDO BANK</span>
             </a>
 
             <!-- Employee Salary -->
@@ -258,14 +258,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span class="font-medium">Gaji Karyawan</span>
+                <span class="font-normal">GAJI KARYAWAN</span>
             </a>
 
 
             <!-- Master Data Section -->
             <div class="pt-4 mt-6 border-t border-sage-200">
-                <div class="text-xs font-semibold text-sage-500 uppercase tracking-wider px-3 py-2">
-                    Master Data
+                <div class="text-xs font-normal text-sage-500 uppercase tracking-wider px-3 py-2">
+                    MASTER DATA
                 </div>
 
                 <!-- Shipment Type -->
@@ -278,7 +278,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-5H8z" />
                     </svg>
-                    <span class="font-medium">Shipment Type</span>
+                    <span class="font-normal">SHIPMENT TYPE</span>
                 </a>
 
                 <!-- Service Type -->
@@ -291,7 +291,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <span class="font-medium">Service Type</span>
+                    <span class="font-normal">SERVICE TYPE</span>
                 </a>
 
                 <!-- Operational Cost Categories -->
@@ -304,7 +304,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    <span class="font-medium">Operational Cost Categories</span>
+                    <span class="font-normal">OPERATIONAL COST CATEGORIES</span>
                 </a>
 
                 <!-- Petty Cash Categories -->
@@ -317,7 +317,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2m0 0v8a2 2 0 002 2h10a2 2 0 002-2V9m0 0h4a1 1 0 011 1v2a1 1 0 01-1 1h-4" />
                     </svg>
-                    <span class="font-medium">Petty Cash Categories</span>
+                    <span class="font-normal">PETTY CASH CATEGORIES</span>
                 </a>
 
                 <!-- Chart of Accounts -->
@@ -330,7 +330,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18S10.832 18.477 12 19.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    <span class="font-medium">Chart of Accounts</span>
+                    <span class="font-normal">CHART OF ACCOUNTS</span>
                 </a>
 
                 <!-- Master Package Units -->
@@ -343,14 +343,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
-                    <span class="font-medium">Master Satuan Package</span>
+                    <span class="font-normal">MASTER SATUAN PACKAGE</span>
                 </a>
             </div>
 
             <!-- Quick Actions -->
             <div class="pt-4 mt-6 border-t border-sage-200">
-                <div class="text-xs font-semibold text-sage-500 uppercase tracking-wider px-3 py-2">
-                    Quick Actions
+                <div class="text-xs font-normal text-sage-500 uppercase tracking-wider px-3 py-2">
+                    QUICK ACTIONS
                 </div>
                 <a :href="route('admin-keuangan.customers.create')"
                     class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200">
@@ -358,7 +358,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    <span class="font-medium">Add Customer</span>
+                    <span class="font-normal">ADD CUSTOMER</span>
                 </a>
                 <a :href="route('admin-keuangan.vendors.create')"
                     class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200">
@@ -366,7 +366,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    <span class="font-medium">Add Vendor</span>
+                    <span class="font-normal">ADD VENDOR</span>
                 </a>
                 <a :href="route('admin-keuangan.sales-orders.index')"
                     class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200">
@@ -376,7 +376,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 5a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM9 17a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
-                    <span class="font-medium">Pending Reviews</span>
+                    <span class="font-normal">PENDING REVIEWS</span>
                 </a>
             </div>
         </nav>

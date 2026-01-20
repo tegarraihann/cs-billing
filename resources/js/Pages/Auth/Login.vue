@@ -1,11 +1,11 @@
 <template>
     <div
-        class="relative min-h-screen bg-gradient-to-br from-sage-50 via-sage-100 to-sage-200 flex items-center justify-center p-4 overflow-hidden">
+        class="relative min-h-screen bg-gradient-to-br from-sage-100 via-sage-200 to-sage-300 flex items-center justify-center p-4 overflow-hidden">
 
         <Head title="Sign In - Master Admin" />
 
         <!-- Background Pattern -->
-        <div class="absolute inset-0 opacity-5">
+        <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
@@ -18,32 +18,23 @@
 
         <!-- Right Hero Logo -->
         <div
-            class="absolute inset-y-0 right-0 hidden lg:flex items-end justify-end pr-0 pb-0 pointer-events-none z-0 translate-x-60 translate-y-24">
-            <img src="/images/logo/logo-hero.svg" alt="Logo" class="w-[40rem] xl:w-[50rem] opacity-85" />
+            class="absolute inset-y-50 right-0 hidden lg:flex items-end justify-end pr-0 pb-0 pointer-events-none z-0 translate-x-96 translate-y-16">
+            <img src="/images/logo/logo.png" alt="Logo" class="w-[50rem] xl:w-[60rem] opacity-30" />
         </div>
 
         <!-- Main Container -->
         <div class="w-full max-w-md relative z-10">
-            <!-- Brand Header -->
-            <div class="text-center mb-8">
-                <div
-                    class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-sage-600 to-sage-700 rounded-2xl shadow-lg mb-4">
-                    <svg class="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-sage-800 mb-2">Welcome Back</h1>
-                <p class="text-sage-600 text-sm sm:text-base">Sign in to access your dashboard</p>
-            </div>
-
             <!-- Login Card -->
-            <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-sage-200/50 p-6 sm:p-8">
+            <div
+                class="bg-[#8B9C7E] text-white backdrop-blur-md rounded-[2rem] shadow-[0_30px_60px_rgba(38,56,34,0.3)] border border-white/20 p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <h1 class="text-2xl sm:text-3xl font-semibold tracking-wide uppercase mb-1">Welcome Back</h1>
+                    <p class="text-white/80 text-sm sm:text-base">Sign in to access your dashboard</p>
+                </div>
                 <!-- Status Message -->
                 <div v-if="status"
-                    class="mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-start space-x-3">
-                    <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
+                    class="mb-6 p-3 sm:p-4 bg-white/20 border border-white/30 rounded-xl text-white text-sm flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-white/80 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -67,20 +58,20 @@
           </div>
         </div> -->
 
-                <form @submit.prevent="submit" class="space-y-5 sm:space-y-6">
+                <form id="login-form" @submit.prevent="submit" class="space-y-5 sm:space-y-6">
                     <!-- Role Selection Field -->
                     <div class="space-y-2">
-                        <InputLabel for="role" value="Login As" class="text-sage-800 font-semibold text-sm" />
+                        <InputLabel for="role" value="LOGIN AS :" class="text-white/90 font-medium text-sm uppercase" />
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor"
+                                <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
                             <select id="role" v-model="form.role"
-                                class="w-full pl-10 pr-4 py-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-all duration-200 text-sm sm:text-base bg-white appearance-none"
+                                class="w-full pl-10 pr-4 py-3 border border-white/40 rounded-full bg-white/70 text-sage-900 placeholder-sage-500 shadow-[0_14px_24px_rgba(0,0,0,0.22)] focus:ring-2 focus:ring-white/70 focus:border-white/70 transition-all duration-200 text-sm sm:text-base appearance-none"
                                 required>
                                 <option value="">Select your role</option>
                                 <option v-for="role in roles" :key="role.value" :value="role.value">
@@ -88,52 +79,54 @@
                                 </option>
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor"
+                                <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
                         </div>
-                        <InputError class="text-xs sm:text-sm" :message="form.errors.role" />
+                        <InputError class="text-xs sm:text-sm text-white/90" :message="form.errors.role" />
                     </div>
 
                     <!-- Email Field -->
-                    <div class="space-y-2">
-                        <InputLabel for="email" value="Email Address" class="text-sage-800 font-semibold text-sm" />
+                    <div class="space-y-2 rounded-full">
+                        <InputLabel for="email" value="EMAIL ADDRESS :"
+                            class="text-white/90 font-medium text-sm uppercase rounded-full" />
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor"
+                                <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                                 </svg>
                             </div>
                             <TextInput id="email" type="email"
-                                class="w-full pl-10 pr-4 py-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-all duration-200 text-sm sm:text-base"
+                                class="w-full pl-10 pr-4 py-3 border border-white/40 !rounded-full bg-white/70 text-sage-900 placeholder-sage-500 shadow-[0_14px_24px_rgba(0,0,0,0.22)] focus:ring-2 focus:ring-white/70 focus:border-white/70 transition-all duration-200 text-sm sm:text-base"
                                 v-model="form.email" required autocomplete="username"
                                 placeholder="Enter your email address" />
                         </div>
-                        <InputError class="text-xs sm:text-sm" :message="form.errors.email" />
+                        <InputError class="text-xs sm:text-sm text-white/90" :message="form.errors.email" />
                     </div>
 
                     <!-- Password Field -->
                     <div class="space-y-2">
-                        <InputLabel for="password" value="Password" class="text-sage-800 font-semibold text-sm" />
+                        <InputLabel for="password" value="PASSWORD :"
+                            class="text-white/90 font-medium text-sm uppercase" />
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor"
+                                <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                             </div>
                             <TextInput id="password" :type="showPassword ? 'text' : 'password'"
-                                class="w-full pl-10 pr-12 py-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-all duration-200 text-sm sm:text-base"
+                                class="w-full pl-10 pr-12 py-3 border border-white/40 !rounded-full bg-white/70 text-sage-900 placeholder-sage-500 shadow-[0_14px_24px_rgba(0,0,0,0.22)] focus:ring-2 focus:ring-white/70 focus:border-white/70 transition-all duration-200 text-sm sm:text-base"
                                 v-model="form.password" required autocomplete="current-password"
                                 placeholder="Enter your password" />
                             <button type="button" @click="togglePasswordVisibility"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-sage-400 hover:text-sage-600 transition-colors focus:outline-none"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-white/70 hover:text-white transition-colors focus:outline-none"
                                 aria-label="Toggle password visibility">
                                 <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -148,72 +141,43 @@
                                 </svg>
                             </button>
                         </div>
-                        <InputError class="text-xs sm:text-sm" :message="form.errors.password" />
+                        <InputError class="text-xs sm:text-sm text-white/90" :message="form.errors.password" />
                     </div>
 
                     <!-- Remember & Forgot -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                    <!-- <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                         <label class="flex items-center cursor-pointer group">
                             <Checkbox name="remember" v-model:checked="form.remember"
-                                class="rounded border-sage-300 text-sage-600 focus:ring-sage-500 focus:ring-offset-0" />
+                                class="rounded border-white/70 text-sage-600 focus:ring-white/70 focus:ring-offset-0" />
                             <span
-                                class="ml-2 text-sm text-sage-600 group-hover:text-sage-800 transition-colors select-none">
+                                class="ml-2 text-sm text-white/80 group-hover:text-white transition-colors select-none">
                                 Remember me
                             </span>
                         </label>
 
-                        <Link v-if="canResetPassword" :href="route('password.request')"
-                            class="text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors duration-200 hover:underline">
-                            Forgot your password?
-                        </Link>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" :disabled="form.processing"
-                        class="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 disabled:from-sage-400 disabled:to-sage-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl disabled:shadow-md transform hover:-translate-y-0.5 disabled:translate-y-0 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 text-sm sm:text-base">
-                        <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                        <span>{{ form.processing ? 'Signing In...' : 'Sign In' }}</span>
-                    </button>
+                        <span class="text-sm text-white/80 select-none">&nbsp;</span>
+                    </div> -->
                 </form>
-
-                <!-- Additional Actions -->
-                <div class="mt-6 space-y-4">
-                    <!-- Divider -->
-                    <!-- <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-sage-300"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-3 bg-white text-sage-500">Don't have an account?</span>
-                        </div>
-                    </div> -->
-
-                    <!-- Register Link -->
-                    <!-- <div class="text-center">
-                        <Link :href="route('register')"
-                            class="inline-flex items-center text-sage-600 hover:text-sage-800 font-medium transition-colors duration-200 text-sm hover:underline">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                        Create a new account
-                        </Link>
-                    </div> -->
-                </div>
             </div>
 
-            <!-- Footer -->
-            <div class="text-center mt-6 sm:mt-8">
-                <p class="text-xs sm:text-sm text-sage-500">
-                    &copy; {{ new Date().getFullYear() }} All rights reserved.
-                </p>
+            <!-- Submit Button -->
+            <div class="mt-6 flex items-center justify-between">
+                <Link v-if="canResetPassword" :href="route('password.request')"
+                    class="text-sm text-white/80 hover:text-white font-medium transition-colors duration-200 hover:underline">
+                    Forgot your password?
+                </Link>
+                <button type="submit" form="login-form" :disabled="form.processing"
+                    class="flex items-center justify-center px-10 py-3 bg-white/25 text-white font-bold uppercase tracking-wide rounded-full shadow-[0_14px_20px_rgba(38,56,34,0.2)] hover:bg-white/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/70 text-base sm:text-lg">
+                    <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-sage-800"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    <span>{{ form.processing ? 'SIGNING IN...' : 'SIGN IN' }}</span>
+                </button>
             </div>
         </div>
     </div>

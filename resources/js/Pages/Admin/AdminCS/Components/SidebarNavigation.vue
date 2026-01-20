@@ -33,7 +33,7 @@
                         : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
                     ">
                 <LayoutDashboard class="w-5 h-5" />
-                <span class="font-medium">Dashboard</span>
+                <span class="font-medium">DASHBOARD</span>
             </a>
 
 
@@ -45,18 +45,18 @@
                         : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
                     ">
                 <FileText class="w-5 h-5" />
-                <span class="font-medium">Shipping Order</span>
+                <span class="font-medium">SHIPPING ORDER</span>
             </a>
 
             <!-- Quick Actions -->
             <div class="pt-4 mt-6 border-t border-sage-200">
                 <div class="text-xs font-semibold text-sage-500 uppercase tracking-wider px-3 py-2">
-                    Quick Actions
+                    QUICK ACTIONS
                 </div>
                 <a :href="route('admin-cs.sales-orders.create')"
                     class="flex items-center space-x-3 p-3 rounded-lg text-sage-700 hover:bg-sage-50 hover:text-sage-800 transition-all duration-200">
                     <CirclePlus class="w-5 h-5" />
-                    <span class="font-medium">New Shipping Order</span>
+                    <span class="font-medium">NEW SHIPPING ORDER</span>
                 </a>
             </div>
         </nav>
