@@ -24,7 +24,7 @@ class SalesOrderController extends Controller
         $query = SalesOrder::with(['creator', 'releasedBy', ])
             ->whereIn('status', ['released', 'approved', 'rejected'])
             ->whereNotNull('released_at')
-            ->orderBy('released_at', 'desc');
+            ->orderBy('order_number');
 
         if ($request->filled('search')) {
             $search = $request->search;

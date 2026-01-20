@@ -37,7 +37,7 @@ class SalesOrderController extends Controller
             });
         }
 
-        $salesOrders = $query->orderBy('created_at', 'desc')->paginate(15);
+        $salesOrders = $query->orderBy('order_number')->paginate(15);
         $salesOrders->through(function (SalesOrder $salesOrder) {
             return $this->prepareSalesOrderForCsView($salesOrder, true);
         });
