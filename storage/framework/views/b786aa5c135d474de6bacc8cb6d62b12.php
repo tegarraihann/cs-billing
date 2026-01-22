@@ -701,7 +701,7 @@
                 <tr>
                     <td class="ship-label">20'/40'/45'</td>
                     <td class="ship-colon">:</td>
-                    <td class="ship-value"><?php echo e($invoice->container_size ?? '3X20'); ?></td>
+                    <td class="ship-value"><?php echo e($invoice->party_lcl ?? $invoice->salesOrder->party_lcl ?? '-'); ?></td>
                     <td colspan="3"></td>
                 </tr>
                 <tr>
