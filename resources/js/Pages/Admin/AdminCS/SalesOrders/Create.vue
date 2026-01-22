@@ -1464,7 +1464,7 @@ const submit = () => {
         })
         .map(cost => ({
             description: cost.description || '',
-            amount: getTotalCostAmount(cost),
+            amount: normalizeNumber(cost.amount),
             category_id: cost.category_id || '',
             category_name: cost.category_name || cost.category || '',
             category: cost.category_name || cost.category || '',
@@ -1496,8 +1496,8 @@ const submit = () => {
         ...item,
         quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
         unit: item.unit || '',
-        buying_amount: getTotalBuyingAmount(item),
-        selling_amount: getTotalSellingAmount(item),
+        buying_amount: normalizeNumber(item.buying_amount),
+        selling_amount: normalizeNumber(item.selling_amount),
     }));
 
     const formData = {
