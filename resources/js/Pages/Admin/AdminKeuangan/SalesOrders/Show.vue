@@ -171,10 +171,10 @@
                                                         {{ item.description || 'Service Type' }}
                                                     </td>
                                                     <td class="px-6 py-4 text-center text-sm font-mono text-gray-900">
-                                                        {{ formatCurrency(item.buying_amount || 0) }}
+                                                        {{ formatCurrency(getVendorLineTotal(item, 'buying_amount')) }}
                                                     </td>
                                                     <td class="px-6 py-4 text-center text-sm font-mono text-gray-900">
-                                                        {{ formatCurrency(item.selling_amount || 0) }}
+                                                        {{ formatCurrency(getVendorLineTotal(item, 'selling_amount')) }}
                                                     </td>
                                                     <td class="px-6 py-4 text-center text-sm font-mono"
                                                         :class="getVendorProfit(item) >= 0 ? 'text-sage-700' : 'text-red-600'">
@@ -266,9 +266,9 @@
                                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                                 {{ cost.description || '-' }}
                                                             </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
-                                                                {{ formatCurrency(cost.amount || 0) }}
-                                                            </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
+                                                        {{ formatCurrency(getOtherCostLineTotal(cost)) }}
+                                                    </td>
                                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                                 {{ cost.category || '-' }}
                                                             </td>
@@ -281,7 +281,7 @@
                                                         <tr>
                                                             <td class="px-6 py-3 text-sm font-semibold text-red-800 uppercase">Total</td>
                                                             <td class="px-6 py-3 text-right text-sm font-mono font-semibold text-red-900">
-                                                                {{ formatCurrency(salesOrder.other_costs.reduce((total, cost) => total + (parseFloat(cost.amount) || 0), 0)) }}
+                                                                {{ formatCurrency(salesOrder.other_costs.reduce((total, cost) => total + getOtherCostLineTotal(cost), 0)) }}
                                                             </td>
                                                             <td colspan="2" class="px-6 py-3"></td>
                                                         </tr>
@@ -829,15 +829,72 @@ const formatNumber = (amount) => {
     return numAmount.toLocaleString('id-ID');
 };
 
+const normalizeNumber = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return 0;
+    }
+
+    if (typeof value === 'number') {
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    const normalized = value
+        .toString()
+        .trim()
+        .replace(/[^\d.,-]/g, '');
+
+    const commaCount = (normalized.match(/,/g) || []).length;
+    const dotCount = (normalized.match(/\./g) || []).length;
+    let parsedValue = normalized;
+
+    if (commaCount > 1 && dotCount === 0) {
+        parsedValue = parsedValue.replace(/,/g, '');
+    } else if (dotCount > 1 && commaCount === 0) {
+        parsedValue = parsedValue.replace(/\./g, '');
+    } else if (commaCount > 0 && dotCount > 0) {
+        parsedValue = parsedValue.replace(/\./g, '').replace(',', '.');
+    } else if (commaCount === 1 && dotCount === 0) {
+        parsedValue = parsedValue.replace(',', '.');
+    }
+
+    if ((parsedValue.match(/\./g) || []).length > 1) {
+        const parts = parsedValue.split('.');
+        const decimal = parts.pop();
+        parsedValue = parts.join('') + (decimal ? `.${decimal}` : '');
+    }
+
+    const parsed = parseFloat(parsedValue);
+    return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const resolveQuantityValue = (rawValue) => {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+        return 1;
+    }
+
+    const parsed = normalizeNumber(rawValue);
+    return parsed > 0 ? parsed : 0;
+};
+
+const getVendorLineTotal = (vendorItem, field) => {
+    const quantity = resolveQuantityValue(vendorItem?.quantity);
+    return quantity * normalizeNumber(vendorItem?.[field]);
+};
+
+const getOtherCostLineTotal = (costItem) => {
+    const quantity = resolveQuantityValue(costItem?.quantity);
+    return quantity * normalizeNumber(costItem?.amount);
+};
+
 // Computed properties for breakdown totals
 const totalBuying = computed(() => {
     if (!props.salesOrder.vendor_breakdown) return 0;
-    return props.salesOrder.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.buying_amount) || 0), 0);
+    return props.salesOrder.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'buying_amount'), 0);
 });
 
 const totalSelling = computed(() => {
     if (!props.salesOrder.vendor_breakdown) return 0;
-    return props.salesOrder.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.selling_amount) || 0), 0);
+    return props.salesOrder.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'selling_amount'), 0);
 });
 
 const totalRevenue = computed(() => {
@@ -846,9 +903,9 @@ const totalRevenue = computed(() => {
 
 // Get profit for individual vendor
 const getVendorProfit = (vendorItem) => {
-    const buying = parseFloat(vendorItem.buying_amount) || 0;
-    const selling = parseFloat(vendorItem.selling_amount) || 0;
-    return selling - buying;
+    const buyingTotal = getVendorLineTotal(vendorItem, 'buying_amount');
+    const sellingTotal = getVendorLineTotal(vendorItem, 'selling_amount');
+    return sellingTotal - buyingTotal;
 };
 
 const formatWeight = (weight) => {
@@ -1100,4 +1157,3 @@ const getReimbursementStatusColor = (status) => {
     background-color: #7ba169;
 }
 </style>
-

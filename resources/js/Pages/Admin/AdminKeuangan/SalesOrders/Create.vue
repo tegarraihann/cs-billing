@@ -305,7 +305,7 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Qty
                                                     (Optional)</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
-                                                    placeholder="Quantity"
+                                                    placeholder="Quantity" @input="calculateTotals"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -535,8 +535,8 @@
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Cost
                                                             Amount</label>
-                                                        <input v-model="cost.amount" type="number" min="0" step="0.01"
-                                                            placeholder="0"
+                                                    <input v-model="cost.amount" type="number" min="0" step="0.01"
+                                                            placeholder="0" @input="calculateTotals"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -544,7 +544,7 @@
                                                             class="block text-xs font-medium text-orange-700 mb-1">Qty
                                                             (Optional)</label>
                                                         <input v-model="cost.quantity" type="number" min="0" step="0.01"
-                                                            placeholder="Quantity"
+                                                            placeholder="Quantity" @input="calculateTotals"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -1223,17 +1223,45 @@ const formatNumber = (amount) => {
     return new Intl.NumberFormat('id-ID').format(amount || 0);
 };
 
+const normalizeNumber = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return 0;
+    }
+
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const resolveQuantityValue = (rawValue) => {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+        return 1;
+    }
+
+    const parsed = normalizeNumber(rawValue);
+    return parsed > 0 ? parsed : 0;
+};
+
+const getVendorLineTotal = (vendorItem, field) => {
+    const quantity = resolveQuantityValue(vendorItem?.quantity);
+    return quantity * normalizeNumber(vendorItem?.[field]);
+};
+
+const getOtherCostLineTotal = (costItem) => {
+    const quantity = resolveQuantityValue(costItem?.quantity);
+    return quantity * normalizeNumber(costItem?.amount);
+};
+
 // Computed properties for totals
 const totalBuying = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.buying_amount) || 0), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'buying_amount'), 0);
 });
 
 const totalSelling = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + (parseFloat(item.selling_amount) || 0), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'selling_amount'), 0);
 });
 
 const totalOtherCosts = computed(() => {
-    return form.other_costs.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    return form.other_costs.reduce((sum, item) => sum + getOtherCostLineTotal(item), 0);
 });
 
 const totalReimbursement = computed(() => {
@@ -1246,9 +1274,9 @@ const totalRevenue = computed(() => {
 
 // Get profit for individual vendor item
 const getProfit = (vendorItem) => {
-    const buying = parseFloat(vendorItem.buying_amount) || 0;
-    const selling = parseFloat(vendorItem.selling_amount) || 0;
-    return selling - buying;
+    const buyingTotal = getVendorLineTotal(vendorItem, 'buying_amount');
+    const sellingTotal = getVendorLineTotal(vendorItem, 'selling_amount');
+    return sellingTotal - buyingTotal;
 };
 
 const calculateTotals = () => {

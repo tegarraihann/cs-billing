@@ -273,7 +273,7 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Qty
                                                     (Optional)</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
-                                                    placeholder="Quantity"
+                                                    placeholder="Quantity" @input="calculateTotals"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -611,16 +611,16 @@
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Cost Amount</label>
-                                                        <input v-model="cost.amount" type="number" min="0" step="0.01"
-                                                            placeholder="0"
-                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    <input v-model="cost.amount" type="number" min="0" step="0.01"
+                                                        placeholder="0" @input="calculateTotals"
+                                                        class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Qty
                                                             (Optional)</label>
                                                         <input v-model="cost.quantity" type="number" min="0" step="0.01"
-                                                            placeholder="Quantity"
+                                                            placeholder="Quantity" @input="calculateTotals"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -1172,9 +1172,42 @@ const formatCurrency = (amount) => {
     }).format(numAmount);
 };
 
+const normalizeNumberValue = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return 0;
+    }
+
+    if (typeof value === 'number') {
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    const normalized = value.toString().replace(/\./g, '').replace(',', '.');
+    const parsed = parseFloat(normalized);
+    return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const resolveQuantityValue = (rawValue) => {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+        return 1;
+    }
+
+    const parsed = normalizeNumberValue(rawValue);
+    return parsed > 0 ? parsed : 0;
+};
+
+const getVendorLineTotal = (vendorItem, field) => {
+    const quantity = resolveQuantityValue(vendorItem?.quantity);
+    return quantity * normalizeNumberValue(vendorItem?.[field]);
+};
+
+const getOtherCostLineTotal = (costItem) => {
+    const quantity = resolveQuantityValue(costItem?.quantity);
+    return quantity * normalizeNumberValue(costItem?.amount);
+};
+
 // Calculate total other costs
 const totalOtherCosts = computed(() => {
-    return form.other_costs.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    return form.other_costs.reduce((sum, item) => sum + getOtherCostLineTotal(item), 0);
 });
 
 // Calculate total reimbursement
@@ -1184,17 +1217,11 @@ const totalReimbursement = computed(() => {
 
 // Computed properties for totals
 const totalBuying = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => {
-        const amount = parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0;
-        return sum + amount;
-    }, 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'buying_amount'), 0);
 });
 
 const totalSelling = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => {
-        const amount = parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0;
-        return sum + amount;
-    }, 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'selling_amount'), 0);
 });
 
 const totalRevenue = computed(() => {
@@ -1203,9 +1230,9 @@ const totalRevenue = computed(() => {
 
 // Get profit for individual vendor item
 const getProfit = (vendorItem) => {
-    const buying = parseFloat(vendorItem.buying_amount.toString().replace(/\./g, '')) || 0;
-    const selling = parseFloat(vendorItem.selling_amount.toString().replace(/\./g, '')) || 0;
-    return selling - buying;
+    const buyingTotal = getVendorLineTotal(vendorItem, 'buying_amount');
+    const sellingTotal = getVendorLineTotal(vendorItem, 'selling_amount');
+    return sellingTotal - buyingTotal;
 };
 
 const calculateTotals = () => {

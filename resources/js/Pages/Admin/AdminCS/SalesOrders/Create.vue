@@ -1249,6 +1249,25 @@ const normalizeNumber = (value) => {
     return Number.isNaN(parsed) ? 0 : parsed;
 };
 
+const resolveQuantityValue = (rawValue) => {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+        return 1;
+    }
+
+    const parsed = normalizeNumber(rawValue);
+    return parsed > 0 ? parsed : 0;
+};
+
+const getVendorLineTotal = (item, field) => {
+    const quantity = resolveQuantityValue(item.quantity);
+    return quantity * normalizeNumber(item[field]);
+};
+
+const getOtherCostLineTotal = (cost) => {
+    const quantity = resolveQuantityValue(cost.quantity);
+    return quantity * normalizeNumber(cost.amount);
+};
+
 // Reimbursement items management
 const reimbursementItems = ref([]);
 
@@ -1308,11 +1327,11 @@ const formatNumber = (amount) => {
 
 // Computed properties for totals
 const totalBuying = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + normalizeNumber(item.buying_amount), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'buying_amount'), 0);
 });
 
 const totalSelling = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + normalizeNumber(item.selling_amount), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'selling_amount'), 0);
 });
 
 const totalRevenue = computed(() => {
@@ -1320,7 +1339,7 @@ const totalRevenue = computed(() => {
 });
 
 const totalOtherCosts = computed(() => {
-    return form.other_costs.reduce((sum, item) => sum + normalizeNumber(item.amount), 0);
+    return form.other_costs.reduce((sum, item) => sum + getOtherCostLineTotal(item), 0);
 });
 
 const totalReimbursement = computed(() => {
@@ -1329,9 +1348,9 @@ const totalReimbursement = computed(() => {
 
 // Get profit for individual vendor item
 const getProfit = (vendorItem) => {
-    const buying = normalizeNumber(vendorItem.buying_amount);
-    const selling = normalizeNumber(vendorItem.selling_amount);
-    return selling - buying;
+    const buyingTotal = getVendorLineTotal(vendorItem, 'buying_amount');
+    const sellingTotal = getVendorLineTotal(vendorItem, 'selling_amount');
+    return sellingTotal - buyingTotal;
 };
 
 const calculateTotals = () => {

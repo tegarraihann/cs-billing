@@ -1128,13 +1128,17 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
         vendorBreakdown.forEach((vendor, index) => {
             const sellingAmount = normalizeNumber(vendor.selling_amount);
             if (sellingAmount > 0) {
+                const quantity = resolveQuantityValue(vendor.quantity ?? vendor.qty ?? 1);
+                const unit = vendor.unit || vendor.package_unit || 'SET';
+                const lineAmount = sellingAmount * quantity;
+
                 mainItems.value.push({
                     description: vendor.description || `Service ${index + 1}`,
-                    quantity: 1,
-                    unit: 'SET',
+                    quantity: quantity,
+                    unit: unit,
                     rate: sellingAmount,
                     currency: 'IDR',
-                    amount: sellingAmount,
+                    amount: lineAmount,
                     item_ref: `vendor_${vendor.vendor_id || index}`,
                     type: 'main',
                     item_type: 'billable'
@@ -1143,15 +1147,18 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
 
             const buyingAmount = normalizeNumber(vendor.buying_amount);
             if (buyingAmount > 0) {
+                const quantity = resolveQuantityValue(vendor.quantity ?? vendor.qty ?? 1);
+                const unit = vendor.unit || vendor.package_unit || 'SET';
+                const lineAmount = buyingAmount * quantity;
                 const vendorInfo = resolveVendorSelectionFromRecord(vendor);
 
                 operationalCosts.value.push({
                     description: `${vendor.description || `Service ${index + 1}`} - Buying Cost (COGS)`,
-                    quantity: 1,
-                    unit: 'SET',
+                    quantity: quantity,
+                    unit: unit,
                     rate: buyingAmount,
                     currency: 'IDR',
-                    amount: buyingAmount,
+                    amount: lineAmount,
                     category_id: '',
                     category_name: '',
                     category: '',
@@ -1173,15 +1180,17 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
         console.log('Populating reimbursement items from relationship:', reimbursementSource);
         reimbursementSource.forEach((item, index) => {
             if (item.amount && item.amount > 0) {
+                const quantity = resolveQuantityValue(item.quantity ?? item.qty ?? 1);
+                const rate = normalizeNumber(item.amount);
                 const vendorInfo = resolveVendorSelectionFromRecord(item);
 
                 reimbursementItems.value.push({
                     description: item.description || `Reimbursement ${index + 1}`,
-                    quantity: 1,
-                    unit: 'SET',
-                    rate: normalizeNumber(item.amount),
+                    quantity: quantity,
+                    unit: item.unit || 'SET',
+                    rate: rate,
                     currency: 'IDR',
-                    amount: normalizeNumber(item.amount),
+                    amount: rate * quantity,
                     vendor_id: vendorInfo.vendorId,
                     item_ref: `reimb_${item.id || index}`,
                     type: 'reimbursement',
@@ -1200,16 +1209,18 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
         otherCostsSource.forEach((cost, index) => {
             const amount = normalizeNumber(cost.amount);
             if (amount > 0) {
+                const quantity = resolveQuantityValue(cost.quantity ?? cost.qty ?? 1);
+                const unit = cost.unit || 'pcs';
                 const categoryInfo = deriveOperationalCategoryInfo(cost);
                 const vendorInfo = resolveVendorSelectionFromRecord(cost);
 
                 operationalCosts.value.push({
                     description: cost.description || `Operational Cost ${index + 1}`,
-                    quantity: 1,
-                    unit: 'pcs',
+                    quantity: quantity,
+                    unit: unit,
                     rate: amount,
                     currency: cost.currency || 'IDR',
-                    amount: amount,
+                    amount: amount * quantity,
                     category_id: categoryInfo.id,
                     category_name: categoryInfo.name,
                     category: categoryInfo.name,
@@ -1328,6 +1339,15 @@ const normalizeNumber = (value) => {
     return parseFloat(normalized) || 0;
 };
 
+const resolveQuantityValue = (rawValue) => {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+        return 1;
+    }
+
+    const parsed = normalizeNumber(rawValue);
+    return parsed > 0 ? parsed : 0;
+};
+
 // Format main item rate input to handle Indonesian number format
 const formatMainItemRate = (item, index, event) => {
     let value = event.target.value;
@@ -1435,8 +1455,8 @@ const onCategoryChange = (index) => {
 
 const calculateOperationalAmount = (index) => {
     const cost = operationalCosts.value[index];
-    cost.quantity = 1.0; // Always 1.0 for operational costs (decimal to match validation)
-    cost.amount = normalizeNumber(cost.rate || 0);
+    const quantity = resolveQuantityValue(cost.quantity);
+    cost.amount = normalizeNumber(cost.rate || 0) * quantity;
 };
 
 // Format operational rate input to handle Indonesian number format
