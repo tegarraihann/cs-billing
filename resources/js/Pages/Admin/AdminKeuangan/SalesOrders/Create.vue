@@ -305,7 +305,9 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Qty
                                                     (Optional)</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
-                                                    placeholder="Quantity" @input="calculateTotals"
+                                                    placeholder="Quantity"
+                                                    @input="() => recalculateVendorAmounts(item)"
+                                                    @blur="calculateTotals"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -338,18 +340,24 @@
                                             <!-- Row 3: Buying & Selling Amounts -->
                                             <div class="grid grid-cols-1 gap-3 p-3 bg-blue-50 rounded-lg">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying
-                                                        Amount (Cost)</label>
-                                                    <input v-model="item.buying_amount" type="number" step="0.01"
-                                                        placeholder="0.00" @input="calculateTotals"
+                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Unit Price)</label>
+                                                    <input v-model="item.buying_amount" type="text" placeholder="0"
+                                                        @input="onBuyingAmountInput(item)"
+                                                        @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <p class="text-xs text-blue-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalBuyingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0) }})
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling
-                                                        Amount (Revenue)</label>
-                                                    <input v-model="item.selling_amount" type="number" step="0.01"
-                                                        placeholder="0.00" @input="calculateTotals"
+                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Unit Price)</label>
+                                                    <input v-model="item.selling_amount" type="text" placeholder="0"
+                                                        @input="onSellingAmountInput(item)"
+                                                        @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                                                    <p class="text-xs text-green-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalSellingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0) }})
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <label
@@ -533,18 +541,23 @@
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost
-                                                            Amount</label>
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
                                                     <input v-model="cost.amount" type="number" min="0" step="0.01"
-                                                            placeholder="0" @input="calculateTotals"
+                                                            placeholder="0"
+                                                            @input="(e) => onCostAmountInput(cost)"
+                                                            @blur="() => recalculateCostAmount(cost)"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    <p class="text-xs text-orange-600 mt-1" v-if="cost.quantity &&  parseFloat(cost.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
+                                                    </p>
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Qty
                                                             (Optional)</label>
                                                         <input v-model="cost.quantity" type="number" min="0" step="0.01"
-                                                            placeholder="Quantity" @input="calculateTotals"
+                                                            placeholder="Quantity"
+                                                            @input="() => recalculateCostAmount(cost)"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -1218,9 +1231,58 @@ const formatCurrency = (amount) => {
     }).format(amount || 0);
 };
 
-// Format number with thousand separators
-const formatNumber = (amount) => {
-    return new Intl.NumberFormat('id-ID').format(amount || 0);
+// Format number with thousand separators (for input formatting)
+const formatNumber = (item, field) => {
+    const value = item[field];
+    if (!value) return;
+    
+    // Remove all non-numeric characters
+    const numericValue = value.toString().replace(/[^\d]/g, '');
+    
+    // Format with dots as thousand separators
+    const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\\d))/g, '.');
+    
+    item[field] = formatted;
+};
+
+// Helper functions for qty-based calculation
+const getTotalBuyingAmount = (item) => {
+    const unitPrice = parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0;
+    const qty = parseFloat(item.quantity) || 1;
+    return unitPrice * qty;
+};
+
+const getTotalSellingAmount = (item) => {
+    const unitPrice = parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0;
+    const qty = parseFloat(item.quantity) || 1;
+    return unitPrice * qty;
+};
+
+const getTotalCostAmount = (cost) => {
+    const unitPrice = parseFloat(cost.amount) || 0;
+    const qty = parseFloat(cost.quantity) || 1;
+    return unitPrice * qty;
+};
+
+const onBuyingAmountInput = (item) => {
+    // Placeholder for future logic if needed
+};
+
+const onSellingAmountInput = (item) => {
+    // Placeholder for future logic if needed
+};
+
+const onCostAmountInput = (cost) => {
+    // Placeholder for future logic if needed
+};
+
+const recalculateVendorAmounts = (item) => {
+    // Trigger recalculation
+    calculateTotals();
+};
+
+const recalculateCostAmount = (cost) => {
+    // Trigger recalculation happens automatically via computed
 };
 
 const normalizeNumber = (value) => {
@@ -1253,15 +1315,15 @@ const getOtherCostLineTotal = (costItem) => {
 
 // Computed properties for totals
 const totalBuying = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'buying_amount'), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getTotalBuyingAmount(item), 0);
 });
 
 const totalSelling = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'selling_amount'), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getTotalSellingAmount(item), 0);
 });
 
 const totalOtherCosts = computed(() => {
-    return form.other_costs.reduce((sum, item) => sum + getOtherCostLineTotal(item), 0);
+    return form.other_costs.reduce((sum, cost) => sum + getTotalCostAmount(cost), 0);
 });
 
 const totalReimbursement = computed(() => {
@@ -1331,24 +1393,36 @@ const submit = () => {
 
     const sanitizedOtherCosts = form.other_costs
         .filter(c => c.description && c.amount && c.amount > 0)
-        .map(c => ({
-            description: c.description,
-            amount: parseFloat(c.amount) || 0,
-            category: c.category || '',
-            vendor_id: c.vendor_id === '' ? null : c.vendor_id,
-            quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
-            unit: c.unit || ''
-        }));
+        .map(c => {
+            const qty = c.quantity !== '' ? parseFloat(c.quantity) || 1 : 1;
+            const unitPrice = parseFloat(c.amount) || 0;
+            const totalAmount = unitPrice * qty;
+            
+            return {
+                description: c.description,
+                amount: totalAmount,
+                category: c.category || '',
+                vendor_id: c.vendor_id === '' ? null : c.vendor_id,
+                quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
+                unit: c.unit || ''
+            };
+        });
 
     const cleanedData = {
         ...form.data(),
-        vendor_breakdown: form.vendor_breakdown.map(item => ({
-            ...item,
-            buying_amount: parseFloat(item.buying_amount) || 0,
-            selling_amount: parseFloat(item.selling_amount) || 0,
-            quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
-            unit: item.unit || ''
-        })),
+        vendor_breakdown: form.vendor_breakdown.map(item => {
+            const qty = item.quantity !== '' ? parseFloat(item.quantity) || 1 : 1;
+            const buyingUnitPrice = parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0;
+            const sellingUnitPrice = parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0;
+            
+            return {
+                ...item,
+                buying_amount: buyingUnitPrice * qty,
+                selling_amount: sellingUnitPrice * qty,
+                quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
+                unit: item.unit || ''
+            };
+        }),
         reimbursement_items: sanitizedReimbursements,
         other_costs: sanitizedOtherCosts
     };

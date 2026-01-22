@@ -298,6 +298,8 @@
                                                     (Optional)</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
                                                     placeholder="Quantity"
+                                                    @input="() => recalculateVendorAmounts(item)"
+                                                    @blur="calculateTotals"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -330,22 +332,26 @@
                                             <!-- Row 3: Buying & Selling Amounts -->
                                             <div class="grid grid-cols-1 gap-3 p-3 bg-blue-50 rounded-lg">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying
-                                                        Amount
-                                                        (Cost)</label>
+                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Unit Price)</label>
                                                     <input v-model="item.buying_amount" type="text"
                                                         placeholder="0 (example: 25,000 or 25000)"
-                                                        @input="formatVendorAmount(item, 'buying_amount', $event); calculateTotals()"
+                                                        @input="onBuyingAmountInput(item)"
+                                                        @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <p class="text-xs text-blue-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalBuyingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(normalizeNumber(item.buying_amount)) }})
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling
-                                                        Amount
-                                                        (Revenue)</label>
+                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Unit Price)</label>
                                                     <input v-model="item.selling_amount" type="text"
                                                         placeholder="0 (example: 30,000 or 30000)"
-                                                        @input="formatVendorAmount(item, 'selling_amount', $event); calculateTotals()"
+                                                        @input="onSellingAmountInput(item)"
+                                                        @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                                                    <p class="text-xs text-green-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalSellingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(normalizeNumber(item.selling_amount)) }})
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <label
@@ -491,12 +497,15 @@
                                                     </div>
                                                     <div class="col-span-2">
                                                         <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost
-                                                            Amount</label>
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
                                                         <input v-model="cost.amount" type="text"
                                                             placeholder="0 (example: 2,500 or 2500)"
-                                                            @input="formatCostAmount(cost, $event)"
+                                                            @input="(e) => { formatCostAmount(cost, e); onCostAmountInput(cost); }"
+                                                            @blur="() => recalculateCostAmount(cost)"
                                                             class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                        <p class="text-xs text-orange-600 mt-1" v-if="cost.quantity && parseFloat(cost.quantity) > 0">
+                                                            Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
+                                                        </p>
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
@@ -504,6 +513,7 @@
                                                             (Optional)</label>
                                                         <input v-model="cost.quantity" type="number" min="0" step="0.01"
                                                             placeholder="Quantity"
+                                                            @input="() => recalculateCostAmount(cost)"
                                                             class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -1325,13 +1335,54 @@ const formatNumber = (amount) => {
     return new Intl.NumberFormat('en-US').format(amount || 0);
 };
 
+
+// Helper functions for qty-based calculation
+const getTotalBuyingAmount = (item) => {
+    const unitPrice = normalizeNumber(item.buying_amount);
+    const qty = parseFloat(item.quantity) || 1;
+    return unitPrice * qty;
+};
+
+const getTotalSellingAmount = (item) => {
+    const unitPrice = normalizeNumber(item.selling_amount);
+    const qty = parseFloat(item.quantity) || 1;
+    return unitPrice * qty;
+};
+
+const getTotalCostAmount = (cost) => {
+    const unitPrice = normalizeNumber(cost.amount);
+    const qty = parseFloat(cost.quantity) || 1;
+    return unitPrice * qty;
+};
+
+const onBuyingAmountInput = (item) => {
+    // Placeholder for future logic if needed
+};
+
+const onSellingAmountInput = (item) => {
+    // Placeholder for future logic if needed
+};
+
+const onCostAmountInput = (cost) => {
+    // Placeholder for future logic if needed
+};
+
+const recalculateVendorAmounts = (item) => {
+    // Trigger recalculation
+    calculateTotals();
+};
+
+const recalculateCostAmount = (cost) => {
+    // Trigger recalculation happens automatically via computed
+};
+
 // Computed properties for totals
 const totalBuying = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'buying_amount'), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getTotalBuyingAmount(item), 0);
 });
 
 const totalSelling = computed(() => {
-    return form.vendor_breakdown.reduce((sum, item) => sum + getVendorLineTotal(item, 'selling_amount'), 0);
+    return form.vendor_breakdown.reduce((sum, item) => sum + getTotalSellingAmount(item), 0);
 });
 
 const totalRevenue = computed(() => {
@@ -1339,7 +1390,7 @@ const totalRevenue = computed(() => {
 });
 
 const totalOtherCosts = computed(() => {
-    return form.other_costs.reduce((sum, item) => sum + getOtherCostLineTotal(item), 0);
+    return form.other_costs.reduce((sum, item) => sum + getTotalCostAmount(item), 0);
 });
 
 const totalReimbursement = computed(() => {
@@ -1348,8 +1399,8 @@ const totalReimbursement = computed(() => {
 
 // Get profit for individual vendor item
 const getProfit = (vendorItem) => {
-    const buyingTotal = getVendorLineTotal(vendorItem, 'buying_amount');
-    const sellingTotal = getVendorLineTotal(vendorItem, 'selling_amount');
+    const buyingTotal = getTotalBuyingAmount(vendorItem);
+    const sellingTotal = getTotalSellingAmount(vendorItem);
     return sellingTotal - buyingTotal;
 };
 
@@ -1413,7 +1464,7 @@ const submit = () => {
         })
         .map(cost => ({
             description: cost.description || '',
-            amount: normalizeNumber(cost.amount),
+            amount: getTotalCostAmount(cost),
             category_id: cost.category_id || '',
             category_name: cost.category_name || cost.category || '',
             category: cost.category_name || cost.category || '',
@@ -1445,8 +1496,8 @@ const submit = () => {
         ...item,
         quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
         unit: item.unit || '',
-        buying_amount: normalizeNumber(item.buying_amount),
-        selling_amount: normalizeNumber(item.selling_amount),
+        buying_amount: getTotalBuyingAmount(item),
+        selling_amount: getTotalSellingAmount(item),
     }));
 
     const formData = {
