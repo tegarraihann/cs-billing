@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Input Gaji All In" />
+        <Head title="All-in Salary Entry" />
 
         <div class="py-6">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,10 +10,10 @@
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
-                        Kembali ke Daftar Gaji Karyawan
+                        Back to Employee Salaries
                     </Link>
-                    <h1 class="text-2xl font-bold text-gray-900">Input Gaji All In</h1>
-                    <p class="mt-1 text-sm text-gray-600">Input gaji untuk seluruh karyawan, divisi, atau jabatan sekaligus</p>
+                    <h1 class="text-2xl font-bold text-gray-900">All-in Salary Entry</h1>
+                    <p class="mt-1 text-sm text-gray-600">Enter salaries for all employees, a division, or a position at once.</p>
                 </div>
 
                 <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
@@ -21,7 +21,7 @@
                         <form @submit.prevent="submit">
                             <!-- Target Selection -->
                             <div class="border-b border-gray-200 pb-6 mb-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Pilih Target Karyawan</h3>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Select Target Employees</h3>
 
                                 <div class="space-y-4">
                                     <!-- All Staff Option -->
@@ -35,7 +35,7 @@
                                         />
                                         <label for="target_all_staff" class="ml-3 block text-sm font-medium text-gray-700">
                                             <span class="font-semibold">ALL STAFF</span>
-                                            <span class="text-gray-500 ml-2">({{ previewStats.total_staff || 0 }} karyawan)</span>
+                                            <span class="text-gray-500 ml-2">({{ previewStats.total_staff || 0 }} employees)</span>
                                         </label>
                                     </div>
 
@@ -50,7 +50,7 @@
                                         />
                                         <div class="ml-3 flex-1">
                                             <label for="target_all_division" class="block text-sm font-medium text-gray-700 mb-2">
-                                                <span class="font-semibold">ALL DIVISI</span>
+                                                <span class="font-semibold">ALL DIVISIONS</span>
                                             </label>
                                             <select
                                                 v-model="form.target_value"
@@ -61,13 +61,13 @@
                                                     'border-red-300 focus:border-red-500 focus:ring-red-500': errors.target_value
                                                 }"
                                             >
-                                                <option value="">Pilih Divisi</option>
+                                                <option value="">Select Division</option>
                                                 <option
                                                     v-for="(division, key) in previewStats.divisions"
                                                     :key="key"
                                                     :value="key"
                                                 >
-                                                    {{ division.label }} ({{ division.count }} karyawan)
+                                                    {{ division.label }} ({{ division.count }} employees)
                                                 </option>
                                             </select>
                                             <div v-if="errors.target_value && form.target_type === 'all_division'" class="mt-1 text-sm text-red-600">
@@ -87,7 +87,7 @@
                                         />
                                         <div class="ml-3 flex-1">
                                             <label for="target_all_position" class="block text-sm font-medium text-gray-700 mb-2">
-                                                <span class="font-semibold">ALL JABATAN</span>
+                                                <span class="font-semibold">ALL POSITIONS</span>
                                             </label>
                                             <input
                                                 v-model="form.target_value"
@@ -98,20 +98,20 @@
                                                     'bg-gray-100 text-gray-400': form.target_type !== 'all_position',
                                                     'border-red-300 focus:border-red-500 focus:ring-red-500': errors.target_value
                                                 }"
-                                                placeholder="Masukkan nama jabatan (contoh: Manager)"
+                                                placeholder="Enter position name (example: Manager)"
                                             />
                                             <div v-if="errors.target_value && form.target_type === 'all_position'" class="mt-1 text-sm text-red-600">
                                                 {{ errors.target_value }}
                                             </div>
                                             <div class="mt-2 text-xs text-gray-500">
-                                                <strong>Jabatan yang tersedia:</strong>
+                                                <strong>Available positions:</strong>
                                                 <div class="mt-1">
                                                     <span
                                                         v-for="(count, position) in previewStats.positions"
                                                         :key="position"
                                                         class="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs mr-2 mb-1"
                                                     >
-                                                        {{ position }} ({{ count }})
+                                                        {{ position }} ({{ count }} employees)
                                                     </span>
                                                 </div>
                                             </div>
@@ -126,12 +126,12 @@
 
                             <!-- Period Information -->
                             <div class="border-b border-gray-200 pb-6 mb-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Informasi Periode</h3>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Period Information</h3>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label for="period_month" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Periode (Bulan-Tahun) <span class="text-red-500">*</span>
+                                            Period (Month-Year) <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="period_month"
@@ -147,7 +147,7 @@
 
                                     <div>
                                         <label for="salary_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Tanggal Gaji <span class="text-red-500">*</span>
+                                            Salary Date <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="salary_date"
@@ -165,12 +165,12 @@
 
                             <!-- Salary Information -->
                             <div class="border-b border-gray-200 pb-6 mb-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Detail Gaji Uniform</h3>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Uniform Salary Details</h3>
 
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
                                         <label for="basic_salary" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Gaji Pokok <span class="text-red-500">*</span>
+                                            Basic Salary <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="basic_salary"
@@ -189,7 +189,7 @@
 
                                     <div>
                                         <label for="allowances" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Tunjangan
+                                            Allowances
                                         </label>
                                         <input
                                             id="allowances"
@@ -208,7 +208,7 @@
 
                                     <div>
                                         <label for="deductions" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Potongan
+                                            Deductions
                                         </label>
                                         <input
                                             id="deductions"
@@ -229,9 +229,9 @@
                                 <!-- Total Salary Display -->
                                 <div class="mt-6 p-4 bg-gray-50 rounded-lg">
                                     <div class="flex justify-between items-center">
-                                        <span class="text-lg font-medium text-gray-900">Total Gaji per Karyawan:</span>
+                                        <span class="text-lg font-medium text-gray-900">Total Salary per Employee:</span>
                                         <span class="text-2xl font-bold text-sage-600">
-                                            Rp {{ formatCurrency(totalSalary) }}
+                                            IDR {{ formatCurrency(totalSalary) }}
                                         </span>
                                     </div>
                                 </div>
@@ -240,7 +240,7 @@
                             <!-- Notes -->
                             <div class="mb-8">
                                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Catatan
+                                    Notes
                                 </label>
                                 <textarea
                                     id="notes"
@@ -248,7 +248,7 @@
                                     rows="3"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                     :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.notes }"
-                                    placeholder="Catatan tambahan untuk gaji ini..."
+                                    placeholder="Additional notes for this salary..."
                                 ></textarea>
                                 <div v-if="errors.notes" class="mt-1 text-sm text-red-600">
                                     {{ errors.notes }}
@@ -261,7 +261,7 @@
                                     :href="route('admin-keuangan.employee-salary.index')"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                 >
-                                    Batal
+                                    Cancel
                                 </Link>
                                 <button
                                     type="submit"
@@ -269,7 +269,7 @@
                                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Loader2 v-if="processing" class="w-4 h-4 mr-2 animate-spin" />
-                                    {{ processing ? 'Memproses...' : 'Simpan Gaji All In' }}
+                                    {{ processing ? 'Processing...' : 'Save All-in Salary' }}
                                 </button>
                             </div>
 
@@ -278,11 +278,11 @@
                                 <div class="flex">
                                     <Info class="h-5 w-5 text-blue-400 mt-0.5 mr-2" />
                                     <div>
-                                        <h4 class="text-sm font-medium text-blue-800 mb-1">Preview Eksekusi</h4>
+                                        <h4 class="text-sm font-medium text-blue-800 mb-1">Execution Preview</h4>
                                         <p class="text-sm text-blue-700">
-                                            Sistem akan membuat record gaji individual untuk
+                                            The system will create individual salary records for
                                             <strong>{{ getTargetDescription() }}</strong>
-                                            dengan total gaji <strong>Rp {{ formatCurrency(totalSalary) }}</strong> per karyawan.
+                                            with total salary <strong>IDR {{ formatCurrency(totalSalary) }}</strong> per employee.
                                         </p>
                                     </div>
                                 </div>
@@ -328,26 +328,26 @@ const totalSalary = computed(() => {
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID').format(amount || 0)
+    return new Intl.NumberFormat('en-US').format(amount || 0)
 }
 
 const getTargetDescription = () => {
     switch (form.target_type) {
         case 'all_staff':
-            return `${props.previewStats.total_staff || 0} karyawan (ALL STAFF)`
+            return `${props.previewStats.total_staff || 0} employees (ALL STAFF)`
         case 'all_division':
             if (form.target_value && props.previewStats.divisions[form.target_value]) {
                 const division = props.previewStats.divisions[form.target_value]
-                return `${division.count} karyawan dari divisi ${division.label}`
+                return `${division.count} employees from ${division.label}`
             }
-            return 'divisi yang dipilih'
+            return 'the selected division'
         case 'all_position':
             if (form.target_value && props.previewStats.positions[form.target_value]) {
-                return `${props.previewStats.positions[form.target_value]} karyawan dengan jabatan "${form.target_value}"`
+                return `${props.previewStats.positions[form.target_value]} employees with the "${form.target_value}" position`
             }
-            return 'jabatan yang dimasukkan'
+            return 'the entered position'
         default:
-            return 'target yang dipilih'
+            return 'the selected target'
     }
 }
 

@@ -1,21 +1,21 @@
 <template>
   <AdminKeuanganLayout>
-    <Head title="Manajemen Service Type" />
+    <Head title="Service Type Management" />
 
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Manajemen Service Type</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola data jenis biaya/service untuk vendor items</p>
+            <h1 class="text-2xl font-bold text-gray-900">Service Type Management</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage service/fee types for vendor items.</p>
           </div>
           <Link
             :href="route('admin-keuangan.service-types.create')"
             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
           >
             <Plus class="w-4 h-4 mr-2" />
-            Tambah Service Type
+            Add Service Type
           </Link>
         </div>
 
@@ -25,11 +25,11 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Search Input -->
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Cari Data</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search Data</label>
                 <input
                   v-model="form.search"
                   type="text"
-                  placeholder="Cari kode, nama, atau deskripsi..."
+                  placeholder="Search code, name, or description..."
                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                   @keyup.enter="search"
                 />
@@ -42,10 +42,10 @@
                   v-model="form.status"
                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                 >
-                  <option value="">Semua Status</option>
-                  <option value="1">Aktif</option>
-                  <option value="0">Tidak Aktif</option>
-                  <option value="deleted">Dihapus</option>
+                  <option value="">All Statuses</option>
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                  <option value="deleted">Deleted</option>
                 </select>
               </div>
             </div>
@@ -57,7 +57,7 @@
                 class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
               >
                 <Search class="w-4 h-4 mr-2" />
-                Cari
+                Search
               </button>
             </div>
           </div>
@@ -74,10 +74,10 @@
                       No
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Kode
+                      Code
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Deskripsi
+                      Description
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
@@ -100,7 +100,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span v-if="serviceType.deleted_at" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
-                        Dihapus
+                        Deleted
                       </span>
                       <span
                         v-else
@@ -110,7 +110,7 @@
                             : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
                         "
                       >
-                        {{ serviceType.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                        {{ serviceType.is_active ? 'Active' : 'Inactive' }}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -126,7 +126,7 @@
                           v-if="!serviceType.deleted_at"
                           @click="confirmDelete(serviceType)"
                           class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
-                          title="Hapus"
+                          title="Delete"
                         >
                           <Trash2 class="w-4 h-4" />
                         </button>
@@ -134,7 +134,7 @@
                           v-else
                           class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-400 border border-gray-200 rounded"
                         >
-                          Sudah dihapus
+                          Already deleted
                         </span>
                       </div>
                     </td>
@@ -145,8 +145,8 @@
 
             <div v-if="serviceTypes.data.length === 0" class="text-center py-12">
               <PackageSearch class="mx-auto h-12 w-12 text-gray-400" />
-              <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada service type</h3>
-              <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan service type pertama</p>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No service types yet</h3>
+              <p class="mt-1 text-sm text-gray-500">Start by adding the first service type.</p>
             </div>
 
             <div v-if="serviceTypes?.data && serviceTypes.data.length > 0" class="mt-6">
@@ -160,10 +160,10 @@
     <!-- Delete Confirmation Modal -->
     <AlertDialog
       :show="deleteModal.show"
-      title="Konfirmasi Hapus"
-      :message="`Apakah Anda yakin ingin menghapus service type '${deleteModal.serviceType?.code}'?`"
-      confirm-text="Hapus"
-      cancel-text="Batal"
+      title="Confirm Deletion"
+      :message="`Are you sure you want to delete service type '${deleteModal.serviceType?.code}'?`"
+      confirm-text="Delete"
+      cancel-text="Cancel"
       @confirm="deleteServiceType"
       @cancel="deleteModal.show = false"
     />

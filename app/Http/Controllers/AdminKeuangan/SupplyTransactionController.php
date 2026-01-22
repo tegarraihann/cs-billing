@@ -78,8 +78,8 @@ class SupplyTransactionController extends Controller
             'description' => ['nullable', 'string'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'quantity' => ['nullable', 'numeric', 'min:0.01'],
-            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
-            'source_type' => ['required', Rule::in(['bank', 'petty_cash'])],
+            'pl_account_id' => ['nullable', 'required_unless:source_type,opening_balance', 'exists:chart_of_accounts,id'],
+            'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'opening_balance'])],
             'bank_account_id' => ['nullable', 'required_if:source_type,bank', 'exists:bank_accounts,id'],
             'petty_cash_category_id' => ['nullable', 'required_if:source_type,petty_cash', 'exists:petty_cash_categories,id'],
             'reference_number' => ['nullable', 'string', 'max:100'],
@@ -93,7 +93,7 @@ class SupplyTransactionController extends Controller
             'description' => $validated['description'] ?? null,
             'amount' => $validated['amount'],
             'quantity' => $validated['quantity'] ?? null,
-            'pl_account_id' => $validated['pl_account_id'],
+            'pl_account_id' => $validated['pl_account_id'] ?? null,
             'source_type' => $validated['source_type'],
             'bank_account_id' => $validated['bank_account_id'] ?? null,
             'reference_number' => $validated['reference_number'] ?? null,
@@ -140,7 +140,9 @@ class SupplyTransactionController extends Controller
         }
 
         // Buat entri laba rugi untuk pembelian/topup supplies
-        $this->createProfitLossEntriesForTopup($topup);
+        if ($validated['source_type'] !== 'opening_balance') {
+            $this->createProfitLossEntriesForTopup($topup);
+        }
 
         return redirect()->route('admin-keuangan.supplies.index')
             ->with('success', 'Top-up supplies berhasil dicatat.');

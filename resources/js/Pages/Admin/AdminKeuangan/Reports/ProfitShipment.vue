@@ -7,7 +7,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Total Profit Shipment Report</h1>
-                        <p class="mt-1 text-sm text-gray-600">Laporan profit per shipment dengan detail breakdown</p>
+                        <p class="mt-1 text-sm text-gray-600">Profit report per shipment with detailed breakdown</p>
                     </div>
                     <button
                         @click="exportPdf"
@@ -27,10 +27,10 @@
                 <!-- Filters -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Laporan</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Report Filters</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Period</label>
                                 <select
                                     v-model="searchForm.period"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
@@ -46,7 +46,7 @@
                                 </select>
                             </div>
                             <div v-if="isMonthly" class="">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Bulan</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Month</label>
                                 <select
                                     v-model="searchForm.month"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
@@ -62,7 +62,7 @@
                                 </select>
                             </div>
                             <div v-else-if="isQuarterly">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Kuartal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quarter</label>
                                 <select
                                     v-model="searchForm.quarter"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
@@ -78,7 +78,7 @@
                                 </select>
                             </div>
                             <div v-if="showYearSelect">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tahun</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
                                 <select
                                     v-model="searchForm.year"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
@@ -100,7 +100,7 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 >
-                                    <option value="">Semua Customer</option>
+                                    <option value="">All Customers</option>
                                     <option
                                         v-for="customer in customers"
                                         :key="customer.id"
@@ -121,7 +121,7 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
                                 <input
                                     v-model="searchForm.date_from"
                                     type="date"
@@ -131,7 +131,7 @@
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
                                 <input
                                     v-model="searchForm.date_to"
                                     type="date"
@@ -294,7 +294,7 @@
                             </tr>
                             <tr v-if="profitData.length === 0">
                                 <td colspan="9" class="px-6 py-4 text-center text-gray-500">
-                                    Tidak ada data untuk periode yang dipilih
+                                    No data for the selected period
                                 </td>
                             </tr>
                         </tbody>
@@ -345,7 +345,7 @@ const quarterOptions = [
     { value: "Q4", label: "Q4 (Oct-Dec)", startMonth: 9 }
 ]
 
-const monthFormatter = new Intl.DateTimeFormat("id-ID", { month: "long" })
+const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" })
 const monthOptions = Array.from({ length: 12 }, (_, idx) => ({
     value: String(idx + 1).padStart(2, "0"),
     label: monthFormatter.format(new Date(2000, idx, 1))

@@ -1,6 +1,6 @@
 <template>
   <AdminKeuanganLayout>
-    <Head title="Detail Pengeluaran Lain-lain" />
+    <Head title="General Expense Details" />
 
     <div class="p-6 max-w-6xl mx-auto">
       <!-- Header -->
@@ -16,7 +16,7 @@
               </svg>
             </Link>
             <div>
-              <h1 class="text-2xl font-bold text-sage-800">Detail Pengeluaran Lain-lain</h1>
+              <h1 class="text-2xl font-bold text-sage-800">General Expense Details</h1>
               <p class="text-sm text-sage-600">ID: {{ generalExpense.id }}</p>
             </div>
           </div>
@@ -47,7 +47,7 @@
                 class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 <Trash2 class="w-4 h-4 mr-2" />
-                Hapus
+                Delete
               </button>
             </div>
           </div>
@@ -59,25 +59,25 @@
         <div class="lg:col-span-2 space-y-6">
           <!-- Basic Information -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Informasi Pengeluaran</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Expense Information</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Tanggal Pengeluaran</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Expense Date</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ formatDate(generalExpense.expense_date) }}
                 </p>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Kategori</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Category</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ generalExpense.category }}
                 </p>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Periode</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Period</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ formatPeriod(generalExpense.period_month, generalExpense.period_year) }}
                 </p>
@@ -92,7 +92,7 @@
             </div>
 
             <div v-if="generalExpense.notes" class="mt-6">
-              <label class="block text-sm font-medium text-sage-700 mb-2">Catatan</label>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Notes</label>
               <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                 {{ generalExpense.notes }}
               </p>
@@ -101,7 +101,7 @@
 
           <!-- Items List -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Detail Item Pengeluaran</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Expense Item Details</h2>
 
             <div class="space-y-4">
               <div
@@ -116,12 +116,12 @@
 
                 <div class="grid grid-cols-1 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-sage-700 mb-1">Deskripsi</label>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">Description</label>
                     <p class="text-sm text-sage-900">{{ item.description }}</p>
                   </div>
 
                   <div v-if="item.notes">
-                    <label class="block text-sm font-medium text-sage-700 mb-1">Catatan Item</label>
+                    <label class="block text-sm font-medium text-sage-700 mb-1">Item Notes</label>
                     <p class="text-sm text-sage-600">{{ item.notes }}</p>
                   </div>
                 </div>
@@ -130,7 +130,7 @@
               <!-- Empty state -->
               <div v-if="!generalExpense.items || generalExpense.items.length === 0" class="text-center py-8 text-gray-500">
                 <DollarSign class="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p class="text-sm">Tidak ada item pengeluaran</p>
+                <p class="text-sm">No expense items</p>
               </div>
             </div>
 
@@ -148,7 +148,7 @@
         <div class="space-y-6">
           <!-- Amount Summary -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Ringkasan Jumlah</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Amount Summary</h2>
 
             <div class="space-y-4">
               <div class="text-center">
@@ -156,17 +156,17 @@
                   {{ formatCurrency(generalExpense.total_amount) }}
                 </div>
                 <div class="text-sm text-sage-600">
-                  Total Pengeluaran
+                  Total Expense
                 </div>
               </div>
 
               <div class="border-t border-sage-200 pt-4">
                 <div class="flex justify-between items-center text-sm">
-                  <span class="text-sage-600">Jumlah Item:</span>
+                  <span class="text-sage-600">Item Count:</span>
                   <span class="font-medium">{{ generalExpense.items?.length || 0 }}</span>
                 </div>
                 <div class="flex justify-between items-center text-sm mt-2">
-                  <span class="text-sage-600">Rata-rata per Item:</span>
+                  <span class="text-sage-600">Average per Item:</span>
                   <span class="font-medium">
                     {{ generalExpense.items?.length > 0 ? formatCurrency(generalExpense.total_amount / generalExpense.items.length) : formatCurrency(0) }}
                   </span>
@@ -177,26 +177,26 @@
 
           <!-- Expense Meta -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Informasi Tambahan</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Additional Information</h2>
 
             <div class="space-y-4 text-sm">
               <div>
-                <span class="font-medium text-sage-700">Dibuat oleh:</span>
+                <span class="font-medium text-sage-700">Created by:</span>
                 <p class="text-sage-900 mt-1">{{ generalExpense.creator?.name || '-' }}</p>
               </div>
 
               <div>
-                <span class="font-medium text-sage-700">Tanggal dibuat:</span>
+                <span class="font-medium text-sage-700">Created date:</span>
                 <p class="text-sage-900 mt-1">{{ formatDateTime(generalExpense.created_at) }}</p>
               </div>
 
               <div v-if="generalExpense.updated_at !== generalExpense.created_at">
-                <span class="font-medium text-sage-700">Terakhir diubah:</span>
+                <span class="font-medium text-sage-700">Last updated:</span>
                 <p class="text-sage-900 mt-1">{{ formatDateTime(generalExpense.updated_at) }}</p>
               </div>
 
               <div v-if="generalExpense.approved_by && generalExpense.approved_at">
-                <span class="font-medium text-sage-700">Disetujui oleh:</span>
+                <span class="font-medium text-sage-700">Approved by:</span>
                 <p class="text-sage-900 mt-1">{{ generalExpense.approver?.name || '-' }}</p>
                 <p class="text-sage-600 text-xs mt-1">{{ formatDateTime(generalExpense.approved_at) }}</p>
               </div>
@@ -205,7 +205,7 @@
 
           <!-- Actions -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Aksi</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Actions</h2>
 
             <div class="space-y-3">
               <Link
@@ -213,7 +213,7 @@
                 class="w-full inline-flex justify-center items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-lg hover:bg-sage-700 transition-colors"
               >
                 <ArrowLeft class="w-4 h-4 mr-2" />
-                Kembali ke Daftar
+                Back to List
               </Link>
 
               <button
@@ -232,23 +232,23 @@
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-medium text-sage-900 mb-4">Konfirmasi Hapus</h3>
+        <h3 class="text-lg font-medium text-sage-900 mb-4">Confirm Delete</h3>
         <p class="text-sm text-sage-600 mb-6">
-          Apakah Anda yakin ingin menghapus pengeluaran kategori "{{ generalExpense.category }}"?
-          Tindakan ini tidak dapat dibatalkan.
+          Are you sure you want to delete the expense in category "{{ generalExpense.category }}"?
+          This action cannot be undone.
         </p>
         <div class="flex justify-end space-x-3">
           <button
             @click="showDeleteModal = false"
             class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
           >
-            Batal
+            Cancel
           </button>
           <button
             @click="deleteExpense"
             class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
           >
-            Hapus
+            Delete
           </button>
         </div>
       </div>
@@ -257,17 +257,17 @@
     <!-- Approve Confirmation Modal -->
     <div v-if="showApproveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-medium text-sage-900 mb-4">Konfirmasi Approve</h3>
+        <h3 class="text-lg font-medium text-sage-900 mb-4">Confirm Approval</h3>
         <p class="text-sm text-sage-600 mb-6">
-          Apakah Anda yakin ingin menyetujui pengeluaran kategori "{{ generalExpense.category }}"
-          dengan total {{ formatCurrency(generalExpense.total_amount) }}?
+          Are you sure you want to approve the expense in category "{{ generalExpense.category }}"
+          with a total of {{ formatCurrency(generalExpense.total_amount) }}?
         </p>
         <div class="flex justify-end space-x-3">
           <button
             @click="showApproveModal = false"
             class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
           >
-            Batal
+            Cancel
           </button>
           <button
             @click="confirmApprove"
@@ -328,8 +328,8 @@ const formatDateTime = (datetime) => {
 
 const formatPeriod = (month, year) => {
   const monthNames = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ]
   return `${monthNames[month - 1]} ${year}`
 }

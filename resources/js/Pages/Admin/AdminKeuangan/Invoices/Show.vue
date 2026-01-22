@@ -3,55 +3,55 @@
         <div class="p-4 sm:p-6 lg:p-8">
             <!-- Header -->
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
-                <div class="flex items-center justify-between">
+                <div class="flex itemss-center justify-between">
                     <div>
-                        <h2 class="text-2xl font-bold text-sage-800">Detail Invoice</h2>
+                        <h2 class="text-2xl font-bold text-sage-800">Invoice Details</h2>
                         <p class="text-sage-600">{{ invoice.invoice_number }}</p>
                     </div>
                     <div class="flex space-x-3">
                         <Link :href="route('admin-keuangan.invoices.index')"
-                            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Kembali
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-600 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back
                         </Link>
                         <button @click="showMarkSentModal = true"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            class="inline-flex itemss-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             v-if="invoice.status === 'draft'">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
-                            Tandai Terkirim
+                            Mark as Sent
                         </button>
                         <button @click="fixOperationalCosts"
-                            class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                            class="inline-flex itemss-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                             v-if="shouldShowFixOperationalCostsButton">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                <path stroke-l  inecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             Fix Operational Costs
                         </button>
                         <button @click="openProfitLossModal"
-                            class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-600 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                             v-if="shouldShowProfitLossButton">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
-                            Post ke Laba Rugi
+                            Post to Profit & Loss
                         </button>
                         <button @click="unpostFromProfitLoss"
-                            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-600 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                             v-if="invoice.posted_to_profit_loss">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                             </svg>
-                            Batal Post Laba Rugi
+                            Unpost Profit & Loss
                         </button>
                     </div>
                 </div>
@@ -61,10 +61,10 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <!-- Basic Info -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Informasi Invoice</h3>
+                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Invoice Information</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Nomor Invoice:</span>
+                            <span class="text-gray-600">Invoice Number:</span>
                             <span class="font-medium">{{ invoice.invoice_number }}</span>
                         </div>
                         <div class="flex justify-between">
@@ -77,27 +77,27 @@
                                 invoice.customer?.company_name }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Tanggal Invoice:</span>
+                            <span class="text-gray-600">Invoice Date:</span>
                             <span class="font-medium">{{ formatDate(invoice.invoice_date) }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Jatuh Tempo:</span>
+                            <span class="text-gray-600">Due Date:</span>
                             <span class="font-medium">{{ formatDate(invoice.due_date) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Term:</span>
-                            <span class="font-medium">{{ invoice.term_days }} Hari</span>
+                            <span class="font-medium">{{ invoice.term_days }} Days</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Status:</span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            <span class="inline-flex itemss-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                 :class="getStatusColor(invoice.status)">
                                 {{ getStatusLabel(invoice.status) }}
                             </span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Payment Status:</span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            <span class="inline-flex itemss-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                 :class="getPaymentStatusColor(invoice)">
                                 {{ getPaymentStatusLabel(invoice) }}
                             </span>
@@ -109,18 +109,18 @@
                             </span>
                         </div>
                         <div v-if="hasDownPayment" class="flex justify-between">
-                            <span class="text-gray-600">Tanggal DP:</span>
+                            <span class="text-gray-600">DP Date:</span>
                             <span class="font-medium">{{ formatDate(invoice.down_payment_date) }}</span>
                         </div>
                         <div v-if="hasDownPayment && invoice.down_payment_notes" class="flex justify-between">
-                            <span class="text-gray-600">Catatan DP:</span>
+                            <span class="text-gray-600">DP Notes:</span>
                             <span class="font-medium text-right">{{ invoice.down_payment_notes }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Status Laba Rugi:</span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            <span class="text-gray-600">Profit & Loss Status:</span>
+                            <span class="inline-flex itemss-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                 :class="invoice.posted_to_profit_loss ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'">
-                                {{ invoice.posted_to_profit_loss ? 'Sudah Di-post' : 'Belum Di-post' }}
+                                {{ invoice.posted_to_profit_loss ? 'Posted' : 'Not Posted' }}
                             </span>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
 
                 <!-- Shipment Details -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Detail Pengiriman</h3>
+                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Shipment Details</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Shipper:</span>
@@ -182,30 +182,30 @@
 
                 <!-- Payment Information (if paid) -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200" v-if="invoice.status === 'paid'">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Informasi Pembayaran</h3>
+                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Payment Information</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Tanggal Dibayar:</span>
+                            <span class="text-gray-600">Payment Date:</span>
                             <span class="font-medium">{{ formatDate(invoice.paid_date) }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Jumlah Dibayar:</span>
+                            <span class="text-gray-600">Amount Paid:</span>
                             <span class="font-medium">{{ formatCurrency(invoice.paid_amount) }}</span>
                         </div>
                         <div class="flex justify-between" v-if="invoice.payment_method">
-                            <span class="text-gray-600">Metode Pembayaran:</span>
+                            <span class="text-gray-600">Payment Method:</span>
                             <span class="font-medium">{{ invoice.payment_method }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Dikonfirmasi oleh:</span>
+                            <span class="text-gray-600">Confirmed By:</span>
                             <span class="font-medium">{{ invoice.confirmed_by?.name || '-' }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Waktu Konfirmasi:</span>
+                            <span class="text-gray-600">Confirmation Time:</span>
                             <span class="font-medium">{{ formatDateTime(invoice.payment_confirmed_at) }}</span>
                         </div>
                         <div v-if="invoice.payment_notes" class="pt-2">
-                            <span class="text-gray-600">Catatan:</span>
+                            <span class="text-gray-600">Notes:</span>
                             <p class="text-gray-900 mt-1">{{ invoice.payment_notes }}</p>
                         </div>
                     </div>
@@ -214,21 +214,21 @@
                 <!-- Profit Loss Posting Information (if posted) -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-purple-200"
                     v-if="invoice.posted_to_profit_loss">
-                    <h3 class="text-lg font-semibold text-purple-800 mb-4">Informasi Posting Laba Rugi</h3>
+                    <h3 class="text-lg font-semibold text-purple-800 mb-4">Profit & Loss Posting Information</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Status:</span>
                             <span
-                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                Sudah Di-post
+                                class="inline-flex itemss-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                Posted
                             </span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Tanggal Posting:</span>
+                            <span class="text-gray-600">Posting Date:</span>
                             <span class="font-medium">{{ formatDateTime(invoice.posted_to_profit_loss_at) }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Di-post oleh:</span>
+                            <span class="text-gray-600">Posted By:</span>
                             <span class="font-medium">{{ invoice.posted_by_user?.name || '-' }}</span>
                         </div>
                         <div v-if="invoice.profit_loss_entries && invoice.profit_loss_entries.length > 0" class="pt-2">
@@ -240,20 +240,20 @@
             </div>
 
             <!-- Main Invoice Items -->
-            <div v-if="mainInvoice || invoice.invoice_type === 'main' || invoice.invoice_type === 'combined'"
+            <div v-if="mainInvoice || invoice.invoice_type === 'main' || invoice.invoice_type === 'combined' || getMainItems.length > 0"
                 class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-sage-200 bg-blue-50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <h3 class="text-lg font-semibold text-blue-800">Items Invoice Main</h3>
+                    <div class="flex itemss-center justify-between">
+                        <div class="flex itemss-center space-x-3">
+                            <h3 class="text-lg font-semibold text-blue-800">Main Invoice Items</h3>
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                class="inline-flex itemss-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                 {{ (mainInvoice || invoice).invoice_number }}
                             </span>
                         </div>
                         <div class="flex space-x-2">
                             <a :href="route('admin-keuangan.invoices.preview-pdf', (mainInvoice || invoice).id)"
-                                class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                                class="inline-flex itemss-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -264,7 +264,7 @@
                                 Preview PDF
                             </a>
                             <a :href="route('admin-keuangan.invoices.export-pdf', (mainInvoice || invoice).id)"
-                                class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                                class="inline-flex itemss-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -282,7 +282,7 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                                    Deskripsi
+                                    Description
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
@@ -307,50 +307,51 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-sage-200">
-                            <tr v-for="item in getMainItems" :key="item.id" class="hover:bg-sage-50">
+                            <tr v-for="items in getMainItems" :key="items.id" class="hover:bg-sage-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
-                                    <div v-if="getReimbursementLatestHistory(item)"
+                                    <div class="text-sm font-medium text-gray-900">{{ items.description }}</div>
+                                    <div v-if="getReimbursementLatestHistory(items)"
                                         class="text-xs text-gray-500 mt-1 space-y-0.5">
-                                        <div class="flex flex-wrap items-center gap-2">
-                                            <span>Terakhir:</span>
+                                        <div class="flex flex-wrap itemss-center gap-2">
+                                            <span>Latest:</span>
                                             <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                                                class="inline-flex itemss-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
                                                 {{
-                                                    getReimbursementStatusLabel(getReimbursementLatestHistory(item).status)
+                                                    getReimbursementStatusLabel(getReimbursementLatestHistory(items).status)
                                                 }}
                                             </span>
-                                            <span v-if="getReimbursementLatestHistory(item).vendor_name">
-                                                oleh {{ getReimbursementLatestHistory(item).vendor_name }}
+                                            <span v-if="getReimbursementLatestHistory(items).vendor_name">
+                                                by {{ getReimbursementLatestHistory(items).vendor_name }}
                                             </span>
-                                            <span v-if="getReimbursementLatestHistory(item).timestamp">
-                                                ({{ formatDate(getReimbursementLatestHistory(item).timestamp) }})
+                                            <span v-if="getReimbursementLatestHistory(items).timestamp">
+                                                ({{ formatDate(getReimbursementLatestHistory(items).timestamp) }})
                                             </span>
                                         </div>
-                                        <div v-if="getReimbursementLatestHistory(item).notes">
-                                            Catatan: {{ getReimbursementLatestHistory(item).notes }}
+                                        <div v-if="getReimbursementLatestHistory(items).notes">
+                                            Notes: {{ getReimbursementLatestHistory(items).notes }}
                                         </div>
-                                        <div v-if="getReimbursementLatestHistory(item).user">
-                                            Diproses oleh: {{ getReimbursementLatestHistory(item).user }}
+                                        <div v-if="getReimbursementLatestHistory(items).user">
+                                            Processed by: {{ getReimbursementLatestHistory(items).user }}
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                                    <div class="text-sm text-gray-900">{{ getOperationalQtyDisplay(items) }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                                    <div class="text-sm text-gray-900">{{ getOperationalUnitDisplay(items) }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatCurrency(item.rate, item.currency) }}
+                                    <div class="text-sm text-gray-900">{{ formatCurrency(items.rate, items.currency) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.currency }}</div>
+                                    <div class="text-sm text-gray-900">{{ items.currency }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <div class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount,
-                                        item.currency) }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{
+                                        formatCurrency(getOperationalAmountValue(items),
+                                        items.currency) }}</div>
                                 </td>
                             </tr>
                         </tbody>
@@ -367,7 +368,8 @@
                             </div>
                             <div v-if="hasDownPayment && invoice.invoice_type === 'main'" class="flex justify-between">
                                 <span class="text-sm text-gray-600">Down Payment (-):</span>
-                                <span class="text-sm font-medium text-red-700">- {{ formatCurrency(downPaymentAmount) }}</span>
+                                <span class="text-sm font-medium text-red-700">- {{ formatCurrency(downPaymentAmount)
+                                    }}</span>
                             </div>
                             <div class="flex justify-between pt-2 border-t border-blue-200">
                                 <span class="text-lg font-semibold text-blue-800">Total Main:</span>
@@ -386,17 +388,17 @@
             <div v-if="reimbursementInvoice || invoice.invoice_type === 'reimbursement' || invoice.invoice_type === 'combined'"
                 class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-sage-200 bg-orange-50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <h3 class="text-lg font-semibold text-orange-800">Items Invoice Reimbursement</h3>
+                    <div class="flex itemss-center justify-between">
+                        <div class="flex itemss-center space-x-3">
+                            <h3 class="text-lg font-semibold text-orange-800">Reimbursement Invoice Items</h3>
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                class="inline-flex itemss-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
                                 {{ (reimbursementInvoice || invoice).invoice_number }}
                             </span>
                         </div>
                         <div class="flex space-x-2">
                             <a :href="route('admin-keuangan.invoices.preview-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
-                                class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                                class="inline-flex itemss-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -407,7 +409,7 @@
                                 Preview PDF
                             </a>
                             <a :href="route('admin-keuangan.invoices.export-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
-                                class="inline-flex items-center px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
+                                class="inline-flex itemss-center px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -420,7 +422,7 @@
                 </div>
 
                 <!-- <div v-if="hasReimbursementEntries"
-                    class="px-6 py-3 bg-white border-b border-sage-200 flex flex-wrap items-center gap-2">
+                    class="px-6 py-3 bg-white border-b border-sage-200 flex flex-wrap itemss-center gap-2">
                     <span class="text-sm text-sage-600 mr-2">Filter Status:</span>
                     <button type="button" @click="reimbursementFilter = 'all'" :class="reimbursementFilter === 'all'
                         ? 'bg-orange-600 text-white border border-orange-600 shadow-sm'
@@ -432,13 +434,13 @@
                         ? 'bg-orange-600 text-white border border-orange-600 shadow-sm'
                         : 'bg-white text-sage-700 border border-sage-200 hover:border-orange-300'"
                         class="px-3 py-1.5 text-sm rounded-md transition-colors">
-                        Belum Dibayar
+                        Unpaid
                     </button>
                     <button type="button" @click="reimbursementFilter = 'paid'" :class="reimbursementFilter === 'paid'
                         ? 'bg-orange-600 text-white border border-orange-600 shadow-sm'
                         : 'bg-white text-sage-700 border border-sage-200 hover:border-orange-300'"
                         class="px-3 py-1.5 text-sm rounded-md transition-colors">
-                        Sudah Dibayar
+                        Paid
                     </button>
                 </div> -->
 
@@ -448,7 +450,7 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                                    Deskripsi
+                                    Description
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
@@ -480,7 +482,7 @@
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                                    Tanggal Bayar
+                                    Payment Date
                                 </th> -->
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
@@ -490,52 +492,52 @@
                         <tbody class="bg-white divide-y divide-sage-200">
                             <tr v-if="filteredReimbursementEntries.length === 0">
                                 <td colspan="10" class="px-6 py-6 text-center text-sm text-gray-500">
-                                    Tidak ada data reimbursement untuk filter ini.
+                                    No reimbursement data matches this filter.
                                 </td>
                             </tr>
-                            <tr v-for="item in filteredReimbursementEntries" :key="item.id" class="hover:bg-sage-50">
+                            <tr v-for="items in filteredReimbursementEntries" :key="items.id" class="hover:bg-sage-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ items.description }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                                    <div class="text-sm text-gray-900">{{ getOperationalQtyDisplay(items) }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                                    <div class="text-sm text-gray-900">{{ getOperationalUnitDisplay(items) }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        {{ formatCurrency(item.rate, item.currency || reimbursementCurrency) }}
+                                        {{ formatCurrency(items.rate, items.currency || reimbursementCurrency) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.currency || reimbursementCurrency }}
+                                    <div class="text-sm text-gray-900">{{ items.currency || reimbursementCurrency }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ formatCurrency(item.amount, item.currency || reimbursementCurrency) }}
+                                        {{ formatCurrency(items.amount, items.currency || reimbursementCurrency) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.vendor_name }}</div>
+                                    <div class="text-sm text-gray-900">{{ items.vendor_name }}</div>
                                 </td>
                                 <!-- <td class="px-6 py-4 whitespace-nowrap">
                                     <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                        :class="getReimbursementStatusColor(item.status)">
-                                        {{ getReimbursementStatusLabel(item.status) }}
+                                        class="inline-flex itemss-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                        :class="getReimbursementStatusColor(items.status)">
+                                        {{ getReimbursementStatusLabel(items.status) }}
                                     </span>
                                 </td> -->
                                 <!-- <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        {{ item.paid_at ? formatDate(item.paid_at) : '-' }}
+                                        {{ items.paid_at ? formatDate(items.paid_at) : '-' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <button v-if="item.can_update" @click="openReimbursementPaymentModal(item)"
+                                    <button v-if="items.can_update" @click="openReimbursementPaymentModal(items)"
                                         class="px-3 py-1.5 text-sm rounded-md border border-orange-500 text-orange-600 hover:bg-orange-50 transition-colors">
-                                        {{ item.status === 'paid' ? 'Ubah Status' : 'Tandai Dibayar' }}
+                                        {{ items.status === 'paid' ? 'Update Status' : 'Mark as Paid' }}
                                     </button>
                                 </td> -->
                             </tr>
@@ -549,7 +551,7 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
-                                    Deskripsi
+                                    Description
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider">
@@ -574,26 +576,26 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-sage-200">
-                            <tr v-for="item in getReimbursementItems" :key="item.id" class="hover:bg-sage-50">
+                            <tr v-for="items in getReimbursementItems" :key="items.id" class="hover:bg-sage-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ items.description }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                                    <div class="text-sm text-gray-900">{{ formatNumber(items.quantity) }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                                    <div class="text-sm text-gray-900">{{ items.unit }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatCurrency(item.rate, item.currency) }}
+                                    <div class="text-sm text-gray-900">{{ formatCurrency(items.rate, items.currency) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.currency }}</div>
+                                    <div class="text-sm text-gray-900">{{ items.currency }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <div class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount,
-                                        item.currency) }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ formatCurrency(items.amount,
+                                        items.currency) }}</div>
                                 </td>
                             </tr>
                         </tbody>
@@ -612,8 +614,8 @@
                             </div>
                             <div v-if="hasReimbursementEntries && reimbursementFilter !== 'all'"
                                 class="text-xs text-gray-500 text-right">
-                                Menampilkan {{ filteredReimbursementEntries.length }} dari {{
-                                normalizedReimbursementEntries.length }} item
+                                Showing {{ filteredReimbursementEntries.length }} of {{
+                                    normalizedReimbursementEntries.length }} items
                             </div>
                             <div class="flex justify-between pt-2 border-t border-orange-200">
                                 <span class="text-lg font-semibold text-orange-800">Total Reimbursement:</span>
@@ -630,16 +632,16 @@
             <div v-if="getOperationalCosts.length > 0"
                 class="bg-white rounded-lg shadow-sm border border-red-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-red-200 bg-red-50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <h3 class="text-lg font-semibold text-red-800">Biaya Lain / Operational Costs</h3>
+                    <div class="flex itemss-center justify-between">
+                        <div class="flex itemss-center space-x-3">
+                            <h3 class="text-lg font-semibold text-red-800">Other Costs / Operational Costs</h3>
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                class="inline-flex itemss-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                 Internal Only
                             </span>
                         </div>
                         <div class="text-sm text-red-600">
-                            Tidak terlihat oleh customer
+                            Not visible to customer
                         </div>
                     </div>
                 </div>
@@ -650,7 +652,7 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
-                                    Deskripsi
+                                    Description
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider">
@@ -675,26 +677,26 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-red-200">
-                            <tr v-for="item in getOperationalCosts" :key="item.id" class="hover:bg-red-50">
+                            <tr v-for="items in getOperationalCosts" :key="items.id" class="hover:bg-red-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ items.description }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatNumber(item.quantity) }}</div>
+                                    <div class="text-sm text-gray-900">{{ formatNumber(items.quantity) }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.unit }}</div>
+                                    <div class="text-sm text-gray-900">{{ items.unit }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ formatCurrency(item.rate, item.currency) }}
+                                    <div class="text-sm text-gray-900">{{ formatCurrency(items.rate, items.currency) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ item.currency }}</div>
+                                    <div class="text-sm text-gray-900">{{ items.currency }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <div class="text-sm font-medium text-gray-900">{{ formatCurrency(item.amount,
-                                        item.currency) }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ formatCurrency(items.amount,
+                                        items.currency) }}</div>
                                 </td>
                             </tr>
                         </tbody>
@@ -706,13 +708,13 @@
                     <div class="flex justify-end">
                         <div class="w-64 space-y-2">
                             <div class="flex justify-between">
-                                <span class="text-sm text-gray-600">Subtotal Biaya Lain:</span>
+                                <span class="text-sm text-gray-600">Other Costs Subtotal:</span>
                                 <span class="text-sm font-medium">{{ formatCurrency(getOperationalCostsTotal) }}</span>
                             </div>
                             <div class="flex justify-between pt-2 border-t border-red-200">
-                                <span class="text-lg font-semibold text-red-800">Total Biaya Lain:</span>
+                                <span class="text-lg font-semibold text-red-800">Total Other Costs:</span>
                                 <span class="text-lg font-bold text-red-800">{{ formatCurrency(getOperationalCostsTotal)
-                                    }}</span>
+                                }}</span>
                             </div>
                         </div>
                     </div>
@@ -722,11 +724,11 @@
             <!-- Profit Breakdown Section -->
             <div class="bg-white rounded-lg shadow-sm border border-purple-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-purple-200 bg-purple-50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <h3 class="text-lg font-semibold text-purple-800">Analisis Profit</h3>
+                    <div class="flex itemss-center justify-between">
+                        <div class="flex itemss-center space-x-3">
+                            <h3 class="text-lg font-semibold text-purple-800">Profit Analysis</h3>
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                class="inline-flex itemss-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                                 Internal Analysis
                             </span>
                         </div>
@@ -741,7 +743,7 @@
                                 <div class="text-2xl font-bold text-green-800">{{ formatCurrency(getGrossRevenue) }}
                                 </div>
                                 <div class="text-sm text-green-600 mt-1">Gross Revenue</div>
-                                <div class="text-xs text-gray-500 mt-1">Total yang dapat ditagih</div>
+                                <div class="text-xs text-gray-500 mt-1">Total billable</div>
                             </div>
                         </div>
 
@@ -749,9 +751,9 @@
                         <div class="bg-red-50 rounded-lg p-4 border border-red-200">
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-red-800">{{ formatCurrency(getOperationalCostsTotal)
-                                    }}</div>
+                                }}</div>
                                 <div class="text-sm text-red-600 mt-1">Operational Costs</div>
-                                <div class="text-xs text-gray-500 mt-1">Biaya operasional</div>
+                                <div class="text-xs text-gray-500 mt-1">Operational costs</div>
                             </div>
                         </div>
 
@@ -760,7 +762,7 @@
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-blue-800">{{ formatCurrency(getNetProfit) }}</div>
                                 <div class="text-sm text-blue-600 mt-1">Net Profit</div>
-                                <div class="text-xs text-gray-500 mt-1">Keuntungan bersih</div>
+                                <div class="text-xs text-gray-500 mt-1">Net profit</div>
                             </div>
                         </div>
 
@@ -769,14 +771,14 @@
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-purple-800">{{ getProfitMargin }}%</div>
                                 <div class="text-sm text-purple-600 mt-1">Profit Margin</div>
-                                <div class="text-xs text-gray-500 mt-1">Persentase keuntungan</div>
+                                <div class="text-xs text-gray-500 mt-1">Profit percentage</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Profit Calculation Details -->
                     <div class="mt-6 bg-gray-50 rounded-lg p-4">
-                        <h4 class="text-sm font-semibold text-gray-800 mb-3">Detail Perhitungan:</h4>
+                        <h4 class="text-sm font-semibold text-gray-800 mb-3">Calculation Details:</h4>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Main Invoice</span>
@@ -788,19 +790,23 @@
                             </div>
                             <div class="flex justify-between py-1 border-t border-b border-gray-200">
                                 <span class="text-gray-700">Total Main Invoice + VAT</span>
-                                <span class="font-semibold text-blue-700">{{ formatCurrency(getGrossRevenue + vatAmount) }}</span>
+                                <span class="font-semibold text-blue-700">{{ formatCurrency(getGrossRevenue + vatAmount)
+                                    }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Reimbursement</span>
-                                <span class="font-medium text-gray-900">{{ formatCurrency(getReimbursementTotal) }}</span>
+                                <span class="font-medium text-gray-900">{{ formatCurrency(getReimbursementTotal)
+                                    }}</span>
                             </div>
                             <div class="flex justify-between py-1 border-t border-b border-gray-200">
                                 <span class="text-gray-700">Total Invoice + Reimbursement</span>
-                                <span class="font-semibold text-blue-700">{{ formatCurrency(getGrossRevenue + vatAmount + getReimbursementTotal) }}</span>
+                                <span class="font-semibold text-blue-700">{{ formatCurrency(getGrossRevenue + vatAmount
+                                    + getReimbursementTotal) }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Operational Costs</span>
-                                <span class="font-medium text-red-700">- {{ formatCurrency(getOperationalCostsTotal) }}</span>
+                                <span class="font-medium text-red-700">- {{ formatCurrency(getOperationalCostsTotal)
+                                    }}</span>
                             </div>
                             <div class="flex justify-between font-semibold">
                                 <span class="text-gray-800">Net Profit</span>
@@ -827,7 +833,7 @@
                             <div class="flex justify-between">
                                 <span class="text-sm text-blue-700">Total Main Items:</span>
                                 <span class="text-sm font-medium text-blue-700">{{ formatCurrency(getMainTotal)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-700">{{ vatRateLabel }}:</span>
@@ -842,7 +848,7 @@
                                 <span class="text-xl font-bold text-sage-800">Grand Total:</span>
                                 <span class="text-xl font-bold text-sage-800">{{
                                     formatCurrency(combinedTotalBeforeDownPayment)
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div v-if="hasDownPayment" class="flex justify-between text-sm text-red-700">
                                 <span>Down Payment (-):</span>
@@ -852,7 +858,7 @@
                                 <span class="text-lg font-bold text-sage-800">Total After DP:</span>
                                 <span class="text-lg font-bold text-sage-800">{{
                                     formatCurrency(combinedTotalAfterDownPayment)
-                                }}</span>
+                                    }}</span>
                             </div>
                         </div>
                     </div>
@@ -861,14 +867,15 @@
         </div>
 
         <!-- Payment Confirmation Modal -->
-        <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div v-if="showPaymentModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex itemss-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Konfirmasi Pembayaran</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirm Payment</h3>
 
                 <form @submit.prevent="confirmPayment">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Dibayar</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount Paid</label>
                             <input type="number" v-model="paymentForm.paid_amount"
                                 :placeholder="formatCurrency(invoice.total)" step="0.01" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
@@ -876,7 +883,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Pembayaran</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                             <input type="date" v-model="paymentForm.paid_date"
                                 :max="new Date().toISOString().split('T')[0]"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
@@ -884,16 +891,16 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Metode Pembayaran</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
                             <input type="text" v-model="paymentForm.payment_method"
-                                placeholder="Transfer Bank, Cash, dll."
+                                placeholder="Bank transfer, cash, etc."
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
                             <textarea v-model="paymentForm.payment_notes" rows="3"
-                                placeholder="Catatan tambahan tentang pembayaran..."
+                                placeholder="Additional notes about this payment..."
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"></textarea>
                         </div>
                     </div>
@@ -901,11 +908,11 @@
                     <div class="flex justify-end space-x-3 mt-6">
                         <button type="button" @click="showPaymentModal = false"
                             class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                            Batal
+                            Cancel
                         </button>
                         <button type="submit" :disabled="processing"
                             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
-                            {{ processing ? 'Memproses...' : 'Konfirmasi Pembayaran' }}
+                            {{ processing ? 'Processing...' : 'Confirm Payment' }}
                         </button>
                     </div>
                 </form>
@@ -914,20 +921,20 @@
 
         <!-- Mark Sent Modal -->
         <div v-if="showMarkSentModal"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            class="fixed inset-0 bg-black bg-opacity-50 flex itemss-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Tandai Invoice Sebagai Terkirim</h3>
-                <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menandai invoice ini sebagai terkirim ke customer?
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Mark Invoice as Sent</h3>
+                <p class="text-gray-600 mb-6">Are you sure you want to mark this invoice as sent to the customer?
                 </p>
 
                 <div class="flex justify-end space-x-3">
                     <button @click="showMarkSentModal = false"
                         class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                        Batal
+                        Cancel
                     </button>
                     <button @click="markAsSent"
                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Ya, Tandai Terkirim
+                        Yes, Mark as Sent
                     </button>
                 </div>
             </div>
@@ -935,13 +942,13 @@
 
         <!-- Reimbursement Payment Modal -->
         <div v-if="showReimbursementPaymentModal"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            class="fixed inset-0 bg-black bg-opacity-50 flex itemss-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-orange-800 mb-4">Perbarui Status Reimbursement</h3>
+                <h3 class="text-lg font-semibold text-orange-800 mb-4">Update Reimbursement Status</h3>
 
                 <div v-if="selectedReimbursementEntry" class="mb-4 text-sm text-gray-600">
                     <div class="font-medium text-gray-800">{{ selectedReimbursementEntry.description }}</div>
-                    <div>Nominal: {{ formatCurrency(selectedReimbursementEntry.amount,
+                    <div>Amount: {{ formatCurrency(selectedReimbursementEntry.amount,
                         selectedReimbursementEntry.currency || 'IDR') }}</div>
                 </div>
 
@@ -951,21 +958,21 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                             <select v-model="reimbursementPaymentForm.status"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
-                                <option value="paid">Sudah Dibayar</option>
-                                <option value="invoiced">Belum Dibayar</option>
+                                <option value="paid">Paid</option>
+                                <option value="invoiced">Unpaid</option>
                             </select>
                         </div>
 
                         <div v-if="reimbursementPaymentForm.status === 'paid'"
                             class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Vendor / Pembayar</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vendor / Payer</label>
                                 <input type="text" v-model="reimbursementPaymentForm.vendor_name"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                                     placeholder="Eshaka Wijaya Logistics" required />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Bayar</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                                 <input type="date" v-model="reimbursementPaymentForm.paid_at"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                                     required />
@@ -973,21 +980,21 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
                             <textarea v-model="reimbursementPaymentForm.notes" rows="3"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                                placeholder="Contoh: Dibayar melalui rekening BCA perusahaan"></textarea>
+                                placeholder="Example: Paid via the company BCA account"></textarea>
                         </div>
                     </div>
 
                     <div class="flex justify-end space-x-3 mt-6">
                         <button type="button" @click="closeReimbursementPaymentModal"
                             class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                            Batal
+                            Cancel
                         </button>
                         <button type="submit" :disabled="reimbursementPaymentForm.processing"
                             class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50">
-                            {{ reimbursementPaymentForm.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                            {{ reimbursementPaymentForm.processing ? 'Saving...' : 'Save Changes' }}
                         </button>
                     </div>
                 </form>
@@ -996,13 +1003,13 @@
 
         <!-- Profit Loss Posting Modal -->
         <div v-if="showProfitLossModal"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            class="fixed inset-0 bg-black bg-opacity-50 flex itemss-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
-                <h3 class="text-lg font-semibold text-purple-800 mb-4">Post Invoice ke Laba Rugi</h3>
+                <h3 class="text-lg font-semibold text-purple-800 mb-4">Post Invoice to Profit & Loss</h3>
 
                 <!-- Invoice Summary -->
                 <div class="bg-purple-50 rounded-lg p-4 mb-6 border border-purple-200">
-                    <h4 class="text-sm font-semibold text-purple-800 mb-3">Ringkasan Invoice:</h4>
+                    <h4 class="text-sm font-semibold text-purple-800 mb-3">Invoice Summary:</h4>
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div>
                             <span class="text-gray-600">Invoice Number:</span>
@@ -1019,7 +1026,7 @@
                         <div>
                             <span class="text-gray-600">Operational Costs:</span>
                             <span class="font-medium text-red-700 ml-2">{{ formatCurrency(getOperationalCostsTotal)
-                                }}</span>
+                            }}</span>
                         </div>
                         <div class="col-span-2 pt-2 border-t border-purple-200">
                             <span class="text-gray-600">Net Profit:</span>
@@ -1032,44 +1039,44 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Periode Laba Rugi <span class="text-red-500">*</span>
+                                Profit & Loss Period <span class="text-red-500">*</span>
                             </label>
                             <select v-model="profitLossForm.period_id"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                                 required>
-                                <option value="">Pilih Periode...</option>
+                                <option value="">Select period...</option>
                                 <option v-for="period in profitLossPeriods" :key="period.id" :value="period.id">
                                     {{ formatPeriodLabel(period) }}
                                 </option>
                             </select>
                             <p class="text-xs text-gray-500 mt-1">
-                                Pilih periode laba rugi dimana transaksi ini akan dicatat
+                                Select the profit & loss period where this transaction will be recorded.
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
                             <textarea v-model="profitLossForm.notes" rows="3"
-                                placeholder="Catatan tambahan untuk posting laba rugi..."
+                                placeholder="Additional notes for profit & loss posting..."
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
                         </div>
 
                         <!-- Info Box -->
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div class="flex items-start">
+                            <div class="flex itemss-start">
                                 <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <div class="text-sm">
-                                    <p class="text-blue-800 font-medium mb-1">Yang akan di-posting:</p>
+                                    <p class="text-blue-800 font-medium mb-1">Items to be posted:</p>
                                     <ul class="text-blue-700 space-y-1">
-                                        <li v-if="getGrossRevenue > 0">• Pendapatan: {{ formatCurrency(getGrossRevenue)
-                                            }}</li>
-                                        <li v-if="getOperationalCostsTotal > 0">• Biaya Operasional: {{
+                                        <li v-if="getGrossRevenue > 0">Revenue: {{ formatCurrency(getGrossRevenue) }}
+                                        </li>
+                                        <li v-if="getOperationalCostsTotal > 0">Operational Costs: {{
                                             formatCurrency(getOperationalCostsTotal) }}</li>
-                                        <li>• Net Profit Impact: {{ formatCurrency(getNetProfit) }}</li>
+                                        <li>Net Profit Impact: {{ formatCurrency(getNetProfit) }}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -1079,11 +1086,11 @@
                     <div class="flex justify-end space-x-3 mt-6">
                         <button type="button" @click="showProfitLossModal = false"
                             class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                            Batal
+                            Cancel
                         </button>
                         <button type="submit" :disabled="processing || !profitLossForm.period_id"
                             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50">
-                            {{ processing ? 'Memproses...' : 'Post ke Laba Rugi' }}
+                            {{ processing ? 'Processing...' : 'Post to Profit & Loss' }}
                         </button>
                     </div>
                 </form>
@@ -1146,15 +1153,15 @@ const route = window.route || function (name, params) {
         'admin-keuangan.invoices.post-to-profit-loss': (id) => `/admin-keuangan/invoices/${id}/post-to-profit-loss`,
         'admin-keuangan.invoices.unpost-from-profit-loss': (id) => `/admin-keuangan/invoices/${id}/unpost-from-profit-loss`,
         'admin-keuangan.invoices.profit-loss-periods': '/admin-keuangan/invoices/profit-loss-periods',
-        'admin-keuangan.invoices.reimbursement-items.update-payment': (value) => {
+        'admin-keuangan.invoices.reimbursement-itemss.update-payment': (value) => {
             if (Array.isArray(value)) {
-                const [invoiceId, itemId] = value;
-                return `/admin-keuangan/invoices/${invoiceId}/reimbursement-items/${itemId}/update-payment`;
+                const [invoiceId, itemsId] = value;
+                return `/admin-keuangan/invoices/${invoiceId}/reimbursement-itemss/${itemsId}/update-payment`;
             }
             if (typeof value === 'object' && value !== null) {
                 const invoiceId = value.invoice || value.id;
-                const itemId = value.reimbursementItem || value.item;
-                return `/admin-keuangan/invoices/${invoiceId}/reimbursement-items/${itemId}/update-payment`;
+                const itemsId = value.reimbursementItem || value.items;
+                return `/admin-keuangan/invoices/${invoiceId}/reimbursement-itemss/${itemsId}/update-payment`;
             }
             return '#';
         },
@@ -1169,14 +1176,14 @@ const formatDate = (dateString) => {
 
 const formatPeriodLabel = (period) => {
     if (!period || typeof period !== 'object') {
-        return 'Periode';
+        return 'Period';
     }
 
     const name =
         period.period_name ||
         period.name ||
         period.period_code ||
-        `Periode ${period.id ?? ''}`.trim();
+        `Period ${period.id ?? ''}`.trim();
 
     const start = period.start_date ? formatDate(period.start_date) : '-';
     const end = period.end_date ? formatDate(period.end_date) : '-';
@@ -1241,8 +1248,8 @@ const filteredReimbursementEntries = computed(() => {
         return [];
     }
 
-    return normalizedReimbursementEntries.value.filter((item) => {
-        const status = (item.status || '').toLowerCase();
+    return normalizedReimbursementEntries.value.filter((items) => {
+        const status = (items.status || '').toLowerCase();
         if (reimbursementFilter.value === 'paid') {
             return status === 'paid';
         }
@@ -1273,10 +1280,10 @@ watch(
 const getStatusLabel = (status) => {
     const labels = {
         draft: 'Draft',
-        sent: 'Terkirim',
-        paid: 'Dibayar',
+        sent: 'Sent',
+        paid: 'Paid',
         overdue: 'Overdue',
-        cancelled: 'Dibatalkan'
+        cancelled: 'Cancelled'
     };
     return labels[status] || status;
 };
@@ -1294,7 +1301,7 @@ const getStatusColor = (status) => {
 
 const getPaymentStatusLabel = (invoice) => {
     if (invoice.status === 'paid') {
-        return 'Lunas';
+        return 'Paid';
     }
 
     const dueDate = new Date(invoice.due_date);
@@ -1304,15 +1311,15 @@ const getPaymentStatusLabel = (invoice) => {
         return 'Overdue';
     }
 
-    return 'Belum Dibayar';
+    return 'Unpaid';
 };
 
 const getPaymentStatusColor = (invoice) => {
     const status = getPaymentStatusLabel(invoice);
     const colors = {
-        'Lunas': 'bg-green-100 text-green-800',
+        'Paid': 'bg-green-100 text-green-800',
         'Overdue': 'bg-red-100 text-red-800',
-        'Belum Dibayar': 'bg-yellow-100 text-yellow-800'
+        'Unpaid': 'bg-yellow-100 text-yellow-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
 };
@@ -1377,7 +1384,7 @@ const submitReimbursementPayment = () => {
     }
 
     reimbursementPaymentForm.post(
-        route('admin-keuangan.invoices.reimbursement-items.update-payment', [props.invoice.id, selectedReimbursementEntry.value.id]),
+        route('admin-keuangan.invoices.reimbursement-itemss.update-payment', [props.invoice.id, selectedReimbursementEntry.value.id]),
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -1387,28 +1394,33 @@ const submitReimbursementPayment = () => {
     );
 };
 
-const isMainInvoiceItem = (item) => {
-    if (!item) {
+const isMainInvoiceItem = (items) => {
+    if (!items) {
         return false;
     }
 
-    const itemType = (item.item_type || '').toLowerCase();
-    const includeInInvoice = item.include_in_customer_invoice ?? true;
-    const hiddenFromCustomer = item.is_hidden_from_customer ?? false;
+    const itemsType = (items.item_type || items.items_type || '').toLowerCase();
+    const includeInInvoice = items.include_in_customer_invoice ?? true;
+    const hiddenFromCustomer = items.is_hidden_from_customer ?? false;
 
     if (!includeInInvoice || hiddenFromCustomer) {
         return false;
     }
 
-    if (itemType === 'operational_cost' || itemType === 'reimbursement') {
+    if (itemsType === 'operational_cost' || itemsType === 'reimbursement') {
         return false;
     }
 
-    if (itemType === 'billable' || itemType === '') {
+    const description = (items.description || '').toLowerCase();
+    if (description.includes('reimbur')) {
+        return false;
+    }
+
+    if (itemsType === 'billable' || itemsType === '') {
         return true;
     }
 
-    const ref = (item.item_ref || '').toLowerCase().trim();
+    const ref = (items.item_ref || items.items_ref || '').toLowerCase().trim();
     return !ref ||
         ref === 'main' ||
         ref === 'm' ||
@@ -1416,45 +1428,55 @@ const isMainInvoiceItem = (item) => {
         ref.includes('main');
 };
 
-const filterMainInvoiceItems = (items = []) => {
-    return (items || []).filter(isMainInvoiceItem);
+const filterMainInvoiceItems = (itemss = []) => {
+    return (itemss || []).filter(isMainInvoiceItem);
 };
 
-// Computed properties untuk memisahkan items berdasarkan item_ref
+const getInvoiceItems = (invoiceLike) => {
+    if (!invoiceLike) {
+        return [];
+    }
+
+    return invoiceLike.items || invoiceLike.itemss || [];
+};
+
+// Computed properties untuk memisahkan itemss berdasarkan items_ref
 const getMainItems = computed(() => {
     if (props.invoice.invoice_type === 'combined') {
-        // Untuk invoice combined, pisahkan items berdasarkan item_type dan item_ref
-        if (props.mainInvoice?.items) {
-            return filterMainInvoiceItems(props.mainInvoice.items);
+        // Untuk invoice combined, pisahkan itemss berdasarkan items_type dan items_ref
+        const mainItems = getInvoiceItems(props.mainInvoice);
+        if (mainItems.length > 0) {
+            return filterMainInvoiceItems(mainItems);
         }
-        return filterMainInvoiceItems(props.invoice.items);
+        return filterMainInvoiceItems(getInvoiceItems(props.invoice));
     }
 
     // Untuk invoice type main atau jika ada mainInvoice
     if (props.mainInvoice) {
-        return filterMainInvoiceItems(props.mainInvoice.items);
+        return filterMainInvoiceItems(getInvoiceItems(props.mainInvoice));
     }
 
     // Fallback untuk invoice type main
     if (props.invoice.invoice_type === 'main') {
-        return filterMainInvoiceItems(props.invoice.items);
+        return filterMainInvoiceItems(getInvoiceItems(props.invoice));
     }
 
-    return [];
+    return filterMainInvoiceItems(getInvoiceItems(props.invoice));
 });
 
 const getReimbursementItems = computed(() => {
     if (props.invoice.invoice_type === 'combined') {
-        // Untuk invoice combined, pisahkan items berdasarkan item_type dan item_ref
-        return (props.invoice.items || []).filter(item => {
-            // Primary filter: item_type harus reimbursement
-            if (item.item_type === 'reimbursement') {
+        // Untuk invoice combined, pisahkan itemss berdasarkan items_type dan items_ref
+        return getInvoiceItems(props.invoice).filter(items => {
+            // Primary filter: items_type harus reimbursement
+            const itemType = (items.item_type || items.items_type || '').toLowerCase();
+            if (itemType === 'reimbursement') {
                 return true;
             }
 
-            // Fallback filter untuk legacy data tanpa item_type
-            if (!item.item_type || item.item_type === null) {
-                const ref = (item.item_ref || '').toLowerCase().trim();
+            // Fallback filter untuk legacy data tanpa items_type
+            if (!itemType) {
+                const ref = (items.item_ref || items.items_ref || '').toLowerCase().trim();
                 // Items masuk ke Reimbursement jika: 'reimbursement', 'r', '2', atau mengandung 'reimbur'
                 return ref === 'reimbursement' ||
                     ref === 'r' ||
@@ -1468,12 +1490,12 @@ const getReimbursementItems = computed(() => {
 
     // Untuk invoice type reimbursement atau jika ada reimbursementInvoice
     if (props.reimbursementInvoice) {
-        return props.reimbursementInvoice.items || [];
+        return getInvoiceItems(props.reimbursementInvoice);
     }
 
     // Fallback untuk invoice type reimbursement
     if (props.invoice.invoice_type === 'reimbursement') {
-        return props.invoice.items || [];
+        return getInvoiceItems(props.invoice);
     }
 
     return [];
@@ -1481,11 +1503,11 @@ const getReimbursementItems = computed(() => {
 
 // Computed untuk total amount per section
 const getMainTotal = computed(() => {
-    return getMainItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    return getMainItems.value.reduce((total, items) => total + (parseFloat(items.amount) || 0), 0);
 });
 
 const getReimbursementTotal = computed(() => {
-    return getReimbursementItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    return getReimbursementItems.value.reduce((total, items) => total + (parseFloat(items.amount) || 0), 0);
 });
 
 const vatAmount = computed(() => {
@@ -1533,7 +1555,7 @@ const reimbursementFilteredSubtotal = computed(() => {
         return getReimbursementTotal.value;
     }
 
-    return filteredReimbursementEntries.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    return filteredReimbursementEntries.value.reduce((total, items) => total + (parseFloat(items.amount) || 0), 0);
 });
 
 const reimbursementOverallSubtotal = computed(() => {
@@ -1541,7 +1563,7 @@ const reimbursementOverallSubtotal = computed(() => {
         return getReimbursementTotal.value;
     }
 
-    return normalizedReimbursementEntries.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    return normalizedReimbursementEntries.value.reduce((total, items) => total + (parseFloat(items.amount) || 0), 0);
 });
 
 const reimbursementSubtotalLabel = computed(() => {
@@ -1549,19 +1571,19 @@ const reimbursementSubtotalLabel = computed(() => {
         return 'Subtotal Reimbursement';
     }
 
-    return 'Subtotal (Sesuai Filter)';
+    return 'Subtotal (Filtered)';
 });
 
 const getReimbursementStatusLabel = (status) => {
     const labels = {
-        pending: 'Belum Diproses',
-        linked: 'Tertaut',
-        invoiced: 'Ditagihkan',
-        paid: 'Sudah Dibayar',
+        pending: 'Pending',
+        linked: 'Linked',
+        invoiced: 'Invoiced',
+        paid: 'Paid',
     };
 
     if (!status) {
-        return 'Tidak Diketahui';
+        return 'Unknown';
     }
 
     return labels[status] || status.charAt(0).toUpperCase() + status.slice(1);
@@ -1599,24 +1621,183 @@ const getReimbursementLatestHistory = (entry) => {
 
 // Computed untuk operational costs (menampilkan semua termasuk buying/COGS)
 const getOperationalCosts = computed(() => {
-    return (props.invoice.items || []).filter(item => item.item_type === 'operational_cost');
+    return getInvoiceItems(props.invoice).filter(items => {
+        const itemType = (items.item_type || items.items_type || '').toLowerCase();
+        return itemType === 'operational_cost';
+    });
 });
+
+const getItemQuantityValue = (items) => {
+    const quantity = items?.quantity ?? items?.qty ?? null;
+    if (quantity === null || quantity === '' || !isFinite(Number(quantity)) || Number(quantity) <= 0) {
+        return null;
+    }
+
+    return Number(quantity);
+};
+
+const getItemUnitValue = (items) => {
+    const unit = items?.unit ?? items?.package_unit ?? null;
+    if (!unit || !String(unit).trim()) {
+        return null;
+    }
+
+    return unit;
+};
+
+const getOperationalQtyValue = (items) => {
+    const itemQuantity = getItemQuantityValue(items);
+    if (itemQuantity) {
+        return itemQuantity;
+    }
+
+    const source = resolveOperationalCostSource(items);
+    if (!source) {
+        return null;
+    }
+
+    const quantity = source.quantity ?? source.qty ?? null;
+    if (quantity === null || quantity === '' || !isFinite(Number(quantity)) || Number(quantity) <= 0) {
+        return null;
+    }
+
+    return Number(quantity);
+};
+
+const getOperationalAmountValue = (items) => {
+    const quantity = getOperationalQtyValue(items);
+    const rate = Number(items.rate || 0);
+
+    if (quantity) {
+        return rate * quantity;
+    }
+
+    return Number(items.amount || 0);
+};
 
 const getOperationalCostsTotal = computed(() => {
-    return getOperationalCosts.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    return getOperationalCosts.value.reduce((total, items) => total + getOperationalAmountValue(items), 0);
 });
 
-// Computed untuk profit calculation - hanya main items (billable) yang dihitung sebagai revenue
+const salesOrderSource = computed(() => {
+    return props.invoice?.salesOrder || props.invoice?.sales_order || null;
+});
+
+const getOperationalQtyDisplay = (items) => {
+    const itemQuantity = getItemQuantityValue(items);
+    if (itemQuantity) {
+        return formatNumber(itemQuantity);
+    }
+
+    const source = resolveOperationalCostSource(items);
+    if (!source) {
+        return '-';
+    }
+
+    const quantity = source.quantity ?? source.qty ?? null;
+    if (quantity === null || quantity === '' || !isFinite(Number(quantity)) || Number(quantity) <= 0) {
+        return '-';
+    }
+
+    return formatNumber(Number(quantity));
+};
+
+const getOperationalUnitDisplay = (items) => {
+    const itemUnit = getItemUnitValue(items);
+    if (itemUnit) {
+        return itemUnit;
+    }
+
+    const source = resolveOperationalCostSource(items);
+    if (!source) {
+        return '-';
+    }
+
+    const unit = source.unit ?? source.package_unit ?? null;
+    if (!unit || !String(unit).trim()) {
+        return '-';
+    }
+
+    return unit;
+};
+
+const resolveOperationalCostSource = (items) => {
+    const refValue = items?.item_ref ?? items?.items_ref ?? null;
+    if (!refValue) {
+        return null;
+    }
+
+    const itemsRef = String(refValue);
+    const so = salesOrderSource.value;
+
+    if (!so) {
+        return null;
+    }
+
+    if (itemsRef.startsWith('other_cost_')) {
+        return resolveOtherCostSource(itemsRef.replace('other_cost_', ''), so.other_costs);
+    }
+
+    if (itemsRef.startsWith('cogs_vendor_')) {
+        return resolveVendorBreakdownSource(itemsRef.replace('cogs_vendor_', ''), so.vendor_breakdown);
+    }
+
+    if (itemsRef.startsWith('vendor_')) {
+        return resolveVendorBreakdownSource(itemsRef.replace('vendor_', ''), so.vendor_breakdown);
+    }
+
+    return null;
+};
+
+const resolveOtherCostSource = (suffix, otherCosts) => {
+    if (!Array.isArray(otherCosts) || otherCosts.length === 0) {
+        return null;
+    }
+
+    const normalizedSuffix = String(suffix);
+    const byId = otherCosts.find(cost => String(cost?.id ?? '') === normalizedSuffix);
+    if (byId) {
+        return byId;
+    }
+
+    const index = Number(normalizedSuffix);
+    if (Number.isInteger(index) && index >= 0 && index < otherCosts.length) {
+        return otherCosts[index];
+    }
+
+    return null;
+};
+
+const resolveVendorBreakdownSource = (suffix, vendorBreakdown) => {
+    if (!Array.isArray(vendorBreakdown) || vendorBreakdown.length === 0) {
+        return null;
+    }
+
+    const normalizedSuffix = String(suffix);
+    const byVendorId = vendorBreakdown.find(vendor => String(vendor?.vendor_id ?? '') === normalizedSuffix);
+    if (byVendorId) {
+        return byVendorId;
+    }
+
+    const index = Number(normalizedSuffix);
+    if (Number.isInteger(index) && index >= 0 && index < vendorBreakdown.length) {
+        return vendorBreakdown[index];
+    }
+
+    return null;
+};
+
+// Computed untuk profit calculation - hanya main itemss (billable) yang dihitung sebagai revenue
 const getBillableItems = computed(() => {
-    return filterMainInvoiceItems(props.invoice.items);
+    return filterMainInvoiceItems(getInvoiceItems(props.invoice));
 });
 
 const getGrossRevenue = computed(() => {
-    return getBillableItems.value.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    return getBillableItems.value.reduce((total, items) => total + (parseFloat(items.amount) || 0), 0);
 });
 
 const getNetProfit = computed(() => {
-    // Reimbursement is cost neutral (tidak mengurangi profit karena akan di-reimburse)
+    // Reimbursement is cost neutral (does not reduce profit because it will be reimbursed).
     // Only operational costs reduce the profit
     return getGrossRevenue.value - getOperationalCostsTotal.value;
 });
@@ -1637,7 +1818,7 @@ const shouldShowFixOperationalCostsButton = computed(() => {
         !props.invoice.posted_to_profit_loss;
 });
 
-// Computed property untuk menampilkan tombol Post ke Laba Rugi
+// Computed property untuk menampilkan tombol Post to Profit & Loss
 const shouldShowProfitLossButton = computed(() => {
     return props.invoice.status === 'sent' &&
         !props.invoice.posted_to_profit_loss &&
@@ -1684,9 +1865,9 @@ const submitProfitLossPosting = () => {
     });
 };
 
-// Method untuk unpost dari profit loss
+// Method untuk unpost of profit loss
 const unpostFromProfitLoss = () => {
-    if (confirm('Apakah Anda yakin ingin membatalkan posting ke laba rugi?')) {
+    if (confirm('Are you sure you want to unpost from profit & loss?')) {
         processing.value = true;
 
         router.delete(route('admin-keuangan.invoices.unpost-from-profit-loss', props.invoice.id), {
@@ -1702,7 +1883,7 @@ const unpostFromProfitLoss = () => {
 
 // Method untuk fix operational costs
 const fixOperationalCosts = () => {
-    if (confirm('Menambahkan operational cost dari Sales Order vendor breakdown. Lanjutkan?')) {
+    if (confirm('Add operational costs from the sales order vendor breakdown. Continue?')) {
         processing.value = true;
 
         router.post(route('admin-keuangan.invoices.fix-operational-costs', props.invoice.id), {}, {

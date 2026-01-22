@@ -8,10 +8,10 @@
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Statement of Financial Position</h1>
                         <p class="mt-1 text-sm text-gray-600">
-                            Ringkasan aset, kewajiban, dan ekuitas per tanggal cut-off yang dipilih.
+                            Summary of assets, liabilities, and equity as of the selected cut-off date.
                         </p>
                         <p v-if="statement.generated_at" class="mt-1 text-xs text-gray-400">
-                            Terakhir diperbarui {{ formatDateTime(statement.generated_at) }}
+                            Last updated: {{ formatDateTime(statement.generated_at) }}
                         </p>
                     </div>
                     <form
@@ -21,7 +21,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-end gap-4">
                             <div>
                                 <label for="cutoff-date" class="block text-sm font-medium text-gray-700">
-                                    Tanggal Cut-off
+                                    Cut-off Date
                                 </label>
                                 <div class="mt-1 relative">
                                     <input
@@ -56,7 +56,7 @@
                             </div>
                         </div>
                         <p class="mt-2 text-xs text-gray-400">
-                            Perubahan akan otomatis memuat ulang laporan.
+                            Changes will automatically reload the report.
                         </p>
                     </form>
                 </div>
@@ -129,8 +129,8 @@
                 >
                     <AlertTriangle class="w-5 h-5 mt-0.5 shrink-0" />
                     <div>
-                        Terdapat selisih antara total aset dan total kewajiban + ekuitas.
-                        Periksa kembali penyesuaian manual atau pastikan semua modul sudah terposting dengan benar.
+                        There is a difference between total assets and total liabilities + equity.
+                        Review manual adjustments or ensure all modules are posted correctly.
                     </div>
                 </div>
 
@@ -139,10 +139,10 @@
                 >
                     <Info class="w-5 h-5 mt-0.5 shrink-0 text-sage-600" />
                     <div>
-                        Label <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-medium">Auto</span>
-                        menandakan saldo dihitung otomatis dari modul terkait. Jika diperlukan penyesuaian manual,
-                        buat entri di <span class="font-medium">Financial Position Adjustments</span>.
-                        Entri manual ditandai dengan label
+                        The <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-medium">Auto</span>
+                        label indicates balances calculated automatically from related modules. If manual adjustments are needed,
+                        create entries in <span class="font-medium">Financial Position Adjustments</span>.
+                        Manual entries are labeled
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">Manual</span>.
                     </div>
                 </div>
@@ -177,13 +177,13 @@
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th scope="col" class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    Akun
+                                                    Account
                                                 </th>
                                                 <th scope="col" class="px-4 py-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    Saldo
+                                                    Balance
                                                 </th>
                                                 <th scope="col" class="px-4 py-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    Sumber
+                                                    Source
                                                 </th>
                                             </tr>
                                         </thead>
@@ -352,7 +352,7 @@ const formatCurrency = (value) => {
 
 const formatDate = (value) => {
     if (!value) return '-'
-    return new Date(value).toLocaleDateString('id-ID', {
+    return new Date(value).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -361,7 +361,7 @@ const formatDate = (value) => {
 
 const formatDateTime = (value) => {
     if (!value) return '-'
-    return new Date(value).toLocaleString('id-ID', {
+    return new Date(value).toLocaleString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

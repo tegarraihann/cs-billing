@@ -1,14 +1,14 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Detail Profit Shipment" />
+        <Head title="Shipment Profit Details" />
 
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Detail Profit Shipment</h1>
-                        <p class="mt-1 text-sm text-gray-600">Detail analisis profit untuk Sales Order {{ salesOrder.order_number }}</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Shipment Profit Details</h1>
+                        <p class="mt-1 text-sm text-gray-600">Profit analysis details for Sales Order {{ salesOrder.order_number }}</p>
                     </div>
                     <Link
                         :href="route('admin-keuangan.profit-reports.index')"
@@ -17,7 +17,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
-                        Kembali
+                        Back
                     </Link>
                 </div>
 
@@ -26,7 +26,7 @@
                     <div class="px-4 py-5 sm:p-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-3">Informasi Sales Order</h3>
+                                <h3 class="text-lg font-medium text-gray-900 mb-3">Sales Order Information</h3>
                                 <dl class="space-y-2">
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Order Number</dt>
@@ -37,7 +37,7 @@
                                         <dd class="text-sm text-gray-900">{{ salesOrder.customer?.company_name || salesOrder.customer }}</dd>
                                     </div>
                                     <div>
-                                        <dt class="text-sm font-medium text-gray-500">Tanggal Dibuat</dt>
+                                        <dt class="text-sm font-medium text-gray-500">Created Date</dt>
                                         <dd class="text-sm text-gray-900">{{ formatDate(salesOrder.created_at) }}</dd>
                                     </div>
                                     <div>
@@ -150,7 +150,7 @@
                                 </tr>
                                 <tr v-if="revenueBreakdown.length === 0">
                                     <td colspan="4" class="px-6 py-4 text-center text-gray-500">
-                                        Tidak ada data invoice
+                                        No invoice data
                                     </td>
                                 </tr>
                             </tbody>
@@ -214,7 +214,7 @@
                                 </tr>
                                 <tr v-if="costBreakdown.length === 0">
                                     <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                        Tidak ada data vendor costs
+                                        No vendor cost data
                                     </td>
                                 </tr>
                             </tbody>
@@ -334,10 +334,10 @@ const getInvoiceStatusClass = (status) => {
 const getInvoiceStatusText = (status) => {
     const texts = {
         draft: 'Draft',
-        sent: 'Terkirim',
-        paid: 'Dibayar',
+        sent: 'Sent',
+        paid: 'Paid',
         overdue: 'Overdue',
-        cancelled: 'Dibatalkan'
+        cancelled: 'Cancelled'
     }
     return texts[status] || status
 }

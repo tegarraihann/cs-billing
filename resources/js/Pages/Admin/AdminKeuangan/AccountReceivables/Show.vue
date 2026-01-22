@@ -1,7 +1,7 @@
 <template>
     <AdminKeuanganLayout>
 
-        <Head title="Detail Piutang" />
+        <Head title="Receivable Details" />
 
         <AlertDialog
             :show="alertDialog.show"
@@ -23,7 +23,7 @@
                             <ArrowLeft class="w-6 h-6" />
                         </button>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900">Detail Piutang</h1>
+                            <h1 class="text-2xl font-bold text-gray-900">Receivable Details</h1>
                             <p class="mt-1 text-sm text-gray-600">Invoice {{ receivable.invoice_number }}</p>
                         </div>
                     </div>
@@ -33,7 +33,7 @@
                             class="inline-flex px-3 py-1 text-sm font-semibold rounded-full">
                             {{ getStatusText(receivable.status) }}
                             <span v-if="receivable.days_overdue > 0" class="ml-1">
-                                ({{ receivable.days_overdue }} hari overdue)
+                                ({{ receivable.days_overdue }} days overdue)
                             </span>
                         </span>
 
@@ -57,7 +57,7 @@
                 <!-- Invoice Information -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Informasi Invoice</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Invoice Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <div class="space-y-3">
@@ -75,7 +75,7 @@
                                     </div>
                                     <div v-if="receivable.payment_terms_days">
                                         <label class="text-sm font-medium text-gray-500">Payment Terms</label>
-                                        <p class="text-sm text-gray-900">{{ receivable.payment_terms_days }} hari</p>
+                                        <p class="text-sm text-gray-900">{{ receivable.payment_terms_days }} days</p>
                                     </div>
                                 </div>
                             </div>
@@ -100,7 +100,7 @@
 
                     <!-- Customer Information -->
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Informasi Customer</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Customer Information</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <div class="space-y-3">
@@ -137,7 +137,7 @@
 
                     <!-- Financial Summary -->
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Keuangan</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                 <div class="text-sm font-medium text-blue-600 mb-1">Invoice Amount</div>
@@ -162,19 +162,19 @@
 
                     <!-- Components Breakdown -->
                     <div v-if="componentOptions.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Rincian Komponen Piutang</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Receivable Component Breakdown</h2>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Komponen
+                                            Component
                                         </th>
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Nilai Invoice
+                                            Invoice Amount
                                         </th>
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Terbayar
+                                            Paid
                                         </th>
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Outstanding
@@ -183,7 +183,7 @@
                                             Status
                                         </th>
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Aksi
+                                            Actions
                                         </th>
                                     </tr>
                                 </thead>
@@ -323,7 +323,7 @@
                             <div class="mb-4 bg-gray-50 p-3 rounded-md">
                                 <p class="text-sm text-gray-600">Invoice: {{ receivable.invoice_number }}</p>
                                 <p v-if="selectedComponent" class="text-sm text-gray-600">
-                                    Komponen: {{ getComponentLabel(selectedComponent.component_type) }}
+                                    Component: {{ getComponentLabel(selectedComponent.component_type) }}
                                 </p>
                                 <p class="text-sm text-gray-600">
                                     Outstanding:
@@ -338,11 +338,10 @@
                             </div>
                             <form @submit.prevent="recordPayment">
                                 <div v-if="hasMultipleComponents" class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Komponen
-                                        Pembayaran *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Component *</label>
                                     <select v-model="paymentForm.component_id" required
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="">Pilih Komponen</option>
+                                        <option value="">Select Component</option>
                                         <option v-for="component in componentOptions" :key="component.id"
                                             :value="component.id">
                                             {{ getComponentLabel(component.component_type) }} - Outstanding Rp {{
@@ -430,11 +429,11 @@ const alertDialog = reactive({
     title: '',
     message: '',
     confirmText: 'Post',
-    cancelText: 'Batal',
+    cancelText: 'Cancel',
     onConfirm: null
 })
 
-const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+const openConfirm = (message, onConfirm, title = 'Confirmation') => {
     alertDialog.show = true
     alertDialog.type = 'confirm'
     alertDialog.title = title
@@ -655,7 +654,7 @@ const formatAmountInput = (event) => {
     amountError.value = ''
 
     if (hasMultipleComponents.value && !paymentForm.component_id) {
-        amountError.value = 'Pilih komponen terlebih dahulu'
+        amountError.value = 'Select a component first'
         paymentForm.amount = ''
         return
     }
@@ -673,7 +672,7 @@ const formatAmountInput = (event) => {
 // Validate and normalize amount when user leaves input
 const validateAmount = () => {
     if (hasMultipleComponents.value && !paymentForm.component_id) {
-        amountError.value = 'Pilih komponen terlebih dahulu'
+        amountError.value = 'Select a component first'
         return
     }
 
@@ -776,7 +775,7 @@ const postVatPayable11 = () => {
         return
     }
     openConfirm(
-        `Post VAT Payable 11% untuk invoice ${props.receivable?.invoice_number}?`,
+        `Post VAT Payable 11% for invoice ${props.receivable?.invoice_number}?`,
         () => {
             postingVat.value = true
             router.post(
@@ -789,7 +788,7 @@ const postVatPayable11 = () => {
                 }
             )
         },
-        'Konfirmasi Post VAT Payable'
+        'Confirm VAT Payable Posting'
     )
 }
 
@@ -798,7 +797,7 @@ const postVatPayable11_1 = () => {
         return
     }
     openConfirm(
-        `Post VAT Payable 1.1% untuk invoice ${props.receivable?.invoice_number}?`,
+        `Post VAT Payable 1.1% for invoice ${props.receivable?.invoice_number}?`,
         () => {
             postingVat.value = true
             router.post(
@@ -811,7 +810,7 @@ const postVatPayable11_1 = () => {
                 }
             )
         },
-        'Konfirmasi Post VAT Payable'
+        'Confirm VAT Payable Posting'
     )
 }
 
@@ -821,7 +820,7 @@ const postTaxExpense = (rate) => {
     }
 
     openConfirm(
-        `Post outstanding ke Tax Expense ${rate}% dan tutup piutang?`,
+        `Post outstanding to Tax Expense ${rate}% and close the receivable?`,
         () => {
             postingTax.value = true
             router.post(
@@ -834,7 +833,7 @@ const postTaxExpense = (rate) => {
                 }
             )
         },
-        'Konfirmasi Post Tax Expense'
+        'Confirm Tax Expense Posting'
     )
 }
 
@@ -845,7 +844,7 @@ const postPph23Receivable = (rateOverride = null) => {
 
     const rateLabel = rateOverride ?? 0
     openConfirm(
-        `Post VAT Receivable PPh23 ${rateLabel}% untuk invoice ${props.receivable?.invoice_number}?`,
+        `Post VAT Receivable PPh23 ${rateLabel}% for invoice ${props.receivable?.invoice_number}?`,
         () => {
             postingPph23.value = true
             router.post(
@@ -858,7 +857,7 @@ const postPph23Receivable = (rateOverride = null) => {
                 }
             )
         },
-        'Konfirmasi Post VAT Receivable PPh23'
+        'Confirm VAT Receivable PPh23 Posting'
     )
 }
 </script>

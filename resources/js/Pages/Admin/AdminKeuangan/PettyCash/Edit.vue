@@ -12,12 +12,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
-          <h1 class="text-2xl font-bold text-sage-800">Edit Transaksi Petty Cash</h1>
+          <h1 class="text-2xl font-bold text-sage-800">Edit Petty Cash Transaction</h1>
         </div>
         <div class="flex items-center justify-between">
-          <p class="text-sm text-sage-600">Edit transaksi ID: {{ transaction.id }}</p>
+          <p class="text-sm text-sage-600">Edit transaction ID: {{ transaction.id }}</p>
           <div class="text-right">
-            <div class="text-xs text-sage-500">Saldo Saat Ini</div>
+            <div class="text-xs text-sage-500">Current Balance</div>
             <div class="text-lg font-bold text-sage-800">
               {{ formatCurrency(currentBalance) }}
             </div>
@@ -32,7 +32,7 @@
             <!-- Tanggal Transaksi -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Tanggal Transaksi <span class="text-red-500">*</span>
+                Transaction Date <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.transaction_date"
@@ -49,15 +49,15 @@
             <!-- Jenis Transaksi -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Jenis Transaksi <span class="text-red-500">*</span>
+                Transaction Type <span class="text-red-500">*</span>
               </label>
               <select
                 v-model="form.type"
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                 :class="{ 'border-red-300': errors.type }"
               >
-                <option value="">Pilih Jenis Transaksi</option>
-                <option value="expense">Pengeluaran</option>
+                <option value="">Select Transaction Type</option>
+                <option value="expense">Expense</option>
                 <option value="topup">Top Up</option>
                 <option value="refund">Refund</option>
               </select>
@@ -71,7 +71,7 @@
             <!-- Kategori -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Kategori <span v-if="form.type === 'expense'" class="text-red-500">*</span>
+                Category <span v-if="form.type === 'expense'" class="text-red-500">*</span>
               </label>
               <select
                 v-model="form.category_id"
@@ -79,7 +79,7 @@
                 :class="{ 'border-red-300': errors.category_id }"
                 :disabled="form.type !== 'expense'"
               >
-                <option value="">Pilih Kategori</option>
+                <option value="">Select Category</option>
                 <option v-for="category in categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
@@ -88,14 +88,14 @@
                 {{ errors.category_id }}
               </p>
               <p v-if="form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
-                Kategori hanya untuk transaksi pengeluaran
+                Category is only for expense transactions
               </p>
             </div>
 
             <!-- Akun Beban (P&L) -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Akun Beban (P&L) <span v-if="form.type === 'expense'" class="text-red-500">*</span>
+                Expense Account (P&L) <span v-if="form.type === 'expense'" class="text-red-500">*</span>
               </label>
               <select
                 v-model="form.pl_account_id"
@@ -103,7 +103,7 @@
                 :class="{ 'border-red-300': errors.pl_account_id }"
                 :disabled="form.type !== 'expense'"
               >
-                <option value="">Pilih Akun</option>
+                <option value="">Select Account</option>
                 <option v-for="account in expenseAccounts" :key="account.id" :value="account.id">
                   {{ account.account_code }} - {{ account.account_name }}
                 </option>
@@ -112,14 +112,14 @@
                 {{ errors.pl_account_id }}
               </p>
               <p v-if="form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
-                Akun P&L hanya untuk transaksi pengeluaran
+                P&L account is only for expense transactions
               </p>
             </div>
 
             <!-- Sumber Bank (untuk Top Up / Refund) -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Sumber Bank <span v-if="['topup', 'refund'].includes(form.type)" class="text-red-500">*</span>
+                Bank Source <span v-if="['topup', 'refund'].includes(form.type)" class="text-red-500">*</span>
               </label>
               <select
                 v-model="form.bank_account_id"
@@ -127,7 +127,7 @@
                 :disabled="!['topup', 'refund'].includes(form.type)"
                 :class="{ 'border-red-300': errors.bank_account_id }"
               >
-                <option value="">Pilih Bank</option>
+                <option value="">Select Bank</option>
                 <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
                   {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
                 </option>
@@ -136,14 +136,14 @@
                 {{ errors.bank_account_id }}
               </p>
               <p v-if="['topup', 'refund'].includes(form.type)" class="mt-1 text-xs text-sage-500">
-                Saldo bank akan berkurang sesuai nominal top up/refund.
+                Bank balance will decrease by the top up/refund amount.
               </p>
             </div>
 
             <!-- Jumlah -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Jumlah (Rp) <span class="text-red-500">*</span>
+                Amount (Rp) <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.amount"
@@ -158,11 +158,11 @@
                 {{ errors.amount }}
               </p>
               <div v-if="form.amount && form.type === 'expense'" class="mt-1 text-xs" :class="willBeNegative ? 'text-red-500' : 'text-sage-500'">
-                Saldo setelah transaksi: {{ formatCurrency(projectedBalance) }}
-                <span v-if="willBeNegative" class="font-medium">(Saldo akan minus!)</span>
+                Balance after transaction: {{ formatCurrency(projectedBalance) }}
+                <span v-if="willBeNegative" class="font-medium">(Balance will be negative!)</span>
               </div>
               <div v-else-if="form.amount && form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
-                Saldo setelah transaksi: {{ formatCurrency(projectedBalance) }}
+                Balance after transaction: {{ formatCurrency(projectedBalance) }}
               </div>
             </div>
           </div>
@@ -170,12 +170,12 @@
           <!-- Deskripsi -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              Deskripsi <span class="text-red-500">*</span>
+              Description <span class="text-red-500">*</span>
             </label>
             <input
               v-model="form.description"
               type="text"
-              placeholder="Masukkan deskripsi transaksi"
+              placeholder="Enter transaction description"
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
               :class="{ 'border-red-300': errors.description }"
             />
@@ -187,12 +187,12 @@
           <!-- SO Number (Optional) -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              Nomor Sales Order (Opsional)
+              Sales Order Number (Optional)
             </label>
             <input
               v-model="form.so_number"
               type="text"
-              placeholder="Contoh: SO-2024-001"
+              placeholder="Example: SO-2024-001"
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
               :class="{ 'border-red-300': errors.so_number }"
             />
@@ -204,12 +204,12 @@
           <!-- Notes -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              Catatan (Opsional)
+              Notes (Optional)
             </label>
             <textarea
               v-model="form.notes"
               rows="3"
-              placeholder="Catatan tambahan untuk transaksi ini"
+              placeholder="Additional notes for this transaction"
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
               :class="{ 'border-red-300': errors.notes }"
             ></textarea>
@@ -221,7 +221,7 @@
           <!-- Receipt File Upload -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              File Bukti (Opsional)
+              Receipt File (Optional)
             </label>
             
             <!-- Current file display -->
@@ -231,14 +231,14 @@
                   <svg class="w-5 h-5 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span class="text-sm text-sage-700">File saat ini: {{ getFileName(transaction.receipt_file) }}</span>
+                  <span class="text-sm text-sage-700">Current file: {{ getFileName(transaction.receipt_file) }}</span>
                 </div>
                 <a
                   :href="getFileUrl(transaction.receipt_file)"
                   target="_blank"
                   class="text-sm text-sage-600 hover:text-sage-800 transition-colors"
                 >
-                  Lihat
+                  View
                 </a>
               </div>
             </div>
@@ -252,9 +252,9 @@
               :class="{ 'border-red-300': errors.receipt_file }"
             />
             <p class="mt-1 text-xs text-sage-500">
-              Maksimal 2MB. Format yang didukung: JPG, PNG, PDF
+              Max 2MB. Supported formats: JPG, PNG, PDF
               <br>
-              <span class="font-medium">Pilih file baru untuk mengganti file yang sudah ada</span>
+              <span class="font-medium">Select a new file to replace the existing one</span>
             </p>
             <p v-if="errors.receipt_file" class="mt-1 text-sm text-red-600">
               {{ errors.receipt_file }}
@@ -267,7 +267,7 @@
               :href="route('admin-keuangan.petty-cash.show', transaction.id)"
               class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
             >
-              Batal
+              Cancel
             </Link>
             <button
               type="submit"
@@ -280,10 +280,10 @@
                   <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
                   <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" class="opacity-75"></path>
                 </svg>
-                Menyimpan...
+                Saving...
               </span>
               <span v-else>
-                {{ willBeNegative ? 'Simpan (Saldo Minus!)' : 'Simpan Perubahan' }}
+                {{ willBeNegative ? 'Save (Negative Balance!)' : 'Save Changes' }}
               </span>
             </button>
           </div>
@@ -434,7 +434,7 @@ const handleFileChange = (event) => {
 
 const submitForm = () => {
   if (willBeNegative.value) {
-    if (!confirm('Transaksi ini akan membuat saldo petty cash menjadi minus. Apakah Anda yakin ingin melanjutkan?')) {
+    if (!confirm('This transaction will make the petty cash balance negative. Are you sure you want to continue?')) {
       return
     }
   }

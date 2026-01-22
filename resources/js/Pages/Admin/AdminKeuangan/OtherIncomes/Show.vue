@@ -1,13 +1,13 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Detail Pendapatan Lain-lain" />
+        <Head title="Other Income Details" />
         <AlertDialog
             :show="alertDialog.show"
             :type="alertDialog.type"
             :title="alertDialog.title"
             :message="alertDialog.message"
-            confirm-text="Ya, lanjutkan"
-            cancel-text="Batal"
+            confirm-text="Yes, continue"
+            cancel-text="Cancel"
             @confirm="handleAlertConfirm"
             @close="closeAlert"
         />
@@ -25,8 +25,8 @@
                                 <ArrowLeft class="w-5 h-5" />
                             </Link>
                             <div>
-                                <h1 class="text-2xl font-bold text-gray-900">Detail Pendapatan Lain-lain</h1>
-                                <p class="mt-1 text-sm text-gray-600">Informasi lengkap pendapatan</p>
+                                <h1 class="text-2xl font-bold text-gray-900">Other Income Details</h1>
+                                <p class="mt-1 text-sm text-gray-600">Full income information</p>
                             </div>
                         </div>
                         <div class="flex space-x-2">
@@ -47,7 +47,7 @@
                     <span :class="otherIncome.posted_to_profit_loss ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
                         <CheckCircle v-if="otherIncome.posted_to_profit_loss" class="w-4 h-4 mr-2" />
                         <Clock v-else class="w-4 h-4 mr-2" />
-                        {{ otherIncome.posted_to_profit_loss ? 'Posted ke Laba Rugi' : 'Pending' }}
+                        {{ otherIncome.posted_to_profit_loss ? 'Posted to Profit & Loss' : 'Pending' }}
                     </span>
                 </div>
 
@@ -57,13 +57,13 @@
                         <p class="text-xl font-semibold text-gray-900">{{ formatCurrency(otherIncome.outstanding_amount) }}</p>
                     </div>
                     <div class="bg-white border border-sage-200 rounded-lg p-4">
-                        <p class="text-xs text-gray-500 uppercase tracking-wider">Status Piutang</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Receivable Status</p>
                         <span :class="['inline-flex px-2 py-1 text-xs font-semibold rounded-full', receivableStatusBadge(otherIncome.status)]">
                             {{ formatStatus(otherIncome.status) }}
                         </span>
                     </div>
                     <div class="bg-white border border-sage-200 rounded-lg p-4">
-                        <p class="text-xs text-gray-500 uppercase tracking-wider">Jatuh Tempo</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Due Date</p>
                         <p class="text-sm font-medium text-gray-900">
                             {{ otherIncome.due_date ? formatDate(otherIncome.due_date) : '-' }}
                         </p>
@@ -73,21 +73,21 @@
                 <!-- Main Info -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
                     <div class="px-4 py-5 sm:px-6 bg-sage-50">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Informasi Pendapatan</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Income Information</h3>
                     </div>
                     <div class="border-t border-gray-200">
                         <dl>
                             <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <Calendar class="w-4 h-4 mr-2 text-gray-400" />
-                                    Tanggal
+                                    Date
                                 </dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">
                                     {{ formatDate(otherIncome.transaction_date) }}
                                 </dd>
                             </div>
                             <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt class="text-sm font-medium text-gray-500">Nomor Referensi</dt>
+                                <dt class="text-sm font-medium text-gray-500">Reference Number</dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     {{ otherIncome.reference_number || '-' }}
                                 </dd>
@@ -101,7 +101,7 @@
                             <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <Tag class="w-4 h-4 mr-2 text-gray-400" />
-                                    Kategori
+                                    Category
                                 </dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full" :class="getCategoryBadge(otherIncome.category)">
@@ -110,7 +110,7 @@
                                 </dd>
                             </div>
                             <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt class="text-sm font-medium text-gray-500">Outstanding Sekarang</dt>
+                                <dt class="text-sm font-medium text-gray-500">Current Outstanding</dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">
                                     {{ formatCurrency(otherIncome.outstanding_amount) }}
                                 </dd>
@@ -118,7 +118,7 @@
                             <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <FileText class="w-4 h-4 mr-2 text-gray-400" />
-                                    Deskripsi
+                                    Description
                                 </dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     {{ otherIncome.description }}
@@ -127,7 +127,7 @@
                             <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <DollarSign class="w-4 h-4 mr-2 text-gray-400" />
-                                    Jumlah
+                                    Amount
                                 </dt>
                                 <dd class="mt-1 text-lg font-bold text-green-600 sm:mt-0 sm:col-span-2">
                                     {{ formatCurrency(otherIncome.amount) }}
@@ -136,7 +136,7 @@
                             <div v-if="otherIncome.notes" class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <MessageSquare class="w-4 h-4 mr-2 text-gray-400" />
-                                    Catatan
+                                    Notes
                                 </dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     {{ otherIncome.notes }}
@@ -145,12 +145,12 @@
                             <div v-if="otherIncome.receipt_file" class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 flex items-center">
                                     <Paperclip class="w-4 h-4 mr-2 text-gray-400" />
-                                    Bukti Pendapatan
+                                    Income Receipt
                                 </dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     <a :href="`/storage/${otherIncome.receipt_file}`" target="_blank" class="inline-flex items-center text-sage-600 hover:text-sage-800">
                                         <FileText class="w-4 h-4 mr-1" />
-                                        Lihat File
+                                        View File
                                     </a>
                                 </dd>
                             </div>
@@ -161,19 +161,19 @@
                 <!-- Audit Info -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
                     <div class="px-4 py-5 sm:px-6 bg-gray-50">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Informasi Audit</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Audit Information</h3>
                     </div>
                     <div class="border-t border-gray-200">
                         <dl>
                             <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt class="text-sm font-medium text-gray-500">Dibuat Oleh</dt>
+                                <dt class="text-sm font-medium text-gray-500">Created By</dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     {{ otherIncome.creator?.name || '-' }}
                                     <span class="text-gray-500 ml-2">{{ formatDateTime(otherIncome.created_at) }}</span>
                                 </dd>
                             </div>
                             <div v-if="otherIncome.posted_to_profit_loss" class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt class="text-sm font-medium text-gray-500">Di-post ke Laba Rugi Oleh</dt>
+                                <dt class="text-sm font-medium text-gray-500">Posted to Profit & Loss By</dt>
                                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     {{ otherIncome.approver?.name || '-' }}
                                     <span class="text-gray-500 ml-2">{{ formatDateTime(otherIncome.posted_at) }}</span>
@@ -187,10 +187,10 @@
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
                     <div class="px-4 py-5 sm:px-6 flex items-center justify-between">
                         <div>
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Pembayaran Piutang</h3>
-                            <p class="mt-1 text-sm text-gray-500">Catat penerimaan kas untuk pendapatan ini.</p>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Receivable Payments</h3>
+                            <p class="mt-1 text-sm text-gray-500">Record cash receipts for this income.</p>
                         </div>
-                        <span v-if="!canRecordPayment" class="text-xs text-gray-500">Piutang sudah lunas</span>
+                        <span v-if="!canRecordPayment" class="text-xs text-gray-500">Receivable is settled</span>
                     </div>
                     <div class="border-t border-gray-200">
                         <div class="p-4 space-y-6">
@@ -198,11 +198,11 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
-                                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                                             <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Adjustment</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -226,12 +226,12 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div v-else class="text-sm text-gray-500">Belum ada pembayaran yang tercatat.</div>
+                            <div v-else class="text-sm text-gray-500">No payments recorded yet.</div>
 
                             <form v-if="canRecordPayment" @submit.prevent="recordPayment" class="space-y-4 border-t border-gray-200 pt-4">
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pembayaran</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
                                         <input
                                             v-model="paymentForm.payment_date"
                                             type="date"
@@ -240,18 +240,18 @@
                                         />
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                                         <select
                                             v-model="paymentForm.payment_method"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
                                             required
                                         >
-                                            <option value="bank">Transfer Bank</option>
+                                            <option value="bank">Bank Transfer</option>
                                             <option value="petty_cash">Petty Cash</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Pembayaran</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
                                         <input
                                             v-model="paymentForm.amount"
                                             type="number"
@@ -265,13 +265,13 @@
 
                                 <div v-if="paymentForm.payment_method === 'bank'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Akun Bank</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account</label>
                                         <select
                                             v-model="paymentForm.bank_account_id"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
                                             required
                                         >
-                                            <option value="">Pilih Akun Bank</option>
+                                            <option value="">Select Bank Account</option>
                                             <option v-for="bank in bankOptions" :key="bank.id" :value="bank.id">
                                                 {{ bank.bank_name }} - {{ bank.account_number }}
                                             </option>
@@ -295,13 +295,13 @@
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500 text-sm"
                                             >
                                                 <option value="">-</option>
-                                                <option value="tax_expense">Beban Pajak</option>
-                                                <option value="other_expense">Beban Lain-lain</option>
+                                                <option value="tax_expense">Tax Expense</option>
+                                                <option value="other_expense">Other Expense</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                         <textarea
                                             v-model="paymentForm.notes"
                                             rows="2"
@@ -316,7 +316,7 @@
                                         class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                         :disabled="isPaymentDisabled"
                                     >
-                                        Catat Pembayaran
+                                        Record Payment
                                     </button>
                                 </div>
                             </form>
@@ -327,7 +327,7 @@
                 <!-- Actions -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Aksi</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Actions</h3>
                         <div class="flex flex-wrap gap-3">
                             <button
                                 v-if="!otherIncome.posted_to_profit_loss"
@@ -335,7 +335,7 @@
                                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition"
                             >
                                 <CheckCircle class="w-4 h-4 mr-2" />
-                                Post ke Laba Rugi
+                                Post to Profit & Loss
                             </button>
                             <button
                                 v-if="otherIncome.posted_to_profit_loss"
@@ -343,7 +343,7 @@
                                 class="inline-flex items-center px-4 py-2 bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-700 transition"
                             >
                                 <XCircle class="w-4 h-4 mr-2" />
-                                Unpost dari Laba Rugi
+                                Unpost from Profit & Loss
                             </button>
                             <button
                                 v-if="!otherIncome.posted_to_profit_loss"
@@ -351,7 +351,7 @@
                                 class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition"
                             >
                                 <Trash2 class="w-4 h-4 mr-2" />
-                                Hapus Pendapatan
+                                Delete Income
                             </button>
                         </div>
                     </div>
@@ -419,7 +419,7 @@ const alertDialog = reactive({
     onConfirm: null,
 })
 
-const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+const openConfirm = (message, onConfirm, title = 'Confirmation') => {
     alertDialog.show = true
     alertDialog.type = 'confirm'
     alertDialog.title = title
@@ -504,9 +504,9 @@ const recordPayment = () => {
     const adj = parseFloat(paymentForm.adjustment_amount || 0)
     if (amount + adj - 0.01 > outstandingAmount.value) {
         openConfirm(
-            'Total pembayaran + adjustment melebihi outstanding. Periksa kembali nominalnya.',
+            'Total payment + adjustment exceeds outstanding. Please review the amounts.',
             () => closeAlert(),
-            'Validasi Pembayaran'
+            'Payment Validation'
         )
         return
     }
@@ -529,33 +529,33 @@ const recordPayment = () => {
 
 const postToProfitLoss = () => {
     openConfirm(
-        'Posting pendapatan ini ke Laba Rugi?',
+        'Post this income to Profit & Loss?',
         () => router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', props.otherIncome.id))
     )
 }
 
 const unpostFromProfitLoss = () => {
     openConfirm(
-        'Unpost pendapatan ini dari Laba Rugi?',
+        'Unpost this income from Profit & Loss?',
         () => router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', props.otherIncome.id))
     )
 }
 
 const deleteIncome = () => {
     openConfirm(
-        'Apakah Anda yakin ingin menghapus pendapatan ini?',
+        'Are you sure you want to delete this income?',
         () => router.delete(route('admin-keuangan.other-incomes.destroy', props.otherIncome.id)),
-        'Hapus Pendapatan'
+        'Delete Income'
     )
 }
 
 const paymentMethodLabel = (method) => {
-    return method === 'petty_cash' ? 'Petty Cash' : 'Transfer Bank'
+    return method === 'petty_cash' ? 'Petty Cash' : 'Bank Transfer'
 }
 
 const adjustmentLabel = (type) => {
-    if (type === 'tax_expense') return 'Beban Pajak'
-    if (type === 'other_expense') return 'Beban Lain-lain'
+    if (type === 'tax_expense') return 'Tax Expense'
+    if (type === 'other_expense') return 'Other Expense'
     return '-'
 }
 </script>

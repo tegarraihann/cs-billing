@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Tambah Pendapatan Lain-lain" />
+        <Head title="Add Other Income" />
 
         <div class="p-6 max-w-4xl mx-auto">
             <!-- Header -->
@@ -12,9 +12,9 @@
                     >
                         <ArrowLeft class="w-5 h-5" />
                     </Link>
-                    <h1 class="text-2xl font-bold text-sage-800">Tambah Pendapatan Lain-lain</h1>
+                    <h1 class="text-2xl font-bold text-sage-800">Add Other Income</h1>
                 </div>
-                <p class="text-sm text-sage-600 ml-9">Catat pendapatan selain dari jasa logistik</p>
+                <p class="text-sm text-sage-600 ml-9">Record income outside logistics services</p>
             </div>
 
             <!-- Form -->
@@ -23,13 +23,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Nomor Referensi
+                                Reference Number
                             </label>
                             <input
                                 v-model="form.reference_number"
                                 type="text"
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                                placeholder="Misal: OR-2024-001"
+                                placeholder="Example: OR-2024-001"
                             />
                             <p v-if="form.errors.reference_number" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.reference_number }}
@@ -37,7 +37,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Jatuh Tempo
+                                Due Date
                             </label>
                             <input
                                 v-model="form.due_date"
@@ -60,7 +60,7 @@
                             <SearchableSelect
                                 v-model="form.customer_id"
                                 :options="customerSelectOptions"
-                                placeholder="Cari customer..."
+                                placeholder="Search customers..."
                                 label-field="label"
                                 value-field="value"
                                 :search-fields="['label']"
@@ -72,13 +72,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Nama Customer (opsional)
+                                Customer Name (optional)
                             </label>
                             <input
                                 v-model="form.customer_name"
                                 type="text"
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
-                                placeholder="Isi nama jika tidak ada di daftar"
+                                placeholder="Fill in if not in the list"
                             />
                             <p v-if="form.errors.customer_name" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.customer_name }}
@@ -90,7 +90,7 @@
                         <!-- Tanggal -->
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Tanggal Pendapatan <span class="text-red-500">*</span>
+                                Income Date <span class="text-red-500">*</span>
                             </label>
                             <input
                                 v-model="form.transaction_date"
@@ -108,25 +108,25 @@
                         <!-- Kategori -->
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Kategori <span class="text-red-500">*</span>
+                                Category <span class="text-red-500">*</span>
                             </label>
                             <SearchableSelect
                                 v-model="form.category"
                                 :options="categorySelectOptions"
-                                placeholder="Cari kategori..."
+                                placeholder="Search categories..."
                                 label-field="label"
                                 value-field="value"
                                 :search-fields="['label']"
                                 :input-class="categoryInputClass"
                             />
                             <p v-if="categoryOptions.length === 0" class="mt-1 text-xs text-sage-500">
-                                Tidak ada kategori aktif. Tambahkan kategori di master Operational Cost Categories sebelum mencatat pendapatan.
+                                No active categories. Add categories in the Operational Cost Categories master before recording income.
                             </p>
                             <p v-if="form.errors.category" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.category }}
                             </p>
                             <p class="mt-1 text-xs text-sage-500">
-                                Gunakan kategori sesuai master Operational Cost Categories agar laporan konsisten.
+                                Use categories from the Operational Cost Categories master to keep reports consistent.
                             </p>
                         </div>
                     </div>
@@ -134,14 +134,14 @@
                     <!-- Deskripsi -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Deskripsi <span class="text-red-500">*</span>
+                            Description <span class="text-red-500">*</span>
                         </label>
                         <textarea
                             v-model="form.description"
                             rows="3"
                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
                             :class="{ 'border-red-300': form.errors.description }"
-                            placeholder="Contoh: Bunga bank periode Desember 2024"
+                            placeholder="Example: Bank interest for December 2024"
                             required
                         ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
@@ -152,7 +152,7 @@
                     <!-- Jumlah -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Jumlah (Rp) <span class="text-red-500">*</span>
+                            Amount (Rp) <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -173,21 +173,21 @@
                             {{ form.errors.amount }}
                         </p>
                         <p class="mt-1 text-xs text-sage-500">
-                            Masukkan nominal pendapatan yang diterima
+                            Enter the income amount received
                         </p>
                     </div>
 
                     <!-- Bank -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Bank Penerima <span class="text-red-500">*</span>
+                            Receiving Bank <span class="text-red-500">*</span>
                         </label>
                         <select
                             v-model="form.bank_account_id"
                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                             :class="{ 'border-red-300': form.errors.bank_account_id }"
                         >
-                            <option value="">Pilih Bank</option>
+                            <option value="">Select Bank</option>
                             <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
                                 {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
                             </option>
@@ -196,19 +196,19 @@
                             {{ form.errors.bank_account_id }}
                         </p>
                         <p class="mt-1 text-xs text-sage-500">
-                            Pendapatan ini akan langsung menambah saldo bank terpilih.
+                            This income will immediately increase the selected bank balance.
                         </p>
                     </div>
 
                     <!-- Akun Laba Rugi -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Akun Pendapatan (P&L) <span class="text-red-500">*</span>
+                            Revenue Account (P&L) <span class="text-red-500">*</span>
                         </label>
                         <SearchableSelect
                             v-model="form.pl_account_id"
                             :options="plAccountOptions"
-                            placeholder="Cari akun..."
+                            placeholder="Search accounts..."
                             label-field="label"
                             value-field="value"
                             :search-fields="['label', 'code', 'name']"
@@ -218,21 +218,21 @@
                             {{ form.errors.pl_account_id }}
                         </p>
                         <p class="mt-1 text-xs text-sage-500">
-                            Pendapatan akan dicatat ke akun ini di laporan laba rugi.
+                            Income will be recorded to this account in the profit & loss report.
                         </p>
                     </div>
 
                     <!-- Catatan -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Catatan (Optional)
+                            Notes (Optional)
                         </label>
                         <textarea
                             v-model="form.notes"
                             rows="2"
                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
                             :class="{ 'border-red-300': form.errors.notes }"
-                            placeholder="Catatan tambahan jika ada..."
+                            placeholder="Additional notes if any..."
                         ></textarea>
                         <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">
                             {{ form.errors.notes }}
@@ -242,14 +242,14 @@
                     <!-- Upload Bukti -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Upload Bukti (Optional)
+                            Upload Receipt (Optional)
                         </label>
                         <div class="flex items-center space-x-4">
                             <label class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-sage-300 rounded-lg cursor-pointer hover:border-sage-400 transition-colors">
                                 <div class="text-center">
                                     <Upload class="mx-auto h-8 w-8 text-sage-400" />
                                     <p class="mt-1 text-sm text-sage-600">
-                                        <span class="font-medium">Klik untuk upload</span> atau drag & drop
+                                        <span class="font-medium">Click to upload</span> or drag & drop
                                     </p>
                                     <p class="text-xs text-sage-500">JPG, PNG, PDF (max 2MB)</p>
                                 </div>
@@ -262,7 +262,7 @@
                             </label>
                         </div>
                         <p v-if="filePreview" class="mt-2 text-sm text-sage-600">
-                            File terpilih: <span class="font-medium">{{ filePreview }}</span>
+                            Selected file: <span class="font-medium">{{ filePreview }}</span>
                             <button @click="removeFile" type="button" class="ml-2 text-red-600 hover:text-red-800">
                                 <X class="w-4 h-4 inline" />
                             </button>
@@ -280,8 +280,8 @@
                             </div>
                             <div class="ml-3">
                                 <p class="text-sm text-blue-700">
-                                    <strong>Info:</strong> Pendapatan lain-lain adalah pendapatan yang TIDAK berasal dari jasa logistik (tidak ada SO).
-                                    Contoh: bunga bank, penjualan aset, pendapatan sewa, dll.
+                                    <strong>Info:</strong> Other income is income NOT from logistics services (no SO).
+                                    Example: bank interest, asset sales, rental income, etc.
                                 </p>
                             </div>
                         </div>
@@ -293,7 +293,7 @@
                             :href="route('admin-keuangan.other-incomes.index')"
                             class="inline-flex items-center px-4 py-2 border border-sage-300 rounded-lg text-sm font-medium text-sage-700 bg-white hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                         >
-                            Batal
+                            Cancel
                         </Link>
                         <button
                             type="submit"
@@ -301,7 +301,7 @@
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition disabled:opacity-50"
                         >
                             <Save class="w-4 h-4 mr-2" />
-                            {{ form.processing ? 'Menyimpan...' : 'Simpan Pendapatan' }}
+                            {{ form.processing ? 'Saving...' : 'Save Income' }}
                         </button>
                     </div>
                 </form>
@@ -382,7 +382,7 @@ const plAccountInputClass = computed(() => {
 })
 const customers = computed(() => props.customers ?? [])
 const customerSelectOptions = computed(() => {
-    const baseOptions = [{ value: '', label: '- Tanpa Customer -' }]
+    const baseOptions = [{ value: '', label: '- No Customer -' }]
     const options = customers.value.map((customer) => ({
         value: customer.id,
         label: customer.company_name,

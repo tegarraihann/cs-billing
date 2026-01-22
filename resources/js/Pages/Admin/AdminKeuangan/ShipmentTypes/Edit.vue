@@ -31,7 +31,7 @@
                 Edit Shipment Type
               </h2>
               <p class="text-sage-600">
-                Perbarui informasi jenis pengiriman
+              Update shipment type information.
               </p>
             </div>
           </div>
@@ -53,7 +53,7 @@
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              Kembali
+              Back
             </Link>
           </div>
         </div>
@@ -65,10 +65,10 @@
       >
         <div class="px-6 py-4 border-b border-sage-200 bg-sage-50">
           <h3 class="text-lg font-semibold text-sage-800">
-            Form Edit Shipment Type
+            Edit Shipment Type Form
           </h3>
           <p class="text-sm text-sage-600 mt-1">
-            Perbarui informasi shipment type dengan benar
+            Update the shipment type information accurately.
           </p>
         </div>
 
@@ -78,14 +78,14 @@
               <!-- Nama -->
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">
-                  Nama Shipment Type <span class="text-red-500">*</span>
+                  Shipment Type Name <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="form.name"
                   type="text"
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
                   :class="{ 'border-red-500': form.errors.name }"
-                  placeholder="Contoh: Sea Freight"
+                  placeholder="Example: Sea Freight"
                 />
                 <div
                   v-if="form.errors.name"
@@ -98,14 +98,14 @@
               <!-- Kode -->
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">
-                  Kode Shipment Type <span class="text-red-500">*</span>
+                  Shipment Type Code <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="form.code"
                   type="text"
                   class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors"
                   :class="{ 'border-red-500': form.errors.code }"
-                  placeholder="Contoh: SEA"
+                  placeholder="Example: SEA"
                 />
                 <div
                   v-if="form.errors.code"
@@ -125,7 +125,7 @@
                   class="h-4 w-4 text-sage-600 focus:ring-sage-500 border-gray-300 rounded"
                 />
                 <span class="ml-2 block text-sm text-sage-900">
-                  Status Aktif
+                  Active Status
                 </span>
               </label>
             </div>
@@ -133,14 +133,14 @@
             <!-- Deskripsi -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Deskripsi
+                Description
               </label>
               <textarea
                 v-model="form.description"
                 rows="4"
                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-colors resize-none"
                 :class="{ 'border-red-500': form.errors.description }"
-                placeholder="Deskripsi detail tentang jenis pengiriman..."
+                placeholder="Detailed description of the shipment type..."
               />
               <div
                 v-if="form.errors.description"
@@ -156,15 +156,15 @@
                 :href="route('admin-keuangan.shipment-types.index')"
                 class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
-                Batal
+                Cancel
               </Link>
               <button
                 type="submit"
                 :disabled="processing"
                 class="px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50"
               >
-                <span v-if="processing">Menyimpan...</span>
-                <span v-else>Simpan Perubahan</span>
+                <span v-if="processing">Saving...</span>
+                <span v-else>Save Changes</span>
               </button>
             </div>
           </form>

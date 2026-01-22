@@ -16,6 +16,8 @@ class SalesOrderVendorItem extends Model
         'description',
         'buying_amount',
         'selling_amount',
+        'quantity',
+        'unit',
         'rcvd_inv',
         'remarks',
         'sort_order',
@@ -25,6 +27,7 @@ class SalesOrderVendorItem extends Model
     protected $casts = [
         'buying_amount' => 'decimal:2',
         'selling_amount' => 'decimal:2',
+        'quantity' => 'decimal:2',
         'sort_order' => 'integer',
     ];
 
@@ -49,6 +52,8 @@ class SalesOrderVendorItem extends Model
             'description' => $this->description,
             'buying_amount' => (float) $this->buying_amount,
             'selling_amount' => (float) $this->selling_amount,
+            'quantity' => $this->quantity !== null ? (float) $this->quantity : null,
+            'unit' => $this->unit,
             'rcvd_inv' => $this->rcvd_inv,
             'remarks' => $this->remarks,
         ];

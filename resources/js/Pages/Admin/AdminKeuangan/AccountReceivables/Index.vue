@@ -1,13 +1,13 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Manajemen Piutang" />
+        <Head title="Accounts Receivable" />
 
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Manajemen Piutang</h1>
-                        <p class="mt-1 text-sm text-gray-600">Kelola piutang dan pembayaran customer</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Accounts Receivable</h1>
+                        <p class="mt-1 text-sm text-gray-600">Manage receivables and customer payments</p>
                     </div>
                 </div>
 
@@ -53,7 +53,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Jumlah Overdue</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Overdue Count</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ summary.count_overdue }}</dd>
                                     </dl>
                                 </div>
@@ -81,14 +81,14 @@
                 <!-- Filters -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
                                 <input
                                     v-model="searchForm.search"
                                     type="text"
-                                    placeholder="Cari invoice atau customer..."
+                                    placeholder="Search invoices or customers..."
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @input="debounceSearch"
                                 />
@@ -100,7 +100,7 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 >
-                                    <option value="">Semua Status</option>
+                                    <option value="">All Statuses</option>
                                     <option value="outstanding">Outstanding</option>
                                     <option value="partial">Partial</option>
                                     <option value="overdue">Overdue</option>
@@ -114,7 +114,7 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 >
-                                    <option value="">Semua Customer</option>
+                                    <option value="">All Customers</option>
                                     <option
                                         v-for="customer in customers"
                                         :key="customer.id"
@@ -125,7 +125,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
                                 <input
                                     v-model="searchForm.date_from"
                                     type="date"
@@ -134,7 +134,7 @@
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
                                 <input
                                     v-model="searchForm.date_to"
                                     type="date"
@@ -149,7 +149,7 @@
             <!-- Customer Summary Section (only show if there are results) -->
             <div v-if="customerSummary && customerSummary.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                 <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ringkasan Per Customer</h3>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Customer Summary</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -158,8 +158,8 @@
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Invoice</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Invoice</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Count</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Count</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -272,7 +272,7 @@
                                     >
                                         {{ getStatusText(receivable.status) }}
                                         <span v-if="receivable.days_overdue > 0" class="ml-1">
-                                            ({{ receivable.days_overdue }} hari)
+                                            ({{ receivable.days_overdue }} days)
                                         </span>
                                     </span>
                                 </td>
@@ -281,7 +281,7 @@
                                         <button
                                             @click="showReceivable(receivable)"
                                             class="text-blue-600 hover:text-blue-900"
-                                            title="Lihat Detail"
+                                            title="View Details"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -317,7 +317,7 @@
                         <tfoot class="bg-gray-100 font-semibold">
                             <tr>
                                 <td colspan="3" class="px-6 py-4 text-left text-sm text-gray-900">
-                                    Total Halaman Ini ({{ receivables.data.length }} items)
+                                    Total This Page ({{ receivables.data.length }} items)
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                                     Rp {{ formatNumber(currentPageTotals.totalAmount) }}
@@ -387,7 +387,7 @@
 
                     <div class="px-6 py-5">
                         <div v-if="paymentDataLoading" class="py-6 text-center text-sm text-gray-600">
-                            Memuat data pembayaran...
+                            Loading payment data...
                         </div>
 
                         <div v-else>
@@ -398,14 +398,14 @@
                             <form @submit.prevent="recordPayment">
                                 <div v-if="paymentComponents.length > 0" class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                        Komponen Pembayaran <span v-if="requiresComponent">*</span>
+                                        Payment Component <span v-if="requiresComponent">*</span>
                                     </label>
                                     <select
                                         v-model="paymentForm.component_id"
                                         :disabled="paymentComponents.length === 1"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     >
-                                        <option value="">Pilih Komponen</option>
+                                        <option value="">Select Component</option>
                                         <option v-for="component in paymentComponents" :key="component.id" :value="component.id.toString()">
                                             {{ getComponentLabel(component.component_type) }} - Outstanding Rp {{ formatNumber(component.outstanding_amount) }}
                                         </option>
@@ -422,12 +422,12 @@
                                         @blur="validateAmount"
                                         :disabled="requiresComponent && !paymentForm.component_id"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="Masukkan nominal (contoh: 2500 atau 2.500)"
+                                        placeholder="Enter amount (e.g., 2500 or 2.500)"
                                     />
                                     <p v-if="amountError" class="mt-1 text-xs text-red-600">{{ amountError }}</p>
                                     <p v-else-if="formErrors.amount" class="mt-1 text-xs text-red-600">{{ formErrors.amount }}</p>
                                     <p v-else class="mt-1 text-xs text-gray-500">
-                                        Maksimal: Rp {{ formatNumber(currentOutstandingLimit) }}
+                                        Maximum: Rp {{ formatNumber(currentOutstandingLimit) }}
                                     </p>
                                 </div>
 
@@ -449,13 +449,13 @@
                                         required
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     >
-                                        <option value="">Pilih Rekening</option>
+                                        <option value="">Select Bank Account</option>
                                         <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id.toString()">
                                             {{ bank.bank_name }} · {{ bank.account_name }} ({{ bank.account_number }})
                                         </option>
                                     </select>
                                     <p v-if="bankAccounts.length === 0" class="mt-1 text-xs text-red-600">
-                                        Tidak ada rekening bank aktif. Tambahkan rekening terlebih dahulu.
+                                        No active bank accounts. Add a bank account first.
                                     </p>
                                     <p v-if="formErrors.bank_account_id" class="mt-1 text-xs text-red-600">{{ formErrors.bank_account_id }}</p>
                                 </div>
@@ -466,7 +466,7 @@
                                         v-model="paymentForm.notes"
                                         rows="3"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="Catatan pembayaran (opsional)"
+                                        placeholder="Payment notes (optional)"
                                     ></textarea>
                                     <p v-if="formErrors.notes" class="mt-1 text-xs text-red-600">{{ formErrors.notes }}</p>
                                 </div>
@@ -477,14 +477,14 @@
                                         @click="closePaymentModal"
                                         class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                                     >
-                                        Batal
+                                        Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         :disabled="processing || bankAccounts.length === 0"
                                         class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
                                     >
-                                        {{ processing ? 'Menyimpan...' : 'Record Payment' }}
+                                        {{ processing ? 'Saving...' : 'Record Payment' }}
                                     </button>
                                 </div>
                             </form>
@@ -628,7 +628,7 @@ const getComponentLabel = (type) => {
         case 'reimbursement':
             return 'Reimbursement'
         default:
-            return type ? type.replace(/_/g, ' ').toUpperCase() : 'Komponen'
+            return type ? type.replace(/_/g, ' ').toUpperCase() : 'Component'
     }
 }
 
@@ -695,7 +695,7 @@ const openPaymentModal = (receivable) => {
             formErrors.value = {}
         })
         .catch(() => {
-            paymentDataError.value = 'Gagal memuat data pembayaran. Silakan coba lagi.'
+            paymentDataError.value = 'Failed to load payment data. Please try again.'
         })
         .finally(() => {
             paymentDataLoading.value = false
@@ -787,7 +787,7 @@ const formatAmountInput = (event) => {
     amountError.value = ''
 
     if (requiresComponent.value && !paymentForm.component_id) {
-        amountError.value = 'Pilih komponen terlebih dahulu'
+        amountError.value = 'Select a component first'
         paymentForm.amount = ''
         return
     }
@@ -802,7 +802,7 @@ const validateAmount = () => {
     amountError.value = ''
 
     if (requiresComponent.value && !paymentForm.component_id) {
-        amountError.value = 'Pilih komponen terlebih dahulu'
+        amountError.value = 'Select a component first'
         return
     }
 

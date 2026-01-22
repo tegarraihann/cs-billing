@@ -8,23 +8,23 @@
         <div class="flex justify-between items-center mb-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Petty Cash Management</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola transaksi petty cash harian</p>
+            <p class="mt-1 text-sm text-gray-600">Manage daily petty cash transactions</p>
           </div>
           <div class="flex items-center space-x-3">
             <button
               @click="syncTransactionBalances"
               class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              title="Sinkronkan saldo kolom tabel dengan saldo saat ini"
+              title="Sync table balances with current balance"
             >
               <RefreshCw class="w-4 h-4 mr-2" />
-              Sync Saldo
+              Sync Balance
             </button>
             <Link
               :href="route('admin-keuangan.petty-cash.create')"
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
             >
               <Plus class="w-4 h-4 mr-2" />
-              Tambah Transaksi
+              Add Transaction
             </Link>
           </div>
         </div>
@@ -39,7 +39,7 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Saldo Saat Ini</dt>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Current Balance</dt>
                     <dd class="text-lg font-medium text-gray-900">
                       {{ formatCurrency(props.currentBalance) }}
                     </dd>
@@ -53,10 +53,10 @@
         <!-- Filters -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
           <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Transaksi</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Transaction Filters</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                 <input
                   v-model="formFilters.start_date"
                   type="date"
@@ -64,7 +64,7 @@
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                 <input
                   v-model="formFilters.end_date"
                   type="date"
@@ -72,25 +72,25 @@
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select
                   v-model="formFilters.category_id"
                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                 >
-                  <option value="">Semua Kategori</option>
+                  <option value="">All Categories</option>
                   <option v-for="category in props.categories" :key="category.id" :value="category.id">
                     {{ category.name }}
                   </option>
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Jenis</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select
                   v-model="formFilters.type"
                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                 >
-                  <option value="">Semua Jenis</option>
-                  <option value="expense">Pengeluaran</option>
+                  <option value="">All Types</option>
+                  <option value="expense">Expense</option>
                   <option value="topup">Top Up</option>
                   <option value="refund">Refund</option>
                 </select>
@@ -107,7 +107,7 @@
                 @click="applyFilters"
                 class="px-4 py-2 text-sm font-medium text-white bg-sage-600 rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
               >
-                Filter
+                Apply Filters
               </button>
             </div>
           </div>
@@ -116,20 +116,20 @@
         <!-- Transactions Table -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
           <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Transaksi</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Transaction List</h3>
           </div>
 
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
-                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -162,7 +162,7 @@
                       <Link
                         :href="route('admin-keuangan.petty-cash.show', transaction.id)"
                         class="text-gray-600 hover:text-gray-800 transition-colors"
-                        title="Lihat Detail"
+                        title="View Details"
                       >
                         <Eye class="w-4 h-4" />
                       </Link>
@@ -176,7 +176,7 @@
                       <button
                         @click="confirmDelete(transaction)"
                         class="text-red-600 hover:text-red-800 transition-colors"
-                        title="Hapus"
+                        title="Delete"
                       >
                         <Trash2 class="w-4 h-4" />
                       </button>
@@ -185,7 +185,7 @@
                 </tr>
                 <tr v-if="props.transactions.data.length === 0">
                   <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
-                    Tidak ada transaksi ditemukan
+                    No transactions found
                   </td>
                 </tr>
             </tbody>
@@ -213,13 +213,13 @@
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p class="text-sm text-gray-700">
-                  Menampilkan
+                  Showing
                   <span class="font-medium">{{ props.transactions.from ?? 0 }}</span>
-                  sampai
+                  to
                   <span class="font-medium">{{ props.transactions.to ?? 0 }}</span>
-                  dari
+                  of
                   <span class="font-medium">{{ props.transactions.total }}</span>
-                  transaksi
+                  transactions
                 </p>
               </div>
               <div>
@@ -263,11 +263,11 @@
     <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Konfirmasi Hapus</h3>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
           <div class="mt-2 px-7 py-3">
             <p class="text-sm text-gray-500">
-              Apakah Anda yakin ingin menghapus transaksi "{{ selectedTransaction?.description }}"?
-              Tindakan ini tidak dapat dibatalkan dan akan mempengaruhi saldo petty cash.
+              Are you sure you want to delete the transaction "{{ selectedTransaction?.description }}"?
+              This action cannot be undone and will affect the petty cash balance.
             </p>
           </div>
           <div class="flex justify-center space-x-3 mt-4">
@@ -275,13 +275,13 @@
               @click="showDeleteModal = false"
               class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
-              Batal
+              Cancel
             </button>
             <button
               @click="deleteTransaction"
               class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              Hapus
+              Delete
             </button>
           </div>
         </div>
@@ -347,7 +347,7 @@ const formatDate = (date) => {
 
 const getTypeLabel = (type) => {
   const labels = {
-    expense: 'Pengeluaran',
+    expense: 'Expense',
     topup: 'Top Up',
     refund: 'Refund'
   }
@@ -419,4 +419,3 @@ const route = window.route || function(name, params) {
   return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#'
 }
 </script>
-

@@ -10,7 +10,7 @@
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Input Opening Balance</h1>
                             <p class="mt-1 text-sm text-gray-600">
-                                Input saldo awal bank untuk periode bulan tertentu
+                                Enter bank opening balances for a specific month.
                             </p>
                         </div>
                         <Link
@@ -18,7 +18,7 @@
                             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
                         >
                             <ArrowLeft class="w-4 h-4 mr-2" />
-                            Kembali
+                            Back
                         </Link>
                     </div>
                 </div>
@@ -31,13 +31,13 @@
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-blue-800">
-                                Informasi Opening Balance
+                                Opening Balance Information
                             </h3>
                             <div class="mt-2 text-sm text-blue-700">
                                 <ul class="list-disc list-inside space-y-1">
-                                    <li>Opening balance hanya perlu diinput sekali per bulan untuk setiap bank</li>
-                                    <li>Saldo akan otomatis terupdate saat ada customer payment atau vendor payment</li>
-                                    <li>Jika sudah ada opening balance untuk periode ini, input baru akan mengupdate data sebelumnya</li>
+                                    <li>Opening balances only need to be entered once per month for each bank.</li>
+                                    <li>Balances update automatically when customer or vendor payments are posted.</li>
+                                    <li>If an opening balance already exists for this period, the new entry will overwrite it.</li>
                                 </ul>
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                             <!-- Period Selection -->
                             <div>
                                 <label for="period_month" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Periode Bulan
+                                    Period Month
                                 </label>
                                 <input
                                     id="period_month"
@@ -64,7 +64,7 @@
                                     {{ errors.period_month }}
                                 </div>
                                 <p class="mt-1 text-sm text-gray-500">
-                                    Pilih bulan dan tahun untuk opening balance
+                                    Select the month and year for the opening balance.
                                 </p>
                             </div>
 
@@ -76,10 +76,10 @@
                                     </div>
                                     <div class="ml-3">
                                         <h3 class="text-sm font-medium text-yellow-800">
-                                            Opening Balance Sudah Ada
+                                            Opening Balance Already Exists
                                         </h3>
                                         <div class="mt-2 text-sm text-yellow-700">
-                                            <p>Opening balance untuk periode {{ form.period_month }} sudah pernah diinput. Input baru akan mengupdate data yang ada.</p>
+                                            <p>An opening balance for period {{ form.period_month }} already exists. A new entry will update the existing data.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -139,14 +139,14 @@
 
                                             <div>
                                                 <label :for="`notes_${bank.id}`" class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Catatan (Opsional)
+                                                    Notes (Optional)
                                                 </label>
                                                 <textarea
                                                     :id="`notes_${bank.id}`"
                                                     v-model="form.balances[index].notes"
                                                     rows="3"
                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                                                    placeholder="Catatan untuk opening balance ini..."
+                                                    placeholder="Notes for this opening balance..."
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -162,7 +162,7 @@
                                     :href="route('admin-keuangan.bank-balance.index')"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
                                 >
-                                    Batal
+                                    Cancel
                                 </Link>
                                 <button
                                     type="submit"
@@ -176,7 +176,7 @@
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
                                     </span>
-                                    {{ form.processing ? 'Menyimpan...' : 'Simpan Opening Balance' }}
+                                    {{ form.processing ? 'Saving...' : 'Save Opening Balance' }}
                                 </button>
                             </div>
                         </div>
@@ -231,14 +231,14 @@ const hasExistingBalances = computed(() => {
 const isDisabled = computed(() => {
     if (form.processing) return true
     if (!form.period_month) return true
-    // semua opening balance wajib terisi (angka > 0 dianggap lebih aman, tapi minimal tidak kosong)
+    // All opening balances must be filled (value > 0 is safer, but at minimum not empty).
     const allFilled = form.balances.every(b => b.opening_balance !== null && b.opening_balance !== '')
     if (!allFilled) return true
     return false
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
@@ -250,7 +250,7 @@ const formatCurrencyInput = (event, index) => {
     let value = event.target.value.replace(/[^\d]/g, '')
     if (value) {
         // Format with thousand separators
-        value = new Intl.NumberFormat('id-ID').format(parseInt(value))
+        value = new Intl.NumberFormat('en-US').format(parseInt(value))
     }
     form.balances[index].opening_balance = value
 }

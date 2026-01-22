@@ -1,13 +1,13 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Pendapatan Lain-lain" />
+        <Head title="Other Income" />
         <AlertDialog
             :show="alertDialog.show"
             :type="alertDialog.type"
             :title="alertDialog.title"
             :message="alertDialog.message"
-            confirm-text="Ya, lanjutkan"
-            cancel-text="Batal"
+            confirm-text="Yes, continue"
+            cancel-text="Cancel"
             @confirm="handleAlertConfirm"
             @close="closeAlert"
         />
@@ -16,15 +16,15 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Pendapatan Lain-lain</h1>
-                        <p class="mt-1 text-sm text-gray-600">Kelola pendapatan selain dari jasa logistik</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Other Income</h1>
+                        <p class="mt-1 text-sm text-gray-600">Manage income outside logistics services</p>
                     </div>
                     <Link
                         :href="route('admin-keuangan.other-incomes.create')"
                         class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
                     >
                         <Plus class="w-4 h-4 mr-2" />
-                        Tambah Pendapatan
+                        Add Income
                     </Link>
                 </div>
 
@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Semua</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Overall</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(summary.total_amount) }}</dd>
                                     </dl>
                                 </div>
@@ -84,7 +84,7 @@
                     <div class="px-4 py-5 sm:p-6">
                         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                                 <input
                                     v-model="filterForm.start_date"
                                     type="date"
@@ -92,7 +92,7 @@
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
                                 <input
                                     v-model="filterForm.end_date"
                                     type="date"
@@ -100,24 +100,24 @@
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
                                 <select
                                     v-model="filterForm.category"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
                                 >
-                                    <option value="">Semua Kategori</option>
+                                    <option value="">All Categories</option>
                                     <option v-for="category in categories" :key="category" :value="category">
                                         {{ category }}
                                     </option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Status Piutang</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Receivable Status</label>
                                 <select
                                     v-model="filterForm.status"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
                                 >
-                                    <option value="">Semua</option>
+                                    <option value="">All</option>
                                     <option v-for="status in statusOptions" :key="status" :value="status">
                                         {{ formatStatus(status) }}
                                     </option>
@@ -129,19 +129,19 @@
                                     v-model="filterForm.customer_id"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
                                 >
-                                    <option value="">Semua Customer</option>
+                                    <option value="">All Customers</option>
                                     <option v-for="customer in customers" :key="customer.id" :value="customer.id">
                                         {{ customer.company_name }}
                                     </option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Status Posting</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Posting Status</label>
                                 <select
                                     v-model="filterForm.posted"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
                                 >
-                                    <option value="">Semua</option>
+                                    <option value="">All</option>
                                     <option value="yes">Posted</option>
                                     <option value="no">Pending</option>
                                 </select>
@@ -153,7 +153,7 @@
                                 class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition"
                             >
                                 <Filter class="w-4 h-4 mr-2" />
-                                Terapkan Filter
+                                Apply Filters
                             </button>
                             <button
                                 @click="resetFilters"
@@ -174,22 +174,22 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tanggal / Due
+                                            Date / Due
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Referensi / Customer
+                                            Reference / Customer
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Kategori & Deskripsi
+                                            Category & Description
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Nilai
+                                            Amount
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Dibuat Oleh
+                                            Created By
                                         </th>
                                         <th scope="col" class="relative px-6 py-3">
                                             <span class="sr-only">Actions</span>
@@ -239,7 +239,7 @@
                                                 <Link
                                                     :href="route('admin-keuangan.other-incomes.show', income.id)"
                                                     class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
-                                                    title="Lihat Detail"
+                                                    title="View Details"
                                                 >
                                                     <Eye class="w-4 h-4" />
                                                 </Link>
@@ -255,7 +255,7 @@
                                                     v-if="!income.posted_to_profit_loss"
                                                     @click="postToProfitLoss(income)"
                                                     class="text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50"
-                                                    title="Post ke Laba Rugi"
+                                                    title="Post to Profit & Loss"
                                                 >
                                                     <CheckCircle class="w-4 h-4" />
                                                 </button>
@@ -263,7 +263,7 @@
                                                     v-if="income.posted_to_profit_loss"
                                                     @click="unpostFromProfitLoss(income)"
                                                     class="text-orange-600 hover:text-orange-900 p-2 rounded-md hover:bg-orange-50"
-                                                    title="Unpost dari Laba Rugi"
+                                                    title="Unpost from Profit & Loss"
                                                 >
                                                     <XCircle class="w-4 h-4" />
                                                 </button>
@@ -271,7 +271,7 @@
                                                     v-if="!income.posted_to_profit_loss"
                                                     @click="deleteIncome(income)"
                                                     class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
-                                                    title="Hapus"
+                                                    title="Delete"
                                                 >
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
@@ -284,15 +284,15 @@
 
                         <div v-if="otherIncomes.data.length === 0" class="text-center py-12">
                             <TrendingUp class="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada pendapatan lain-lain</h3>
-                            <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan pendapatan lain-lain pertama</p>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No other income yet</h3>
+                            <p class="mt-1 text-sm text-gray-500">Get started by adding your first other income</p>
                             <div class="mt-6">
                                 <Link
                                     :href="route('admin-keuangan.other-incomes.create')"
                                     class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700"
                                 >
                                     <Plus class="w-4 h-4 mr-2" />
-                                    Tambah Pendapatan
+                                    Add Income
                                 </Link>
                             </div>
                         </div>
@@ -387,7 +387,7 @@ const alertDialog = reactive({
     onConfirm: null,
 })
 
-const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+const openConfirm = (message, onConfirm, title = 'Confirmation') => {
     alertDialog.show = true
     alertDialog.type = 'confirm'
     alertDialog.title = title
@@ -437,23 +437,23 @@ const resetFilters = () => {
 
 const postToProfitLoss = (income) => {
     openConfirm(
-        `Posting pendapatan "${income.description}" ke Laba Rugi?`,
+        `Post income "${income.description}" to Profit & Loss?`,
         () => router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', income.id))
     )
 }
 
 const unpostFromProfitLoss = (income) => {
     openConfirm(
-        `Unpost pendapatan "${income.description}" dari Laba Rugi?`,
+        `Unpost income "${income.description}" from Profit & Loss?`,
         () => router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', income.id))
     )
 }
 
 const deleteIncome = (income) => {
     openConfirm(
-        `Apakah Anda yakin ingin menghapus pendapatan "${income.description}"?`,
+        `Are you sure you want to delete income "${income.description}"?`,
         () => router.delete(route('admin-keuangan.other-incomes.destroy', income.id)),
-        'Hapus Pendapatan'
+        'Delete Income'
     )
 }
 

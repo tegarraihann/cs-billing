@@ -18,7 +18,7 @@
 
         <!-- Right Hero Logo -->
         <div
-            class="absolute inset-y-50 right-0 hidden lg:flex items-end justify-end pr-0 pb-0 pointer-events-none z-0 translate-x-96 translate-y-16">
+            class="absolute inset-y-50 right-0 hidden lg:flex items-end justify-end pr-0 pb-0 pointer-events-none z-0 translate-x-96 translate-y-1">
             <img src="/images/logo/logo.png" alt="Logo" class="w-[50rem] xl:w-[60rem] opacity-30" />
         </div>
 

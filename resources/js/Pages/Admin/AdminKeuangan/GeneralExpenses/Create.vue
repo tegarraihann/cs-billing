@@ -1,6 +1,6 @@
 <template>
   <AdminKeuanganLayout>
-    <Head title="Tambah Pengeluaran Lain-lain" />
+    <Head title="Add General Expense" />
 
     <div class="p-6 max-w-6xl mx-auto">
       <!-- Header -->
@@ -14,9 +14,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
-          <h1 class="text-2xl font-bold text-sage-800">Tambah Pengeluaran Lain-lain</h1>
+          <h1 class="text-2xl font-bold text-sage-800">Add General Expense</h1>
         </div>
-        <p class="text-sm text-sage-600">Buat pengeluaran baru tanpa SO non petty cash</p>
+        <p class="text-sm text-sage-600">Create a new non-SO, non-petty cash expense</p>
       </div>
 
       <!-- Form -->
@@ -27,7 +27,7 @@
             <!-- Tanggal Pengeluaran -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Tanggal Pengeluaran <span class="text-red-500">*</span>
+                Expense Date <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.expense_date"
@@ -43,19 +43,19 @@
             <!-- Kategori -->
             <div>
               <label class="block text-sm font-medium text-sage-700 mb-2">
-                Kategori <span class="text-red-500">*</span>
+                Category <span class="text-red-500">*</span>
               </label>
               <SearchableSelect
                 v-model="form.category"
                 :options="categorySelectOptions"
-                placeholder="Cari kategori..."
+                placeholder="Search categories..."
                 label-field="label"
                 value-field="value"
                 :search-fields="['label']"
                 :input-class="categoryInputClass"
               />
               <p v-if="categoryOptions.length === 0" class="mt-1 text-sm text-sage-500">
-                Tidak ada kategori aktif. Silakan tambah kategori di master Operational Cost Categories terlebih dahulu.
+                No active categories. Please add categories in the Operational Cost Categories master first.
               </p>
               <p v-if="errors.category" class="mt-1 text-sm text-red-600">
                 {{ errors.category }}
@@ -84,12 +84,12 @@
           <!-- Notes -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              Catatan (Opsional)
+              Notes (Optional)
             </label>
             <textarea
               v-model="form.notes"
               rows="3"
-              placeholder="Catatan umum untuk pengeluaran ini"
+              placeholder="General notes for this expense"
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
               :class="{ 'border-red-300': errors.notes }"
             ></textarea>
@@ -101,12 +101,12 @@
           <!-- Akun P&L -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              Akun Beban (P&L) <span class="text-red-500">*</span>
+              Expense Account (P&L) <span class="text-red-500">*</span>
             </label>
             <SearchableSelect
               v-model="form.pl_account_id"
               :options="plAccountOptions"
-              placeholder="Cari akun..."
+              placeholder="Search accounts..."
               label-field="label"
               value-field="value"
               :search-fields="['label', 'code', 'name']"
@@ -116,21 +116,21 @@
               {{ errors.pl_account_id }}
             </p>
             <p class="mt-1 text-xs text-sage-500">
-              Pengeluaran ini akan dicatat ke akun ini di laporan laba rugi.
+              This expense will be recorded to this account in the profit & loss report.
             </p>
           </div>
 
           <!-- Bank Source -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2">
-              Bank Sumber Dana <span v-if="form.status === 'approved'" class="text-red-500">*</span>
+              Source Bank <span v-if="form.status === 'approved'" class="text-red-500">*</span>
             </label>
             <select
               v-model="form.bank_account_id"
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
               :class="{ 'border-red-300': errors.bank_account_id }"
             >
-              <option value="">Pilih Bank</option>
+              <option value="">Select Bank</option>
               <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
                 {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
               </option>
@@ -139,21 +139,21 @@
               {{ errors.bank_account_id }}
             </p>
             <p class="mt-1 text-xs text-sage-500">
-              Saat status Approved, pengeluaran akan otomatis mendebit saldo bank terpilih.
+              When status is Approved, the expense will automatically debit the selected bank balance.
             </p>
           </div>
 
           <!-- Items Section -->
           <div class="border-t border-sage-200 pt-6">
             <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-medium text-sage-800">Detail Item Pengeluaran</h3>
+              <h3 class="text-lg font-medium text-sage-800">Expense Item Details</h3>
               <button
                 type="button"
                 @click="addItem"
                 class="inline-flex items-center px-3 py-2 bg-sage-600 text-white text-sm font-medium rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
               >
                 <Plus class="w-4 h-4 mr-2" />
-                Tambah Item
+                Add Item
               </button>
             </div>
 
@@ -171,7 +171,7 @@
                     type="button"
                     @click="removeItem(index)"
                     class="text-red-600 hover:text-red-800 transition-colors"
-                    title="Hapus Item"
+                    title="Delete Item"
                   >
                     <Trash2 class="w-4 h-4" />
                   </button>
@@ -181,12 +181,12 @@
                   <!-- Description -->
                   <div>
                     <label class="block text-sm font-medium text-sage-700 mb-2">
-                      Deskripsi <span class="text-red-500">*</span>
+                      Description <span class="text-red-500">*</span>
                     </label>
                     <input
                       v-model="item.description"
                       type="text"
-                      placeholder="Contoh: Biaya Admin Bank Mandiri Bulan Januari"
+                      placeholder="Example: Bank Admin Fee for January"
                       class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                       :class="{ 'border-red-300': errors[`items.${index}.description`] }"
                     />
@@ -198,7 +198,7 @@
                   <!-- Amount -->
                   <div>
                     <label class="block text-sm font-medium text-sage-700 mb-2">
-                      Jumlah (Rp) <span class="text-red-500">*</span>
+                      Amount (Rp) <span class="text-red-500">*</span>
                     </label>
                     <input
                       v-model="item.amount"
@@ -219,12 +219,12 @@
                 <!-- Item Notes -->
                 <div class="mt-4">
                   <label class="block text-sm font-medium text-sage-700 mb-2">
-                    Catatan Item (Opsional)
+                    Item Notes (Optional)
                   </label>
                   <textarea
                     v-model="item.notes"
                     rows="2"
-                    placeholder="Catatan khusus untuk item ini"
+                    placeholder="Notes for this item"
                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
                     :class="{ 'border-red-300': errors[`items.${index}.notes`] }"
                   ></textarea>
@@ -237,20 +237,20 @@
               <!-- Empty state when no items -->
               <div v-if="form.items.length === 0" class="text-center py-8 text-gray-500">
                 <DollarSign class="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p class="text-sm">Belum ada item pengeluaran</p>
-                <p class="text-xs mt-1">Klik "Tambah Item" untuk menambahkan item pengeluaran</p>
+                <p class="text-sm">No expense items yet</p>
+                <p class="text-xs mt-1">Click "Add Item" to add an expense item</p>
               </div>
             </div>
 
             <!-- Total Summary -->
             <div v-if="form.items.length > 0" class="mt-6 p-4 bg-white border border-sage-200 rounded-lg">
               <div class="flex justify-between items-center">
-                <span class="text-sm font-medium text-sage-700">Total Keseluruhan:</span>
+                <span class="text-sm font-medium text-sage-700">Total Amount:</span>
                 <span class="text-lg font-bold text-sage-800">{{ formatCurrency(calculatedTotal) }}</span>
               </div>
               <div class="flex justify-between items-center mt-1">
                 <span class="text-xs text-sage-600">{{ form.items.length }} item{{ form.items.length > 1 ? 's' : '' }}</span>
-                <span class="text-xs text-sage-600">Periode: {{ formatCurrentPeriod() }}</span>
+                <span class="text-xs text-sage-600">Period: {{ formatCurrentPeriod() }}</span>
               </div>
             </div>
           </div>
@@ -261,15 +261,15 @@
               :href="route('admin-keuangan.general-expenses.index')"
               class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
             >
-              Batal
+              Cancel
             </Link>
             <button
               type="submit"
               :disabled="isDisabled"
               class="px-4 py-2 text-sm font-medium text-white bg-sage-600 rounded-lg hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <span v-if="processing">Menyimpan...</span>
-              <span v-else>Simpan Pengeluaran</span>
+              <span v-if="processing">Saving...</span>
+              <span v-else>Save Expense</span>
             </button>
           </div>
         </form>
@@ -425,8 +425,8 @@ const formatCurrentPeriod = () => {
 
   const date = new Date(form.expense_date)
   const monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]
   return `${monthNames[date.getMonth()]} ${date.getFullYear()}`
 }

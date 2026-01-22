@@ -1,7 +1,7 @@
 <template>
     <AdminKeuanganLayout>
 
-        <Head title="Detail Hutang" />
+        <Head title="Payable Details" />
 
         <AlertDialog :show="alertDialog.show" :type="alertDialog.type" :title="alertDialog.title"
             :message="alertDialog.message" :confirm-text="alertDialog.confirmText" :cancel-text="alertDialog.cancelText"
@@ -16,7 +16,7 @@
                             <ArrowLeft class="w-6 h-6" />
                         </button>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900">Detail Hutang</h1>
+                            <h1 class="text-2xl font-bold text-gray-900">Payable Details</h1>
                             <p class="mt-1 text-sm text-gray-600">{{ headerSubtitle }}</p>
                         </div>
                     </div>
@@ -26,7 +26,7 @@
                             class="inline-flex px-3 py-1 text-sm font-semibold rounded-full">
                             {{ getStatusText(summaryStatus) }}
                             <span v-if="overdueDays > 0" class="ml-1">
-                                ({{ overdueDays }} hari overdue)
+                                ({{ overdueDays }} days overdue)
                             </span>
                         </span>
 
@@ -47,7 +47,7 @@
                 <!-- Vendor Information -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Informasi Vendor</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Vendor Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <div class="space-y-3">
@@ -88,7 +88,7 @@
 
                     <!-- Service Information -->
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Informasi Service</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Service Information</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <div class="space-y-3">
@@ -135,7 +135,7 @@
 
                     <!-- Financial Summary -->
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Keuangan</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                 <div class="text-sm font-medium text-blue-600 mb-1">Total Amount</div>
@@ -162,14 +162,14 @@
                     <div v-if="visibleComponents.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                             <div>
-                                <h2 class="text-lg font-semibold text-gray-900">Rincian Komponen Hutang</h2>
-                                <p class="text-sm text-gray-500">Semua komponen biaya (main invoice, reimbursement,
-                                    operasional) ditampilkan di tabel ini.</p>
+                                <h2 class="text-lg font-semibold text-gray-900">Payable Component Breakdown</h2>
+                                <p class="text-sm text-gray-500">All cost components (main invoice, reimbursement,
+                                    operational) are listed in this table.</p>
                             </div>
                             <button @click="openAdditionalCostModal"
                                 class="inline-flex items-center px-4 py-2 border border-red-200 text-red-700 text-sm font-medium rounded-md bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition">
                                 <Plus class="w-4 h-4 mr-2" />
-                                Tambah Biaya
+                                Add Cost
                             </button>
                         </div>
                         <div class="overflow-x-auto">
@@ -178,23 +178,23 @@
                                     <tr>
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Komponen
+                                            Component
                                         </th>
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Kategori
+                                            Category
                                         </th>
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Penerima
+                                            Recipient
                                         </th>
                                         <th
                                             class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Nilai Hutang
+                                            Payable Amount
                                         </th>
                                         <th
                                             class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Terbayar
+                                            Paid
                                         </th>
                                         <th
                                             class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -206,7 +206,7 @@
                                         </th>
                                         <th
                                             class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Aksi
+                                            Actions
                                         </th>
                                     </tr>
                                 </thead>
@@ -215,7 +215,7 @@
                                         <tr>
                                             <td class="px-4 py-3 text-sm text-gray-900">
                                                 <div class="font-medium text-gray-900">
-                                                    {{ component.description || 'Tidak ada deskripsi' }}
+                                                    {{ component.description || 'No description' }}
                                                 </div>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-900">
@@ -365,7 +365,7 @@
                                     }}
                                 </p>
                                 <p v-if="selectedComponent" class="text-sm text-gray-600">
-                                    Komponen: {{ getComponentLabel(selectedComponent.component_type) }}
+                                    Component: {{ getComponentLabel(selectedComponent.component_type) }}
                                 </p>
                                 <p class="text-sm text-gray-600">
                                     Outstanding: Rp {{
@@ -379,12 +379,11 @@
                             </div>
                             <form @submit.prevent="markPayment">
                                 <div v-if="hasMultipleComponents" class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Komponen Pembayaran
-                                        *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Component *</label>
                                     <select v-model="paymentForm.component_id" required
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         :class="paymentForm.errors.component_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'">
-                                        <option value="">Pilih Komponen</option>
+                                        <option value="">Select Component</option>
                                         <option v-for="component in payableComponentOptions" :key="component.id"
                                             :value="component.id">
                                             {{ getComponentLabel(component.component_type) }}
@@ -401,7 +400,7 @@
                                     <input v-model="paymentForm.amount" type="text" inputmode="decimal" required
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         :class="paymentForm.errors.amount ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'"
-                                        placeholder="Masukkan nominal pembayaran (mis. 120000 atau 120.000)" />
+                                        placeholder="Enter payment amount (e.g., 120000 or 120.000)" />
                                     <p v-if="paymentForm.errors.amount" class="text-sm text-red-600 mt-1">
                                         {{ paymentForm.errors.amount }}
                                     </p>
@@ -416,8 +415,7 @@
                                     </p>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Sumber Pembayaran
-                                        *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Source *</label>
                                     <select v-model="paymentForm.payment_source" required
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         :class="paymentForm.errors.payment_source ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'">
@@ -444,13 +442,12 @@
                                     </p>
                                 </div>
                                 <div class="mb-4" v-if="paymentForm.payment_source === 'petty_cash'">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Petty Cash
-                                        *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Petty Cash Category *</label>
                                     <select v-model="paymentForm.petty_cash_category_id"
                                         :required="paymentForm.payment_source === 'petty_cash'"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         :class="paymentForm.errors.petty_cash_category_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'">
-                                        <option value="">Pilih Kategori</option>
+                                        <option value="">Select Category</option>
                                         <option v-for="category in pettyCashCategories" :key="category.id"
                                             :value="category.id">
                                             {{ category.name }}
@@ -467,7 +464,7 @@
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         :class="paymentForm.errors.payment_method ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'">
                                         <option value="">Select Payment Method</option>
-                                        <option value="Transfer Bank">Transfer Bank</option>
+                                        <option value="Transfer Bank">Bank Transfer</option>
                                         <option value="Cash">Cash</option>
                                         <option value="Check">Check</option>
                                         <option value="Other">Other</option>
@@ -543,23 +540,23 @@
                     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                     <div class="relative top-20 mx-auto p-5 border w-[420px] shadow-lg rounded-md bg-white">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-medium text-gray-900">Tambah Biaya</h3>
+                            <h3 class="text-lg font-medium text-gray-900">Add Cost</h3>
                             <button @click="closeAdditionalCostModal"
                                 class="text-gray-400 hover:text-gray-600">&times;</button>
                         </div>
                         <form @submit.prevent="submitAdditionalCost">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Biaya *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Type *</label>
                                 <select v-model="additionalCostForm.component_type"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
-                                    <option value="operational_cost">Biaya Operasional (Internal)</option>
-                                    <option value="reimbursement">Reimbursement (Ter-tagih)</option>
+                                    <option value="operational_cost">Operational Cost (Internal)</option>
+                                    <option value="reimbursement">Reimbursement (Billable)</option>
                                     <option value="vat_reimbursement">VAT Reimbursement Vendor</option>
                                 </select>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    Biaya operasional hanya memengaruhi profit. Reimbursement akan otomatis masuk ke
-                                    invoice reimbursement. VAT reimbursement tidak masuk invoice customer dan akan
-                                    dipost ke Financial Position setelah hutang paid.
+                                    Operational costs only affect profit. Reimbursement will automatically go to the
+                                    reimbursement invoice. VAT reimbursement does not go to the customer invoice and
+                                    will be posted to Financial Position after the payable is paid.
                                 </p>
                             </div>
                             <div v-if="shouldShowVatRateField" class="mb-4">
@@ -567,7 +564,7 @@
                                 <select v-model="additionalCostForm.vat_rate"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
                                     :required="shouldShowVatRateField">
-                                    <option value="">-- Pilih VAT Rate --</option>
+                                    <option value="">-- Select VAT Rate --</option>
                                     <option value="11">11%</option>
                                     <option value="1.1">1.1%</option>
                                 </select>
@@ -576,16 +573,16 @@
                                 </p>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
                                 <input v-model="additionalCostForm.description" type="text"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                                    placeholder="Contoh: Admin Bank" required />
+                                    placeholder="Example: Bank Admin Fee" required />
                                 <p v-if="additionalCostForm.errors.description" class="text-sm text-red-600 mt-1">
                                     {{ additionalCostForm.errors.description }}
                                 </p>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nominal *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
                                 <input v-model="additionalCostForm.amount" type="number" min="0" step="0.01"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
                                     placeholder="0" required />
@@ -594,10 +591,10 @@
                                 </p>
                             </div>
                             <div v-if="shouldShowCategoryField" class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Biaya *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Category *</label>
                                 <SearchableSelect v-model="additionalCostForm.category_id"
                                     :options="operationalCostCategoryOptions"
-                                    placeholder="Pilih kategori"
+                                    placeholder="Select category"
                                     label-field="label"
                                     value-field="value"
                                     :search-fields="['label']"
@@ -607,18 +604,17 @@
                                 </p>
                             </div>
                             <div v-else-if="isCategoryLocked && additionalCostForm.category_id" class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Biaya</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Category</label>
                                 <div class="px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-700">
-                                    {{ getCategoryNameById(additionalCostForm.category_id) || 'Mengikuti komponen' }}
+                                    {{ getCategoryNameById(additionalCostForm.category_id) || 'Matches component' }}
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">Kategori mengikuti komponen yang sedang dibuka.
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1">Category follows the component being viewed.</p>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Vendor / Penerima</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Vendor / Recipient</label>
                                 <SearchableSelect v-model="additionalCostForm.vendor_id"
                                     :options="vendorSelectOptions"
-                                    placeholder="Pilih vendor"
+                                    placeholder="Select vendor"
                                     :search-fields="['label']"
                                     :input-class="'w-full px-3 py-2 pr-8 border border-gray-300 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500'" />
                                 <p v-if="additionalCostForm.errors.vendor_id" class="text-sm text-red-600 mt-1">
@@ -626,10 +622,10 @@
                                 </p>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                 <textarea v-model="additionalCostForm.notes" rows="3"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                                    placeholder="Catatan tambahan"></textarea>
+                                    placeholder="Additional notes"></textarea>
                                 <p v-if="additionalCostForm.errors.notes" class="text-sm text-red-600 mt-1">
                                     {{ additionalCostForm.errors.notes }}
                                 </p>
@@ -637,11 +633,11 @@
                             <div class="flex justify-end space-x-3">
                                 <button type="button" @click="closeAdditionalCostModal"
                                     class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button type="submit" :disabled="additionalCostForm.processing"
                                     class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50">
-                                    {{ additionalCostForm.processing ? 'Menyimpan...' : 'Simpan Biaya' }}
+                                    {{ additionalCostForm.processing ? 'Saving...' : 'Save Cost' }}
                                 </button>
                             </div>
                         </form>
@@ -734,11 +730,11 @@ const alertDialog = reactive({
     title: '',
     message: '',
     confirmText: 'Post',
-    cancelText: 'Batal',
+    cancelText: 'Cancel',
     onConfirm: null
 })
 
-const openConfirm = (message, onConfirm, title = 'Konfirmasi') => {
+const openConfirm = (message, onConfirm, title = 'Confirmation') => {
     alertDialog.show = true
     alertDialog.type = 'confirm'
     alertDialog.title = title
@@ -967,7 +963,7 @@ const operationalCostCategoryOptions = computed(() =>
 )
 
 const vendorSelectOptions = computed(() => {
-    const baseOptions = [{ value: '', label: '-- Internal (Divisi Operational) --' }]
+    const baseOptions = [{ value: '', label: '-- Internal (Operations Division) --' }]
     const vendorOptions = (props.vendors ?? []).map(vendor => ({
         value: String(vendor.id),
         label: vendor.nama_vendor
@@ -1169,8 +1165,8 @@ const getStatusText = (status) => {
 
 const getComponentLabel = (type) => {
     const labels = {
-        'vendor_payment': 'Pembayaran Vendor',
-        'operational_cost': 'Biaya Operational',
+        'vendor_payment': 'Vendor Payment',
+        'operational_cost': 'Operational Cost',
         'reimbursement': 'Reimbursement',
         'vat_reimbursement': 'VAT Reimbursement'
     }
@@ -1182,7 +1178,7 @@ const postVatPayable11 = () => {
         return
     }
     openConfirm(
-        `Post VAT Payable 11% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        `Post VAT Payable 11% for payable ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingVat11.value = true
             router.post(
@@ -1195,7 +1191,7 @@ const postVatPayable11 = () => {
                 }
             )
         },
-        'Konfirmasi Post VAT Payable'
+        'Confirm VAT Payable Posting'
     )
 }
 
@@ -1204,7 +1200,7 @@ const postVatPayable11_1 = () => {
         return
     }
     openConfirm(
-        `Post VAT Payable 1.1% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        `Post VAT Payable 1.1% for payable ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingVat11_1.value = true
             router.post(
@@ -1217,7 +1213,7 @@ const postVatPayable11_1 = () => {
                 }
             )
         },
-        'Konfirmasi Post VAT Payable'
+        'Confirm VAT Payable Posting'
     )
 }
 
@@ -1230,7 +1226,7 @@ const postVatReceivable11 = (component = null) => {
     }
     const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
-        `Post VAT Receivable 11% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        `Post VAT Receivable 11% for payable ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingVatReceivable11.value = true
             router.post(
@@ -1245,7 +1241,7 @@ const postVatReceivable11 = (component = null) => {
                 }
             )
         },
-        'Konfirmasi Post VAT Receivable'
+        'Confirm VAT Receivable Posting'
     )
 }
 
@@ -1258,7 +1254,7 @@ const postVatReceivable11_1 = (component = null) => {
     }
     const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
-        `Post VAT Receivable 1.1% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        `Post VAT Receivable 1.1% for payable ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingVatReceivable11_1.value = true
             router.post(
@@ -1273,7 +1269,7 @@ const postVatReceivable11_1 = (component = null) => {
                 }
             )
         },
-        'Konfirmasi Post VAT Receivable'
+        'Confirm VAT Receivable Posting'
     )
 }
 
@@ -1283,7 +1279,7 @@ const postPph23Payable05 = (component = null) => {
     }
     const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
-        `Post VAT Payable PPh23 0.5% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        `Post VAT Payable PPh23 0.5% for payable ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingPph23_05.value = true
             router.post(
@@ -1298,7 +1294,7 @@ const postPph23Payable05 = (component = null) => {
                 }
             )
         },
-        'Konfirmasi Post VAT Payable PPh23'
+        'Confirm VAT Payable PPh23 Posting'
     )
 }
 
@@ -1308,7 +1304,7 @@ const postPph23Payable2 = (component = null) => {
     }
     const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
     openConfirm(
-        `Post VAT Payable PPh23 2% untuk hutang ${payable.value.vendor_invoice_number || payable.value.id}?`,
+        `Post VAT Payable PPh23 2% for payable ${payable.value.vendor_invoice_number || payable.value.id}?`,
         () => {
             postingPph23_2.value = true
             router.post(
@@ -1323,7 +1319,7 @@ const postPph23Payable2 = (component = null) => {
                 }
             )
         },
-        'Konfirmasi Post VAT Payable PPh23'
+        'Confirm VAT Payable PPh23 Posting'
     )
 }
 

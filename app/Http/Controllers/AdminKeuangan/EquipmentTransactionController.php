@@ -79,10 +79,10 @@ class EquipmentTransactionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string', 'max:100'],
-            'source_type' => ['required', Rule::in(['bank', 'petty_cash'])],
+            'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'opening_balance'])],
             'bank_account_id' => ['nullable', 'required_if:source_type,bank', 'exists:bank_accounts,id'],
             'petty_cash_category_id' => ['nullable', 'required_if:source_type,petty_cash', 'exists:petty_cash_categories,id'],
-            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
+            'pl_account_id' => ['nullable', 'required_unless:source_type,opening_balance', 'exists:chart_of_accounts,id'],
             'useful_life_months' => ['nullable', 'integer', 'min:1', 'max:240'],
             'depreciation_start_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
@@ -99,7 +99,7 @@ class EquipmentTransactionController extends Controller
             'source_type' => $validated['source_type'],
             'bank_account_id' => $validated['bank_account_id'] ?? null,
             'petty_cash_category_id' => $validated['petty_cash_category_id'] ?? null,
-            'pl_account_id' => $validated['pl_account_id'],
+            'pl_account_id' => $validated['pl_account_id'] ?? null,
             'useful_life_months' => $validated['useful_life_months'] ?? null,
             'depreciation_start_date' => $validated['depreciation_start_date'] ?? null,
             'notes' => $validated['notes'] ?? null,
@@ -142,7 +142,9 @@ class EquipmentTransactionController extends Controller
         }
 
         // Catat entri laba rugi sesuai akun biaya yang dipilih
-        $this->createProfitLossEntriesForPurchase($purchase);
+        if ($validated['source_type'] !== 'opening_balance') {
+            $this->createProfitLossEntriesForPurchase($purchase);
+        }
 
         return redirect()->route('admin-keuangan.equipment.index')
             ->with('success', 'Pembelian equipment berhasil dicatat.');

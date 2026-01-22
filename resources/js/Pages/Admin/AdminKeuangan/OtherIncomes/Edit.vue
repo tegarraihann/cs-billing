@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Edit Pendapatan Lain-lain" />
+        <Head title="Edit Other Income" />
 
         <div class="p-6 max-w-4xl mx-auto">
             <!-- Header -->
@@ -12,9 +12,9 @@
                     >
                         <ArrowLeft class="w-5 h-5" />
                     </Link>
-                    <h1 class="text-2xl font-bold text-sage-800">Edit Pendapatan Lain-lain</h1>
+                    <h1 class="text-2xl font-bold text-sage-800">Edit Other Income</h1>
                 </div>
-                <p class="text-sm text-sage-600 ml-9">Ubah data pendapatan lain-lain</p>
+                <p class="text-sm text-sage-600 ml-9">Update other income details</p>
             </div>
 
             <!-- Alert jika sudah posted -->
@@ -25,8 +25,8 @@
                     </div>
                     <div class="ml-3">
                         <p class="text-sm text-yellow-700">
-                            <strong>Perhatian:</strong> Pendapatan ini sudah diposting ke Laba Rugi dan tidak dapat diedit.
-                            Silakan unpost terlebih dahulu jika ingin melakukan perubahan.
+                            <strong>Warning:</strong> This income has been posted to Profit & Loss and cannot be edited.
+                            Please unpost first if you need to make changes.
                         </p>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Nomor Referensi
+                                Reference Number
                             </label>
                             <input
                                 v-model="form.reference_number"
@@ -52,7 +52,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Jatuh Tempo
+                                Due Date
                             </label>
                             <input
                                 v-model="form.due_date"
@@ -78,7 +78,7 @@
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm"
                                 :disabled="otherIncome.posted_to_profit_loss"
                             >
-                                <option value="">- Tanpa Customer -</option>
+                                <option value="">- No Customer -</option>
                                 <option v-for="customer in customers" :key="customer.id" :value="customer.id">
                                     {{ customer.company_name }}
                                 </option>
@@ -89,7 +89,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Nama Customer (opsional)
+                                Customer Name (optional)
                             </label>
                             <input
                                 v-model="form.customer_name"
@@ -107,7 +107,7 @@
                         <!-- Tanggal -->
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Tanggal Pendapatan <span class="text-red-500">*</span>
+                                Income Date <span class="text-red-500">*</span>
                             </label>
                             <input
                                 v-model="form.transaction_date"
@@ -125,7 +125,7 @@
                         <!-- Kategori -->
                         <div>
                             <label class="block text-sm font-medium text-sage-700 mb-2">
-                                Kategori <span class="text-red-500">*</span>
+                                Category <span class="text-red-500">*</span>
                             </label>
                             <select
                                 v-model="form.category"
@@ -133,13 +133,13 @@
                                 :class="{ 'border-red-300': form.errors.category }"
                                 :disabled="otherIncome.posted_to_profit_loss || categoryOptions.length === 0"
                             >
-                                <option value="" disabled>Pilih Kategori</option>
+                                <option value="" disabled>Select Category</option>
                                 <option v-for="category in categoryOptions" :key="category" :value="category">
                                     {{ category }}
                                 </option>
                             </select>
                             <p v-if="!otherIncome.posted_to_profit_loss && categoryOptions.length === 0" class="mt-1 text-xs text-sage-500">
-                                Tidak ada kategori aktif. Tambahkan kategori di master Operational Cost Categories.
+                                No active categories. Add categories in the Operational Cost Categories master.
                             </p>
                             <p v-if="form.errors.category" class="mt-1 text-sm text-red-600">
                                 {{ form.errors.category }}
@@ -150,7 +150,7 @@
                     <!-- Deskripsi -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Deskripsi <span class="text-red-500">*</span>
+                            Description <span class="text-red-500">*</span>
                         </label>
                             <textarea
                                 v-model="form.description"
@@ -158,7 +158,7 @@
                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
                                 :class="{ 'border-red-300': form.errors.description }"
                                 :disabled="otherIncome.posted_to_profit_loss"
-                                placeholder="Contoh: Bunga bank periode Desember 2024"
+                                placeholder="Example: Bank interest for December 2024"
                             ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
                             {{ form.errors.description }}
@@ -168,7 +168,7 @@
                     <!-- Jumlah -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Jumlah (Rp) <span class="text-red-500">*</span>
+                            Amount (Rp) <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -193,7 +193,7 @@
                     <!-- Bank -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Bank Penerima <span class="text-red-500">*</span>
+                            Receiving Bank <span class="text-red-500">*</span>
                         </label>
                         <select
                             v-model="form.bank_account_id"
@@ -201,7 +201,7 @@
                             :class="{ 'border-red-300': form.errors.bank_account_id }"
                             :disabled="otherIncome.posted_to_profit_loss"
                         >
-                            <option value="">Pilih Bank</option>
+                            <option value="">Select Bank</option>
                             <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
                                 {{ bank.bank_name }} • {{ bank.account_number }} ({{ bank.account_name }})
                             </option>
@@ -210,19 +210,19 @@
                             {{ form.errors.bank_account_id }}
                         </p>
                         <p class="mt-1 text-xs text-sage-500">
-                            Pendapatan ini akan langsung menambah saldo bank terpilih.
+                            This income will immediately increase the selected bank balance.
                         </p>
                     </div>
 
                     <!-- Akun Laba Rugi -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Akun Pendapatan (P&L) <span class="text-red-500">*</span>
+                            Revenue Account (P&L) <span class="text-red-500">*</span>
                         </label>
                         <SearchableSelect
                             v-model="form.pl_account_id"
                             :options="plAccountOptions"
-                            placeholder="Cari akun..."
+                            placeholder="Search accounts..."
                             label-field="label"
                             value-field="value"
                             :search-fields="['label', 'code', 'name']"
@@ -233,14 +233,14 @@
                             {{ form.errors.pl_account_id }}
                         </p>
                         <p class="mt-1 text-xs text-sage-500">
-                            Pendapatan akan dicatat ke akun ini di laporan laba rugi.
+                            Income will be recorded to this account in the profit & loss report.
                         </p>
                     </div>
 
                     <!-- Catatan -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Catatan (Optional)
+                            Notes (Optional)
                         </label>
                         <textarea
                             v-model="form.notes"
@@ -248,7 +248,7 @@
                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm resize-none"
                             :class="{ 'border-red-300': form.errors.notes }"
                             :disabled="otherIncome.posted_to_profit_loss"
-                            placeholder="Catatan tambahan jika ada..."
+                            placeholder="Additional notes if any..."
                         ></textarea>
                         <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">
                             {{ form.errors.notes }}
@@ -258,14 +258,14 @@
                     <!-- Upload Bukti -->
                     <div>
                         <label class="block text-sm font-medium text-sage-700 mb-2">
-                            Upload Bukti (Optional)
+                            Upload Receipt (Optional)
                         </label>
 
                         <!-- Existing file -->
                         <div v-if="otherIncome.receipt_file && !filePreview" class="mb-2">
                             <a :href="`/storage/${otherIncome.receipt_file}`" target="_blank" class="inline-flex items-center text-sm text-sage-600 hover:text-sage-800">
                                 <FileText class="w-4 h-4 mr-1" />
-                                Lihat file saat ini
+                                View current file
                             </a>
                         </div>
 
@@ -274,7 +274,7 @@
                                 <div class="text-center">
                                     <Upload class="mx-auto h-8 w-8 text-sage-400" />
                                     <p class="mt-1 text-sm text-sage-600">
-                                        <span class="font-medium">Klik untuk upload</span> atau drag & drop
+                                        <span class="font-medium">Click to upload</span> or drag & drop
                                     </p>
                                     <p class="text-xs text-sage-500">JPG, PNG, PDF (max 2MB)</p>
                                 </div>
@@ -287,7 +287,7 @@
                             </label>
                         </div>
                         <p v-if="filePreview" class="mt-2 text-sm text-sage-600">
-                            File baru terpilih: <span class="font-medium">{{ filePreview }}</span>
+                            New file selected: <span class="font-medium">{{ filePreview }}</span>
                             <button @click="removeFile" type="button" class="ml-2 text-red-600 hover:text-red-800">
                                 <X class="w-4 h-4 inline" />
                             </button>
@@ -303,7 +303,7 @@
                             :href="route('admin-keuangan.other-incomes.index')"
                             class="inline-flex items-center px-4 py-2 border border-sage-300 rounded-lg text-sm font-medium text-sage-700 bg-white hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                         >
-                            Batal
+                            Cancel
                         </Link>
                         <button
                             v-if="!otherIncome.posted_to_profit_loss"
@@ -312,7 +312,7 @@
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition disabled:opacity-50"
                         >
                             <Save class="w-4 h-4 mr-2" />
-                            {{ form.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                            {{ form.processing ? 'Saving...' : 'Save Changes' }}
                         </button>
                     </div>
                 </form>

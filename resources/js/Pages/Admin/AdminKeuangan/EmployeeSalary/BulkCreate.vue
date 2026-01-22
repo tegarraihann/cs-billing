@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Bulk Input Gaji Karyawan" />
+        <Head title="Bulk Employee Salary Input" />
         
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,10 +10,10 @@
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
-                        Kembali ke Daftar Gaji
+                        Back to Salary List
                     </Link>
-                    <h1 class="text-2xl font-bold text-gray-900">Bulk Input Gaji Karyawan</h1>
-                    <p class="mt-1 text-sm text-gray-600">Tambahkan data gaji untuk multiple karyawan sekaligus</p>
+                    <h1 class="text-2xl font-bold text-gray-900">Bulk Employee Salary Input</h1>
+                    <p class="mt-1 text-sm text-gray-600">Add salary data for multiple employees at once.</p>
                 </div>
 
                 <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
@@ -21,12 +21,12 @@
                         <form @submit.prevent="submit">
                             <!-- Period Information -->
                             <div class="border-b border-gray-200 pb-6 mb-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Informasi Periode</h3>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Period Information</h3>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label for="period_month" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Periode (Bulan-Tahun) <span class="text-red-500">*</span>
+                                            Period (Month-Year) <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="period_month"
@@ -42,7 +42,7 @@
 
                                     <div>
                                         <label for="salary_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Tanggal Gaji <span class="text-red-500">*</span>
+                                            Salary Date <span class="text-red-500">*</span>
                                         </label>
                                         <input
                                             id="salary_date"
@@ -61,28 +61,28 @@
                             <!-- Employee List -->
                             <div class="mb-6">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900">Data Karyawan</h3>
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900">Employee Data</h3>
                                     <button
                                         type="button"
                                         @click="addEmployee"
                                         class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-sage-700 bg-sage-100 hover:bg-sage-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                     >
                                         <Plus class="w-4 h-4 mr-2" />
-                                        Tambah Karyawan
+                                        Add Employee
                                     </button>
                                 </div>
 
                                 <div v-if="form.employees.length === 0" class="text-center py-12 border-2 border-gray-300 border-dashed rounded-lg">
                                     <Users class="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                    <h3 class="text-sm font-medium text-gray-900 mb-2">Belum ada data karyawan</h3>
-                                    <p class="text-sm text-gray-500 mb-4">Mulai dengan menambahkan data karyawan pertama</p>
+                                    <h3 class="text-sm font-medium text-gray-900 mb-2">No employees added yet</h3>
+                                    <p class="text-sm text-gray-500 mb-4">Start by adding the first employee.</p>
                                     <button
                                         type="button"
                                         @click="addEmployee"
                                         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                     >
                                         <Plus class="w-4 h-4 mr-2" />
-                                        Tambah Karyawan Pertama
+                                        Add First Employee
                                     </button>
                                 </div>
 
@@ -93,7 +93,7 @@
                                         class="border border-gray-200 rounded-lg p-6 bg-gray-50"
                                     >
                                         <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-md font-medium text-gray-900">Karyawan #{{ index + 1 }}</h4>
+                                            <h4 class="text-md font-medium text-gray-900">Employee #{{ index + 1 }}</h4>
                                             <button
                                                 v-if="form.employees.length > 1"
                                                 type="button"
@@ -107,33 +107,33 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="md:col-span-2">
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Pilih Karyawan (opsional)
+                                                    Select Employee (optional)
                                                 </label>
                                                 <select
                                                     v-model="employee.employee_record_id"
                                                     @change="applyEmployee(index)"
                                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                 >
-                                                    <option value="">Pilih karyawan dari master admin</option>
+                                                    <option value="">Select employee from master data</option>
                                                     <option v-for="option in employees" :key="option.id" :value="option.id">
                                                         {{ option.nama }}{{ option.employee_id ? ` (${option.employee_id})` : '' }}
                                                     </option>
                                                 </select>
                                                 <p class="mt-1 text-xs text-gray-500">
-                                                    Mengisi otomatis Nama, ID, dan Jabatan dari data karyawan.
+                                                    Auto-fills Name, ID, and Position from the employee record.
                                                 </p>
                                             </div>
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Nama Karyawan <span class="text-red-500">*</span>
+                                                    Employee Name <span class="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     v-model="employee.employee_name"
                                                     type="text"
                                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                     :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors[`employees.${index}.employee_name`] }"
-                                                    placeholder="Nama lengkap karyawan"
+                                                    placeholder="Employee full name"
                                                 />
                                                 <div v-if="errors[`employees.${index}.employee_name`]" class="mt-1 text-sm text-red-600">
                                                     {{ errors[`employees.${index}.employee_name`] }}
@@ -142,26 +142,26 @@
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    ID Karyawan
+                                                    Employee ID
                                                 </label>
                                                 <input
                                                     v-model="employee.employee_id"
                                                     type="text"
                                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                                                    placeholder="ID karyawan (opsional)"
+                                                    placeholder="Employee ID (optional)"
                                                 />
                                             </div>
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Divisi <span class="text-red-500">*</span>
+                                                    Division <span class="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     v-model="employee.division"
                                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                     :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors[`employees.${index}.division`] }"
                                                 >
-                                                    <option value="">Pilih Divisi</option>
+                                                    <option value="">Select Division</option>
                                                     <option v-for="(label, value) in divisions" :key="value" :value="value">
                                                         {{ label }}
                                                     </option>
@@ -173,14 +173,14 @@
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Jabatan <span class="text-red-500">*</span>
+                                                    Position <span class="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     v-model="employee.position"
                                                     type="text"
                                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                     :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors[`employees.${index}.position`] }"
-                                                    placeholder="Jabatan karyawan"
+                                                    placeholder="Employee position"
                                                 />
                                                 <div v-if="errors[`employees.${index}.position`]" class="mt-1 text-sm text-red-600">
                                                     {{ errors[`employees.${index}.position`] }}
@@ -189,7 +189,7 @@
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Gaji Pokok <span class="text-red-500">*</span>
+                                                    Basic Salary <span class="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     v-model="employee.basic_salary"
@@ -207,7 +207,7 @@
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Tunjangan
+                                                    Allowances
                                                 </label>
                                                 <input
                                                     v-model="employee.allowances"
@@ -221,7 +221,7 @@
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Potongan
+                                                    Deductions
                                                 </label>
                                                 <input
                                                     v-model="employee.deductions"
@@ -235,7 +235,7 @@
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                    Total Gaji
+                                                    Total Salary
                                                 </label>
                                                 <div class="mt-1 block w-full border border-gray-200 bg-gray-100 rounded-md shadow-sm py-2 px-3 text-sm font-semibold text-gray-900">
                                                     {{ formatCurrency(calculateTotal(employee)) }}
@@ -253,10 +253,10 @@
                                         <Info class="h-5 w-5 text-blue-400" />
                                     </div>
                                     <div class="ml-3">
-                                        <h3 class="text-sm font-medium text-blue-800">Ringkasan</h3>
+                                        <h3 class="text-sm font-medium text-blue-800">Summary</h3>
                                         <div class="mt-2 text-sm text-blue-700">
-                                            <p>Total Karyawan: <span class="font-semibold">{{ form.employees.length }}</span></p>
-                                            <p>Total Gaji Keseluruhan: <span class="font-semibold">{{ formatCurrency(grandTotal) }}</span></p>
+                                            <p>Total Employees: <span class="font-semibold">{{ form.employees.length }}</span></p>
+                                            <p>Total Salary Amount: <span class="font-semibold">{{ formatCurrency(grandTotal) }}</span></p>
                                         </div>
                                     </div>
                                 </div>
@@ -267,7 +267,7 @@
                                     :href="route('admin-keuangan.employee-salary.index')"
                                     class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                 >
-                                    Batal
+                                    Cancel
                                 </Link>
                                 <button
                                     type="submit"
@@ -275,7 +275,7 @@
                                     class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50"
                                 >
                                     <Loader2 v-if="processing" class="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    {{ processing ? 'Menyimpan...' : `Simpan ${form.employees.length} Data Gaji` }}
+                                    {{ processing ? 'Saving...' : `Save ${form.employees.length} Salary Records` }}
                                 </button>
                             </div>
                         </form>
@@ -289,13 +289,13 @@
                             <HelpCircle class="h-5 w-5 text-gray-400" />
                         </div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-gray-800">Tips Bulk Input</h3>
+                            <h3 class="text-sm font-medium text-gray-800">Bulk Input Tips</h3>
                             <div class="mt-2 text-sm text-gray-600">
                                 <ul class="list-disc list-inside space-y-1">
-                                    <li>Gunakan fitur ini untuk input gaji multiple karyawan dengan periode yang sama</li>
-                                    <li>Semua data akan tersimpan dengan status "Draft" dan bisa diedit sebelum di-approve</li>
-                                    <li>Total gaji akan dihitung otomatis: Gaji Pokok + Tunjangan - Potongan</li>
-                                    <li>Anda bisa menambah/hapus karyawan sebelum menyimpan data</li>
+                                    <li>Use this feature to input salaries for multiple employees with the same period.</li>
+                                    <li>All records are saved as "Draft" and can be edited before approval.</li>
+                                    <li>Total salary is calculated automatically: Basic Salary + Allowances - Deductions.</li>
+                                    <li>You can add or remove employees before saving.</li>
                                 </ul>
                             </div>
                         </div>
@@ -343,7 +343,7 @@ const addEmployee = () => {
 }
 
 const removeEmployee = (index) => {
-    if (confirm('Hapus data karyawan ini?')) {
+    if (confirm('Remove this employee entry?')) {
         form.employees.splice(index, 1)
     }
 }
@@ -380,7 +380,7 @@ const submit = () => {
 }
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0

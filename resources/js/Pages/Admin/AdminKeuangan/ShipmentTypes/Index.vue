@@ -10,10 +10,10 @@
         >
           <div>
             <h2 class="text-2xl font-bold text-sage-800 mb-2">
-              Manajemen Shipment Type
+              Shipment Type Management
             </h2>
             <p class="text-sage-600">
-              Kelola data jenis pengiriman untuk sales order
+              Manage shipment type data for sales orders.
             </p>
           </div>
           <div class="mt-4 sm:mt-0">
@@ -34,7 +34,7 @@
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              Tambah Shipment Type
+              Add Shipment Type
             </Link>
           </div>
         </div>
@@ -48,12 +48,12 @@
           <!-- Search Input -->
           <div>
             <label class="block text-sm font-medium text-sage-700 mb-2"
-              >Cari Data</label
+              >Search Data</label
             >
             <input
               v-model="form.search"
               type="text"
-              placeholder="Cari nama, kode, atau deskripsi..."
+              placeholder="Search name, code, or description..."
               class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
             />
           </div>
@@ -64,7 +64,7 @@
               @click="search"
               class="w-full px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
             >
-              Cari
+              Search
             </button>
           </div>
         </div>
@@ -75,7 +75,7 @@
         class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden"
       >
         <div class="px-6 py-4 border-b border-sage-200">
-          <h3 class="text-lg font-semibold text-sage-800">Daftar Shipment Type</h3>
+          <h3 class="text-lg font-semibold text-sage-800">Shipment Types List</h3>
           <p class="text-sm text-sage-600 mt-1">
             Total: {{ shipmentTypes?.total || 0 }} data
           </p>
@@ -88,17 +88,17 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Kode
+                  Code
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Nama
+                  Name
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Deskripsi
+                  Description
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
@@ -108,7 +108,7 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-sage-500 uppercase tracking-wider"
                 >
-                  Aksi
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -135,7 +135,7 @@
                         : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
                     "
                   >
-                    {{ shipmentType.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                    {{ shipmentType.is_active ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -152,7 +152,7 @@
                     <button
                       @click="confirmDelete(shipmentType)"
                       class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                      title="Hapus"
+                      title="Delete"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -184,8 +184,8 @@
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p class="text-lg font-medium">Tidak ada data shipment type</p>
-            <p class="text-sm mt-1">Mulai dengan menambahkan shipment type baru</p>
+            <p class="text-lg font-medium">No shipment types found</p>
+            <p class="text-sm mt-1">Start by adding a new shipment type.</p>
           </div>
         </div>
 
@@ -203,10 +203,10 @@
     <AlertDialog
       :show="showDeleteDialog"
       type="confirm"
-      title="Konfirmasi Hapus Shipment Type"
-      :message="`Apakah Anda yakin ingin menghapus shipment type '${selectedShipmentType?.name}'? Tindakan ini tidak dapat dibatalkan.`"
-      confirm-text="Ya, Hapus"
-      cancel-text="Batal"
+      title="Confirm Shipment Type Deletion"
+      :message="`Are you sure you want to delete shipment type '${selectedShipmentType?.name}'? This action cannot be undone.`"
+      confirm-text="Yes, Delete"
+      cancel-text="Cancel"
       @confirm="confirmDeleteAction"
       @cancel="cancelDelete"
       @close="cancelDelete"
@@ -259,7 +259,7 @@ const confirmDeleteAction = () => {
         });
       },
       onError: (errors) => {
-        alert('Terjadi kesalahan saat menghapus shipment type: ' + Object.values(errors).join(', '));
+        alert('An error occurred while deleting the shipment type: ' + Object.values(errors).join(', '));
       }
     });
   }

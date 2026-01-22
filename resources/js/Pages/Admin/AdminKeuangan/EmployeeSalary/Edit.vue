@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head :title="'Edit Gaji - ' + salary.employee_name" />
+        <Head :title="'Edit Salary - ' + salary.employee_name" />
         
         <div class="py-6">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,10 +10,10 @@
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
-                        Kembali ke Detail
+                        Back to Details
                     </Link>
-                    <h1 class="text-2xl font-bold text-gray-900">Edit Gaji Karyawan</h1>
-                    <p class="mt-1 text-sm text-gray-600">Edit data gaji {{ salary.employee_name }}</p>
+                    <h1 class="text-2xl font-bold text-gray-900">Edit Employee Salary</h1>
+                    <p class="mt-1 text-sm text-gray-600">Update salary data for {{ salary.employee_name }}</p>
                 </div>
 
                 <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
@@ -23,31 +23,31 @@
                                 
                                 <!-- Employee Information -->
                                 <div class="border-b border-gray-200 pb-6">
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Informasi Karyawan</h3>
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Employee Information</h3>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div class="md:col-span-2">
                                             <label for="employee_source" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Pilih Karyawan (opsional)
+                                                Select Employee (optional)
                                             </label>
                                             <select
                                                 id="employee_source"
                                                 v-model="selectedEmployeeId"
                                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                             >
-                                                <option value="">Pilih karyawan dari master admin</option>
+                                                <option value="">Select employee from master data</option>
                                                 <option v-for="employee in employees" :key="employee.id" :value="employee.id">
                                                     {{ employee.nama }}{{ employee.employee_id ? ` (${employee.employee_id})` : '' }}
                                                 </option>
                                             </select>
                                             <p class="mt-1 text-xs text-gray-500">
-                                                Mengisi otomatis Nama, ID, dan Jabatan dari data karyawan.
+                                                Auto-fills Name, ID, and Position from the employee record.
                                             </p>
                                         </div>
 
                                         <div>
                                             <label for="employee_name" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Nama Karyawan <span class="text-red-500">*</span>
+                                                Employee Name <span class="text-red-500">*</span>
                                             </label>
                                             <input
                                                 id="employee_name"
@@ -55,7 +55,7 @@
                                                 type="text"
                                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                 :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.employee_name }"
-                                                placeholder="Nama lengkap karyawan"
+                                                placeholder="Employee full name"
                                             />
                                             <div v-if="errors.employee_name" class="mt-1 text-sm text-red-600">
                                                 {{ errors.employee_name }}
@@ -64,7 +64,7 @@
 
                                         <div>
                                             <label for="employee_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                                ID Karyawan
+                                                Employee ID
                                             </label>
                                             <input
                                                 id="employee_id"
@@ -72,7 +72,7 @@
                                                 type="text"
                                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                 :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.employee_id }"
-                                                placeholder="Nomor ID karyawan"
+                                                placeholder="Employee ID number"
                                             />
                                             <div v-if="errors.employee_id" class="mt-1 text-sm text-red-600">
                                                 {{ errors.employee_id }}
@@ -81,7 +81,7 @@
 
                                         <div>
                                             <label for="division" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Divisi <span class="text-red-500">*</span>
+                                                Division <span class="text-red-500">*</span>
                                             </label>
                                             <select
                                                 id="division"
@@ -89,7 +89,7 @@
                                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                 :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.division }"
                                             >
-                                                <option value="">Pilih Divisi</option>
+                                                <option value="">Select Division</option>
                                                 <option v-for="(label, value) in divisions" :key="value" :value="value">
                                                     {{ label }}
                                                 </option>
@@ -101,7 +101,7 @@
 
                                         <div>
                                             <label for="position" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Jabatan <span class="text-red-500">*</span>
+                                                Position <span class="text-red-500">*</span>
                                             </label>
                                             <input
                                                 id="position"
@@ -109,7 +109,7 @@
                                                 type="text"
                                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                 :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.position }"
-                                                placeholder="Jabatan karyawan"
+                                                placeholder="Employee position"
                                             />
                                             <div v-if="errors.position" class="mt-1 text-sm text-red-600">
                                                 {{ errors.position }}
@@ -120,12 +120,12 @@
 
                                 <!-- Salary Information -->
                                 <div class="border-b border-gray-200 pb-6">
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Informasi Gaji</h3>
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Salary Information</h3>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label for="basic_salary" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Gaji Pokok <span class="text-red-500">*</span>
+                                                Basic Salary <span class="text-red-500">*</span>
                                             </label>
                                             <input
                                                 id="basic_salary"
@@ -144,7 +144,7 @@
 
                                         <div>
                                             <label for="allowances" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Tunjangan
+                                                Allowances
                                             </label>
                                             <input
                                                 id="allowances"
@@ -163,7 +163,7 @@
 
                                         <div>
                                             <label for="deductions" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Potongan
+                                                Deductions
                                             </label>
                                             <input
                                                 id="deductions"
@@ -182,7 +182,7 @@
 
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                                Total Gaji
+                                                Total Salary
                                             </label>
                                             <div class="mt-1 block w-full border border-gray-200 bg-gray-50 rounded-md shadow-sm py-2 px-3 text-lg font-semibold text-gray-900">
                                                 {{ formatCurrency(totalSalary) }}
@@ -193,12 +193,12 @@
 
                                 <!-- Period Information -->
                                 <div>
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Informasi Periode</h3>
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Period Information</h3>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label for="period_month" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Periode (Bulan-Tahun) <span class="text-red-500">*</span>
+                                                Period (Month-Year) <span class="text-red-500">*</span>
                                             </label>
                                             <input
                                                 id="period_month"
@@ -214,7 +214,7 @@
 
                                         <div>
                                             <label for="salary_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Tanggal Gaji <span class="text-red-500">*</span>
+                                                Salary Date <span class="text-red-500">*</span>
                                             </label>
                                             <input
                                                 id="salary_date"
@@ -231,14 +231,14 @@
 
                                     <div class="mt-6">
                                         <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Catatan
+                                            Notes
                                         </label>
                                         <textarea
                                             id="notes"
                                             v-model="form.notes"
                                             rows="3"
                                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
-                                            placeholder="Catatan tambahan..."
+                                            placeholder="Additional notes..."
                                         ></textarea>
                                     </div>
                                 </div>
@@ -249,7 +249,7 @@
                                     :href="route('admin-keuangan.employee-salary.show', salary.id)"
                                     class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                 >
-                                    Batal
+                                    Cancel
                                 </Link>
                                 <button
                                     type="submit"
@@ -257,7 +257,7 @@
                                     class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50"
                                 >
                                     <Loader2 v-if="processing" class="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    {{ processing ? 'Menyimpan...' : 'Update Gaji' }}
+                                    {{ processing ? 'Saving...' : 'Update Salary' }}
                                 </button>
                             </div>
                         </form>
@@ -270,12 +270,12 @@
                             <AlertTriangle class="h-5 w-5 text-yellow-400" />
                         </div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-yellow-800">Peringatan</h3>
+                            <h3 class="text-sm font-medium text-yellow-800">Warning</h3>
                             <div class="mt-2 text-sm text-yellow-700">
                                 <ul class="list-disc list-inside space-y-1">
-                                    <li>Hanya gaji dengan status "Draft" yang dapat diedit</li>
-                                    <li>Setelah gaji di-approve, data tidak dapat lagi diubah</li>
-                                    <li>Pastikan semua data sudah benar sebelum menyimpan</li>
+                                    <li>Only salaries with "Draft" status can be edited.</li>
+                                    <li>After approval, data can no longer be edited.</li>
+                                    <li>Make sure all data is correct before saving.</li>
                                 </ul>
                             </div>
                         </div>
@@ -348,7 +348,7 @@ const submit = () => {
 }
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0

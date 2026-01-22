@@ -5,8 +5,8 @@
         <!-- Header Section -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Manajemen Shipping Order</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola dokumen Shipping Order dan penawaran harga</p>
+            <h1 class="text-2xl font-bold text-gray-900">Shipping Order Management</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage shipping orders and pricing offers.</p>
           </div>
           <div class="mt-4 sm:mt-0 flex space-x-2">
             <Link
@@ -14,7 +14,7 @@
               class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 hover:bg-sage-900"
             >
               <Plus class="w-4 h-4 mr-2" />
-              Buat Shipping Order
+              Create Shipping Order
             </Link>
           </div>
         </div>
@@ -22,15 +22,15 @@
         <!-- Filter Section -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
           <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Cari Data</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                 <input
                   v-model="form.search"
                   @input="debouncedSearch()"
                   type="text"
-                  placeholder="Cari SO Number, Customer, Consignee..."
+                  placeholder="Search SO Number, Customer, Consignee..."
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 />
               </div>
@@ -41,11 +41,11 @@
                   @change="onStatusChange"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 >
-                  <option value="">Semua Status</option>
+                  <option value="">All Statuses</option>
                   <option value="draft">Draft</option>
-                  <option value="sent">Terkirim</option>
-                  <option value="confirmed">Dikonfirmasi</option>
-                  <option value="cancelled">Dibatalkan</option>
+                  <option value="sent">Sent</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
               <div class="flex items-end">
@@ -53,7 +53,7 @@
                   @click="applyFilters"
                   class="w-full px-4 py-2 bg-sage-800 text-white rounded-md transition-colors hover:bg-sage-900"
                 >
-                  Cari
+                  Search
                 </button>
               </div>
             </div>
@@ -65,8 +65,8 @@
           <div class="px-4 py-5 sm:p-6">
             <div class="sm:flex sm:items-center sm:justify-between mb-4">
               <div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Shipping Order</h3>
-                <p class="mt-1 text-sm text-gray-600">Total: {{ salesOrders?.total || 0 }} data</p>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Shipping Orders List</h3>
+                <p class="mt-1 text-sm text-gray-600">Total: {{ salesOrders?.total || 0 }} records</p>
               </div>
             </div>
 
@@ -99,7 +99,7 @@
                       Status
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Aksi
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -159,7 +159,7 @@
                           {{ container }}
                         </span>
                         <div v-if="salesOrder.container_no.length > 2" class="text-xs text-gray-500">
-                          +{{ salesOrder.container_no.length - 2 }} lainnya
+                          +{{ salesOrder.container_no.length - 2 }} more
                         </div>
                       </div>
                       <span
@@ -192,8 +192,8 @@
                             ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                             : 'text-sage-600 hover:text-sage-900 hover:bg-sage-100'"
                           :title="!salesOrder.cs_can_release
-                            ? (salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Sudah Diproses')
-                            : 'Rilis Shipping Order'"
+                            ? (salesOrder.is_finance_created ? 'Created by finance' : 'Already processed')
+                            : 'Release Shipping Order'"
                         >
                           <Send class="w-4 h-4" />
                         </button>
@@ -201,7 +201,7 @@
                         <Link
                           :href="route('admin-cs.sales-orders.show', salesOrder.id)"
                           class="inline-flex items-center justify-center w-8 h-8 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-full transition-colors"
-                          title="Lihat Detail"
+                          title="View Details"
                         >
                           <Eye class="w-4 h-4" />
                         </Link>
@@ -217,7 +217,7 @@
                         <span
                           v-else
                           class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                          :title="salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Tidak dapat diedit (Shipping Order sudah diproses)'"
+                          :title="salesOrder.is_finance_created ? 'Created by finance' : 'Cannot edit (Shipping Order already processed)'"
                         >
                           <Pencil class="w-4 h-4" />
                         </span>
@@ -226,14 +226,14 @@
                           v-if="salesOrder.cs_can_delete"
                           @click="deleteSalesOrder(salesOrder.id)"
                           class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full transition-colors"
-                          title="Hapus"
+                          title="Delete"
                         >
                           <Trash2 class="w-4 h-4" />
                         </button>
                         <span
                           v-else
                           class="inline-flex items-center justify-center w-8 h-8 text-gray-400 bg-gray-100 rounded-full cursor-not-allowed"
-                          :title="salesOrder.is_finance_created ? 'Dibuat oleh finance' : 'Tidak dapat dihapus (Shipping Order sudah diproses)'"
+                          :title="salesOrder.is_finance_created ? 'Created by finance' : 'Cannot delete (Shipping Order already processed)'"
                         >
                           <Trash2 class="w-4 h-4" />
                         </span>
@@ -246,9 +246,9 @@
                     <td colspan="9" class="px-6 py-8 text-center text-gray-500">
                       <div class="flex flex-col items-center">
                         <FileText class="w-12 h-12 text-gray-300 mb-4" />
-                        <p class="text-lg font-medium mb-2">Tidak ada data</p>
+                        <p class="text-lg font-medium mb-2">No data available</p>
                         <p class="text-sm text-gray-400">
-                          Belum ada Shipping Order yang tersedia
+                          No shipping orders available yet.
                         </p>
                       </div>
                     </td>
@@ -273,10 +273,10 @@
     <AlertDialog
       :show="showReleaseDialog"
       type="confirm"
-      title="Konfirmasi Rilis Shipping Order"
-      message="Apakah Anda yakin ingin merilis Shipping Order ini? Shipping Order yang sudah dirilis akan dikirim ke admin keuangan dan tidak dapat diubah lagi."
-      confirm-text="Ya, Rilis"
-      cancel-text="Batal"
+      title="Confirm Shipping Order Release"
+      message="Are you sure you want to release this Shipping Order? Released orders will be sent to Finance and cannot be edited."
+      confirm-text="Yes, Release"
+      cancel-text="Cancel"
       @confirm="confirmRelease"
       @cancel="cancelRelease"
       @close="cancelRelease"
@@ -286,10 +286,10 @@
     <AlertDialog
       :show="showDeleteDialog"
       type="confirm"
-      title="Konfirmasi Hapus Shipping Orderr"
-      message="Apakah Anda yakin ingin menghapus Shipping Order ini? Tindakan ini tidak dapat dibatalkan."
-      confirm-text="Ya, Hapus"
-      cancel-text="Batal"
+      title="Confirm Shipping Order Deletion"
+      message="Are you sure you want to delete this Shipping Order? This action cannot be undone."
+      confirm-text="Yes, Delete"
+      cancel-text="Cancel"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
       @close="cancelDelete"
@@ -348,7 +348,7 @@ const confirmRelease = () => {
   router.post(route("admin-cs.sales-orders.release", currentSalesOrderId.value), {}, {
     onSuccess: () => applyFilters(),
     onError: (errors) => {
-      alert("Terjadi kesalahan saat merilis Shipping Order: " + Object.values(errors).join(", "));
+      alert("An error occurred while releasing the Shipping Order: " + Object.values(errors).join(", "));
     },
     onFinish: () => {
       showReleaseDialog.value = false;
@@ -373,7 +373,7 @@ const confirmDelete = () => {
   router.delete(route("admin-cs.sales-orders.destroy", currentSalesOrderId.value), {
     onSuccess: () => applyFilters(),
     onError: (errors) => {
-      alert("Terjadi kesalahan saat menghapus Shipping Order: " + Object.values(errors).join(", "));
+      alert("An error occurred while deleting the Shipping Order: " + Object.values(errors).join(", "));
     },
     onFinish: () => {
       showDeleteDialog.value = false;
@@ -390,12 +390,12 @@ const cancelDelete = () => {
 const getStatusLabel = (status) => {
   const labels = {
     draft: "Draft",
-    sent: "Terkirim",
-    confirmed: "Dikonfirmasi",
-    cancelled: "Dibatalkan",
-    released: "Dirilis",
-    approved: "Disetujui",
-    rejected: "Ditolak",
+    sent: "Sent",
+    confirmed: "Confirmed",
+    cancelled: "Cancelled",
+    released: "Released",
+    approved: "Approved",
+    rejected: "Rejected",
   };
   return labels[status] || status;
 };

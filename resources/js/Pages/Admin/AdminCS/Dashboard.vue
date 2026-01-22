@@ -1,14 +1,14 @@
 <template>
   <AdminCSLayout>
-    <Head title="Dashboard CS" />
+    <Head title="Customer Service Dashboard" />
 
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Dashboard Customer Service</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola operasi customer service dan shipping orders secara efisien</p>
+            <h1 class="text-2xl font-bold text-gray-900">Customer Service Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage customer service operations and shipping orders efficiently.</p>
           </div>
         </div>
 
@@ -128,7 +128,7 @@
                     <td colspan="4" class="px-6 py-12 text-center">
                       <FileText class="mx-auto h-12 w-12 text-gray-400" />
                       <h3 class="mt-2 text-sm font-medium text-gray-900">No sales orders</h3>
-                      <p class="mt-1 text-sm text-gray-500">Belum ada sales orders terbaru</p>
+                      <p class="mt-1 text-sm text-gray-500">No recent sales orders yet.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -261,8 +261,8 @@ const route = window.route || function(name, params) {
 
 // Methods
 const formatCurrency = (amount) => {
-  if (!amount) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', {
+  if (!amount) return 'IDR 0';
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0
@@ -270,7 +270,7 @@ const formatCurrency = (amount) => {
 };
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('id-ID', {
+  return new Date(date).toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

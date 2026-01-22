@@ -14,7 +14,7 @@
               </svg>
             </Link>
             <div>
-              <h1 class="text-2xl font-bold text-sage-800">Detail Transaksi Petty Cash</h1>
+              <h1 class="text-2xl font-bold text-sage-800">Petty Cash Transaction Details</h1>
               <p class="text-sm text-sage-600">ID: {{ transaction.id }}</p>
             </div>
           </div>
@@ -35,7 +35,7 @@
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Hapus
+              Delete
             </button>
           </div>
         </div>
@@ -46,39 +46,39 @@
         <div class="lg:col-span-2 space-y-6">
           <!-- Basic Information -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Informasi Transaksi</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Transaction Information</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Tanggal Transaksi</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Transaction Date</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ formatDate(transaction.transaction_date) }}
                 </p>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Jenis Transaksi</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Transaction Type</label>
                 <span :class="getTypeClass(transaction.type)" class="inline-flex px-3 py-1 rounded-full text-sm font-medium">
                   {{ getTypeLabel(transaction.type) }}
                 </span>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Deskripsi</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Description</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ transaction.description }}
                 </p>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-sage-700 mb-2">Kategori</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Category</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ transaction.category?.name || '-' }}
                 </p>
               </div>
 
               <div v-if="transaction.so_number">
-                <label class="block text-sm font-medium text-sage-700 mb-2">Nomor Sales Order</label>
+                <label class="block text-sm font-medium text-sage-700 mb-2">Sales Order Number</label>
                 <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                   {{ transaction.so_number }}
                 </p>
@@ -93,7 +93,7 @@
             </div>
 
             <div v-if="transaction.notes" class="mt-6">
-              <label class="block text-sm font-medium text-sage-700 mb-2">Catatan</label>
+              <label class="block text-sm font-medium text-sage-700 mb-2">Notes</label>
               <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
                 {{ transaction.notes }}
               </p>
@@ -102,7 +102,7 @@
 
           <!-- Receipt File -->
           <div v-if="transaction.receipt_file" class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">File Bukti</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Receipt File</h2>
             <div class="flex items-center space-x-3">
               <svg class="w-8 h-8 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -114,7 +114,7 @@
                   target="_blank"
                   class="text-sm text-sage-600 hover:text-sage-800 transition-colors"
                 >
-                  Lihat File
+                  View File
                 </a>
               </div>
             </div>
@@ -125,11 +125,11 @@
         <div class="space-y-6">
           <!-- Amount Summary -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Ringkasan Jumlah</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Amount Summary</h2>
             
             <div class="space-y-4">
               <div class="flex justify-between items-center">
-                <span class="text-sm font-medium text-sage-700">Jumlah:</span>
+                <span class="text-sm font-medium text-sage-700">Amount:</span>
                 <span class="text-lg font-bold" :class="getAmountClass(transaction.type)">
                   {{ transaction.type === 'expense' ? '-' : '+' }}{{ formatCurrency(transaction.amount) }}
                 </span>
@@ -137,7 +137,7 @@
               
               <div class="border-t border-sage-200 pt-4">
                 <div class="flex justify-between items-center">
-                  <span class="text-sm font-medium text-sage-700">Saldo Setelah:</span>
+                  <span class="text-sm font-medium text-sage-700">Balance After:</span>
                   <span class="text-lg font-bold text-sage-900">
                     {{ formatCurrency(transaction.balance_after) }}
                   </span>
@@ -148,26 +148,26 @@
 
           <!-- Transaction Meta -->
           <div class="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-            <h2 class="text-lg font-semibold text-sage-800 mb-4">Informasi Tambahan</h2>
+            <h2 class="text-lg font-semibold text-sage-800 mb-4">Additional Information</h2>
             
             <div class="space-y-4 text-sm">
               <div>
-                <span class="font-medium text-sage-700">Dibuat oleh:</span>
+                <span class="font-medium text-sage-700">Created by:</span>
                 <p class="text-sage-900 mt-1">{{ transaction.user?.name }}</p>
               </div>
               
               <div>
-                <span class="font-medium text-sage-700">Tanggal dibuat:</span>
+                <span class="font-medium text-sage-700">Created date:</span>
                 <p class="text-sage-900 mt-1">{{ formatDateTime(transaction.created_at) }}</p>
               </div>
               
               <div v-if="transaction.updated_at !== transaction.created_at">
-                <span class="font-medium text-sage-700">Terakhir diubah:</span>
+                <span class="font-medium text-sage-700">Last updated:</span>
                 <p class="text-sage-900 mt-1">{{ formatDateTime(transaction.updated_at) }}</p>
               </div>
 
               <div v-if="transaction.approved_by && transaction.approved_at">
-                <span class="font-medium text-sage-700">Disetujui oleh:</span>
+                <span class="font-medium text-sage-700">Approved by:</span>
                 <p class="text-sage-900 mt-1">{{ transaction.approver?.name }}</p>
                 <p class="text-sage-600 text-xs mt-1">{{ formatDateTime(transaction.approved_at) }}</p>
               </div>
@@ -180,23 +180,23 @@
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-medium text-sage-900 mb-4">Konfirmasi Hapus</h3>
+        <h3 class="text-lg font-medium text-sage-900 mb-4">Confirm Delete</h3>
         <p class="text-sm text-sage-600 mb-6">
-          Apakah Anda yakin ingin menghapus transaksi "{{ transaction.description }}"? 
-          Tindakan ini tidak dapat dibatalkan dan akan mempengaruhi saldo petty cash.
+          Are you sure you want to delete the transaction "{{ transaction.description }}"?
+          This action cannot be undone and will affect the petty cash balance.
         </p>
         <div class="flex justify-end space-x-3">
           <button
             @click="showDeleteModal = false"
             class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
           >
-            Batal
+            Cancel
           </button>
           <button
             @click="deleteTransaction"
             class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
           >
-            Hapus
+            Delete
           </button>
         </div>
       </div>
@@ -249,7 +249,7 @@ const formatDateTime = (datetime) => {
 
 const getTypeLabel = (type) => {
   const labels = {
-    expense: 'Pengeluaran',
+    expense: 'Expense',
     topup: 'Top Up',
     refund: 'Refund'
   }
@@ -267,9 +267,9 @@ const getTypeClass = (type) => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    pending: 'Menunggu',
-    approved: 'Disetujui',
-    rejected: 'Ditolak'
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected'
   }
   return labels[status] || status
 }

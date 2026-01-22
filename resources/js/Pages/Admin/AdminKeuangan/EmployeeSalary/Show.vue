@@ -1,6 +1,6 @@
 <template>
     <AdminKeuanganLayout>
-        <Head :title="'Detail Gaji - ' + salary.employee_name" />
+        <Head :title="'Salary Details - ' + salary.employee_name" />
         
         <div class="py-6">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,13 +10,13 @@
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
-                        Kembali ke Daftar Gaji Karyawan
+                        Back to Employee Salaries
                     </Link>
                     
                     <div class="flex justify-between items-start">
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900">{{ salary?.employee_name || 'Nama tidak tersedia' }}</h1>
-                            <p class="mt-1 text-sm text-gray-600">{{ salary?.position || 'Posisi tidak tersedia' }} - {{ salary?.division_label || 'Divisi tidak tersedia' }}</p>
+                            <h1 class="text-2xl font-bold text-gray-900">{{ salary?.employee_name || 'Name not available' }}</h1>
+                            <p class="mt-1 text-sm text-gray-600">{{ salary?.position || 'Position not available' }} - {{ salary?.division_label || 'Division not available' }}</p>
                         </div>
                         
                         <div v-if="salary" class="flex space-x-3">
@@ -36,7 +36,7 @@
                                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
                             >
                                 <CheckCircle class="w-4 h-4 mr-2" />
-                                {{ loading ? 'Processing...' : 'Approve & Bayar' }}
+                                {{ loading ? 'Processing...' : 'Approve & Pay' }}
                             </button>
                         </div>
                     </div>
@@ -46,24 +46,24 @@
                     <!-- Employee Information Card -->
                     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                         <div class="px-4 py-5 sm:px-6">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Informasi Karyawan</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Employee Information</h3>
                         </div>
                         <div class="border-t border-gray-200">
                             <dl>
                                 <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Nama Lengkap</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Full Name</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ salary?.employee_name || '-' }}</dd>
                                 </div>
                                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">ID Karyawan</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Employee ID</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ salary?.employee_id || '-' }}</dd>
                                 </div>
                                 <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Divisi</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Division</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ salary?.division_label || '-' }}</dd>
                                 </div>
                                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Jabatan</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Position</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ salary?.position || '-' }}</dd>
                                 </div>
                             </dl>
@@ -73,25 +73,25 @@
                     <!-- Salary Information Card -->
                     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                         <div class="px-4 py-5 sm:px-6">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Informasi Gaji</h3>
-                            <p class="mt-1 max-w-2xl text-sm text-gray-500">Periode {{ salary?.formatted_period || '-' }}</p>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Salary Information</h3>
+                            <p class="mt-1 max-w-2xl text-sm text-gray-500">Period {{ salary?.formatted_period || '-' }}</p>
                         </div>
                         <div class="border-t border-gray-200">
                             <dl>
                                 <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Gaji Pokok</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Basic Salary</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ formatCurrency(salary?.basic_salary) }}</dd>
                                 </div>
                                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Tunjangan</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Allowances</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ formatCurrency(salary?.allowances) }}</dd>
                                 </div>
                                 <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Potongan</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Deductions</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ formatCurrency(salary?.deductions) }}</dd>
                                 </div>
                                 <div class="bg-green-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 border-t-2 border-green-200">
-                                    <dt class="text-sm font-bold text-green-900">TOTAL GAJI</dt>
+                                    <dt class="text-sm font-bold text-green-900">TOTAL SALARY</dt>
                                     <dd class="mt-1 text-lg font-bold text-green-900 sm:mt-0 sm:col-span-2">{{ formatCurrency(salary?.total_salary) }}</dd>
                                 </div>
                             </dl>
@@ -114,22 +114,22 @@
                                     </dd>
                                 </div>
                                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Tanggal Gaji</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Salary Date</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ formatDate(salary?.salary_date) }}</dd>
                                 </div>
                                 <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Dibuat oleh</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Created by</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ salary?.creator?.name || '-' }}</dd>
                                 </div>
                                 <div v-if="salary?.approved_at" class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Disetujui oleh</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Approved by</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                         {{ salary?.approver?.name || '-' }} 
-                                        <span class="text-gray-500">pada {{ formatDate(salary?.approved_at) }}</span>
+                                        <span class="text-gray-500">on {{ formatDate(salary?.approved_at) }}</span>
                                     </dd>
                                 </div>
                                 <div v-if="salary?.notes" class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Catatan</dt>
+                                    <dt class="text-sm font-medium text-gray-500">Notes</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">{{ salary?.notes }}</dd>
                                 </div>
                             </dl>
@@ -139,8 +139,8 @@
                     <!-- Integration Info -->
                     <div v-if="salary?.profit_loss_entries && salary.profit_loss_entries.length > 0" class="bg-white shadow overflow-hidden sm:rounded-lg">
                         <div class="px-4 py-5 sm:px-6">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Integrasi Laporan Laba Rugi</h3>
-                            <p class="mt-1 max-w-2xl text-sm text-gray-500">Data gaji ini telah terintegrasi dengan laporan laba rugi</p>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Profit & Loss Integration</h3>
+                            <p class="mt-1 max-w-2xl text-sm text-gray-500">This salary data has been integrated with the profit & loss report</p>
                         </div>
                         <div class="border-t border-gray-200">
                             <div class="px-4 py-5">
@@ -148,7 +148,7 @@
                                     <div v-for="entry in salary?.profit_loss_entries" :key="entry.id" class="flex items-center justify-between p-3 bg-green-50 rounded-md">
                                         <div>
                                             <p class="text-sm font-medium text-green-900">{{ entry.description }}</p>
-                                            <p class="text-xs text-green-700">Periode: {{ entry.period?.period_name }}</p>
+                                            <p class="text-xs text-green-700">Period: {{ entry.period?.period_name }}</p>
                                         </div>
                                         <div class="text-sm font-semibold text-green-900">
                                             {{ formatCurrency(entry.amount) }}
@@ -165,32 +165,32 @@
         <div v-if="showApproveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Approve & Bayar Gaji</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Approve & Pay Salary</h3>
                     <button @click="closeApproveModal" class="text-gray-400 hover:text-gray-600">&times;</button>
                 </div>
                 <div class="space-y-4">
                     <div class="text-sm text-gray-600">
-                        {{ salary ? `Gaji ${salary.employee_name} sebesar ${formatCurrency(salary.total_salary)}` : '' }}
+                        {{ salary ? `Salary for ${salary.employee_name} totaling ${formatCurrency(salary.total_salary)}` : '' }}
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Akun Bank</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
                         <select
                             v-model="selectedBankAccountId"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                         >
-                            <option value="" disabled>Pilih akun bank</option>
+                            <option value="" disabled>Select bank account</option>
                             <option v-for="account in bankAccounts" :key="account.id" :value="account.id">
                                 {{ account.bank_name }} - {{ account.account_number }} ({{ account.account_name }})
                             </option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Akun P&amp;L (Beban Gaji)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">P&amp;L Account (Salary Expense)</label>
                         <select
                             v-model="selectedPlAccountId"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                         >
-                            <option value="" disabled>Pilih akun P&amp;L</option>
+                            <option value="" disabled>Select P&amp;L account</option>
                             <option v-for="account in salaryAccounts" :key="account.id" :value="account.id">
                                 {{ account.account_code }} - {{ account.account_name }}
                             </option>
@@ -203,7 +203,7 @@
                         @click="closeApproveModal"
                         class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700"
                     >
-                        Batal
+                        Cancel
                     </button>
                     <button
                         type="button"
@@ -211,7 +211,7 @@
                         :disabled="!selectedBankAccountId || !selectedPlAccountId"
                         class="px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Approve & Bayar
+                        Approve & Pay
                     </button>
                 </div>
             </div>
@@ -268,7 +268,7 @@ const submitApprove = () => {
 }
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0
@@ -279,7 +279,7 @@ const formatDate = (dateString) => {
     if (!dateString) return '-'
     
     const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'

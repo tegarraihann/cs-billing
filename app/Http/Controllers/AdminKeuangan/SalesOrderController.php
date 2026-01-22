@@ -290,6 +290,8 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.description' => 'nullable|string|max:255',
             'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.quantity' => 'nullable|numeric|min:0',
+            'vendor_breakdown.*.unit' => 'nullable|string|max:50',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
 
@@ -299,6 +301,8 @@ class SalesOrderController extends Controller
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
             'other_costs.*.vendor_id' => 'required_with:other_costs|nullable', // Must be filled (internal/external)
+            'other_costs.*.quantity' => 'nullable|numeric|min:0',
+            'other_costs.*.unit' => 'nullable|string|max:50',
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -511,6 +515,8 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.description' => 'nullable|string|max:255',
             'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.quantity' => 'nullable|numeric|min:0',
+            'vendor_breakdown.*.unit' => 'nullable|string|max:50',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
 
@@ -520,6 +526,8 @@ class SalesOrderController extends Controller
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
             'other_costs.*.vendor_id' => 'required_with:other_costs|nullable', // Wajib vendor (internal/eksternal)
+            'other_costs.*.quantity' => 'nullable|numeric|min:0',
+            'other_costs.*.unit' => 'nullable|string|max:50',
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',
@@ -878,17 +886,22 @@ class SalesOrderController extends Controller
                 foreach ($vendorBreakdown as $index => $vendor) {
                     $rawVendorId = $vendor['vendor_id'] ?? null;
                     $vendorId = is_numeric($rawVendorId) ? (int) $rawVendorId : null;
+                    $quantityInfo = $this->resolveItemQuantity($vendor, 1);
+                    $quantity = $quantityInfo['quantity'];
+                    $hasQuantity = $quantityInfo['hasQuantity'];
+                    $unit = $this->normalizeItemUnit($vendor, 'SET');
 
                     // Billable line (selling)
-                    $sellingAmount = floatval($vendor['selling_amount'] ?? 0);
-                    if ($sellingAmount > 0) {
+                    $sellingRate = floatval($vendor['selling_amount'] ?? 0);
+                    if ($sellingRate > 0) {
+                        $sellingAmount = $hasQuantity ? $sellingRate * $quantity : $sellingRate;
                         $billRef = 'vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
                         InvoiceItem::create([
                             'invoice_id' => $invoice->id,
                             'description' => $vendor['description'] ?? 'Service',
-                            'quantity' => 1,
-                            'unit' => 'SET',
-                            'rate' => $sellingAmount,
+                            'quantity' => $quantity,
+                            'unit' => $unit,
+                            'rate' => $sellingRate,
                             'currency' => 'IDR',
                             'amount' => $sellingAmount,
                             'item_ref' => $billRef,
@@ -900,19 +913,20 @@ class SalesOrderController extends Controller
                     }
 
                     // COGS (buying)
-                    $buyingAmount = floatval($vendor['buying_amount'] ?? 0);
-                    if ($buyingAmount <= 0) {
+                    $buyingRate = floatval($vendor['buying_amount'] ?? 0);
+                    if ($buyingRate <= 0) {
                         continue;
                     }
 
                     $itemRef = 'cogs_vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
+                    $buyingAmount = $hasQuantity ? $buyingRate * $quantity : $buyingRate;
 
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'description' => ($vendor['description'] ?? 'Service') . ' - Buying Cost (COGS)',
-                        'quantity' => 1,
-                        'unit' => 'SET',
-                        'rate' => $buyingAmount,
+                        'quantity' => $quantity,
+                        'unit' => $unit,
+                        'rate' => $buyingRate,
                         'currency' => 'IDR',
                         'amount' => $buyingAmount,
                         'item_ref' => $itemRef,
@@ -952,8 +966,8 @@ class SalesOrderController extends Controller
                 $expectedOperationalRefs = [];
 
                 foreach ($otherCosts as $index => $otherCost) {
-                    $amount = (float) ($otherCost['amount'] ?? 0);
-                    if ($amount <= 0) {
+                    $rate = (float) ($otherCost['amount'] ?? 0);
+                    if ($rate <= 0) {
                         continue;
                     }
 
@@ -963,13 +977,18 @@ class SalesOrderController extends Controller
                     $rawVendor = $otherCost['vendor_id'] ?? null;
                     $vendorId = $this->resolveVendorId($rawVendor);
                     $description = $otherCost['description'] ?? 'Additional Cost';
+                    $quantityInfo = $this->resolveItemQuantity($otherCost, 1);
+                    $quantity = $quantityInfo['quantity'];
+                    $hasQuantity = $quantityInfo['hasQuantity'];
+                    $unit = $this->normalizeItemUnit($otherCost, 'pcs');
+                    $amount = $hasQuantity ? $rate * $quantity : $rate;
 
                     $itemData = [
                         'invoice_id' => $invoice->id,
                         'description' => 'Other Cost - ' . $description,
-                        'quantity' => 1,
-                        'unit' => 'SET',
-                        'rate' => $amount,
+                        'quantity' => $quantity,
+                        'unit' => $unit,
+                        'rate' => $rate,
                         'currency' => 'IDR',
                         'amount' => $amount,
                         'item_ref' => $itemRef,
@@ -1025,12 +1044,17 @@ class SalesOrderController extends Controller
                     $expectedReimbursementRefs[] = $itemRef;
 
                     $amount = (float) $reimbursementItem->amount;
+                    $receiptInfo = is_array($reimbursementItem->receipt_info)
+                        ? $reimbursementItem->receipt_info
+                        : [];
+                    $quantity = $this->normalizeReceiptQuantity($receiptInfo, 1);
+                    $unit = $this->normalizeReceiptUnit($receiptInfo, 'SET');
 
                     $itemData = [
                         'invoice_id' => $invoice->id,
                         'description' => 'Reimbursement - ' . $reimbursementItem->description,
-                        'quantity' => 1,
-                        'unit' => 'SET',
+                        'quantity' => $quantity,
+                        'unit' => $unit,
                         'rate' => $amount,
                         'currency' => 'IDR',
                         'amount' => $amount,
@@ -1323,6 +1347,61 @@ class SalesOrderController extends Controller
         }
 
         return null;
+    }
+
+    private function resolveItemQuantity(array $payload, float $fallback = 1): array
+    {
+        $quantity = $payload['quantity'] ?? $payload['qty'] ?? null;
+        $hasQuantity = is_numeric($quantity) && (float) $quantity > 0;
+
+        return [
+            'quantity' => $hasQuantity ? (float) $quantity : $fallback,
+            'hasQuantity' => $hasQuantity,
+        ];
+    }
+
+    private function normalizeItemQuantity(array $payload, float $fallback = 1): float
+    {
+        return $this->resolveItemQuantity($payload, $fallback)['quantity'];
+    }
+
+    private function normalizeItemUnit(array $payload, string $fallback): string
+    {
+        $unit = $payload['unit'] ?? $payload['package_unit'] ?? null;
+
+        if (is_string($unit)) {
+            $unit = trim($unit);
+            if ($unit !== '') {
+                return $unit;
+            }
+        }
+
+        return $fallback;
+    }
+
+    private function normalizeReceiptQuantity(array $receiptInfo, float $fallback = 1): float
+    {
+        $quantity = $receiptInfo['quantity'] ?? null;
+
+        if (is_numeric($quantity) && (float) $quantity > 0) {
+            return (float) $quantity;
+        }
+
+        return $fallback;
+    }
+
+    private function normalizeReceiptUnit(array $receiptInfo, string $fallback): string
+    {
+        $unit = $receiptInfo['unit'] ?? null;
+
+        if (is_string($unit)) {
+            $unit = trim($unit);
+            if ($unit !== '') {
+                return $unit;
+            }
+        }
+
+        return $fallback;
     }
 
     private function determineVendorSelection($rawVendor): ?string

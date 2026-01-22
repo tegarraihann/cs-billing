@@ -550,6 +550,7 @@ class ProfitLossController extends Controller
         // Supplies topup/purchase -> expense
         if (class_exists(SupplyTransaction::class)) {
             $supplyTopups = SupplyTransaction::where('transaction_type', 'topup')
+                ->where('source_type', '!=', 'opening_balance')
                 ->whereBetween('transaction_date', [$startDate, $endDate])
                 ->get();
 

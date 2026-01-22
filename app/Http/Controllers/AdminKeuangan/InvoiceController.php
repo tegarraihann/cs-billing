@@ -859,15 +859,21 @@ class InvoiceController extends Controller
             // Auto-generate operational cost items only from other costs
             if ($invoice->salesOrder->other_costs && is_array($invoice->salesOrder->other_costs)) {
                 foreach ($invoice->salesOrder->other_costs as $index => $otherCost) {
-                    if (isset($otherCost['amount']) && $otherCost['amount'] > 0) {
+                    $rate = (float) ($otherCost['amount'] ?? 0);
+                    if ($rate > 0) {
+                        $quantityInfo = $this->resolveItemQuantity($otherCost, 1);
+                        $quantity = $quantityInfo['quantity'];
+                        $hasQuantity = $quantityInfo['hasQuantity'];
+                        $unit = $this->normalizeItemUnit($otherCost, 'pcs');
+                        $amount = $hasQuantity ? $rate * $quantity : $rate;
                         InvoiceItem::create([
                             'invoice_id' => $invoice->id,
                             'description' => 'Other Cost - ' . ($otherCost['description'] ?? 'Additional Cost'),
-                            'quantity' => 1,
-                            'unit' => 'SET',
-                            'rate' => $otherCost['amount'],
+                            'quantity' => $quantity,
+                            'unit' => $unit,
+                            'rate' => $rate,
                             'currency' => 'IDR',
-                            'amount' => $otherCost['amount'],
+                            'amount' => $amount,
                             'item_ref' => 'other_cost_' . $index,
                             'item_type' => 'operational_cost',
                             'include_in_customer_invoice' => false,
@@ -880,11 +886,16 @@ class InvoiceController extends Controller
             // Auto-transfer reimbursement items to invoice as reimbursement items
             $reimbursementItems = $invoice->salesOrder->reimbursementItems()->where('status', 'pending')->get();
             foreach ($reimbursementItems as $reimbursementItem) {
+                $receiptInfo = is_array($reimbursementItem->receipt_info)
+                    ? $reimbursementItem->receipt_info
+                    : [];
+                $quantity = $this->normalizeReceiptQuantity($receiptInfo, 1);
+                $unit = $this->normalizeReceiptUnit($receiptInfo, 'SET');
                 $invoiceItem = InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'description' => 'Reimbursement - ' . $reimbursementItem->description,
-                    'quantity' => 1,
-                    'unit' => 'SET',
+                    'quantity' => $quantity,
+                    'unit' => $unit,
                     'rate' => $reimbursementItem->amount,
                     'currency' => 'IDR',
                     'amount' => $reimbursementItem->amount,
@@ -1927,14 +1938,19 @@ class InvoiceController extends Controller
 
             // For each vendor in breakdown, create buying cost item
             foreach ($salesOrder->vendor_breakdown as $index => $vendor) {
-                $buyingAmount = floatval($vendor['buying_amount'] ?? 0);
+                $buyingRate = floatval($vendor['buying_amount'] ?? 0);
 
                 // Only create if buying amount > 0
-                if ($buyingAmount > 0) {
+                if ($buyingRate > 0) {
                     $description = ($vendor['description'] ?? 'Service') . ' - Buying Cost (COGS)';
                     $vendorId = !empty($vendor['vendor_id']) && is_numeric($vendor['vendor_id'])
                         ? (int)$vendor['vendor_id']
                         : null;
+                    $quantityInfo = $this->resolveItemQuantity($vendor, 1);
+                    $quantity = $quantityInfo['quantity'];
+                    $hasQuantity = $quantityInfo['hasQuantity'];
+                    $unit = $this->normalizeItemUnit($vendor, 'SET');
+                    $buyingAmount = $hasQuantity ? $buyingRate * $quantity : $buyingRate;
 
                     $itemRef = 'cogs_vendor_' . ($vendor['vendor_id'] ?? $index);
 
@@ -1950,9 +1966,9 @@ class InvoiceController extends Controller
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'description' => $description,
-                        'quantity' => 1,
-                        'unit' => 'SET',
-                        'rate' => $buyingAmount,
+                        'quantity' => $quantity,
+                        'unit' => $unit,
+                        'rate' => $buyingRate,
                         'currency' => 'IDR',
                         'amount' => $buyingAmount,
                         'item_ref' => $itemRef,
@@ -2002,17 +2018,22 @@ class InvoiceController extends Controller
             $rawVendorId = $vendor['vendor_id'] ?? null;
             $vendorId = is_numeric($rawVendorId) ? (int) $rawVendorId : null;
             $description = $vendor['description'] ?? 'Service';
+            $quantityInfo = $this->resolveItemQuantity($vendor, 1);
+            $quantity = $quantityInfo['quantity'];
+            $hasQuantity = $quantityInfo['hasQuantity'];
+            $unit = $this->normalizeItemUnit($vendor, 'SET');
 
             // Billable (selling)
-            $sellingAmount = floatval($vendor['selling_amount'] ?? 0);
-            if ($sellingAmount > 0) {
+            $sellingRate = floatval($vendor['selling_amount'] ?? 0);
+            if ($sellingRate > 0) {
+                $sellingAmount = $hasQuantity ? $sellingRate * $quantity : $sellingRate;
                 $billRef = 'vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'description' => $description,
-                    'quantity' => 1,
-                    'unit' => 'SET',
-                    'rate' => $sellingAmount,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
+                    'rate' => $sellingRate,
                     'currency' => 'IDR',
                     'amount' => $sellingAmount,
                     'item_ref' => $billRef,
@@ -2024,15 +2045,16 @@ class InvoiceController extends Controller
             }
 
             // COGS (buying)
-            $buyingAmount = floatval($vendor['buying_amount'] ?? 0);
-            if ($buyingAmount > 0) {
+            $buyingRate = floatval($vendor['buying_amount'] ?? 0);
+            if ($buyingRate > 0) {
+                $buyingAmount = $hasQuantity ? $buyingRate * $quantity : $buyingRate;
                 $cogsRef = 'cogs_vendor_' . ($rawVendorId !== null ? $rawVendorId : $index);
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'description' => $description . ' - Buying Cost (COGS)',
-                    'quantity' => 1,
-                    'unit' => 'SET',
-                    'rate' => $buyingAmount,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
+                    'rate' => $buyingRate,
                     'currency' => 'IDR',
                     'amount' => $buyingAmount,
                     'item_ref' => $cogsRef,
@@ -2046,6 +2068,61 @@ class InvoiceController extends Controller
 
         // Recalculate customer-facing totals (COGS tidak mempengaruhi subtotal)
         $invoice->calculateTotals();
+    }
+
+    private function resolveItemQuantity(array $payload, float $fallback = 1): array
+    {
+        $quantity = $payload['quantity'] ?? $payload['qty'] ?? null;
+        $hasQuantity = is_numeric($quantity) && (float) $quantity > 0;
+
+        return [
+            'quantity' => $hasQuantity ? (float) $quantity : $fallback,
+            'hasQuantity' => $hasQuantity,
+        ];
+    }
+
+    private function normalizeItemQuantity(array $payload, float $fallback = 1): float
+    {
+        return $this->resolveItemQuantity($payload, $fallback)['quantity'];
+    }
+
+    private function normalizeItemUnit(array $payload, string $fallback): string
+    {
+        $unit = $payload['unit'] ?? $payload['package_unit'] ?? null;
+
+        if (is_string($unit)) {
+            $unit = trim($unit);
+            if ($unit !== '') {
+                return $unit;
+            }
+        }
+
+        return $fallback;
+    }
+
+    private function normalizeReceiptQuantity(array $receiptInfo, float $fallback = 1): float
+    {
+        $quantity = $receiptInfo['quantity'] ?? null;
+
+        if (is_numeric($quantity) && (float) $quantity > 0) {
+            return (float) $quantity;
+        }
+
+        return $fallback;
+    }
+
+    private function normalizeReceiptUnit(array $receiptInfo, string $fallback): string
+    {
+        $unit = $receiptInfo['unit'] ?? null;
+
+        if (is_string($unit)) {
+            $unit = trim($unit);
+            if ($unit !== '') {
+                return $unit;
+            }
+        }
+
+        return $fallback;
     }
 
     /**

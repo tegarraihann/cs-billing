@@ -5,8 +5,8 @@
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-sage-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-2xl font-bold text-sage-800">Buat Invoice Baru</h2>
-                        <p class="text-sage-600">Buat invoice dari sales order yang telah disetujui</p>
+                        <h2 class="text-2xl font-bold text-sage-800">Create New Invoice</h2>
+                        <p class="text-sage-600">Create an invoice from an approved sales order.</p>
                     </div>
                     <Link :href="route('admin-keuangan.invoices.index')"
                         class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
@@ -14,7 +14,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        Kembali
+                        Back
                     </Link>
                 </div>
             </div>
@@ -23,14 +23,14 @@
             <form @submit.prevent="submit" class="space-y-6">
                 <!-- Sales Order Selection -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Pilih Sales Order & Type Invoice</h3>
+                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Select Sales Order & Invoice Type</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Sales Order</label>
                             <select v-model="form.sales_order_id" @change="loadSalesOrderData"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                 required>
-                                <option value="">Pilih Sales Order</option>
+                                <option value="">Select Sales Order</option>
                                 <option v-for="order in salesOrders" :key="order.id" :value="order.id">
                                     {{ order.order_number }} - {{ order.customer || order.customer_name || 'No Customer'
                                     }} ({{ order.status?.toUpperCase() || 'APPROVED' }})
@@ -43,15 +43,15 @@
                             <div v-if="form.sales_order_id"
                                 class="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
                                 <p class="text-xs text-green-700">
-                                    ✓ Data otomatis di-load dari Sales Order:
-                                    {{ mainItems.length }} item utama,
-                                    {{ reimbursementItems.length }} reimbursement,
-                                    {{ operationalCosts.length }} biaya operational
+                                    Data loaded automatically from the Sales Order:
+                                    {{ mainItems.length }} main items,
+                                    {{ reimbursementItems.length }} reimbursement items,
+                                    {{ operationalCosts.length }} operational costs
                                 </p>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Invoice</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Type</label>
                             <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
                                 Combined Invoice (Main + Reimbursement)
                             </div>
@@ -62,10 +62,10 @@
 
                 <!-- Invoice Details -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Detail Invoice</h3>
+                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Invoice Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Invoice</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
                             <input type="date" v-model="form.invoice_date"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                 required />
@@ -74,7 +74,7 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Term (Hari)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Term (Days)</label>
                             <input type="number" v-model="form.term_days" min="1"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                 required />
@@ -87,7 +87,7 @@
 
                 <!-- Shipment Details -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
-                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Detail Pengiriman</h3>
+                    <h3 class="text-lg font-semibold text-sage-800 mb-4">Shipment Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Shipper</label>
@@ -202,7 +202,7 @@
                     <h3 class="text-lg font-semibold text-sage-800 mb-4">Down Payment (DP)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah DP</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Down Payment Amount</label>
                             <input type="number" v-model="form.down_payment_amount" step="0.01" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                 placeholder="0.00" />
@@ -211,7 +211,7 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal DP</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Down Payment Date</label>
                             <input type="date" v-model="form.down_payment_date"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                             <div v-if="errors.down_payment_date" class="text-red-500 text-sm mt-1">
@@ -219,10 +219,10 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Catatan DP</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Down Payment Notes</label>
                             <textarea v-model="form.down_payment_notes" rows="2"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                placeholder="Catatan terkait down payment..."></textarea>
+                                placeholder="Notes for the down payment..."></textarea>
                             <div v-if="errors.down_payment_notes" class="text-red-500 text-sm mt-1">
                                 {{ errors.down_payment_notes }}
                             </div>
@@ -259,16 +259,16 @@
                     <!-- Main Invoice Items (Table Style) -->
                     <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-sage-800">Item Invoice Utama</h3>
+                            <h3 class="text-lg font-semibold text-sage-800">Main Invoice Items</h3>
                             <div class="flex space-x-2">
-                                <!-- Button Load dari SO -->
+                                <!-- Button Load from SO -->
                                 <button v-if="form.sales_order_id" type="button" @click="reloadFromSalesOrder"
                                     class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
-                                    Load dari SO
+                                    Load from SO
                                 </button>
                                 <button type="button" @click="addItem"
                                     class="inline-flex items-center px-3 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
@@ -276,7 +276,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
-                                    Tambah Item
+                                    Add Item
                                 </button>
                             </div>
                         </div>
@@ -289,8 +289,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <p>Belum ada item invoice utama</p>
-                                <p class="text-sm">Klik tombol "Tambah Item" untuk menambah item</p>
+                                <p>No main invoice items yet</p>
+                                <p class="text-sm">Click "Add Item" to add an item</p>
                             </div>
                         </div>
 
@@ -309,7 +309,7 @@
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                                     <div class="md:col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
                                         <input type="text" v-model="item.description"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                             required />
@@ -331,7 +331,7 @@
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Rate</label>
                                         <input type="text" v-model="item.rate"
                                             @input="formatMainItemRate(item, index, $event)"
-                                            placeholder="0 (contoh: 2.500 atau 2500)"
+                                            placeholder="0 (e.g., 2,500 or 2500)"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                             required />
                                     </div>
@@ -354,7 +354,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
-                                    Load dari SO
+                                    Load from SO
                                 </button>
                                 <button type="button" @click="addItem"
                                     class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors">
@@ -362,7 +362,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
-                                    Tambah Item Lagi
+                                    Add Another Item
                                 </button>
                             </div>
                         </div>
@@ -371,14 +371,14 @@
                     <!-- Reimbursement Invoice Items (Voucher Style) -->
                     <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-sage-800">Item Reimbursement</h3>
+                            <h3 class="text-lg font-semibold text-sage-800">Reimbursement Items</h3>
                             <button type="button" @click="addReimbursementItem"
                                 class="inline-flex items-center px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                Tambah Item Reimbursement
+                                Add Reimbursement Item
                             </button>
                         </div>
 
@@ -390,8 +390,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <p>Belum ada item reimbursement</p>
-                                <p class="text-sm">Klik tombol "Tambah Item Reimbursement" untuk menambah item</p>
+                                <p>No reimbursement items yet</p>
+                                <p class="text-sm">Click "Add Reimbursement Item" to add an item</p>
                             </div>
                         </div>
 
@@ -433,22 +433,21 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                     <textarea v-model="item.description" rows="2"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"
-                                        placeholder="e.g., Biaya trucking dari gudang ke pelabuhan" required></textarea>
+                                        placeholder="e.g., Trucking cost from warehouse to port" required></textarea>
                                 </div>
 
                                 <!-- Vendor Selection -->
                                 <div class="mt-3">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                        Vendor / Penerima
+                                        Vendor / Recipient
                                     </label>
                                     <SearchableSelect v-model="item.vendor_id"
                                         :options="vendorSelectOptions"
-                                        placeholder="Pilih vendor"
+                                        placeholder="Select vendor"
                                         :search-fields="['label']"
                                         :input-class="'w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500'" />
                                     <p class="text-xs text-gray-600 mt-1">
-                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika
-                                        internal
+                                        Select a vendor if this cost will be paid to an external vendor; leave blank for internal
                                     </p>
                                 </div>
 
@@ -463,7 +462,7 @@
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Unit Rate</label>
                                         <input v-model="item.rate" @input="formatReimbursementRate(item, index, $event)"
-                                            type="text" placeholder="0 (contoh: 500.000 atau 500000)"
+                                            type="text" placeholder="0 (e.g., 500,000 or 500000)"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                             required />
                                     </div>
@@ -487,7 +486,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                Tambah Item Reimbursement Lagi
+                                Add Another Reimbursement Item
                             </button>
                         </div>
                     </div>
@@ -496,9 +495,8 @@
                     <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200 border-l-4 border-l-red-500">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-semibold text-red-800">Biaya Operasional (Internal)</h3>
-                                <p class="text-sm text-red-600">Biaya ini tidak akan ditampilkan di invoice customer dan
-                                    akan mengurangi profit</p>
+                                <h3 class="text-lg font-semibold text-red-800">Operational Costs (Internal)</h3>
+                                <p class="text-sm text-red-600">These costs will not appear on the customer invoice and will reduce profit</p>
                                 <!-- Auto-populated info -->
                                 <div v-if="operationalCosts.some(cost => cost.auto_generated)"
                                     class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -509,11 +507,9 @@
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <div class="text-xs text-blue-800">
-                                            <strong>Info:</strong> Biaya dengan label <span
-                                                class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Auto
-                                                dari SO</span>
-                                            telah dimuat otomatis dari Sales Order. Anda bisa mengedit nilai atau
-                                            deskripsi sesuai kebutuhan.
+                                            <strong>Info:</strong> Costs with the label <span
+                                                class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Auto from SO</span>
+                                            were loaded automatically from the Sales Order. You can edit the amount or description as needed.
                                         </div>
                                     </div>
                                 </div>
@@ -524,7 +520,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                Tambah Biaya Operasional
+                                Add Operational Cost
                             </button>
                         </div>
 
@@ -536,8 +532,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p class="text-red-600">Belum ada biaya operasional</p>
-                                <p class="text-sm text-red-500">Contoh: Kirim dokumen, biaya kawalan, parkir, dll</p>
+                                <p class="text-red-600">No operational costs yet</p>
+                                <p class="text-sm text-red-500">Example: document delivery, escort fees, parking, etc.</p>
                             </div>
                         </div>
 
@@ -554,7 +550,7 @@
                                             'font-medium',
                                             cost.auto_generated ? 'text-blue-800' : 'text-red-800'
                                         ]">
-                                            Biaya Operasional {{ index + 1 }}
+                                            Operational Cost {{ index + 1 }}
                                         </h4>
                                         <!-- Auto-generated indicator -->
                                         <span v-if="cost.auto_generated"
@@ -564,7 +560,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M13 10V3L4 14h7v7l9-11h-7z" />
                                             </svg>
-                                            Auto dari SO
+                                            Auto from SO
                                         </span>
                                         <!-- Manual input indicator -->
                                         <span v-else
@@ -594,16 +590,16 @@
                                         'block text-sm font-medium mb-2',
                                         cost.auto_generated ? 'text-blue-700' : 'text-red-700'
                                     ]">
-                                        Kategori Biaya
+                                        Cost Category
                                         <span v-if="cost.source !== 'vendor_breakdown_buying'">*</span>
                                     </label>
                                     <div v-if="cost.source === 'vendor_breakdown_buying'"
                                         class="px-3 py-2 border border-blue-200 rounded-lg bg-blue-50 text-sm text-blue-800">
-                                        Biaya beli (COGS) otomatis dari Sales Order. Kategori tidak diperlukan.
+                                        Buying cost (COGS) is loaded from the Sales Order. Category is not required.
                                     </div>
                                     <SearchableSelect v-else v-model="cost.category_id"
                                         :options="operationalCostCategoryOptions"
-                                        placeholder="Pilih kategori biaya"
+                                        placeholder="Select cost category"
                                         :search-fields="['label']"
                                         :input-class="[
                                             'w-full px-3 py-2 pr-8 border rounded-lg focus:ring-2',
@@ -620,11 +616,11 @@
                                         'block text-sm font-medium mb-2',
                                         cost.auto_generated ? 'text-blue-700' : 'text-red-700'
                                     ]">
-                                        Vendor / Penerima
+                                        Vendor / Recipient
                                     </label>
                                     <SearchableSelect v-model="cost.vendor_id"
                                         :options="vendorSelectOptions"
-                                        placeholder="Pilih vendor"
+                                        placeholder="Select vendor"
                                         :search-fields="['label']"
                                         :input-class="[
                                             'w-full px-3 py-2 pr-8 border rounded-lg focus:ring-2',
@@ -636,23 +632,22 @@
                                         'text-xs mt-1',
                                         cost.auto_generated ? 'text-blue-600' : 'text-red-600'
                                     ]">
-                                        Pilih vendor jika biaya ini akan dibayar ke vendor eksternal, kosongkan jika
-                                        internal
+                                        Select a vendor if this cost will be paid to an external vendor; leave blank for internal
                                     </p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div class="md:col-span-2">
-                                        <label class="block text-sm font-medium text-red-700 mb-2">Deskripsi</label>
+                                        <label class="block text-sm font-medium text-red-700 mb-2">Description</label>
                                         <input type="text" v-model="cost.description"
                                             class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                            placeholder="e.g., Kirim dokumen, biaya kawalan, konsumsi" required />
+                                            placeholder="e.g., document delivery, escort fees, refreshments" required />
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-red-700 mb-2">Biaya</label>
+                                        <label class="block text-sm font-medium text-red-700 mb-2">Cost</label>
                                         <input type="text" v-model="cost.rate"
                                             @input="formatOperationalRate(cost, index, $event)"
-                                            placeholder="0 (contoh: 50.000 atau 50000)"
+                                            placeholder="0 (e.g., 50,000 or 50000)"
                                             class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             required />
                                     </div>
@@ -669,7 +664,7 @@
                         <!-- Operational Costs Summary -->
                         <div v-if="operationalCosts.length > 0" class="mt-4 pt-4 border-t border-red-200">
                             <div class="flex justify-between items-center text-sm">
-                                <span class="font-medium text-red-700">Total Biaya Operasional:</span>
+                                <span class="font-medium text-red-700">Total Operational Costs:</span>
                                 <span class="font-bold text-red-800">{{ formatCurrency(calculateOperationalTotal())
                                     }}</span>
                             </div>
@@ -684,7 +679,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                Tambah Biaya Operasional Lagi
+                                Add Another Operational Cost
                             </button>
                         </div>
                     </div>
@@ -693,7 +688,7 @@
                 <!-- Profit Summary (if operational costs exist) -->
                 <div v-if="operationalCosts.length > 0"
                     class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 border border-blue-200">
-                    <h3 class="text-lg font-semibold text-blue-800 mb-4">Ringkasan Profit</h3>
+                    <h3 class="text-lg font-semibold text-blue-800 mb-4">Profit Summary</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                         <div class="bg-white rounded-lg p-4 border border-blue-200">
                             <div class="text-blue-600 font-medium">Gross Revenue</div>
@@ -720,7 +715,7 @@
                         </div>
                     </div>
                     <div class="mt-6 bg-white rounded-lg p-4 border border-blue-200">
-                        <h4 class="text-sm font-semibold text-blue-800 mb-3">Detail Perhitungan</h4>
+                        <h4 class="text-sm font-semibold text-blue-800 mb-3">Calculation Details</h4>
                         <div class="space-y-2 text-sm text-gray-700">
                             <div class="flex items-center justify-between">
                                 <span>Main Invoice</span>
@@ -767,11 +762,11 @@
                         <div class="flex space-x-4">
                             <Link :href="route('admin-keuangan.invoices.index')"
                                 class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                                Batal
+                                Cancel
                             </Link>
                             <button type="submit" :disabled="form.processing"
                                 class="px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors disabled:opacity-50">
-                                {{ form.processing ? 'Menyimpan...' : 'Simpan Invoice' }}
+                                {{ form.processing ? 'Saving...' : 'Save Invoice' }}
                             </button>
                         </div>
                     </div>
@@ -818,7 +813,7 @@ const props = defineProps({
 
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
-        { value: '', label: '-- Internal (Divisi Operational) --' },
+        { value: '', label: '-- Internal (Operations Division) --' },
     ];
 
     const vendorOptions = (props.vendors ?? []).map(vendor => ({
@@ -830,7 +825,7 @@ const vendorSelectOptions = computed(() => {
 });
 
 const operationalCostCategoryOptions = computed(() => {
-    const baseOptions = [{ value: '', label: '-- Pilih Kategori Biaya --' }];
+    const baseOptions = [{ value: '', label: '-- Select Cost Category --' }];
 
     const categoryOptions = (props.operationalCostCategories ?? []).map(category => ({
         value: category.id,
@@ -1258,11 +1253,11 @@ const reloadFromSalesOrder = () => {
             (selectedOrder.other_costs && selectedOrder.other_costs.length > 0);
 
         if (hasData) {
-            if (confirm('Ini akan mengganti semua item yang sudah ada dengan data dari Sales Order. Lanjutkan?')) {
+            if (confirm('This will replace all existing items with data from the Sales Order. Continue?')) {
                 populateItemsFromSalesOrder(selectedOrder);
             }
         } else {
-            alert('Sales Order ini tidak memiliki data vendor breakdown, reimbursement, atau biaya operational untuk di-load.');
+            alert('Sales Order ini tidak memiliki data vendor breakdown, reimbursement items, atau operational costs untuk di-load.');
         }
     }
 };
@@ -1429,7 +1424,7 @@ const onCategoryChange = (index) => {
         cost.category = selectedCategory.name;
 
         if (!cost.description) {
-            cost.description = `Biaya ${selectedCategory.name.toLowerCase()}`;
+            cost.description = `Cost ${selectedCategory.name.toLowerCase()}`;
         }
     } else {
         cost.category_name = typeof cost.category_id === 'string' ? cost.category_id : '';

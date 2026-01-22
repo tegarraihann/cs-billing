@@ -356,6 +356,12 @@ class SalesOrder extends Model
             'description' => $item['description'] ?? null,
             'buying_amount' => (float) ($item['buying_amount'] ?? 0),
             'selling_amount' => (float) ($item['selling_amount'] ?? 0),
+            'quantity' => isset($item['quantity']) && is_numeric($item['quantity'])
+                ? (float) $item['quantity']
+                : null,
+            'unit' => isset($item['unit']) && is_string($item['unit'])
+                ? trim($item['unit'])
+                : null,
             'rcvd_inv' => $item['rcvd_inv'] ?? null,
             'remarks' => $item['remarks'] ?? null,
             'sort_order' => $index,

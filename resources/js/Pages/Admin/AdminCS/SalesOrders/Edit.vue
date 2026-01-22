@@ -13,7 +13,7 @@
                                 <div>
                                     <h1 class="text-2xl font-semibold text-gray-900">Edit Shipping: {{
                                         salesOrder.order_number }}</h1>
-                                    <p class="mt-1 text-sm text-gray-600">Perbarui informasi shipping order untuk pelanggan
+                                    <p class="mt-1 text-sm text-gray-600">Update shipping order information for the customer.
                                     </p>
                                 </div>
                             </div>
@@ -21,12 +21,12 @@
                                 <Link :href="route('admin-cs.sales-orders.show', salesOrder.id)"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
                                 <Eye class="w-4 h-4 mr-2" />
-                                Lihat Detail
+                                View Details
                                 </Link>
                                 <Link :href="route('admin-cs.sales-orders.index')"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
                                 <ArrowLeft class="w-4 h-4 mr-2" />
-                                Kembali
+                                Back
                                 </Link>
                             </div>
                         </div>
@@ -40,7 +40,7 @@
                     <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                         <div @click="toggleSection('basic')"
                             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                            <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
+                            <h3 class="text-lg font-semibold text-sage-800">Basic Information</h3>
                             <ChevronDown :class="{ 'rotate-180': !sections.basic }"
                                 class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                         </div>
@@ -92,7 +92,7 @@
                     <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                         <div @click="toggleSection('shipping')"
                             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                            <h3 class="text-lg font-semibold text-sage-800">Informasi Pengiriman</h3>
+                            <h3 class="text-lg font-semibold text-sage-800">Shipping Information</h3>
                             <ChevronDown :class="{ 'rotate-180': !sections.shipping }"
                                 class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                         </div>
@@ -223,53 +223,52 @@
                                 <div v-for="(item, index) in form.vendor_breakdown" :key="index"
                                     class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
                                     <!-- Row 1: Vendor Selection -->
-                                    <div class="grid grid-cols-12 gap-3">
-                                        <div class="col-span-11">
-                                            <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                Vendor</label>
-                                            <select v-model="item.vendor_id" @change="onVendorSelect(index)"
-                                                class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                                <option value="">Pilih vendor...</option>
-                                                <option v-for="vendorOption in vendors" :key="vendorOption.id"
-                                                    :value="vendorOption.id">
-                                                    {{ vendorOption.nama_vendor }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-span-1">
-                                            <label class="block text-xs font-medium text-transparent mb-1">Del</label>
-                                            <button type="button" @click="removeVendorItem(index)"
-                                                class="w-full h-10 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                <Trash2 class="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-sage-700 mb-1">Nama Vendor</label>
+                                        <SearchableSelect v-model="item.vendor_id"
+                                            :options="vendorSelectOptions"
+                                            placeholder="Pilih vendor..."
+                                            :search-fields="['label']"
+                                            :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'"
+                                            @update:modelValue="() => onVendorSelect(index)" />
                                     </div>
 
-                                    <!-- Row 2: Service Description & RCVD INV -->
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label class="block text-xs font-medium text-sage-700 mb-1">Deskripsi
-                                                Service / Jenis Biaya</label>
-                                            <select v-model="item.description"
-                                                class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                                <option value="">Pilih Jenis Biaya</option>
-                                                <option v-for="option in serviceTypeOptions"
-                                                    :key="option.value"
-                                                    :value="option.value">
-                                                    {{ option.label }}
-                                                </option>
-                                                <option v-if="item.description && !isKnownServiceType(item.description)"
-                                                    :value="item.description">
-                                                    {{ item.description }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-medium text-sage-700 mb-1">RCVD INV</label>
-                                            <input v-model="item.rcvd_inv" type="text"
-                                                placeholder="Nomor invoice yang diterima"
-                                                class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
-                                        </div>
+                                    <!-- Row 2: Service Description -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-sage-700 mb-1">Deskripsi Service / Jenis Biaya</label>
+                                        <SearchableSelect v-model="item.description"
+                                            :options="getServiceTypeOptions(item.description)"
+                                            placeholder="Pilih Jenis Biaya"
+                                            label-field="label"
+                                            value-field="value"
+                                            sub-label-field="subLabel"
+                                            :search-fields="['label', 'subLabel']"
+                                            :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'" />
+                                    </div>
+
+                                    <!-- Row 2.1: Quantity -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-sage-700 mb-1">Qty
+                                            (Optional)</label>
+                                        <input v-model="item.quantity" type="number" step="0.01" min="0"
+                                            placeholder="Jumlah"
+                                            class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                    </div>
+
+                                    <!-- Row 2.2: Unit -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-sage-700 mb-1">Unit
+                                            (Optional)</label>
+                                        <input v-model="item.unit" type="text" placeholder="Unit"
+                                            class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                    </div>
+
+                                    <!-- Row 3: RCVD INV -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-sage-700 mb-1">RCVD INV</label>
+                                        <input v-model="item.rcvd_inv" type="text"
+                                            placeholder="Nomor invoice yang diterima"
+                                            class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                     </div>
 
                                     <!-- Row 2.5: Individual Remarks -->
@@ -282,7 +281,7 @@
                                     </div>
 
                                     <!-- Row 3: Buying & Selling Amounts -->
-                                    <div class="grid grid-cols-3 gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <div class="grid grid-cols-1 gap-3 p-3 bg-blue-50 rounded-lg">
                                         <div>
                                             <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount
                                                 (Cost)</label>
@@ -307,7 +306,7 @@
                                     </div>
 
                                     <!-- Row 4: Vendor Details (Auto-filled) -->
-                                    <div v-if="item.vendor_id" class="grid grid-cols-3 gap-3 p-3 bg-sage-50 rounded-lg">
+                                    <div v-if="item.vendor_id" class="grid grid-cols-1 gap-3 p-3 bg-sage-50 rounded-lg">
                                         <div>
                                             <label class="block text-xs font-medium text-sage-700 mb-1">Nama
                                                 Vendor</label>
@@ -323,6 +322,15 @@
                                                 Rekening</label>
                                             <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
                                         </div>
+                                    </div>
+
+                                    <div class="flex justify-end">
+                                        <button type="button" @click="removeVendorItem(index)"
+                                            :disabled="form.vendor_breakdown.length <= 1"
+                                            class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <Trash2 class="w-4 h-4 mr-1" />
+                                            Hapus Vendor
+                                        </button>
                                     </div>
                                 </div>
                                 <!-- Total Summary -->
@@ -556,6 +564,19 @@
                                                     @input="formatCostAmount(cost, $event)"
                                                     class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                             </div>
+                                            <div class="col-span-12">
+                                                <label class="block text-xs font-medium text-orange-700 mb-1">Qty
+                                                    (Optional)</label>
+                                                <input v-model="cost.quantity" type="number" min="0" step="0.01"
+                                                    placeholder="Jumlah"
+                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                            </div>
+                                            <div class="col-span-12">
+                                                <label class="block text-xs font-medium text-orange-700 mb-1">Unit
+                                                    (Optional)</label>
+                                                <input v-model="cost.unit" type="text" placeholder="Unit"
+                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                            </div>
                                             <div class="col-span-2">
                                                 <label
                                                     class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
@@ -774,6 +795,7 @@ import { ref, computed, watch } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
+import SearchableSelect from "@/Components/SearchableSelect.vue";
 import { Pen, Eye, ArrowLeft, ChevronDown, Plus, Trash2, Loader2 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -826,6 +848,8 @@ const initializeVendorBreakdown = () => {
             no_rekening: item.no_rekening || '',
             nama_rekening: item.nama_rekening || '',
             description: item.description || '',
+            quantity: item.quantity ?? '',
+            unit: item.unit ?? '',
             buying_amount: item.buying_amount || 0,
             selling_amount: item.selling_amount || 0,
             rcvd_inv: item.rcvd_inv || '',
@@ -839,6 +863,8 @@ const initializeVendorBreakdown = () => {
         no_rekening: '',
         nama_rekening: '',
         description: '',
+        quantity: '',
+        unit: '',
         buying_amount: 0,
         selling_amount: 0,
         rcvd_inv: '',
@@ -855,12 +881,14 @@ const initializeOtherCosts = () => {
                 category: cost.category || '',
                 category_id: cost.category_id || '',
                 category_name: cost.category_name || cost.category || '',
+                quantity: cost.quantity ?? '',
+                unit: cost.unit ?? '',
                 vendor_id: cost.vendor_id ?? ''
             }))
-            : [{ description: '', amount: 0, category: '', category_id: '', category_name: '', vendor_id: '' }];
+            : [{ description: '', amount: 0, category: '', category_id: '', category_name: '', quantity: '', unit: '', vendor_id: '' }];
     }
 
-    return [{ description: '', amount: 0, category: '', category_id: '', category_name: '', vendor_id: '' }];
+    return [{ description: '', amount: 0, category: '', category_id: '', category_name: '', quantity: '', unit: '', vendor_id: '' }];
 };
 
 const parseReceiptInfo = (info) => {
@@ -881,10 +909,25 @@ const parseReceiptInfo = (info) => {
     return info;
 };
 
+const vendorSelectOptions = computed(() => {
+    const baseOptions = [
+        { value: '', label: '-- Belum Ditentukan --' },
+        { value: 'internal', label: '-- Internal (Divisi Operational) --' },
+    ];
+
+    const vendorOptions = (props.vendors ?? []).map(vendor => ({
+        value: vendor.id,
+        label: vendor.nama_vendor,
+    }));
+
+    return [...baseOptions, ...vendorOptions];
+});
+
 const serviceTypeOptions = computed(() => {
     return (props.serviceTypes ?? []).map(type => ({
         value: type.code,
         label: type.code,
+        subLabel: type.description || '',
     }));
 });
 
@@ -900,6 +943,16 @@ const isKnownServiceType = (code) => {
         return false;
     }
     return Object.prototype.hasOwnProperty.call(serviceTypeMap.value, code);
+};
+
+const getServiceTypeOptions = (currentValue) => {
+    if (!currentValue || isKnownServiceType(currentValue)) {
+        return serviceTypeOptions.value;
+    }
+    return [
+        ...serviceTypeOptions.value,
+        { value: currentValue, label: currentValue, subLabel: '' },
+    ];
 };
 
 const initializeReimbursementItems = () => {
@@ -1116,6 +1169,8 @@ const addVendorItem = () => {
         no_rekening: '',
         nama_rekening: '',
         description: '',
+        quantity: '',
+        unit: '',
         buying_amount: 0,
         selling_amount: 0,
         rcvd_inv: '',
@@ -1148,6 +1203,8 @@ const addOtherCost = () => {
         category: "",
         category_id: "",
         category_name: "",
+        quantity: "",
+        unit: "",
         vendor_id: ""
     });
 };
@@ -1393,6 +1450,8 @@ const submit = () => {
             category_id: cost.category_id || '',
             category_name: cost.category_name || cost.category || '',
             category: cost.category_name || cost.category || '',
+            quantity: cost.quantity !== '' ? parseFloat(cost.quantity) || cost.quantity : '',
+            unit: cost.unit || '',
             vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
         }));
 
@@ -1419,6 +1478,8 @@ const submit = () => {
         ...form.data(),
         vendor_breakdown: form.vendor_breakdown.map(item => ({
             ...item,
+            quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
+            unit: item.unit || '',
             buying_amount: parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0,
             selling_amount: parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0
         })),

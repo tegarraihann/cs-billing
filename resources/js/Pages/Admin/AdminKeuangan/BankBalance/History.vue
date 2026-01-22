@@ -10,7 +10,7 @@
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Bank {{ bank.bank_name }} History</h1>
                             <p class="mt-1 text-sm text-gray-600">
-                                Riwayat opening balance dan transaksi bank {{ bank.bank_name }}
+                                Opening balance and transaction history for {{ bank.bank_name }}
                             </p>
                         </div>
                         <div class="flex space-x-3">
@@ -100,7 +100,7 @@
                                 <Calendar class="mx-auto h-12 w-12 text-gray-400" />
                                 <h3 class="mt-2 text-sm font-medium text-gray-900">No opening balances found</h3>
                                 <p class="mt-1 text-sm text-gray-500">
-                                    Opening balances akan muncul setelah diinput.
+                                    Opening balances will appear after they are entered.
                                 </p>
                             </div>
                         </div>
@@ -164,7 +164,7 @@
                                 <Activity class="mx-auto h-12 w-12 text-gray-400" />
                                 <h3 class="mt-2 text-sm font-medium text-gray-900">No transactions found</h3>
                                 <p class="mt-1 text-sm text-gray-500">
-                                    Transaksi akan muncul setelah ada customer payment atau vendor payment.
+                                    Transactions will appear after customer or vendor payments are posted.
                                 </p>
                             </div>
                         </div>
@@ -203,7 +203,7 @@ defineProps({
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
@@ -213,7 +213,7 @@ const formatCurrency = (amount) => {
 
 const formatDate = (date) => {
     if (!date) return '-'
-    return new Date(date).toLocaleDateString('id-ID', {
+    return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
@@ -222,7 +222,7 @@ const formatDate = (date) => {
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '-'
-    return new Date(datetime).toLocaleDateString('id-ID', {
+    return new Date(datetime).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

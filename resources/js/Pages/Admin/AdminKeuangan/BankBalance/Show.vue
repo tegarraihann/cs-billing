@@ -10,7 +10,7 @@
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Bank {{ bank.bank_name }} Details</h1>
                             <p class="mt-1 text-sm text-gray-600">
-                                Detail saldo dan transaksi bank {{ bank.bank_name }}
+                                Balance and transaction details for {{ bank.bank_name }}
                             </p>
                         </div>
                         <div class="flex items-center space-x-2">
@@ -28,7 +28,7 @@
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
                             >
                                 <ArrowLeft class="w-4 h-4 mr-2" />
-                                Kembali
+                                Back
                             </Link>
                         </div>
                     </div>
@@ -142,7 +142,7 @@
                                 <div>
                                     <h3 class="text-lg font-medium text-gray-900">Net Cash Flow This Month</h3>
                                     <p class="mt-1 text-sm text-gray-500">
-                                        Total credit minus total debit untuk bulan ini
+                                        Total credit minus total debit for this month
                                     </p>
                                 </div>
                                 <div class="text-right">
@@ -181,22 +181,22 @@
                     <form @submit.prevent="submitCapitalDeposit" class="bg-white border border-sage-200 rounded-lg shadow-sm p-4 w-full lg:w-auto">
                         <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-3 space-y-3 sm:space-y-0">
                             <div class="w-full sm:w-32">
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
                                 <input v-model="capitalForm.transaction_date" type="date" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" required />
                             </div>
                             <div class="w-full sm:w-40">
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Setoran</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Deposit Amount</label>
                                 <input v-model="capitalForm.amount" type="number" step="0.01" min="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" required />
                             </div>
                             <div class="w-full sm:w-48">
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Catatan (opsional)</label>
-                                <input v-model="capitalForm.notes" type="text" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" placeholder="Mis: Setor modal pemegang saham" />
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Notes (optional)</label>
+                                <input v-model="capitalForm.notes" type="text" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm" placeholder="Example: Shareholder capital deposit" />
                             </div>
                             <div>
                                 <button type="submit" :disabled="capitalForm.processing" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
                                     <Loader2 v-if="capitalForm.processing" class="w-4 h-4 mr-2 animate-spin" />
                                     <Download v-else class="w-4 h-4 mr-2" />
-                                    Setor Modal
+                                    Deposit Capital
                                 </button>
                             </div>
                         </div>
@@ -263,7 +263,7 @@
                             <Activity class="mx-auto h-12 w-12 text-gray-400" />
                             <h3 class="mt-2 text-sm font-medium text-gray-900">No transactions found</h3>
                             <p class="mt-1 text-sm text-gray-500">
-                                Transaksi akan muncul setelah ada customer payment atau vendor payment.
+                                Transactions will appear after customer or vendor payments are posted.
                             </p>
                         </div>
                     </div>
@@ -306,7 +306,7 @@ const props = defineProps({
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
@@ -316,7 +316,7 @@ const formatCurrency = (amount) => {
 
 const formatDate = (date) => {
     if (!date) return '-'
-    return new Date(date).toLocaleDateString('id-ID', {
+    return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'

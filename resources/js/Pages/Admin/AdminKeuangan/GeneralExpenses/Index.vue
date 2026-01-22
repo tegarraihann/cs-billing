@@ -1,14 +1,14 @@
 <template>
   <AdminKeuanganLayout>
-    <Head title="Pengeluaran Lain-lain" />
+    <Head title="General Expenses" />
 
     <!-- Header -->
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Pengeluaran Lain-lain</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola pengeluaran tanpa SO non petty cash</p>
+            <h1 class="text-2xl font-bold text-gray-900">General Expenses</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage non-SO, non-petty cash expenses</p>
           </div>
           <div class="flex items-center space-x-3">
             <button
@@ -23,7 +23,7 @@
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
             >
               <Plus class="w-4 h-4 mr-2" />
-              Tambah Pengeluaran
+              Add Expense
             </Link>
           </div>
         </div>
@@ -38,7 +38,7 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Total Bulan Ini</dt>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Total This Month</dt>
                     <dd class="text-lg font-medium text-gray-900">
                       {{ formatCurrency(stats?.current_month_total || 0) }}
                     </dd>
@@ -56,7 +56,7 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Total Tahun Ini</dt>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Total This Year</dt>
                     <dd class="text-lg font-medium text-gray-900">
                       {{ formatCurrency(stats?.current_year_total || 0) }}
                     </dd>
@@ -102,10 +102,10 @@
         <!-- Filters -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
           <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Pengeluaran</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Expense Filters</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Periode (Bulan-Tahun)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Period (Month-Year)</label>
                 <input
                   v-model="formFilters.period"
                   type="month"
@@ -113,17 +113,17 @@
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select
                   v-model="formFilters.category"
                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                 >
-                  <option value="">Semua Kategori</option>
-                  <option value="Salary Staff">Gaji Staff</option>
-                  <option value="Bank Admin">Biaya Admin Bank</option>
+                  <option value="">All Categories</option>
+                  <option value="Salary Staff">Staff Salary</option>
+                  <option value="Bank Admin">Bank Admin Fee</option>
                   <option value="Reimbursements">Reimbursements</option>
-                  <option value="Office Expenses">Biaya Kantor</option>
-                  <option value="Other">Lainnya</option>
+                  <option value="Office Expenses">Office Expenses</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div>
@@ -132,13 +132,13 @@
                   v-model="formFilters.status"
                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                 >
-                  <option value="">Semua Status</option>
+                  <option value="">All Statuses</option>
                   <option value="draft">Draft</option>
                   <option value="approved">Approved</option>
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <input
                   v-model="formFilters.expense_date"
                   type="date"
@@ -157,7 +157,7 @@
                 @click="applyFilters"
                 class="px-4 py-2 text-sm font-medium text-white bg-sage-600 rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
               >
-                Filter
+                Apply Filters
               </button>
             </div>
           </div>
@@ -166,20 +166,20 @@
         <!-- Expenses Table -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
           <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Daftar Pengeluaran</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Expense List</h3>
           </div>
 
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
                   <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                   <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
                   <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -214,7 +214,7 @@
                       <Link
                         :href="route('admin-keuangan.general-expenses.show', expense.id)"
                         class="text-gray-600 hover:text-gray-800 transition-colors"
-                        title="Lihat Detail"
+                        title="View Details"
                       >
                         <Eye class="w-4 h-4" />
                       </Link>
@@ -238,7 +238,7 @@
                         v-if="expense.status === 'draft'"
                         @click="confirmDelete(expense)"
                         class="text-red-600 hover:text-red-800 transition-colors"
-                        title="Hapus"
+                        title="Delete"
                       >
                         <Trash2 class="w-4 h-4" />
                       </button>
@@ -249,14 +249,14 @@
                   <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
                     <div class="flex flex-col items-center">
                       <DollarSign class="w-12 h-12 text-gray-300 mb-4" />
-                      <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada pengeluaran</h3>
-                      <p class="text-sm text-gray-500 mb-4">Mulai dengan menambahkan pengeluaran pertama</p>
+                      <h3 class="text-lg font-medium text-gray-900 mb-2">No expenses yet</h3>
+                      <p class="text-sm text-gray-500 mb-4">Get started by adding your first expense</p>
                       <Link
                         :href="route('admin-keuangan.general-expenses.create')"
                         class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-md hover:bg-sage-700"
                       >
                         <Plus class="w-4 h-4 mr-2" />
-                        Tambah Pengeluaran Pertama
+                        Add First Expense
                       </Link>
                     </div>
                   </td>
@@ -286,13 +286,13 @@
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p class="text-sm text-gray-700">
-                  Menampilkan
+                  Showing
                   <span class="font-medium">{{ expenses?.from ?? 0 }}</span>
-                  sampai
+                  to
                   <span class="font-medium">{{ expenses?.to ?? 0 }}</span>
-                  dari
+                  of
                   <span class="font-medium">{{ expenses?.total ?? 0 }}</span>
-                  pengeluaran
+                  expenses
                 </p>
               </div>
               <div>
@@ -336,11 +336,11 @@
     <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Konfirmasi Hapus</h3>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
           <div class="mt-2 px-7 py-3">
             <p class="text-sm text-gray-500">
-              Apakah Anda yakin ingin menghapus pengeluaran kategori "{{ selectedExpense?.category }}"?
-              Tindakan ini tidak dapat dibatalkan.
+              Are you sure you want to delete the expense in category "{{ selectedExpense?.category }}"?
+              This action cannot be undone.
             </p>
           </div>
           <div class="flex justify-center space-x-3 mt-4">
@@ -348,13 +348,13 @@
               @click="showDeleteModal = false"
               class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
-              Batal
+              Cancel
             </button>
             <button
               @click="deleteExpense"
               class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              Hapus
+              Delete
             </button>
           </div>
         </div>
@@ -426,8 +426,8 @@ const formatDate = (date) => {
 
 const formatPeriod = (month, year) => {
   const monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]
   return `${monthNames[month - 1]} ${year}`
 }

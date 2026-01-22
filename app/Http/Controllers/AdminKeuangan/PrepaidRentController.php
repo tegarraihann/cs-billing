@@ -66,14 +66,14 @@ class PrepaidRentController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string', 'max:100'],
-            'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'other'])],
+            'source_type' => ['required', Rule::in(['bank', 'petty_cash', 'other', 'opening_balance'])],
             'bank_account_id' => ['nullable', 'required_if:source_type,bank', 'exists:bank_accounts,id'],
             'petty_cash_category_id' => ['nullable', 'required_if:source_type,petty_cash', 'exists:petty_cash_categories,id'],
             'notes' => ['nullable', 'string'],
             'rental_start_date' => ['nullable', 'date'],
             'rental_end_date' => ['nullable', 'date', 'after_or_equal:rental_start_date'],
             'amortization_months' => ['nullable', 'integer', 'min:1', 'max:60'],
-            'pl_account_id' => ['required', 'exists:chart_of_accounts,id'],
+            'pl_account_id' => ['nullable', 'required_unless:source_type,opening_balance', 'exists:chart_of_accounts,id'],
         ]);
 
         $topup = PrepaidRentTransaction::create([
@@ -130,7 +130,9 @@ class PrepaidRentController extends Controller
         }
 
         // Topup prepaid rent masuk P&L sesuai akun biaya yang dipilih
-        $this->postToProfitLoss($topup, $validated['pl_account_id'], 'auto_prepaid_rent_topup');
+        if ($validated['source_type'] !== 'opening_balance') {
+            $this->postToProfitLoss($topup, $validated['pl_account_id'], 'auto_prepaid_rent_topup');
+        }
 
         return redirect()->route('admin-keuangan.prepaid-rent.index')
             ->with('success', 'Pembayaran sewa berhasil dicatat.');

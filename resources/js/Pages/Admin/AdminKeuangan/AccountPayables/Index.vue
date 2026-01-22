@@ -1,13 +1,13 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Manajemen Hutang" />
+        <Head title="Accounts Payable" />
 
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Manajemen Hutang</h1>
-                        <p class="mt-1 text-sm text-gray-600">Kelola hutang dan pembayaran vendor</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Accounts Payable</h1>
+                        <p class="mt-1 text-sm text-gray-600">Manage payables and vendor payments</p>
                     </div>
                 </div>
 
@@ -53,7 +53,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Jumlah Overdue</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Overdue Count</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ summary.count_overdue }}</dd>
                                     </dl>
                                 </div>
@@ -81,14 +81,14 @@
                 <!-- Filters -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filter Data</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
                                 <input
                                     v-model="searchForm.search"
                                     type="text"
-                                    placeholder="Cari vendor atau service..."
+                                    placeholder="Search vendors or services..."
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @input="debounceSearch"
                                 />
@@ -100,7 +100,7 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 >
-                                    <option value="">Semua Status</option>
+                                    <option value="">All Statuses</option>
                                     <option value="unpaid">Unpaid</option>
                                     <option value="partial">Partial</option>
                                     <option value="paid">Paid</option>
@@ -113,7 +113,7 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 >
-                                    <option value="">Semua Vendor</option>
+                                    <option value="">All Vendors</option>
                                     <option
                                         v-for="vendor in vendors"
                                         :key="vendor.id"
@@ -124,7 +124,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
                                 <input
                                     v-model="searchForm.date_from"
                                     type="date"
@@ -133,7 +133,7 @@
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
                                 <input
                                     v-model="searchForm.date_to"
                                     type="date"
@@ -148,7 +148,7 @@
                 <!-- Vendor Summary Section -->
                 <div v-if="vendorSummaryRows.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ringkasan per Vendor</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Vendor Summary</h3>
                         <div ref="vendorSummaryContainer" class="overflow-x-auto" style="overflow-x: auto;">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
@@ -157,7 +157,7 @@
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Outstanding</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Invoice</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Count</th>
                                         <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue</th>
                             </tr>
                         </thead>
@@ -314,7 +314,7 @@
                             >
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ row.salesOrder?.order_number || 'Tanpa Sales Order' }}
+                                        {{ row.salesOrder?.order_number || 'No Sales Order' }}
                                     </div>
                                     <div class="text-sm text-gray-600">
                                         {{ row.salesOrder?.customer || '-' }}
@@ -366,7 +366,7 @@
                                     >
                                         {{ getStatusText(row.status) }}
                                         <span v-if="row.daysOverdue > 0" class="ml-1">
-                                            ({{ row.daysOverdue }} hari)
+                                            ({{ row.daysOverdue }} days)
                                         </span>
                                     </span>
                                 </td>
@@ -380,7 +380,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
-                                        Detail
+                                        Details
                                     </button>
                                 </td>
                             </tr>
@@ -455,7 +455,7 @@ const summarizeList = (items = []) => {
     if (filtered.length <= 2) {
         return filtered.join(', ')
     }
-    return `${filtered.slice(0, 2).join(', ')} +${filtered.length - 2} lainnya`
+    return `${filtered.slice(0, 2).join(', ')} +${filtered.length - 2} others`
 }
 
 const summarizeNames = (names = []) => {

@@ -1,13 +1,13 @@
 <template>
     <AdminKeuanganLayout>
-        <Head title="Gaji Karyawan" />
+        <Head title="Employee Salary" />
         
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Gaji Karyawan</h1>
-                        <p class="mt-1 text-sm text-gray-600">Kelola data gaji karyawan perusahaan</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Employee Salary</h1>
+                        <p class="mt-1 text-sm text-gray-600">Manage employee salary records.</p>
                     </div>
                     <div class="flex space-x-3">
                         <Link
@@ -29,7 +29,7 @@
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
                         >
                             <Plus class="w-4 h-4 mr-2" />
-                            Tambah Gaji
+                            Add Salary
                         </Link>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Karyawan</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Employees</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ stats.total_employees }}</dd>
                                     </dl>
                                 </div>
@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Bulan Ini</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total This Month</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(stats.current_month_total) }}</dd>
                                     </dl>
                                 </div>
@@ -91,7 +91,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Dibayar</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Paid</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ stats.paid_count }}</dd>
                                     </dl>
                                 </div>
@@ -107,22 +107,22 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Karyawan
+                                            Employee
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Posisi
+                                            Position
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Total Gaji
+                                            Total Salary
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tanggal Gaji
+                                            Salary Date
                                         </th>
                                         <th scope="col" class="relative px-6 py-3">
                                             <span class="sr-only">Actions</span>
@@ -134,14 +134,14 @@
                                         <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                             <div class="flex flex-col items-center">
                                                 <Users class="w-12 h-12 text-gray-300 mb-4" />
-                                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data gaji</h3>
-                                                <p class="text-sm text-gray-500 mb-4">Mulai dengan menambahkan data gaji karyawan</p>
+                                                <h3 class="text-lg font-medium text-gray-900 mb-2">No salary records yet</h3>
+                                                <p class="text-sm text-gray-500 mb-4">Start by adding an employee salary record.</p>
                                                 <Link 
                                                     :href="route('admin-keuangan.employee-salary.create')"
                                                     class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                                 >
                                                     <Plus class="w-4 h-4 mr-2" />
-                                                    Tambah Gaji Pertama
+                                                    Add First Salary
                                                 </Link>
                                             </div>
                                         </td>
@@ -174,7 +174,7 @@
                                                 <Link 
                                                     :href="route('admin-keuangan.employee-salary.show', salary.id)"
                                                     class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
-                                                    title="Lihat Detail"
+                                                title="View Details"
                                                 >
                                                     <Eye class="w-4 h-4" />
                                                 </Link>
@@ -198,7 +198,7 @@
                                                     v-if="salary.status === 'draft'"
                                                     @click="deleteSalary(salary)"
                                                     class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
-                                                    title="Hapus"
+                                                    title="Delete"
                                                 >
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
@@ -221,32 +221,32 @@
         <div v-if="showApproveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Approve & Bayar Gaji</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Approve & Pay Salary</h3>
                     <button @click="closeApproveModal" class="text-gray-400 hover:text-gray-600">&times;</button>
                 </div>
                 <div class="space-y-4">
                     <div class="text-sm text-gray-600">
-                        {{ selectedSalary ? `Gaji ${selectedSalary.employee_name} sebesar ${formatCurrency(selectedSalary.total_salary)}` : '' }}
+                        {{ selectedSalary ? `Salary for ${selectedSalary.employee_name} totaling ${formatCurrency(selectedSalary.total_salary)}` : '' }}
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Akun Bank</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
                         <select
                             v-model="selectedBankAccountId"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                         >
-                            <option value="" disabled>Pilih akun bank</option>
+                            <option value="" disabled>Select bank account</option>
                             <option v-for="account in bankAccounts" :key="account.id" :value="account.id">
                                 {{ account.bank_name }} - {{ account.account_number }} ({{ account.account_name }})
                             </option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Akun P&amp;L (Beban Gaji)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">P&amp;L Account (Salary Expense)</label>
                         <select
                             v-model="selectedPlAccountId"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                         >
-                            <option value="" disabled>Pilih akun P&amp;L</option>
+                            <option value="" disabled>Select P&amp;L account</option>
                             <option v-for="account in salaryAccounts" :key="account.id" :value="account.id">
                                 {{ account.account_code }} - {{ account.account_name }}
                             </option>
@@ -259,7 +259,7 @@
                         @click="closeApproveModal"
                         class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700"
                     >
-                        Batal
+                        Cancel
                     </button>
                     <button
                         type="button"
@@ -267,7 +267,7 @@
                         :disabled="!selectedBankAccountId || !selectedPlAccountId"
                         class="px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Approve & Bayar
+                        Approve & Pay
                     </button>
                 </div>
             </div>
@@ -293,14 +293,14 @@ defineProps({
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR'
     }).format(amount || 0)
 }
 
 const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('id-ID', {
+    return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
@@ -310,9 +310,9 @@ const formatDate = (date) => {
 const formatPeriod = (period) => {
     const [year, month] = period.split('-')
     const months = {
-        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', 
-        '05': 'Mei', '06': 'Jun', '07': 'Jul', '08': 'Agu',
-        '09': 'Sep', '10': 'Okt', '11': 'Nov', '12': 'Des'
+        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
     }
     return `${months[month]} ${year}`
 }
@@ -340,8 +340,8 @@ const getStatusBadge = (status) => {
 const getStatusText = (status) => {
     const texts = {
         'draft': 'Draft',
-        'paid': 'Dibayar',
-        'cancelled': 'Dibatalkan'
+        'paid': 'Paid',
+        'cancelled': 'Cancelled'
     }
     return texts[status] || status
 }
@@ -381,7 +381,7 @@ const submitApprove = () => {
 }
 
 const deleteSalary = (salary) => {
-    if (confirm(`Hapus data gaji ${salary.employee_name}?`)) {
+    if (confirm(`Delete salary record for ${salary.employee_name}?`)) {
         router.delete(route('admin-keuangan.employee-salary.destroy', salary.id))
     }
 }

@@ -11,7 +11,7 @@
                             </div>
                             <div>
                                 <h1 class="text-2xl font-semibold text-gray-900">{{ customer.company_name }}</h1>
-                                <p class="mt-1 text-sm text-gray-600">Detail informasi pelanggan</p>
+                                <p class="mt-1 text-sm text-gray-600">Customer information details</p>
                             </div>
                         </div>
                         <div class="mt-4 sm:mt-0 flex space-x-3">
@@ -28,7 +28,7 @@
                             <Link :href="route('admin-keuangan.customers.index')"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                                 <ArrowLeft class="mr-2 h-4 w-4" />
-                                Kembali
+                                Back
                             </Link>
                         </div>
                     </div>
@@ -42,26 +42,25 @@
                     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                                <Building class="mr-2 h-5 w-5" />
-                                Informasi Perusahaan
+                                Company Information
                             </h3>
                         </div>
                         <div class="p-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-sm font-medium text-gray-500">Nama Perusahaan</label>
+                                    <label class="text-sm font-medium text-gray-500">Company Name</label>
                                     <p class="text-gray-900 font-medium">{{ customer.company_name || '-' }}</p>
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-gray-500">Jenis Usaha</label>
+                                    <label class="text-sm font-medium text-gray-500">Business Type</label>
                                     <p class="text-gray-900 font-medium">{{ customer.company_type || '-' }}</p>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="text-sm font-medium text-gray-500">Alamat</label>
+                                    <label class="text-sm font-medium text-gray-500">Address</label>
                                     <p class="text-gray-900">{{ customer.company_address || '-' }}</p>
                                 </div>
                                 <div class="md:col-span-2" v-if="customer.invoice_address">
-                                    <label class="text-sm font-medium text-gray-500">Alamat Invoice</label>
+                                    <label class="text-sm font-medium text-gray-500">Invoice Address</label>
                                     <p class="text-gray-900">{{ customer.invoice_address }}</p>
                                 </div>
                             </div>
@@ -72,22 +71,21 @@
                     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                                <User class="mr-2 h-5 w-5" />
-                                Informasi PIC
+                                PIC Information
                             </h3>
                         </div>
                         <div class="p-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-sm font-medium text-gray-500">Nama PIC</label>
+                                    <label class="text-sm font-medium text-gray-500">PIC Name</label>
                                     <p class="text-gray-900 font-medium">{{ customer.pic_name || '-' }}</p>
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-gray-500">Email PIC</label>
+                                    <label class="text-sm font-medium text-gray-500">PIC Email</label>
                                     <p class="text-gray-900 font-medium">{{ customer.pic_email || '-' }}</p>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="text-sm font-medium text-gray-500">Telepon PIC</label>
+                                    <label class="text-sm font-medium text-gray-500">PIC Phone</label>
                                     <p class="text-gray-900">{{ customer.pic_phone || '-' }}</p>
                                 </div>
                             </div>
@@ -100,8 +98,7 @@
                         v-if="customer.nib || customer.npwp || customer.ktp_number">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                                <FileText class="mr-2 h-5 w-5" />
-                                Data Legalitas
+                                Legal Information
                             </h3>
                         </div>
                         <div class="p-6">
@@ -115,7 +112,7 @@
                                     <p class="text-gray-900 font-medium">{{ customer.npwp }}</p>
                                 </div>
                                 <div v-if="customer.ktp_number">
-                                    <label class="text-sm font-medium text-gray-500">Nomor KTP</label>
+                                    <label class="text-sm font-medium text-gray-500">National ID Number (KTP)</label>
                                     <p class="text-gray-900 font-medium">{{ customer.ktp_number }}</p>
                                 </div>
                             </div>
@@ -132,18 +129,18 @@
                         </div>
                         <div class="p-6 space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-500">Status Pelanggan</span>
+                                <span class="text-sm font-medium text-gray-500">Customer Status</span>
                                 <span
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Aktif
+                                    Active
                                 </span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-500">Dibuat</span>
+                                <span class="text-sm font-medium text-gray-500">Created</span>
                                 <span class="text-gray-900 text-sm">{{ formatDate(customer.created_at) }}</span>
                             </div>
                             <div class="flex items-center justify-between" v-if="customer.handler">
-                                <span class="text-sm font-medium text-gray-500">Ditangani oleh</span>
+                                <span class="text-sm font-medium text-gray-500">Handled By</span>
                                 <span class="text-gray-900 text-sm font-medium">{{ customer.handler.name }}</span>
                             </div>
                         </div>
@@ -155,20 +152,20 @@
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900 flex items-center">
                                 <TrendingUp class="mr-2 h-5 w-5" />
-                                Data Marketing
+                                Marketing Information
                             </h3>
                         </div>
                         <div class="p-6 space-y-3">
                             <div v-if="customer.marketing_name">
-                                <label class="text-sm font-medium text-gray-500">Nama Marketing</label>
+                                <label class="text-sm font-medium text-gray-500">Marketing Name</label>
                                 <p class="text-gray-900 font-medium">{{ customer.marketing_name }}</p>
                             </div>
                             <div v-if="customer.marketing_email">
-                                <label class="text-sm font-medium text-gray-500">Email Marketing</label>
+                                <label class="text-sm font-medium text-gray-500">Marketing Email</label>
                                 <p class="text-gray-900">{{ customer.marketing_email }}</p>
                             </div>
                             <div v-if="customer.marketing_phone">
-                                <label class="text-sm font-medium text-gray-500">Telepon Marketing</label>
+                                <label class="text-sm font-medium text-gray-500">Marketing Phone</label>
                                 <p class="text-gray-900">{{ customer.marketing_phone }}</p>
                             </div>
                         </div>
@@ -178,18 +175,18 @@
                     <div class="bg-white shadow overflow-hidden sm:rounded-lg"
                         v-if="customer.photo_path || customer.legal_document_path">
                         <div class="px-6 py-4 border-b border-gray-200">
-                            <h3 class="text-lg font-medium text-gray-900">Dokumen</h3>
+                            <h3 class="text-lg font-medium text-gray-900">Documents</h3>
                         </div>
                         <div class="p-6 space-y-3">
                             <div v-if="customer.photo_path" class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-500">Foto</span>
+                                <span class="text-sm font-medium text-gray-500">Photo</span>
                                 <a :href="`/storage/${customer.photo_path}`" target="_blank"
                                     class="text-indigo-600 hover:text-indigo-900 text-sm">
-                                    Lihat Foto
+                                    View Photo
                                 </a>
                             </div>
                             <div v-if="customer.legal_document_path" class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-500">Dokumen Legal</span>
+                                <span class="text-sm font-medium text-gray-500">Legal Document</span>
                                 <a :href="`/storage/${customer.legal_document_path}`" target="_blank"
                                     class="text-indigo-600 hover:text-indigo-900 text-sm">
                                     Download PDF

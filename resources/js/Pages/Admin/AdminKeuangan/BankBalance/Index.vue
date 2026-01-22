@@ -7,7 +7,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Bank Balance Management</h1>
-                        <p class="mt-1 text-sm text-gray-600">Kelola saldo bank dan input opening balance bulanan</p>
+                        <p class="mt-1 text-sm text-gray-600">Manage bank balances and input monthly opening balances.</p>
                     </div>
                     <Link
                         :href="route('admin-keuangan.bank-balance.create')"
@@ -28,7 +28,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Saldo Bank Mandiri</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Mandiri Bank Balance</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(stats.mandiri_balance) }}</dd>
                                     </dl>
                                 </div>
@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Saldo Bank BCA</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">BCA Bank Balance</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ formatCurrency(stats.bca_balance) }}</dd>
                                     </dl>
                                 </div>
@@ -60,7 +60,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Saldo Bank</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Bank Balance</dt>
                                         <dd class="text-lg font-medium text-sage-600 font-bold">{{ formatCurrency(stats.total_balance) }}</dd>
                                     </dl>
                                 </div>
@@ -76,7 +76,7 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Transaksi Bulan Ini</dt>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Transactions This Month</dt>
                                         <dd class="text-lg font-medium text-gray-900">{{ stats.transactions_this_month }}</dd>
                                     </dl>
                                 </div>
@@ -93,10 +93,10 @@
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-blue-800">
-                                Periode Aktif: {{ currentMonth }}
+                                Active Period: {{ currentMonth }}
                             </h3>
                             <div class="mt-2 text-sm text-blue-700">
-                                <p>Pastikan opening balance sudah diinput untuk periode ini agar tracking saldo bank akurat.</p>
+                                <p>Make sure the opening balance is entered for this period to keep bank balance tracking accurate.</p>
                             </div>
                         </div>
                     </div>
@@ -170,7 +170,7 @@
                     <CreditCard class="mx-auto h-12 w-12 text-gray-400" />
                     <h3 class="mt-2 text-sm font-medium text-gray-900">No bank accounts found</h3>
                     <p class="mt-1 text-sm text-gray-500">
-                        Bank accounts akan muncul setelah opening balance diinput.
+                        Bank accounts will appear after opening balances are entered.
                     </p>
                 </div>
             </div>
@@ -207,7 +207,7 @@ defineProps({
 })
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
@@ -217,7 +217,7 @@ const formatCurrency = (amount) => {
 
 const formatDate = (date) => {
     if (!date) return '-'
-    return new Date(date).toLocaleDateString('id-ID', {
+    return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

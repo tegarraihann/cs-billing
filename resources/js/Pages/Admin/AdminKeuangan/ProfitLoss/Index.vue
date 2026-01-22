@@ -7,7 +7,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Income Statement</h1>
-                        <p class="mt-1 text-sm text-gray-600">Manage the company’s income statement periods</p>
+                        <p class="mt-1 text-sm text-gray-600">Manage the company's income statement periods.</p>
                     </div>
                     <Link 
                         :href="route('admin-keuangan.profit-loss.create')"

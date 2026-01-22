@@ -11,8 +11,8 @@
                                     <Plus class="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 class="text-2xl font-semibold text-gray-900">Buat Shipping Order Baru</h1>
-                                    <p class="mt-1 text-sm text-gray-600">Buat dokumen Shipping order untuk pelanggan
+                                    <h1 class="text-2xl font-semibold text-gray-900">Create New Shipping Order</h1>
+                                    <p class="mt-1 text-sm text-gray-600">Create a shipping order document for the customer
                                     </p>
                                 </div>
                             </div>
@@ -20,7 +20,7 @@
                                 <Link :href="route('admin-keuangan.sales-orders.index')"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     <ArrowLeft class="mr-2 h-4 w-4" />
-                                    Kembali
+                                    Back
                                 </Link>
                             </div>
                         </div>
@@ -30,8 +30,8 @@
                 <!-- Form Section -->
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Form Shipping Order Baru</h3>
-                        <p class="mt-1 text-sm text-gray-600">Lengkapi informasi Shipping order dengan benar</p>
+                        <h3 class="text-lg font-medium text-sage-800">New Shipping Order Form</h3>
+                        <p class="mt-1 text-sm text-gray-600">Complete the shipping order information accurately</p>
                     </div>
 
                     <div class="p-6">
@@ -39,7 +39,7 @@
                             <!-- Customer Selection -->
                             <div class="bg-white shadow overflow-visible sm:rounded-lg">
                                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                                    <h3 class="text-lg font-medium text-gray-900">Pilih Metode Input</h3>
+                                    <h3 class="text-lg font-medium text-sage-800">Select Input Method</h3>
                                 </div>
                                 <div class="p-6">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -47,26 +47,26 @@
                                             <label class="flex items-center">
                                                 <input type="radio" v-model="inputMethod" value="manual"
                                                     class="mr-3 text-sage-600 focus:ring-sage-500">
-                                                <span class="text-sm font-medium text-sage-700">Input Manual</span>
+                                                <span class="text-sm font-medium text-sage-700">Manual Input</span>
                                             </label>
-                                            <p class="text-xs text-sage-500 mt-1 ml-6">Isi semua data secara manual</p>
+                                            <p class="text-xs text-sage-500 mt-1 ml-6">Fill in all data manually</p>
                                         </div>
                                         <div>
                                             <label class="flex items-center">
                                                 <input type="radio" v-model="inputMethod" value="customer"
                                                     class="mr-3 text-sage-600 focus:ring-sage-500">
-                                                <span class="text-sm font-medium text-sage-700">Berdasarkan Data
-                                                    Pelanggan</span>
+                                                <span class="text-sm font-medium text-sage-700">From Customer
+                                                    Data</span>
                                             </label>
-                                            <p class="text-xs text-sage-500 mt-1 ml-6">Auto-fill dari data pelanggan</p>
+                                            <p class="text-xs text-sage-500 mt-1 ml-6">Auto-fill from customer data</p>
                                         </div>
                                     </div>
 
                                     <div v-if="inputMethod === 'customer'" class="mt-4">
-                                        <label class="block text-sm font-medium text-sage-700 mb-2">Pilih
-                                            Pelanggan</label>
+                                        <label class="block text-sm font-medium text-sage-700 mb-2">Select
+                                            Customer</label>
                                         <SearchableSelect v-model="selectedCustomerId" :options="customerOptions"
-                                            placeholder="Cari pelanggan... (contoh: CI)" label-field="label"
+                                            placeholder="Search customers... (e.g., CI)" label-field="label"
                                             sub-label-field="subLabel" value-field="value"
                                             :search-fields="['label', 'subLabel', 'company_name', 'pic_name']"
                                             input-class="w-full px-3 py-2 pr-10 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
@@ -79,7 +79,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('basic')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Informasi Dasar</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Basic Information</h3>
                                     <svg :class="{ 'rotate-180': !sections.basic }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('shipping')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Informasi Pengiriman</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Shipping Information</h3>
                                     <svg :class="{ 'rotate-180': !sections.shipping }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@
                                         <input v-model="form.aju" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.aju" class="mt-2 text-sm text-red-600">{{ form.errors.aju
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">SPPB DATE</label>
@@ -198,13 +198,9 @@
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">SHIPMENT
                                             TYPE</label>
-                                        <SearchableSelect v-model="form.shipment_type"
-                                            :options="shipmentTypeOptions"
-                                            placeholder="Pilih Shipment Type"
-                                            label-field="label"
-                                            value-field="value"
-                                            sub-label-field="description"
-                                            :search-fields="['label', 'description']"
+                                        <SearchableSelect v-model="form.shipment_type" :options="shipmentTypeOptions"
+                                            placeholder="Select shipment type" label-field="label" value-field="value"
+                                            sub-label-field="description" :search-fields="['label', 'description']"
                                             :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500'" />
                                         <div v-if="form.errors.shipment_type" class="mt-2 text-sm text-red-600">{{
                                             form.errors.shipment_type }}</div>
@@ -214,14 +210,14 @@
                                         <input v-model="form.pol" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pol" class="mt-2 text-sm text-red-600">{{ form.errors.pol
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">POD</label>
                                         <input v-model="form.pod" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pod" class="mt-2 text-sm text-red-600">{{ form.errors.pod
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">GUDANG/UTC</label>
@@ -259,7 +255,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('pricing')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Informasi Pricing</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Pricing Information</h3>
                                     <svg :class="{ 'rotate-180': !sections.pricing }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -272,22 +268,21 @@
                                     <!-- Vendor Breakdown (Buying + Selling) -->
                                     <div class="bg-gray-50 rounded-lg p-4">
                                         <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-md font-semibold text-sage-800">Rincian Vendor (Buying &
+                                            <h4 class="text-md font-semibold text-sage-800">Vendor Breakdown (Buying &
                                                 Selling)</h4>
                                             <button type="button" @click="addVendorItem"
                                                 class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors">
-                                                + Tambah Vendor
+                                                + Add Vendor
                                             </button>
                                         </div>
                                         <div v-for="(item, index) in form.vendor_breakdown" :key="index"
                                             class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
                                             <!-- Row 1: Vendor Selection -->
                                             <div>
-                                                <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                    Vendor</label>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Vendor
+                                                    Name</label>
                                                 <SearchableSelect v-model="item.vendor_id"
-                                                    :options="vendorSelectOptions"
-                                                    placeholder="Pilih vendor..."
+                                                    :options="vendorSelectOptions" placeholder="Select vendor..."
                                                     :search-fields="['label']"
                                                     :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'"
                                                     @update:modelValue="() => onVendorSelect(index)" />
@@ -295,16 +290,31 @@
 
                                             <!-- Row 2: Service Description -->
                                             <div>
-                                                <label class="block text-xs font-medium text-sage-700 mb-1">Deskripsi
-                                                    Service / Jenis Biaya</label>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Service
+                                                    Description / Cost Type</label>
                                                 <SearchableSelect v-model="item.description"
                                                     :options="getServiceTypeOptions(item.description)"
-                                                    placeholder="Pilih Jenis Biaya"
-                                                    label-field="label"
-                                                    value-field="value"
-                                                    sub-label-field="subLabel"
+                                                    placeholder="Select cost type" label-field="label"
+                                                    value-field="value" sub-label-field="subLabel"
                                                     :search-fields="['label', 'subLabel']"
                                                     :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'" />
+                                            </div>
+
+                                            <!-- Row 2.1: Quantity -->
+                                            <div>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Qty
+                                                    (Optional)</label>
+                                                <input v-model="item.quantity" type="number" step="0.01" min="0"
+                                                    placeholder="Quantity"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                            </div>
+
+                                            <!-- Row 2.2: Unit -->
+                                            <div>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Unit
+                                                    (Optional)</label>
+                                                <input v-model="item.unit" type="text" placeholder="Unit"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
                                             <!-- Row 3: RCVD INV -->
@@ -312,7 +322,7 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">RCVD
                                                     INV</label>
                                                 <input v-model="item.rcvd_inv" type="text"
-                                                    placeholder="Nomor invoice yang diterima"
+                                                    placeholder="Received invoice number"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -321,7 +331,7 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Remarks
                                                     (Individual)</label>
                                                 <input v-model="item.remarks" type="text"
-                                                    placeholder="Catatan khusus untuk item ini"
+                                                    placeholder="Notes for this item"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -355,19 +365,19 @@
                                             <div v-if="item.vendor_id"
                                                 class="grid grid-cols-1 gap-3 p-3 bg-sage-50 rounded-lg">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                        Vendor</label>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Vendor
+                                                        Name</label>
                                                     <p class="text-sm text-gray-900">{{ item.nama_vendor || '-' }}</p>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Nomor
-                                                        Rekening</label>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Bank
+                                                        Account Number</label>
                                                     <p class="text-sm text-gray-900 font-mono">{{ item.no_rekening ||
                                                         '-' }}</p>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                        Rekening</label>
+                                                <label class="block text-xs font-medium text-sage-700 mb-1">Account
+                                                        Holder Name</label>
                                                     <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
                                                 </div>
                                             </div>
@@ -376,7 +386,7 @@
                                                     :disabled="form.vendor_breakdown.length <= 1"
                                                     class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                     <Trash2 class="w-4 h-4 mr-1" />
-                                                    Hapus Vendor
+                                                    Remove Vendor
                                                 </button>
                                             </div>
                                         </div>
@@ -398,7 +408,7 @@
                                                 <p class="text-xs font-medium"
                                                     :class="totalRevenue >= 0 ? 'text-purple-700' : 'text-red-700'">Net
                                                     Profit</p>
-                                                <p class="text-xs text-gray-500 mb-1">(Sudah dikurangi semua biaya)</p>
+                                                <p class="text-xs text-gray-500 mb-1">(All costs already deducted)</p>
                                                 <p class="text-lg font-bold"
                                                     :class="totalRevenue >= 0 ? 'text-purple-800' : 'text-red-800'">{{
                                                         formatCurrency(totalRevenue) }}</p>
@@ -415,28 +425,28 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                                 </svg>
-                                                Tambah Vendor Lagi
+                                                Add Another Vendor
                                             </button>
                                         </div>
                                     </div>
 
                                     <!-- Revenue Summary -->
                                     <div class="bg-blue-50 rounded-lg p-4">
-                                        <h4 class="text-md font-semibold text-blue-800 mb-3">Ringkasan Revenue & Profit
+                                        <h4 class="text-md font-semibold text-blue-800 mb-3">Revenue & Profit Summary
                                         </h4>
                                         <div class="space-y-2">
                                             <div class="flex justify-between">
-                                                <span>Total Pemasukan (Selling):</span>
+                                                <span>Total Revenue (Selling):</span>
                                                 <span class="font-medium text-green-700">{{ formatCurrency(totalSelling)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="flex justify-between">
-                                                <span>Total Pengeluaran (Buying):</span>
+                                                <span>Total Cost (Buying):</span>
                                                 <span class="font-medium text-red-700">{{ formatCurrency(totalBuying)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="flex justify-between">
-                                                <span>Biaya Operasional:</span>
+                                                <span>Operational Costs:</span>
                                                 <span class="font-medium text-orange-700">{{
                                                     formatCurrency(totalOtherCosts) }}</span>
                                             </div>
@@ -446,11 +456,11 @@
                                                     formatCurrency(totalReimbursement) }}</span>
                                             </div>
                                             <div class="flex justify-between border-t border-blue-200 pt-2 mt-1">
-                                                <span class="text-sm font-medium text-gray-700">Total Pengeluaran
-                                                    Keseluruhan:</span>
+                                                <span class="text-sm font-medium text-gray-700">Total Overall
+                                                    Costs:</span>
                                                 <span class="text-sm font-bold text-red-800">{{
                                                     formatCurrency(totalBuying + totalOtherCosts + totalReimbursement)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div
                                                 class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
@@ -473,7 +483,7 @@
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">NOTE</label>
                                         <textarea v-model="form.note" rows="3"
-                                            placeholder="Catatan tambahan untuk sales order ini"
+                                            placeholder="Additional notes for this sales order"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
                                         <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{
                                             form.errors.note }}</div>
@@ -485,7 +495,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('other_costs')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Biaya Beban Lain (Operational)</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Other Costs (Operational)</h3>
                                     <svg :class="{ 'rotate-180': !sections.other_costs }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -496,11 +506,11 @@
                                 <div v-show="sections.other_costs" class="p-6">
                                     <div class="bg-orange-50 rounded-lg p-4">
                                         <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-md font-semibold text-orange-800">Biaya Beban Lain
+                                            <h4 class="text-md font-semibold text-orange-800">Other Costs
                                                 (Operational)</h4>
                                             <button type="button" @click="addOtherCost"
                                                 class="text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors">
-                                                + Tambah Biaya
+                                                + Add Cost
                                             </button>
                                         </div>
 
@@ -515,18 +525,33 @@
                                                 <div class="grid grid-cols-12 gap-3">
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Deskripsi
-                                                            Biaya</label>
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost
+                                                            Description</label>
                                                         <input v-model="cost.description" type="text"
-                                                            placeholder="Contoh: Biaya handling, dokumen, dll"
+                                                            placeholder="Example: handling fees, documents, etc."
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Jumlah
-                                                            Biaya</label>
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost
+                                                            Amount</label>
                                                         <input v-model="cost.amount" type="number" min="0" step="0.01"
                                                             placeholder="0"
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Qty
+                                                            (Optional)</label>
+                                                        <input v-model="cost.quantity" type="number" min="0" step="0.01"
+                                                            placeholder="Quantity"
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Unit
+                                                            (Optional)</label>
+                                                        <input v-model="cost.unit" type="text" placeholder="Unit"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -534,7 +559,7 @@
                                                             class="block text-xs font-medium text-orange-700 mb-1">Kategori</label>
                                                         <SearchableSelect v-model="cost.category"
                                                             :options="baseOperationalCostCategoryOptions"
-                                                            placeholder="Pilih kategori" label-field="label"
+                                                            placeholder="Select category" label-field="label"
                                                             value-field="value" sub-label-field="description"
                                                             :search-fields="['label', 'description']"
                                                             :input-class="`w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${baseOperationalCostCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
@@ -542,15 +567,13 @@
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-orange-700 mb-1">Vendor
-                                                            / Penerima</label>
+                                                            / Recipient</label>
                                                         <SearchableSelect v-model="cost.vendor_id"
-                                                            :options="vendorSelectOptions"
-                                                            placeholder="Pilih vendor"
+                                                            :options="vendorSelectOptions" placeholder="Select vendor"
                                                             :search-fields="['label']"
                                                             :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
-                                                        <p class="text-xs text-orange-600 mt-1">Pilih vendor jika sudah
-                                                            tahu akan
-                                                            dibayar ke siapa</p>
+                                                        <p class="text-xs text-orange-600 mt-1">Select a vendor if you
+                                                            already know who will be paid</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -558,8 +581,8 @@
                                             <!-- Total Other Costs -->
                                             <div class="pt-3 border-t border-orange-300">
                                                 <div class="flex justify-between items-center">
-                                                    <span class="text-sm font-medium text-orange-700">Total Biaya Beban
-                                                        Lain:</span>
+                                                    <span class="text-sm font-medium text-orange-700">Total Other
+                                                        Costs:</span>
                                                     <span class="text-lg font-bold text-orange-800">{{
                                                         formatCurrency(totalOtherCosts) }}</span>
                                                 </div>
@@ -570,15 +593,14 @@
                                                 <button type="button" @click="addOtherCost"
                                                     class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-orange-200 rounded-lg text-orange-700 hover:border-orange-300 hover:bg-orange-50 transition-colors">
                                                     <Plus class="w-5 h-5 mb-1" />
-                                                    <span class="text-sm font-medium">Tambah Biaya Lagi</span>
+                                                    <span class="text-sm font-medium">Add Another Cost</span>
                                                 </button>
                                             </div>
                                         </div>
 
                                         <div v-else class="text-center py-4 text-orange-600">
-                                            <p class="text-sm">Belum ada biaya beban lain</p>
-                                            <p class="text-xs text-orange-500">Klik tombol "Tambah Biaya" untuk
-                                                menambahkan</p>
+                                            <p class="text-sm">No other costs yet</p>
+                                            <p class="text-xs text-orange-500">Click "Add Cost" to add one</p>
                                         </div>
                                     </div>
                                 </div>
@@ -588,7 +610,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('reimbursement')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Items Reimbursement</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Reimbursement Items</h3>
                                     <svg :class="{ 'rotate-180': !sections.reimbursement }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -599,10 +621,10 @@
                                 <div v-show="sections.reimbursement" class="p-6">
                                     <div class="bg-purple-50 rounded-lg p-4">
                                         <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-md font-semibold text-purple-800">Items Reimbursement</h4>
+                                            <h4 class="text-md font-semibold text-purple-800">Reimbursement Items</h4>
                                             <button type="button" @click="addReimbursementItem"
                                                 class="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors">
-                                                + Tambah Reimbursement
+                                                + Add Reimbursement
                                             </button>
                                         </div>
 
@@ -617,52 +639,51 @@
                                                 <div class="grid grid-cols-12 gap-3">
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Deskripsi</label>
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Description</label>
                                                         <input v-model="item.description" type="text"
-                                                            placeholder="Contoh: Transport, Akomodasi, dll"
+                                                            placeholder="Example: transport, accommodation, etc."
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Jumlah</label>
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
                                                         <input v-model="item.amount" type="number" min="0" step="0.01"
                                                             placeholder="0"
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Kategori</label>
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Category</label>
                                                         <SearchableSelect v-model="item.category"
                                                             :options="reimbursementCategoryOptions"
-                                                            placeholder="Pilih kategori" label-field="label"
+                                                            placeholder="Select category" label-field="label"
                                                             value-field="value" sub-label-field="description"
                                                             :search-fields="['label', 'description']"
                                                             :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
                                                         <p v-if="reimbursementCategoryOptions.length === 0"
                                                             class="text-xs text-purple-600 mt-1">
-                                                            Kategori belum tersedia. Silakan tambah master Operational
-                                                            Cost Categories terlebih dahulu.
+                                                            No categories available. Please add Operational Cost
+                                                            Categories first.
                                                         </p>
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Vendor
-                                                            / Penerima</label>
+                                                            / Recipient</label>
                                                         <SearchableSelect v-model="item.vendor_id"
-                                                            :options="vendorSelectOptions"
-                                                            placeholder="Pilih vendor"
+                                                            :options="vendorSelectOptions" placeholder="Select vendor"
                                                             :search-fields="['label']"
                                                             :input-class="'w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
-                                                        <p class="text-xs text-purple-600 mt-1">Pilih vendor jika sudah
-                                                            tahu akan dibayar ke siapa</p>
+                                                        <p class="text-xs text-purple-600 mt-1">Select a vendor if you
+                                                            already know who will be paid</p>
                                                     </div>
                                                 </div>
                                                 <div class="mt-2">
                                                     <label
-                                                        class="block text-xs font-medium text-purple-700 mb-1">Catatan
-                                                        (opsional)</label>
+                                                        class="block text-xs font-medium text-purple-700 mb-1">Notes
+                                                        (optional)</label>
                                                     <textarea v-model="item.notes" rows="2"
-                                                        placeholder="Catatan tambahan untuk item reimbursement ini"
+                                                        placeholder="Additional notes for this reimbursement item"
                                                         class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"></textarea>
                                                 </div>
                                             </div>
@@ -682,15 +703,14 @@
                                                 <button type="button" @click="addReimbursementItem"
                                                     class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-purple-200 rounded-lg text-purple-700 hover:border-purple-300 hover:bg-purple-50 transition-colors">
                                                     <Plus class="w-5 h-5 mb-1" />
-                                                    <span class="text-sm font-medium">Tambah Reimbursement Lagi</span>
+                                                    <span class="text-sm font-medium">Add Another Reimbursement</span>
                                                 </button>
                                             </div>
                                         </div>
 
                                         <div v-else class="text-center py-4 text-purple-600">
-                                            <p class="text-sm">Belum ada item reimbursement</p>
-                                            <p class="text-xs text-purple-500">Klik tombol "Tambah Reimbursement" untuk
-                                                menambahkan</p>
+                                            <p class="text-sm">No reimbursement items yet</p>
+                                            <p class="text-xs text-purple-500">Click "Add Reimbursement" to add one</p>
                                         </div>
                                     </div>
                                 </div>
@@ -700,7 +720,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('goods')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Informasi Barang</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Goods Information</h3>
                                     <svg :class="{ 'rotate-180': !sections.goods }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -710,10 +730,9 @@
                                 </div>
                                 <div v-show="sections.goods" class="p-6 space-y-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/URAIAN
-                                            BARANG</label>
+                                        <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/DESCRIPTION</label>
                                         <textarea v-model="form.commodity" rows="3"
-                                            placeholder="Masukkan uraian barang/commodity yang detail"
+                                            placeholder="Enter a detailed commodity description"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
                                         <div v-if="form.errors.commodity" class="mt-2 text-sm text-red-600">{{
                                             form.errors.commodity }}</div>
@@ -723,16 +742,14 @@
                                             <label class="block text-sm font-medium text-sage-700 mb-2">QTY</label>
                                             <div class="relative flex w-full">
                                                 <input v-model="form.qty" type="number" min="0" placeholder="0.00"
-                                                    class="w-28 px-3 py-2 border border-sage-300 rounded-l-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10" />
+                                                    class="w-28 px-2 py-2 border border-sage-300 rounded-l-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10" />
                                                 <div class="flex-1">
                                                     <SearchableSelect v-model="form.package_unit"
-                                                        :options="packageUnitOptions"
-                                                        placeholder="Unit"
-                                                        label-field="label"
-                                                        value-field="value"
+                                                        :options="packageUnitOptions" placeholder="Unit"
+                                                        label-field="label" value-field="value"
                                                         sub-label-field="description"
                                                         :search-fields="['label', 'description']"
-                                                        :input-class="'h-full w-full px-3 py-2 pr-8 border-t border-r border-b border-sage-300 bg-white rounded-r-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10 text-sm'" />
+                                                        :input-class="'h-full w-full px-2 py-3 pr-8 border-t border-r border-b border-sage-300 bg-white rounded-r-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 focus:z-10 text-sm'" />
                                                 </div>
                                             </div>
                                             <div v-if="form.errors.qty" class="mt-2 text-sm text-red-600">{{
@@ -744,7 +761,7 @@
                                             <label class="block text-sm font-medium text-sage-700 mb-2">NET WEIGHT
                                                 (KG)</label>
                                             <input v-model="form.net_weight" type="number" step="0.01" min="0"
-                                                placeholder="Masukkan berat netto dalam kg"
+                                                placeholder="Enter net weight in kg"
                                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             <div v-if="form.errors.net_weight" class="mt-2 text-sm text-red-600">{{
                                                 form.errors.net_weight }}</div>
@@ -753,16 +770,16 @@
                                             <label class="block text-sm font-medium text-sage-700 mb-2">GROSS WEIGHT
                                                 (KG)</label>
                                             <input v-model="form.gross_weight" type="number" step="0.01" min="0"
-                                                placeholder="Masukkan berat kotor dalam kg"
+                                                placeholder="Enter gross weight in kg"
                                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             <div v-if="form.errors.gross_weight" class="mt-2 text-sm text-red-600">{{
                                                 form.errors.gross_weight }}</div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-sage-700 mb-2">MEAS
-                                                (M³)</label>
+                                                (m3)</label>
                                             <input v-model="form.measurement" type="number" step="0.001" min="0"
-                                                placeholder="Masukkan volume dalam m³"
+                                                placeholder="Enter volume in m3"
                                                 class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             <div v-if="form.errors.measurement" class="mt-2 text-sm text-red-600">{{
                                                 form.errors.measurement }}</div>
@@ -774,13 +791,13 @@
                                             <label class="block text-sm font-medium text-sage-700">CONTAINER NO</label>
                                             <button type="button" @click="addContainerNo"
                                                 class="text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors">
-                                                + Tambah Container
+                                                + Add Container
                                             </button>
                                         </div>
                                         <div v-for="(container, index) in form.container_no" :key="'container-' + index"
                                             class="flex gap-2 mb-2">
                                             <input v-model="form.container_no[index]" type="text"
-                                                placeholder="Masukkan nomor container (misal: TCLU1234567)"
+                                                placeholder="Enter container number (e.g., TCLU1234567)"
                                                 class="flex-1 px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             <button type="button" @click="removeContainerNo(index)"
                                                 v-if="form.container_no.length > 1"
@@ -801,7 +818,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                                 </svg>
-                                                Tambah Container Lagi
+                                                Add Another Container
                                             </button>
                                         </div>
                                     </div>
@@ -812,7 +829,7 @@
                             <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                                 <div @click="toggleSection('invoice')"
                                     class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                                    <h3 class="text-lg font-semibold text-sage-800">Informasi Invoice</h3>
+                                    <h3 class="text-lg font-semibold text-sage-800">Invoice Information</h3>
                                     <svg :class="{ 'rotate-180': !sections.invoice }"
                                         class="w-5 h-5 text-sage-600 transition-transform duration-200" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -840,7 +857,7 @@
                                         <input v-model="form.top" type="text" placeholder="e.g., NET 30"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.top" class="mt-2 text-sm text-red-600">{{ form.errors.top
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -849,11 +866,11 @@
                             <div
                                 class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
                                 <Link :href="route('admin-keuangan.sales-orders.index')"
-                                    class="inline-flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                    Batal
+                                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                    Cancel
                                 </Link>
                                 <button type="submit" :disabled="form.processing"
-                                    class="inline-flex items-center justify-center px-6 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -863,7 +880,7 @@
                                         </path>
                                     </svg>
                                     <span v-if="form.processing">Menyimpan...</span>
-                                    <span v-else>Simpan Shipping Order</span>
+                                    <span v-else>Save Shipping Order</span>
                                 </button>
                             </div>
                         </form>
@@ -936,8 +953,8 @@ const shipmentTypeOptions = computed(() => {
 
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
-        { value: '', label: '-- Belum Ditentukan --' },
-        { value: 'internal', label: '-- Internal (Divisi Operational) --' },
+        { value: '', label: '-- Not Specified --' },
+        { value: 'internal', label: '-- Internal (Operations Division) --' },
     ];
 
     const vendorOptions = (props.vendors ?? []).map(vendor => ({
@@ -1046,8 +1063,8 @@ const buildDefaultForm = () => ({
     party_lcl: "",
     prepared_by: "",
     exchange_rate: "",
-    vendor_breakdown: [{ id: null, vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
-    other_costs: [{ description: '', amount: 0, category: '', vendor_id: '' }],
+    vendor_breakdown: [{ id: null, vendor_id: '', nama_vendor: '', no_rekening: '', nama_rekening: '', description: '', quantity: '', unit: '', buying_amount: 0, selling_amount: 0, rcvd_inv: '', remarks: '' }],
+    other_costs: [{ description: '', amount: 0, category: '', vendor_id: '', quantity: '', unit: '' }],
     remarks: "",
     note: "",
     commodity: "",
@@ -1130,7 +1147,9 @@ const addOtherCost = () => {
         description: '',
         amount: 0,
         category: '',
-        vendor_id: ''
+        vendor_id: '',
+        quantity: '',
+        unit: ''
     });
 };
 
@@ -1175,6 +1194,8 @@ const addVendorItem = () => {
         no_rekening: '',
         nama_rekening: '',
         description: '',
+        quantity: '',
+        unit: '',
         buying_amount: 0,
         selling_amount: 0,
         rcvd_inv: '',
@@ -1286,7 +1307,9 @@ const submit = () => {
             description: c.description,
             amount: parseFloat(c.amount) || 0,
             category: c.category || '',
-            vendor_id: c.vendor_id === '' ? null : c.vendor_id
+            vendor_id: c.vendor_id === '' ? null : c.vendor_id,
+            quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
+            unit: c.unit || ''
         }));
 
     const cleanedData = {
@@ -1294,7 +1317,9 @@ const submit = () => {
         vendor_breakdown: form.vendor_breakdown.map(item => ({
             ...item,
             buying_amount: parseFloat(item.buying_amount) || 0,
-            selling_amount: parseFloat(item.selling_amount) || 0
+            selling_amount: parseFloat(item.selling_amount) || 0,
+            quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
+            unit: item.unit || ''
         })),
         reimbursement_items: sanitizedReimbursements,
         other_costs: sanitizedOtherCosts
@@ -1311,10 +1336,10 @@ const submit = () => {
             if (page.component === 'Admin/AdminKeuangan/SalesOrders/Index') {
                 console.log('Successfully redirected to index page');
                 // We're already on the index page, no need for additional redirect
-                showAlert("success", "Berhasil", "Sales Order berhasil dibuat.");
+                showAlert("success", "Success", "Sales order created successfully.");
             } else {
                 console.log('Not redirected to index, component:', page.component);
-                showAlert("success", "Berhasil", "Sales Order berhasil dibuat.", "OK", "", () => {
+                showAlert("success", "Success", "Sales order created successfully.", "OK", "", () => {
                     // Redirect to index page after user acknowledges success
                     window.location.href = route('admin-keuangan.sales-orders.index');
                 });
@@ -1338,11 +1363,11 @@ const submit = () => {
 
                 const errorMessage = errorMessages.length > 0
                     ? errorMessages.join('. ')
-                    : "Terdapat kesalahan pada form. Silakan periksa kembali data yang dimasukkan.";
+                    : "There is an error in the form. Please check the entered data again.";
 
-                showAlert("error", "Gagal Menyimpan", errorMessage);
+                showAlert("error", "Save Failed", errorMessage);
             } else {
-                showAlert("error", "Gagal Menyimpan", "Terjadi kesalahan saat menyimpan sales order. Silakan coba lagi.");
+                showAlert("error", "Save Failed", "An error occurred while saving the sales order. Please try again.");
             }
         },
         onFinish: () => {

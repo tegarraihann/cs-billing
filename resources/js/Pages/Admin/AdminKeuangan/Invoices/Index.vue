@@ -7,7 +7,7 @@
         <div class="flex justify-between items-center mb-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Invoice Management</h1>
-            <p class="mt-1 text-sm text-gray-600">Kelola invoice untuk sales order yang telah disetujui</p>
+            <p class="mt-1 text-sm text-gray-600">Manage invoices for approved sales orders</p>
           </div>
           <div class="flex gap-3">
             <Link
@@ -15,7 +15,7 @@
               class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-900 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
             >
               <Plus class="w-4 h-4 mr-2" />
-              Buat Invoice
+              Create Invoice
             </Link>
           </div>
         </div>
@@ -45,7 +45,7 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Invoice Lunas</dt>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Paid Invoices</dt>
                     <dd class="text-lg font-medium text-gray-900">{{ stats?.paid_invoices || 0 }}</dd>
                   </dl>
                 </div>
@@ -95,7 +95,7 @@
                   v-model="form.search"
                   @input="search"
                   type="text"
-                  placeholder="Cari berdasarkan nomor invoice, customer, atau sales order..."
+                  placeholder="Search by invoice number, customer, or sales order..."
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 />
               </div>
@@ -105,12 +105,12 @@
                   @change="search"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 >
-                  <option value="">Semua Status</option>
+                  <option value="">All Statuses</option>
                   <option value="draft">Draft</option>
-                  <option value="sent">Terkirim</option>
-                  <option value="paid">Dibayar</option>
+                  <option value="sent">Sent</option>
+                  <option value="paid">Paid</option>
                   <option value="overdue">Overdue</option>
-                  <option value="cancelled">Dibatalkan</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
               <div class="w-48">
@@ -119,7 +119,7 @@
                   @change="search"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                 >
-                  <option value="">Semua Tipe</option>
+                  <option value="">All Types</option>
                   <option value="main">Main Invoice</option>
                   <option value="reimbursement">Reimbursement</option>
                 </select>
@@ -159,7 +159,7 @@
                       Status
                     </th>
                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Aksi
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -218,7 +218,7 @@
                 <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                   <path d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.713-3.714M14 40v-4c0-1.313.253-2.566.713-3.714m0 0A10.003 10.003 0 0124 26c4.21 0 7.813 2.602 9.288 6.286M30 14a6 6 0 11-12 0 6 6 0 0112 0zm12 6a4 4 0 11-8 0 4 4 0 018 0zm-28 0a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
-                <p class="text-gray-500">Belum ada invoice yang dibuat</p>
+                <p class="text-gray-500">No invoices created yet</p>
               </div>
 
               <!-- Pagination -->
@@ -312,11 +312,11 @@ const getStatusClass = (status) => {
 const getStatusText = (status) => {
   const statusTexts = {
     'draft': 'Draft',
-    'sent': 'Terkirim',
-    'paid': 'Dibayar',
-    'partial': 'Sebagian',
-    'overdue': 'Terlambat',
-    'cancelled': 'Dibatalkan'
+    'sent': 'Sent',
+    'paid': 'Paid',
+    'partial': 'Partial',
+    'overdue': 'Overdue',
+    'cancelled': 'Cancelled'
   };
   return statusTexts[status] || status;
 };
