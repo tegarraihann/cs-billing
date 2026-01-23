@@ -1343,8 +1343,8 @@ const submit = () => {
         ...form.data(),
         vendor_breakdown: form.vendor_breakdown.map(item => ({
             ...item,
-            buying_amount: getTotalBuyingAmount(item),
-            selling_amount: getTotalSellingAmount(item),
+            buying_amount: normalizeNumberValue(item.buying_amount),
+            selling_amount: normalizeNumberValue(item.selling_amount),
             quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
             unit: item.unit || ''
         })),
@@ -1353,7 +1353,7 @@ const submit = () => {
             .filter(c => c.description && c.amount && c.amount > 0)
             .map(c => ({
                 ...c,
-                amount: getTotalCostAmount(c),
+                amount: normalizeNumberValue(c.amount),
                 quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
                 unit: c.unit || ''
             }))

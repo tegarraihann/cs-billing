@@ -136,6 +136,8 @@ class SalesOrderController extends Controller
                 'vendor_breakdown.*.description' => 'nullable|string|max:255',
                 'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
                 'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+                'vendor_breakdown.*.quantity' => 'nullable|numeric|min:0',
+                'vendor_breakdown.*.unit' => 'nullable|string|max:50',
                 'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
                 'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
 
@@ -145,6 +147,8 @@ class SalesOrderController extends Controller
                 'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
                 'other_costs.*.category' => 'nullable|string|max:100',
                 'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
+                'other_costs.*.quantity' => 'nullable|numeric|min:0',
+                'other_costs.*.unit' => 'nullable|string|max:50',
                 'remarks' => 'nullable|string',
                 'note' => 'nullable|string',
                 'commodity' => 'nullable|string',
@@ -358,6 +362,8 @@ class SalesOrderController extends Controller
             'vendor_breakdown.*.description' => 'nullable|string|max:255',
             'vendor_breakdown.*.buying_amount' => 'required_with:vendor_breakdown|numeric|min:0',
             'vendor_breakdown.*.selling_amount' => 'required_with:vendor_breakdown|numeric|min:0',
+            'vendor_breakdown.*.quantity' => 'nullable|numeric|min:0',
+            'vendor_breakdown.*.unit' => 'nullable|string|max:50',
             'vendor_breakdown.*.rcvd_inv' => 'nullable|string|max:255',
             'vendor_breakdown.*.remarks' => 'nullable|string|max:500',
 
@@ -367,6 +373,8 @@ class SalesOrderController extends Controller
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
             'other_costs.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
+            'other_costs.*.quantity' => 'nullable|numeric|min:0',
+            'other_costs.*.unit' => 'nullable|string|max:50',
             'remarks' => 'nullable|string',
             'note' => 'nullable|string',
             'commodity' => 'nullable|string',

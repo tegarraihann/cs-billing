@@ -362,8 +362,12 @@ class SalesOrderController extends Controller
 
         if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
-                $totalBuying += floatval($item['buying_amount'] ?? 0);
-                $totalSelling += floatval($item['selling_amount'] ?? 0);
+                $qty = 1;
+                if (array_key_exists('quantity', $item) && $item['quantity'] !== '' && $item['quantity'] !== null && is_numeric($item['quantity'])) {
+                    $qty = (float) $item['quantity'];
+                }
+                $totalBuying += floatval($item['buying_amount'] ?? 0) * $qty;
+                $totalSelling += floatval($item['selling_amount'] ?? 0) * $qty;
             }
         }
 
@@ -588,8 +592,12 @@ class SalesOrderController extends Controller
 
         if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
-                $totalBuying += floatval($item['buying_amount'] ?? 0);
-                $totalSelling += floatval($item['selling_amount'] ?? 0);
+                $qty = 1;
+                if (array_key_exists('quantity', $item) && $item['quantity'] !== '' && $item['quantity'] !== null && is_numeric($item['quantity'])) {
+                    $qty = (float) $item['quantity'];
+                }
+                $totalBuying += floatval($item['buying_amount'] ?? 0) * $qty;
+                $totalSelling += floatval($item['selling_amount'] ?? 0) * $qty;
             }
         }
 

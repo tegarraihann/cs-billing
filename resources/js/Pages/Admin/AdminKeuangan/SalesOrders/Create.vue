@@ -1394,13 +1394,11 @@ const submit = () => {
     const sanitizedOtherCosts = form.other_costs
         .filter(c => c.description && c.amount && c.amount > 0)
         .map(c => {
-            const qty = c.quantity !== '' ? parseFloat(c.quantity) || 1 : 1;
             const unitPrice = parseFloat(c.amount) || 0;
-            const totalAmount = unitPrice * qty;
-            
+
             return {
                 description: c.description,
-                amount: totalAmount,
+                amount: unitPrice,
                 category: c.category || '',
                 vendor_id: c.vendor_id === '' ? null : c.vendor_id,
                 quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
@@ -1411,14 +1409,13 @@ const submit = () => {
     const cleanedData = {
         ...form.data(),
         vendor_breakdown: form.vendor_breakdown.map(item => {
-            const qty = item.quantity !== '' ? parseFloat(item.quantity) || 1 : 1;
             const buyingUnitPrice = parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0;
             const sellingUnitPrice = parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0;
-            
+
             return {
                 ...item,
-                buying_amount: buyingUnitPrice * qty,
-                selling_amount: sellingUnitPrice * qty,
+                buying_amount: buyingUnitPrice,
+                selling_amount: sellingUnitPrice,
                 quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
                 unit: item.unit || ''
             };
