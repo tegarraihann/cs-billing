@@ -566,6 +566,7 @@ class AccountPayable extends Model
             $component->status = $this->determineComponentStatus($component);
             $component->due_date = $this->payment_due_date;
             $component->save();
+
         }
 
         // Hapus komponen yang tidak lagi relevan (lookup_ref tidak muncul di payload)
@@ -670,14 +671,17 @@ class AccountPayable extends Model
                 }
 
                 $descriptionCandidates = $entry['description'] !== '' ? [$entry['description']] : [];
-                $relatedItems = [
-                    'source' => 'vendor_breakdown',
-                    'vendor_breakdown_index' => $entry['entry_index'],
-                ];
+                  $relatedItems = [
+                      'source' => 'vendor_breakdown',
+                      'vendor_breakdown_index' => $entry['entry_index'],
+                  ];
 
-                if ($entry['entry_id'] !== null) {
-                    $relatedItems['vendor_breakdown_id'] = $entry['entry_id'];
-                }
+                  if ($entry['entry_id'] !== null) {
+                      $relatedItems['vendor_breakdown_id'] = $entry['entry_id'];
+                  }
+                  if (!empty($entry['vendor_invoice_number'])) {
+                      $relatedItems['vendor_invoice_number'] = $entry['vendor_invoice_number'];
+                  }
 
                 $payload = [
                     'component_type' => 'vendor_payment',
@@ -830,7 +834,8 @@ class AccountPayable extends Model
                     return null;
                 }
 
-                $description = trim((string) ($entry['description'] ?? ''));
+                  $description = trim((string) ($entry['description'] ?? ''));
+                  $vendorInvoiceNumber = isset($entry['rcvd_inv']) ? trim((string) $entry['rcvd_inv']) : '';
 
                 $entryId = $entry['id'] ?? null;
                 if ($entryId !== null) {
@@ -844,14 +849,15 @@ class AccountPayable extends Model
                     ]));
                 }
 
-                return [
-                    'amount' => $amount,
-                    'description' => $description,
-                    'entry_index' => $index,
-                    'entry_id' => $entry['id'] ?? null,
-                    'lookup_ref' => $lookupRef,
-                ];
-            })
+                  return [
+                      'amount' => $amount,
+                      'description' => $description,
+                      'entry_index' => $index,
+                      'entry_id' => $entry['id'] ?? null,
+                      'lookup_ref' => $lookupRef,
+                      'vendor_invoice_number' => $vendorInvoiceNumber !== '' ? $vendorInvoiceNumber : null,
+                  ];
+              })
             ->filter()
             ->values();
     }

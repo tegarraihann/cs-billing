@@ -235,6 +235,19 @@
                 <span class="font-normal">FINANCIAL POSITION</span>
             </a>
 
+            <!-- Equity -->
+            <a :href="route('admin-keuangan.equity.index')"
+                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.equity')
+                        ? 'bg-sage-100 text-sage-800 shadow-sm'
+                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                    ">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span class="font-normal">EQUITY</span>
+            </a>
+
             <!-- Bank Balance -->
             <a :href="route('admin-keuangan.bank-balance.index')"
                 class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.bank-balance')
@@ -418,6 +431,7 @@ const route = window.route || function (name, params) {
         'admin-keuangan.other-incomes.index': '/admin-keuangan/other-incomes',
         'admin-keuangan.profit-loss.index': '/admin-keuangan/profit-loss',
         'admin-keuangan.financial-position.index': '/admin-keuangan/financial-position',
+        'admin-keuangan.equity.index': '/admin-keuangan/equity',
         'admin-keuangan.bank-balance.index': '/admin-keuangan/bank-balance',
         'admin-keuangan.bank-balance.create': '/admin-keuangan/bank-balance/create',
         'admin-keuangan.employee-salary.index': '/admin-keuangan/employee-salary',
@@ -486,6 +500,7 @@ const isActive = (routePattern) => {
         'admin-keuangan.prepaid-rent': '/admin-keuangan/prepaid-rent',
         'admin-keuangan.equipment': '/admin-keuangan/equipment',
         'admin-keuangan.financial-position': '/admin-keuangan/financial-position',
+        'admin-keuangan.equity': '/admin-keuangan/equity',
         'admin-keuangan.bank-balance': '/admin-keuangan/bank-balance',
         'admin-keuangan.employee-salary': '/admin-keuangan/employee-salary',
         'admin-keuangan.shipment-types': '/admin-keuangan/shipment-types',

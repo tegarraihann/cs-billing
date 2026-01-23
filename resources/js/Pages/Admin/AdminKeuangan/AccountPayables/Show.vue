@@ -189,6 +189,10 @@
                                             Recipient
                                         </th>
                                         <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Vendor Invoice
+                                        </th>
+                                        <th
                                             class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Payable Amount
                                         </th>
@@ -223,6 +227,9 @@
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-900">
                                                 {{ component.recipient_name || '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-900">
+                                                {{ getComponentVendorInvoice(component) }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-900 text-right">
                                                 Rp {{ formatNumber(component.amount) }}
@@ -1098,6 +1105,10 @@ const formatCurrency = (number) => {
 }
 
 const getComponentCategory = (component) => component?.related_items?.category_name || ''
+const getComponentVendorInvoice = (component) => {
+    const invoiceNumber = component?.related_items?.vendor_invoice_number
+    return invoiceNumber ? invoiceNumber : '-'
+}
 
 const normalizeCurrencyInput = (value) => {
     if (value === null || value === undefined) {

@@ -7,6 +7,7 @@ use App\Models\AccountReceivable;
 use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\EquipmentTransaction;
+use App\Models\EquityEntry;
 use App\Models\FinancialPositionAdjustment;
 use App\Models\OtherIncome;
 use App\Models\PettyCashBalance;
@@ -50,7 +51,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'EQUITY',
-                    'account_codes' => ['3100', '3200', '3300'],
+                    'account_codes' => ['3100', '3200', '3300', '3400', '3500', '3600'],
                 ],
             ],
         ],
@@ -229,6 +230,7 @@ class FinancialPositionService
             '3100' => $this->calculatePaidInCapitalBalance($accountCode, $cutoff),
             '3200' => $this->calculateRetainedEarningsBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
+            '3400', '3500', '3600' => $this->calculateEquityEntryBalance($accountCode, $cutoff),
             default => [
                 'amount' => $this->getManualValue($accountCode, $cutoff) ?? 0.0,
                 'source' => 'manual',
@@ -541,28 +543,16 @@ class FinancialPositionService
     }
 
     /**
-     * Calculate Paid-in Capital (Modal Disetor) balance from adjustments (contoh akun 3200).
-     * Prioritas: manual override bila ada, otherwise sum FinancialPositionAdjustment s/d cutoff.
+     * Calculate Paid-in Capital (Modal Disetor) balance from equity sources.
      */
     private function calculatePaidInCapitalBalance(string $accountCode, Carbon $cutoff): array
     {
-        $accountId = ChartOfAccount::idByCode($accountCode);
-        if (!$accountId) {
-            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
-        }
-
-        $query = FinancialPositionAdjustment::where('account_id', $accountId)
-            ->whereDate('effective_date', '<=', $cutoff->toDateString());
-
-        $amount = (float) $query->sum('amount');
-        $records = $query->count();
+        $aggregate = $this->aggregateEquitySources($accountCode, $cutoff);
 
         return [
-            'amount' => round($amount, 2),
-            'source' => 'auto',
-            'meta' => [
-                'records' => $records,
-            ],
+            'amount' => $aggregate['amount'],
+            'source' => $aggregate['source'],
+            'meta' => $aggregate['meta'],
         ];
     }
 
@@ -580,13 +570,18 @@ class FinancialPositionService
             ->orderByDesc('end_date')
             ->first();
 
+        $equityAggregate = $this->aggregateEquitySources('3300', $cutoff);
+
         if ($yearlyPeriod) {
+            $amount = (float) $yearlyPeriod->net_profit + $equityAggregate['amount'];
+            $source = $equityAggregate['amount'] !== 0.0 ? 'auto+manual' : 'auto';
             return [
-                'amount' => (float) $yearlyPeriod->net_profit,
-                'source' => 'auto',
+                'amount' => $amount,
+                'source' => $source,
                 'meta' => [
                     'period_id' => $yearlyPeriod->id,
                     'period_type' => 'yearly',
+                    'equity_adjustments' => $equityAggregate['meta'],
                 ],
             ];
         }
@@ -598,10 +593,11 @@ class FinancialPositionService
             ->sum('net_profit');
 
         return [
-            'amount' => (float) $monthlySum,
-            'source' => 'auto',
+            'amount' => (float) $monthlySum + $equityAggregate['amount'],
+            'source' => $equityAggregate['amount'] !== 0.0 ? 'auto+manual' : 'auto',
             'meta' => [
                 'period_type' => 'monthly_aggregate',
+                'equity_adjustments' => $equityAggregate['meta'],
             ],
         ];
     }
@@ -647,11 +643,60 @@ class FinancialPositionService
         $amount = (float) $query->sum('net_profit');
         $records = $query->count();
 
+        $equityAggregate = $this->aggregateEquitySources('3200', $cutoff);
+        $totalAmount = $amount + $equityAggregate['amount'];
+        $source = $equityAggregate['amount'] !== 0.0 ? 'auto+manual' : 'auto';
+
         return [
-            'amount' => $amount,
-            'source' => 'auto',
+            'amount' => $totalAmount,
+            'source' => $source,
             'meta' => [
                 'periods_count' => $records,
+                'equity_adjustments' => $equityAggregate['meta'],
+            ],
+        ];
+    }
+
+    private function calculateEquityEntryBalance(string $accountCode, Carbon $cutoff): array
+    {
+        $aggregate = $this->aggregateEquitySources($accountCode, $cutoff);
+
+        return [
+            'amount' => $aggregate['amount'],
+            'source' => $aggregate['source'],
+            'meta' => $aggregate['meta'],
+        ];
+    }
+
+    private function aggregateEquitySources(string $accountCode, Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode($accountCode);
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $entries = EquityEntry::where('account_id', $accountId)
+            ->whereDate('entry_date', '<=', $cutoff->toDateString())
+            ->get(['amount', 'direction']);
+
+        $entryTotal = $entries->sum(function ($entry) {
+            $direction = $entry->direction ?? 'increase';
+            $sign = $direction === 'decrease' ? -1 : 1;
+            return $sign * (float) $entry->amount;
+        });
+
+        $adjustmentsQuery = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '<=', $cutoff->toDateString());
+
+        $adjustmentTotal = (float) $adjustmentsQuery->sum('amount');
+        $adjustmentCount = $adjustmentsQuery->count();
+
+        return [
+            'amount' => round($entryTotal + $adjustmentTotal, 2),
+            'source' => 'auto',
+            'meta' => [
+                'entries_count' => $entries->count(),
+                'adjustments_count' => $adjustmentCount,
             ],
         ];
     }

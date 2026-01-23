@@ -717,6 +717,15 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{employeeSalary}/cancel', 'cancel')->name('cancel');
     });
 
+    // Equity Management Routes for Admin Keuangan
+    Route::controller(\App\Http\Controllers\AdminKeuangan\EquityController::class)->prefix('equity')->name('equity.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{equityEntry}', 'show')->name('show');
+        Route::post('/{equityEntry}/settle', 'settle')->name('settle');
+    });
+
     // Bank Balance Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\BankBalanceController::class)->prefix('bank-balance')->name('bank-balance.')->group(function () {
         Route::get('/', 'index')->name('index');

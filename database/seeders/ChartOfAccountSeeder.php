@@ -83,6 +83,9 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => '3100', 'name' => 'Modal Disetor', 'type' => 'equity', 'category' => 'equity_capital', 'parent' => '3000', 'sort' => 81],
             ['code' => '3200', 'name' => 'Laba Ditahan', 'type' => 'equity', 'category' => 'equity_retained', 'parent' => '3000', 'sort' => 82],
             ['code' => '3300', 'name' => 'Laba Tahun Berjalan', 'type' => 'equity', 'category' => 'equity_current', 'parent' => '3000', 'sort' => 83],
+            ['code' => '3400', 'name' => 'Prive/Dividend', 'type' => 'equity', 'category' => 'equity_distribution', 'parent' => '3000', 'sort' => 84],
+            ['code' => '3500', 'name' => 'Management Loan', 'type' => 'equity', 'category' => 'equity_management', 'parent' => '3000', 'sort' => 85],
+            ['code' => '3600', 'name' => 'Deferred Liabilities', 'type' => 'equity', 'category' => 'equity_deferred', 'parent' => '3000', 'sort' => 86],
         ];
 
         foreach ($accounts as $account) {

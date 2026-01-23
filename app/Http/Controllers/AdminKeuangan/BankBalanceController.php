@@ -7,7 +7,7 @@ use App\Models\BankAccount;
 use App\Models\BankBalance;
 use App\Models\BankTransaction;
 use App\Models\ChartOfAccount;
-use App\Models\FinancialPositionAdjustment;
+use App\Models\EquityEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -194,13 +194,13 @@ class BankBalanceController extends Controller
 
         $modalAccountId = ChartOfAccount::idByCode('3100');
         if (!$modalAccountId) {
-            return back()->withErrors(['error' => 'Akun Modal Disetor (3200) tidak ditemukan. Siapkan COA terlebih dahulu.']);
+            return back()->withErrors(['error' => 'Paid-in capital account (3100) was not found. Please configure Chart of Accounts.']);
         }
 
         try {
             \DB::beginTransaction();
 
-            BankTransaction::create([
+            $bankTransaction = BankTransaction::create([
                 'bank_account_id' => $bank->id,
                 'transaction_date' => $validated['transaction_date'],
                 'transaction_type' => 'credit',
@@ -210,12 +210,21 @@ class BankBalanceController extends Controller
                 'reference_id' => null,
                 'created_by' => Auth::id(),
             ]);
-
-            FinancialPositionAdjustment::create([
+            EquityEntry::create([
+                'entry_type' => 'paid_in_capital',
                 'account_id' => $modalAccountId,
-                'effective_date' => $validated['transaction_date'],
+                'entry_date' => $validated['transaction_date'],
                 'amount' => $validated['amount'],
-                'notes' => 'Setor Modal ke ' . $bank->bank_name . ' - ' . ($validated['notes'] ?? 'Modal disetor'),
+                'direction' => 'increase',
+                'is_opening' => false,
+                'affects_bank' => true,
+                'bank_account_id' => $bank->id,
+                'bank_transaction_id' => $bankTransaction->id,
+                'bank_transaction_type' => $bankTransaction->transaction_type,
+                'status' => 'settled',
+                'settled_at' => $validated['transaction_date'],
+                'reference' => null,
+                'notes' => 'Capital deposit via bank ' . $bank->bank_name . ' - ' . ($validated['notes'] ?? 'Paid-in capital'),
                 'created_by' => Auth::id(),
             ]);
 
@@ -223,11 +232,11 @@ class BankBalanceController extends Controller
 
             return redirect()
                 ->route('admin-keuangan.bank-balance.show', $bank->id)
-                ->with('success', 'Setor modal berhasil dicatat.');
+                ->with('success', 'Paid-in capital deposit has been recorded.');
         } catch (\Throwable $th) {
             \DB::rollBack();
 
-            return back()->withErrors(['error' => 'Gagal mencatat setor modal: ' . $th->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to record paid-in capital deposit: ' . $th->getMessage()]);
         }
     }
 
