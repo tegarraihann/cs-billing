@@ -1008,11 +1008,22 @@ class AccountPayableController extends Controller
             ->get()
             ->map(function (ReimbursementItem $item) {
                 $receiptInfo = $item->receipt_info ?? [];
+                $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0
+                    ? (float) $item->quantity
+                    : (float) (data_get($receiptInfo, 'quantity') ?? 1);
+                $unit = is_string($item->unit) && trim($item->unit) !== ''
+                    ? trim($item->unit)
+                    : data_get($receiptInfo, 'unit');
+                $unitPrice = (float) ($item->amount ?? 0);
+                $totalAmount = $unitPrice * $quantity;
 
                 return [
                     'id' => $item->id,
                     'description' => $item->description,
-                    'amount' => (float) $item->amount,
+                    'amount' => $totalAmount,
+                    'unit_price' => $unitPrice,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
                     'status' => $item->status,
                     'paid_at' => optional($item->paid_at)->toDateTimeString(),
                     'invoice_id' => $item->invoice_id,

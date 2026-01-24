@@ -240,22 +240,45 @@ class SalesOrder extends Model
     // Helper methods for reimbursement items
     public function calculateTotalReimbursement(): float
     {
-        return $this->reimbursementItems()->sum('amount');
+        return $this->reimbursementItems()
+            ->get()
+            ->sum(function ($item) {
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
+            });
     }
 
     public function calculatePendingReimbursement(): float
     {
-        return $this->reimbursementItems()->where('status', 'pending')->sum('amount');
+        return $this->reimbursementItems()
+            ->where('status', 'pending')
+            ->get()
+            ->sum(function ($item) {
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
+            });
     }
 
     public function calculateLinkedReimbursement(): float
     {
-        return $this->reimbursementItems()->where('status', 'linked')->sum('amount');
+        return $this->reimbursementItems()
+            ->where('status', 'linked')
+            ->get()
+            ->sum(function ($item) {
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
+            });
     }
 
     public function calculateInvoicedReimbursement(): float
     {
-        return $this->reimbursementItems()->where('status', 'invoiced')->sum('amount');
+        return $this->reimbursementItems()
+            ->where('status', 'invoiced')
+            ->get()
+            ->sum(function ($item) {
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
+            });
     }
 
     public function hasPendingReimbursements(): bool
@@ -383,6 +406,8 @@ class SalesOrder extends Model
                     'id',
                     'description',
                     'amount',
+                    'quantity',
+                    'unit',
                     'category',
                     'notes',
                     'vendor_id',

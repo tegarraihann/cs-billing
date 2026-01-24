@@ -657,6 +657,19 @@
                                                             placeholder="Example: transport, accommodation, etc."
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
+                                                    <div class="col-span-6">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
+                                                        <input v-model="item.quantity" type="number" min="0" step="0.01"
+                                                            placeholder="1"
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-6">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
+                                                        <input v-model="item.unit" type="text" placeholder="Unit"
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
                                                     <div class="col-span-12">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
@@ -1018,7 +1031,7 @@ const getServiceTypeOptions = (currentValue) => {
     ];
 };
 
-const reimbursementItems = ref([{ description: '', amount: 0, category: '', notes: '', vendor_id: '' }]);
+const reimbursementItems = ref([{ description: '', amount: 0, quantity: '', unit: '', category: '', notes: '', vendor_id: '' }]);
 
 const baseOperationalCostCategoryOptions = computed(() => {
     return (props.operationalCostCategories ?? []).map(category => ({
@@ -1177,6 +1190,8 @@ const addReimbursementItem = () => {
     reimbursementItems.value.push({
         description: '',
         amount: 0,
+        quantity: '',
+        unit: '',
         category: '',
         notes: '',
         vendor_id: ''
@@ -1313,6 +1328,11 @@ const getOtherCostLineTotal = (costItem) => {
     return quantity * normalizeNumber(costItem?.amount);
 };
 
+const getReimbursementLineTotal = (item) => {
+    const quantity = resolveQuantityValue(item?.quantity);
+    return quantity * normalizeNumber(item?.amount);
+};
+
 // Computed properties for totals
 const totalBuying = computed(() => {
     return form.vendor_breakdown.reduce((sum, item) => sum + getTotalBuyingAmount(item), 0);
@@ -1327,7 +1347,7 @@ const totalOtherCosts = computed(() => {
 });
 
 const totalReimbursement = computed(() => {
-    return reimbursementItems.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    return reimbursementItems.value.reduce((sum, item) => sum + getReimbursementLineTotal(item), 0);
 });
 
 const totalRevenue = computed(() => {
@@ -1386,6 +1406,8 @@ const submit = () => {
         .map(r => ({
             description: r.description,
             amount: parseFloat(r.amount) || 0,
+            quantity: r.quantity !== '' ? parseFloat(r.quantity) || r.quantity : '',
+            unit: r.unit || '',
             category: r.category || '',
             notes: r.notes || '',
             vendor_id: r.vendor_id === '' ? null : r.vendor_id

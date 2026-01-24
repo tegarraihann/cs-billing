@@ -308,12 +308,16 @@ class AccountPayable extends Model
                     $vendorName = $item->vendor?->nama_vendor
                         ?? data_get($item->receipt_info ?? [], 'vendor_name')
                         ?? ($item->category ?? 'Divisi Operational');
+                    $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0
+                        ? (float) $item->quantity
+                        : 1;
+                    $amount = (float) $item->amount * $quantity;
                     return [
                         'vendor_id' => $vendorId,
                         'nama_vendor' => $vendorName,
                         'description' => $item->description ?? 'Reimbursement',
                         'remarks' => $item->notes ?? null,
-                        'buying_amount' => (float) $item->amount,
+                        'buying_amount' => $amount,
                         'id' => 'reimbursement_' . $item->id,
                     ];
                 })
@@ -766,6 +770,15 @@ class AccountPayable extends Model
             if (!empty($entry['category'])) {
                 $relatedItems['category'] = $entry['category'];
             }
+            if (!empty($entry['quantity'])) {
+                $relatedItems['quantity'] = $entry['quantity'];
+            }
+            if (!empty($entry['unit'])) {
+                $relatedItems['unit'] = $entry['unit'];
+            }
+            if (array_key_exists('unit_price', $entry)) {
+                $relatedItems['unit_price'] = $entry['unit_price'];
+            }
 
             $payloads[] = [
                 'component_type' => 'reimbursement',
@@ -968,9 +981,17 @@ class AccountPayable extends Model
 
                 $description = trim((string) ($item->description ?? ''));
                 $lookupRef = 'reimbursement_' . $item->id;
+                $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0
+                    ? (float) $item->quantity
+                    : 1;
+                $unit = is_string($item->unit) && trim($item->unit) !== ''
+                    ? trim($item->unit)
+                    : null;
+                $unitPrice = (float) ($item->amount ?? 0);
+                $amount = $unitPrice * $quantity;
 
                 return [
-                    'amount' => (float) $item->amount,
+                    'amount' => $amount,
                     'description' => $description,
                     'entry_index' => null,
                     'entry_id' => $item->id,
@@ -978,6 +999,9 @@ class AccountPayable extends Model
                     'vendor_id' => $entryVendorId,
                     'vendor_name' => $entryVendorName,
                     'category' => $item->category ?? null,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
+                    'unit_price' => $unitPrice,
                 ];
             })
             ->filter()

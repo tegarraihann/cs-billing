@@ -670,6 +670,17 @@
                                                     class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                             </div>
                                             <div class="col-span-2">
+                                                <label class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
+                                                <input v-model="item.quantity" type="number" step="0.01" min="0"
+                                                    placeholder="1"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                            </div>
+                                            <div class="col-span-2">
+                                                <label class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
+                                                <input v-model="item.unit" type="text" placeholder="Unit"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                            </div>
+                                            <div class="col-span-2">
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
                                                 <input v-model="item.amount" type="number" step="0.01"
                                                     placeholder="0.00"
@@ -690,7 +701,15 @@
                                                     Category not available. Please add master data first.
                                                 </p>
                                             </div>
-                                            <div class="col-span-2">
+                                            <div class="col-span-1 flex items-end">
+                                                <button type="button" @click="removeReimbursementItem(index)"
+                                                    class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
+                                                    <Trash2 class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-12 gap-3 mt-2">
+                                            <div class="col-span-6">
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Vendor / Recipient</label>
                                                 <SearchableSelect v-model="item.vendor_id"
                                                     :options="vendorSelectOptions"
@@ -698,16 +717,10 @@
                                                     :search-fields="['label']"
                                                     :input-class="'w-full px-2 py-1 pr-8 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
                                             </div>
-                                            <div class="col-span-2">
+                                            <div class="col-span-6">
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Notes</label>
                                                 <input v-model="item.notes" type="text" placeholder="Additional notes (optional)"
                                                     class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                            </div>
-                                            <div class="col-span-1 flex items-end">
-                                                <button type="button" @click="removeReimbursementItem(index)"
-                                                    class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                    <Trash2 class="w-4 h-4" />
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -983,6 +996,8 @@ const initializeReimbursementItems = () => {
                 id: item.id ?? null,
                 description: item.description || '',
                 amount: item.amount ?? 0,
+                quantity: item.quantity ?? receiptInfo.quantity ?? '',
+                unit: item.unit ?? receiptInfo.unit ?? '',
                 category: item.category || '',
                 notes: item.notes || '',
                 vendor_id: normalizedVendorId,
@@ -990,7 +1005,7 @@ const initializeReimbursementItems = () => {
         });
     }
 
-    return [{ id: null, description: '', amount: 0, category: '', notes: '', vendor_id: '' }];
+    return [{ id: null, description: '', amount: 0, quantity: '', unit: '', category: '', notes: '', vendor_id: '' }];
 };
 
 const form = useForm({
@@ -1324,11 +1339,22 @@ const normalizeNumber = (value) => {
     return Number.isNaN(parsed) ? 0 : parsed;
 };
 
+const resolveQuantityValue = (rawValue) => {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+        return 1;
+    }
+
+    const parsed = normalizeNumber(rawValue);
+    return parsed > 0 ? parsed : 0;
+};
+
 // Reimbursement items management methods
 const addReimbursementItem = () => {
     reimbursementItems.value.push({
         description: "",
         amount: 0,
+        quantity: '',
+        unit: '',
         category: "",
         notes: "",
         vendor_id: ""
@@ -1432,7 +1458,7 @@ const totalSelling = computed(() => {
 });
 
 const totalRevenue = computed(() => {
-    return totalSelling.value - totalBuying.value;
+    return totalSelling.value - (totalBuying.value + totalOtherCosts.value + totalReimbursement.value);
 });
 
 // Get profit for individual vendor item
@@ -1447,9 +1473,14 @@ const totalOtherCosts = computed(() => {
     return form.other_costs.reduce((sum, item) => sum + getTotalCostAmount(item), 0);
 });
 
+const getReimbursementLineTotal = (item) => {
+    const quantity = resolveQuantityValue(item?.quantity);
+    return quantity * normalizeNumber(item?.amount);
+};
+
 // Calculate total reimbursement
 const totalReimbursement = computed(() => {
-    return reimbursementItems.value.reduce((sum, item) => sum + normalizeNumber(item.amount), 0);
+    return reimbursementItems.value.reduce((sum, item) => sum + getReimbursementLineTotal(item), 0);
 });
 
 const calculateTotals = () => {
@@ -1458,6 +1489,8 @@ const calculateTotals = () => {
     return {
         totalBuying: totalBuying.value,
         totalSelling: totalSelling.value,
+        totalOtherCosts: totalOtherCosts.value,
+        totalReimbursement: totalReimbursement.value,
         totalRevenue: totalRevenue.value
     };
 };
@@ -1527,6 +1560,8 @@ const submit = () => {
         .map(item => ({
             description: item.description || '',
             amount: normalizeNumber(item.amount),
+            quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
+            unit: item.unit || '',
             category: item.category || '',
             notes: item.notes || '',
             vendor_id: item.vendor_id === '' ? null : item.vendor_id,

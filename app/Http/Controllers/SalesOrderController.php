@@ -176,6 +176,8 @@ class SalesOrderController extends Controller
                 'reimbursement_items' => 'nullable|array',
                 'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
                 'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+                'reimbursement_items.*.quantity' => 'nullable|numeric|min:0',
+                'reimbursement_items.*.unit' => 'nullable|string|max:50',
                 'reimbursement_items.*.category' => 'nullable|string|max:100',
                 'reimbursement_items.*.notes' => 'nullable|string|max:500',
                 'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
@@ -402,6 +404,8 @@ class SalesOrderController extends Controller
             'reimbursement_items' => 'nullable|array',
             'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
             'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.quantity' => 'nullable|numeric|min:0',
+            'reimbursement_items.*.unit' => 'nullable|string|max:50',
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
@@ -613,6 +617,12 @@ class SalesOrderController extends Controller
                     'sales_order_id' => $salesOrder->id,
                     'description' => $item['description'],
                     'amount' => $item['amount'],
+                    'quantity' => (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
+                        ? (float) $item['quantity']
+                        : null,
+                    'unit' => isset($item['unit']) && is_string($item['unit']) && trim($item['unit']) !== ''
+                        ? trim($item['unit'])
+                        : null,
                     'vendor_id' => $vendorId,
                     'category' => $item['category'] ?? 'general',
                     'notes' => $item['notes'] ?? null,
@@ -644,6 +654,12 @@ class SalesOrderController extends Controller
                     'sales_order_id' => $salesOrder->id,
                     'description' => $item['description'],
                     'amount' => $item['amount'],
+                    'quantity' => (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
+                        ? (float) $item['quantity']
+                        : null,
+                    'unit' => isset($item['unit']) && is_string($item['unit']) && trim($item['unit']) !== ''
+                        ? trim($item['unit'])
+                        : null,
                     'vendor_id' => $vendorId,
                     'category' => $item['category'] ?? 'general',
                     'notes' => $item['notes'] ?? null,
@@ -890,6 +906,9 @@ class SalesOrderController extends Controller
         foreach ($reimbursementItems as $index => $item) {
             if (isset($item['amount'])) {
                 $reimbursementItems[$index]['amount'] = $this->normalizeIndonesianNumber($item['amount']);
+            }
+            if (isset($item['quantity'])) {
+                $reimbursementItems[$index]['quantity'] = $this->normalizeIndonesianNumber($item['quantity']);
             }
         }
         $request->merge(['reimbursement_items' => $reimbursementItems]);

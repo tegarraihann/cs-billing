@@ -300,6 +300,8 @@
                                                     <thead class="bg-orange-50">
                                                         <tr>
                                                             <th class="px-6 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">Description</th>
+                                                            <th class="px-6 py-3 text-right text-xs font-medium text-orange-700 uppercase tracking-wider">Qty</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">Unit</th>
                                                             <th class="px-6 py-3 text-right text-xs font-medium text-orange-700 uppercase tracking-wider">Amount</th>
                                                             <th class="px-6 py-3 text-center text-xs font-medium text-orange-700 uppercase tracking-wider">Status</th>
                                                             <th class="px-6 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">Notes</th>
@@ -311,7 +313,15 @@
                                                                 {{ item.description || '-' }}
                                                             </td>
                                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
-                                                                {{ formatCurrency(item.amount || 0) }}
+                                                                {{ item.quantity !== '' && item.quantity !== null && item.quantity !== undefined
+                                                                    ? formatNumber(item.quantity)
+                                                                    : '-' }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                                {{ item.unit || '-' }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
+                                                                {{ formatCurrency(getReimbursementLineTotal(item)) }}
                                                             </td>
                                                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
@@ -327,8 +337,10 @@
                                                     <tfoot class="bg-orange-50">
                                                         <tr>
                                                             <td class="px-6 py-3 text-sm font-semibold text-orange-800 uppercase">Total</td>
+                                                            <td></td>
+                                                            <td></td>
                                                             <td class="px-6 py-3 text-right text-sm font-mono font-semibold text-orange-900">
-                                                                {{ formatCurrency(salesOrder.reimbursement_items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0)) }}
+                                                                {{ formatCurrency(salesOrder.reimbursement_items.reduce((total, item) => total + getReimbursementLineTotal(item), 0)) }}
                                                             </td>
                                                             <td colspan="2" class="px-6 py-3"></td>
                                                         </tr>
@@ -884,6 +896,11 @@ const getVendorLineTotal = (vendorItem, field) => {
 const getOtherCostLineTotal = (costItem) => {
     const quantity = resolveQuantityValue(costItem?.quantity);
     return quantity * normalizeNumber(costItem?.amount);
+};
+
+const getReimbursementLineTotal = (item) => {
+    const quantity = resolveQuantityValue(item?.quantity);
+    return quantity * normalizeNumber(item?.amount);
 };
 
 // Computed properties for breakdown totals

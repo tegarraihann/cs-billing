@@ -596,11 +596,24 @@
                                             <div v-for="(item, index) in reimbursementItems" :key="index"
                                                 class="border border-purple-200 rounded-lg p-3 bg-white">
                                                 <div class="grid grid-cols-12 gap-3 mb-2">
-                                                    <div class="col-span-4">
+                                                    <div class="col-span-3">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Description</label>
                                                         <input v-model="item.description" type="text"
                                                             placeholder="Example: Transport to port"
+                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-2">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
+                                                        <input v-model="item.quantity" type="number" step="0.01"
+                                                            min="0" placeholder="1"
+                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-2">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
+                                                        <input v-model="item.unit" type="text" placeholder="Unit"
                                                             class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
                                                     <div class="col-span-2">
@@ -625,7 +638,15 @@
                                                             Categories first.
                                                         </p>
                                                     </div>
-                                                    <div class="col-span-3">
+                                                    <div class="col-span-1 flex items-end">
+                                                        <button type="button" @click="removeReimbursementItem(index)"
+                                                            class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
+                                                            <Trash2 class="w-4 h-4 mx-auto" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-12 gap-3">
+                                                    <div class="col-span-6">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Vendor
                                                             / Payee</label>
@@ -636,15 +657,7 @@
                                                         <p class="text-xs text-purple-600 mt-1">Select a vendor if you
                                                             already know the payee.</p>
                                                     </div>
-                                                    <div class="col-span-1 flex items-end">
-                                                        <button type="button" @click="removeReimbursementItem(index)"
-                                                            class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                            <Trash2 class="w-4 h-4 mx-auto" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="grid grid-cols-12 gap-3">
-                                                    <div class="col-span-11">
+                                                    <div class="col-span-6">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Notes</label>
                                                         <input v-model="item.notes" type="text"
@@ -1309,6 +1322,8 @@ const addReimbursementItem = () => {
     reimbursementItems.value.push({
         description: '',
         amount: 0,
+        quantity: '',
+        unit: '',
         category: '',
         notes: '',
         vendor_id: '' // Vendor/penerima pembayaran
@@ -1393,8 +1408,13 @@ const totalOtherCosts = computed(() => {
     return form.other_costs.reduce((sum, item) => sum + getTotalCostAmount(item), 0);
 });
 
+const getReimbursementLineTotal = (item) => {
+    const quantity = resolveQuantityValue(item.quantity);
+    return quantity * normalizeNumber(item.amount);
+};
+
 const totalReimbursement = computed(() => {
-    return reimbursementItems.value.reduce((sum, item) => sum + normalizeNumber(item.amount), 0);
+    return reimbursementItems.value.reduce((sum, item) => sum + getReimbursementLineTotal(item), 0);
 });
 
 // Get profit for individual vendor item
@@ -1487,6 +1507,8 @@ const submit = () => {
         .map(item => ({
             description: item.description || '',
             amount: normalizeNumber(item.amount),
+            quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
+            unit: item.unit || '',
             category: item.category || '',
             notes: item.notes || '',
             vendor_id: item.vendor_id === '' ? null : item.vendor_id,

@@ -13,6 +13,8 @@ class ReimbursementItem extends Model
         'invoice_id',
         'description',
         'amount',
+        'quantity',
+        'unit',
         'vendor_id',
         'category',
         'status',
@@ -27,6 +29,7 @@ class ReimbursementItem extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'quantity' => 'decimal:2',
         'receipt_info' => 'array',
         'linked_at' => 'datetime',
         'invoiced_at' => 'datetime',
@@ -214,13 +217,22 @@ class ReimbursementItem extends Model
     // Calculate totals
     public static function calculateTotalForSalesOrder($salesOrderId): float
     {
-        return self::where('sales_order_id', $salesOrderId)->sum('amount');
+        return self::where('sales_order_id', $salesOrderId)
+            ->get()
+            ->sum(function ($item) {
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
+            });
     }
 
     public static function calculatePendingTotalForSalesOrder($salesOrderId): float
     {
         return self::where('sales_order_id', $salesOrderId)
-                   ->where('status', 'pending')
-                   ->sum('amount');
+            ->where('status', 'pending')
+            ->get()
+            ->sum(function ($item) {
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
+            });
     }
 }

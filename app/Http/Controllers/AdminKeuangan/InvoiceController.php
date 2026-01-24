@@ -886,19 +886,27 @@ class InvoiceController extends Controller
             // Auto-transfer reimbursement items to invoice as reimbursement items
             $reimbursementItems = $invoice->salesOrder->reimbursementItems()->where('status', 'pending')->get();
             foreach ($reimbursementItems as $reimbursementItem) {
+                $quantity = is_numeric($reimbursementItem->quantity) && (float) $reimbursementItem->quantity > 0
+                    ? (float) $reimbursementItem->quantity
+                    : null;
+                $unit = is_string($reimbursementItem->unit) && trim($reimbursementItem->unit) !== ''
+                    ? trim($reimbursementItem->unit)
+                    : null;
                 $receiptInfo = is_array($reimbursementItem->receipt_info)
                     ? $reimbursementItem->receipt_info
                     : [];
-                $quantity = $this->normalizeReceiptQuantity($receiptInfo, 1);
-                $unit = $this->normalizeReceiptUnit($receiptInfo, 'SET');
+                $quantity = $quantity ?? $this->normalizeReceiptQuantity($receiptInfo, 1);
+                $unit = $unit ?? $this->normalizeReceiptUnit($receiptInfo, 'SET');
+                $rate = (float) $reimbursementItem->amount;
+                $amount = $rate * $quantity;
                 $invoiceItem = InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'description' => 'Reimbursement - ' . $reimbursementItem->description,
                     'quantity' => $quantity,
                     'unit' => $unit,
-                    'rate' => $reimbursementItem->amount,
+                    'rate' => $rate,
                     'currency' => 'IDR',
-                    'amount' => $reimbursementItem->amount,
+                    'amount' => $amount,
                     'item_ref' => 'reimbursement_' . $reimbursementItem->id,
                     'item_type' => 'reimbursement',
                     'vendor_id' => vendor_id,
@@ -1567,13 +1575,21 @@ class InvoiceController extends Controller
                 $receiptInfo = $item->receipt_info ?? [];
 
                 $currency = data_get($receiptInfo, 'currency') ?? 'IDR';
-                $quantity = data_get($receiptInfo, 'quantity') ?? 1;
-                $unit = data_get($receiptInfo, 'unit') ?? 'UNIT';
-                $rate = data_get($receiptInfo, 'unit_price') ?? (float) $item->amount;
+                $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0
+                    ? (float) $item->quantity
+                    : (float) (data_get($receiptInfo, 'quantity') ?? 1);
+                $unit = is_string($item->unit) && trim($item->unit) !== ''
+                    ? trim($item->unit)
+                    : (data_get($receiptInfo, 'unit') ?? 'UNIT');
+                $rate = data_get($receiptInfo, 'unit_price');
+                if (!is_numeric($rate)) {
+                    $rate = (float) $item->amount;
+                }
                 $vendorName = data_get($receiptInfo, 'vendor_name')
                     ?? data_get($receiptInfo, 'vendor')
                     ?? data_get($receiptInfo, 'paid_to')
                     ?? 'Eshaka Wijaya Logistics';
+                $amount = (float) $rate * $quantity;
 
                 return [
                     'id' => $item->id,
@@ -1582,7 +1598,7 @@ class InvoiceController extends Controller
                     'unit' => $unit,
                     'rate' => (float) $rate,
                     'currency' => $currency,
-                    'amount' => (float) $item->amount,
+                    'amount' => $amount,
                     'status' => $item->status,
                     'category' => $item->category,
                     'notes' => $item->notes,
@@ -1696,7 +1712,7 @@ class InvoiceController extends Controller
                 $reimbursement = ReimbursementItem::firstOrNew([
                     'invoice_id' => $invoice->id,
                     'description' => $item->description,
-                    'amount' => $item->amount,
+                    'amount' => $item->rate ?? $item->amount,
                     'sales_order_id' => $invoice->sales_order_id,
                 ]);
             }
@@ -1724,8 +1740,28 @@ class InvoiceController extends Controller
                 $reimbursement->receipt_info = empty($receiptInfo) ? null : $receiptInfo;
             }
 
+            $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+            $unit = is_string($item->unit) && trim($item->unit) !== '' ? trim($item->unit) : null;
+            $rate = is_numeric($item->rate) ? (float) $item->rate : 0.0;
+            if ($rate <= 0 && $quantity > 0) {
+                $rate = (float) $item->amount / $quantity;
+            }
+
+            $receiptInfo = $reimbursement->receipt_info ?? [];
+            if (!is_array($receiptInfo)) {
+                $receiptInfo = json_decode($receiptInfo, true) ?: [];
+            }
+            $receiptInfo['quantity'] = $quantity;
+            $receiptInfo['unit'] = $unit ?? ($receiptInfo['unit'] ?? null);
+            $receiptInfo['unit_price'] = $rate;
+            $receiptInfo['currency'] = $item->currency ?? ($receiptInfo['currency'] ?? 'IDR');
+
             $reimbursement->sales_order_id = $invoice->sales_order_id;
             $reimbursement->invoice_id = $invoice->id;
+            $reimbursement->quantity = $quantity;
+            $reimbursement->unit = $unit;
+            $reimbursement->amount = $rate;
+            $reimbursement->receipt_info = empty($receiptInfo) ? null : $receiptInfo;
             $reimbursement->linked_at = $reimbursement->linked_at ?? now();
             if ($reimbursement->status !== 'paid') {
                 $reimbursement->status = 'invoiced';

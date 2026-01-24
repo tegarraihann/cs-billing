@@ -126,13 +126,34 @@ class InvoiceCostSyncService
 
         $isReimbursement = $component->component_type === 'reimbursement';
 
+        $quantity = 1.0;
+        $unit = 'SET';
+        $rate = (float) $component->amount;
+        $amount = (float) $component->amount;
+
+        if ($isReimbursement) {
+            $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+            if (isset($relatedItems['quantity']) && is_numeric($relatedItems['quantity']) && (float) $relatedItems['quantity'] > 0) {
+                $quantity = (float) $relatedItems['quantity'];
+            }
+            if (!empty($relatedItems['unit']) && is_string($relatedItems['unit'])) {
+                $unit = trim($relatedItems['unit']);
+            }
+            if (isset($relatedItems['unit_price']) && is_numeric($relatedItems['unit_price'])) {
+                $rate = (float) $relatedItems['unit_price'];
+            } elseif ($quantity > 0) {
+                $rate = (float) $component->amount / $quantity;
+            }
+            $amount = $rate * $quantity;
+        }
+
         $payload = [
             'description' => $this->buildItemDescription($component),
-            'quantity' => 1,
-            'unit' => 'SET',
-            'rate' => (float) $component->amount,
+            'quantity' => $quantity,
+            'unit' => $unit,
+            'rate' => $rate,
             'currency' => 'IDR',
-            'amount' => (float) $component->amount,
+            'amount' => $amount,
             'item_ref' => $itemRef,
             'item_type' => $isReimbursement ? 'reimbursement' : 'operational_cost',
             'vendor_id' => $component->vendor_id,

@@ -331,6 +331,8 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.id' => 'nullable|integer|exists:reimbursement_items,id',
             'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
             'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.quantity' => 'nullable|numeric|min:0',
+            'reimbursement_items.*.unit' => 'nullable|string|max:50',
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
@@ -559,6 +561,8 @@ class SalesOrderController extends Controller
             'reimbursement_items' => 'nullable|array',
             'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
             'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
+            'reimbursement_items.*.quantity' => 'nullable|numeric|min:0',
+            'reimbursement_items.*.unit' => 'nullable|string|max:50',
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
@@ -1051,19 +1055,26 @@ class SalesOrderController extends Controller
                     $itemRef = 'reimbursement_' . $reimbursementItem->id;
                     $expectedReimbursementRefs[] = $itemRef;
 
-                    $amount = (float) $reimbursementItem->amount;
+                    $rate = (float) $reimbursementItem->amount;
+                    $quantity = is_numeric($reimbursementItem->quantity) && (float) $reimbursementItem->quantity > 0
+                        ? (float) $reimbursementItem->quantity
+                        : null;
+                    $unit = is_string($reimbursementItem->unit) && trim($reimbursementItem->unit) !== ''
+                        ? trim($reimbursementItem->unit)
+                        : null;
                     $receiptInfo = is_array($reimbursementItem->receipt_info)
                         ? $reimbursementItem->receipt_info
                         : [];
-                    $quantity = $this->normalizeReceiptQuantity($receiptInfo, 1);
-                    $unit = $this->normalizeReceiptUnit($receiptInfo, 'SET');
+                    $quantity = $quantity ?? $this->normalizeReceiptQuantity($receiptInfo, 1);
+                    $unit = $unit ?? $this->normalizeReceiptUnit($receiptInfo, 'SET');
+                    $amount = $rate * $quantity;
 
                     $itemData = [
                         'invoice_id' => $invoice->id,
                         'description' => 'Reimbursement - ' . $reimbursementItem->description,
                         'quantity' => $quantity,
                         'unit' => $unit,
-                        'rate' => $amount,
+                        'rate' => $rate,
                         'currency' => 'IDR',
                         'amount' => $amount,
                         'item_ref' => $itemRef,
@@ -1213,6 +1224,12 @@ class SalesOrderController extends Controller
                     'sales_order_id' => $salesOrder->id,
                     'description' => $item['description'],
                     'amount' => $item['amount'],
+                    'quantity' => (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
+                        ? (float) $item['quantity']
+                        : null,
+                    'unit' => isset($item['unit']) && is_string($item['unit']) && trim($item['unit']) !== ''
+                        ? trim($item['unit'])
+                        : null,
                     'vendor_id' => $vendorId,
                     'category' => $item['category'] ?? 'general',
                     'notes' => $item['notes'] ?? null,
@@ -1236,8 +1253,11 @@ class SalesOrderController extends Controller
 
         $matchExisting = function (array $attributes) use ($existingCollection) {
             return $existingCollection->first(function (ReimbursementItem $existing) use ($attributes) {
+                $existingQty = is_numeric($existing->quantity) ? (float) $existing->quantity : 1;
+                $incomingQty = is_numeric($attributes['quantity'] ?? null) ? (float) $attributes['quantity'] : 1;
                 return strcasecmp($existing->description ?? '', $attributes['description'] ?? '') === 0
-                    && abs((float) $existing->amount - (float) $attributes['amount']) < 0.01;
+                    && abs((float) $existing->amount - (float) $attributes['amount']) < 0.01
+                    && abs($existingQty - $incomingQty) < 0.01;
             });
         };
 
@@ -1252,6 +1272,12 @@ class SalesOrderController extends Controller
             $attributes = [
                 'description' => $item['description'],
                 'amount' => $item['amount'],
+                'quantity' => (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
+                    ? (float) $item['quantity']
+                    : null,
+                'unit' => isset($item['unit']) && is_string($item['unit']) && trim($item['unit']) !== ''
+                    ? trim($item['unit'])
+                    : null,
                 'vendor_id' => $vendorId,
                 'category' => $item['category'] ?? 'general',
                 'notes' => $item['notes'] ?? null,
@@ -1283,14 +1309,22 @@ class SalesOrderController extends Controller
                 if ($reimbursement->invoice_id) {
                     $invoice = $reimbursement->invoice;
                     if ($invoice) {
+                        $quantity = is_numeric($reimbursement->quantity) && (float) $reimbursement->quantity > 0
+                            ? (float) $reimbursement->quantity
+                            : 1;
+                        $unit = is_string($reimbursement->unit) && trim($reimbursement->unit) !== ''
+                            ? trim($reimbursement->unit)
+                            : 'SET';
+                        $rate = (float) $reimbursement->amount;
+                        $lineAmount = $rate * $quantity;
                         $invoice->items()
                             ->where('item_ref', 'reimbursement_' . $reimbursement->id)
                             ->update([
                                 'description' => 'Reimbursement - ' . $reimbursement->description,
-                                'quantity' => 1,
-                                'unit' => 'SET',
-                                'rate' => $reimbursement->amount,
-                                'amount' => $reimbursement->amount,
+                                'quantity' => $quantity,
+                                'unit' => $unit,
+                                'rate' => $rate,
+                                'amount' => $lineAmount,
                                 'vendor_id' => $vendorId,
                             ]);
                         $invoicesToRecalculate[$invoice->id] = $invoice;
@@ -1303,6 +1337,8 @@ class SalesOrderController extends Controller
                     'sales_order_id' => $salesOrder->id,
                     'description' => $attributes['description'],
                     'amount' => $attributes['amount'],
+                    'quantity' => $attributes['quantity'],
+                    'unit' => $attributes['unit'],
                     'vendor_id' => $vendorId,
                     'category' => $attributes['category'],
                     'notes' => $attributes['notes'],
@@ -1487,6 +1523,9 @@ class SalesOrderController extends Controller
         foreach ($reimbursementItems as $index => $item) {
             if (isset($item['amount'])) {
                 $reimbursementItems[$index]['amount'] = $this->normalizeIndonesianNumber($item['amount']);
+            }
+            if (isset($item['quantity'])) {
+                $reimbursementItems[$index]['quantity'] = $this->normalizeIndonesianNumber($item['quantity']);
             }
         }
         $request->merge(['reimbursement_items' => $reimbursementItems]);
