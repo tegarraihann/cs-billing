@@ -40,9 +40,16 @@ class EquityEntry extends Model
             'bank_allowed' => true,
         ],
         'management_loan' => [
-            'label' => 'Management Loan',
+            'label' => 'Employee Receivable (Kasbon)',
             'account_code' => '3500',
             'direction' => 'increase',
+            'bank_transaction_type' => 'debit',
+            'bank_allowed' => true,
+        ],
+        'management_loan_repayment' => [
+            'label' => 'Employee Receivable Payment',
+            'account_code' => '3500',
+            'direction' => 'decrease',
             'bank_transaction_type' => 'credit',
             'bank_allowed' => true,
         ],

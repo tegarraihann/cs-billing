@@ -170,8 +170,13 @@ const typeConfigMap = {
     },
     management_loan: {
         bankAllowed: true,
-        bankHint: 'Management loan settlement increases bank balance (credit).',
-        helper: 'Record management loans owed to the company.',
+        bankHint: 'Kasbon disbursement reduces bank balance (debit).',
+        helper: 'Use when the company gives a cash advance to staff or management.',
+    },
+    management_loan_repayment: {
+        bankAllowed: true,
+        bankHint: 'Kasbon repayment increases bank balance (credit).',
+        helper: 'Use when staff or management pays back the receivable (can be partial).',
     },
     deferred_liability: {
         bankAllowed: true,

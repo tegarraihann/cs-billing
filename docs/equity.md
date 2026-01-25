@@ -16,7 +16,8 @@ Modul Equity berfungsi untuk:
 | Retained Earnings (Laba Ditahan) | Pencatatan laba yang ditahan | Tidak membuat transaksi bank |
 | Current Year Profit (Laba Tahun Berjalan) | Pencatatan laba berjalan (manual) | Tidak membuat transaksi bank |
 | Dividend / Prive | Penarikan/dividen oleh pemilik | Dapat membuat transaksi bank (debit) |
-| Management Loan | Hutang management ke perusahaan | Dapat membuat transaksi bank saat pelunasan |
+| Employee Receivable (Kasbon) | Piutang karyawan/management ke perusahaan | Dapat membuat transaksi bank saat penyaluran/pelunasan |
+| Employee Receivable Payment | Pelunasan kasbon (cicilan) | Dapat membuat transaksi bank (credit) |
 | Deferred Liabilities | Catatan hutang tertahan | Dapat membuat transaksi bank saat pelunasan |
 | Annual Closing | Penutupan tahunan (memindahkan laba berjalan ke laba ditahan) | Tidak membuat transaksi bank |
 
@@ -30,7 +31,8 @@ Transaksi bank akan dibuat hanya jika `affects_bank = true`.
 Aturan arah bank:
 - **Paid-in Capital**: bank **credit**
 - **Dividend/Prive**: bank **debit**
-- **Management Loan**: bank **credit**
+- **Employee Receivable (Kasbon)**: bank **debit**
+- **Employee Receivable Payment**: bank **credit**
 - **Deferred Liabilities**: bank **credit**
 
 Settlement bank untuk entry yang belum mempengaruhi bank dilakukan di halaman **Show** melalui form **Settle Through Bank**.
@@ -71,7 +73,8 @@ Field utama:
 | `retained_earnings` | Retained Earnings | 3200 | increase | - |
 | `current_year_profit` | Current Year Profit | 3300 | increase | - |
 | `dividend_prive` | Dividend / Prive | 3400 | decrease | debit |
-| `management_loan` | Management Loan | 3500 | increase | credit |
+| `management_loan` | Employee Receivable (Kasbon) | 3500 | increase | debit |
+| `management_loan_repayment` | Employee Receivable Payment | 3500 | decrease | credit |
 | `deferred_liability` | Deferred Liabilities | 3600 | increase | credit |
 | `annual_closing` | Annual Closing | - | neutral | - |
 
@@ -97,13 +100,50 @@ Semua label dan pesan UI menggunakan **bahasa Inggris**.
 - Untuk entry yang belum settled, tersedia aksi **Settle Through Bank** di halaman Show.
 
 ## Integrasi dari Bank Balance (Setor Modal)
-Fitur “Deposit Capital” di `Bank Balance` sekarang:
+Fitur "Deposit Capital" di `Bank Balance` sekarang:
 - Membuat transaksi bank **credit**.
 - Membuat `equity_entries` dengan tipe `paid_in_capital`.
 
 ## Tidak Terintegrasi
 - Tidak terhubung dengan shipment/SO/invoice.
 - Tidak otomatis dari pendapatan/pengeluaran lain.
+
+## Alur Transaksi (Non-Teknis)
+Berikut alur ringkas yang bisa disampaikan ke user non-teknis:
+
+### Modal Disetor (Paid-in Capital)
+1. Input tanggal, jumlah, keterangan modal disetor.
+2. Jika uang masuk ke bank, centang **Create Bank Transaction** dan pilih bank.
+3. Sistem menambah saldo bank (credit) dan mencatat di Equity.
+4. Status **Recorded** jika belum ke bank, **Settled** jika sudah.
+
+### Laba Ditahan (Retained Earnings)
+1. Input tanggal, jumlah, keterangan.
+2. Tidak ada transaksi bank.
+3. Sistem mencatat penyesuaian di Equity.
+
+### Laba Tahun Berjalan (Current Year Profit)
+1. Sistem menghitung otomatis dari laporan laba rugi.
+2. Di Equity hanya tampil angka hasil perhitungan.
+3. Tidak ada transaksi bank.
+
+### Prive / Dividen
+1. Input tanggal, jumlah, keterangan prive/dividen.
+2. Jika dibayar lewat bank, centang **Create Bank Transaction** dan pilih bank.
+3. Sistem mengurangi saldo bank (debit) dan mengurangi Equity.
+
+### Piutang Karyawan (Kasbon) + Pelunasan
+1. Untuk kasbon baru, pilih tipe **Employee Receivable (Kasbon)** lalu isi tanggal, nominal, dan keterangan (nama karyawan).
+2. Jika uang benar-benar keluar dari bank, centang **Create Bank Transaction** dan pilih bank (bank **debit**).
+3. Untuk pelunasan/cicilan, buat entry baru dengan tipe **Employee Receivable Payment**.
+4. Setiap cicilan masuk ke bank sebagai **credit** dan otomatis mengurangi total kasbon di Equity.
+
+### Annual Closing
+1. Input annual closing.
+2. Sistem otomatis membuat:
+   - Retained Earnings **increase**
+   - Current Year Profit **decrease**
+3. Tidak ada transaksi bank.
 
 ## Lokasi Kode Penting
 - Model: `app/Models/EquityEntry.php`
@@ -121,6 +161,6 @@ Fitur “Deposit Capital” di `Bank Balance` sekarang:
 2. **Prive Dibayar via Bank**
    - Entry: `dividend_prive`, `affects_bank = true`, pilih bank.
    - Sistem membuat transaksi bank debit.
-3. **Hutang Management dicatat lalu dilunasi**
-   - Entry awal: `management_loan`, `affects_bank = false`.
-   - Lakukan settlement di Show untuk masuk bank.
+3. **Kasbon dicatat lalu dicicil**
+   - Entry kasbon: `management_loan`, `affects_bank = true` (bank debit).
+   - Setiap cicilan: `management_loan_repayment`, `affects_bank = true` (bank credit).
