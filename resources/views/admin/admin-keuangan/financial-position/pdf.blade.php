@@ -170,6 +170,7 @@
         };
 
         $isBalanced = isset($balanceCheck['difference']) ? abs($balanceCheck['difference']) < 0.01 : false;
+        $hiddenAccountCodes = ['1200', '2100'];
     @endphp
 
     <div class="header">
@@ -194,6 +195,9 @@
                     </thead>
                     <tbody>
                         @foreach($group['rows'] as $row)
+                            @if(in_array((string) $row['account_code'], $hiddenAccountCodes, true))
+                                @continue
+                            @endif
                             @php
                                 $manual = isset($row['details']['manual_override']);
                                 $sourceLabel = $manual ? 'Manual' : (strtolower($row['source'] ?? '') === 'auto' ? 'Auto' : 'N/A');

@@ -285,6 +285,7 @@ class FinancialPositionService
     private function calculateAccountsReceivableBalance(Carbon $cutoff): array
     {
         $amount = AccountReceivable::whereIn('status', ['outstanding', 'partial', 'overdue'])
+            ->where('is_opening', false)
             ->whereDate('invoice_date', '<=', $cutoff->toDateString())
             ->sum('outstanding_amount');
 
@@ -293,6 +294,7 @@ class FinancialPositionService
             'source' => 'auto',
             'meta' => [
                 'records' => AccountReceivable::whereIn('status', ['outstanding', 'partial', 'overdue'])
+                    ->where('is_opening', false)
                     ->whereDate('invoice_date', '<=', $cutoff->toDateString())
                     ->count(),
             ],
@@ -305,6 +307,7 @@ class FinancialPositionService
     private function calculateAccountsPayableBalance(Carbon $cutoff): array
     {
         $query = AccountPayable::whereIn('status', ['unpaid', 'partial'])
+            ->where('is_opening', false)
             ->where(function ($q) use ($cutoff) {
                 $q->whereNull('vendor_invoice_date')
                     ->orWhereDate('vendor_invoice_date', '<=', $cutoff->toDateString());

@@ -149,7 +149,7 @@
 
                 <div class="space-y-6">
                     <div
-                        v-for="(section, sectionKey) in sections"
+                        v-for="(section, sectionKey) in visibleSections"
                         :key="sectionKey"
                         class="bg-white border border-sage-200 rounded-xl shadow-sm overflow-hidden"
                     >
@@ -300,7 +300,23 @@ watch(
     }
 )
 
+const hiddenAccountCodes = ['1200', '2100']
+
 const sections = computed(() => props.statement?.sections || {})
+const visibleSections = computed(() => {
+    const source = sections.value
+    return Object.fromEntries(
+        Object.entries(source).map(([key, section]) => {
+            const groups = (section.groups || []).map((group) => ({
+                ...group,
+                rows: (group.rows || []).filter(
+                    (row) => !hiddenAccountCodes.includes(String(row.account_code))
+                ),
+            }))
+            return [key, { ...section, groups }]
+        })
+    )
+})
 
 const balanceCheck = computed(() => ({
     assets_total: Number(props.statement?.balance_check?.assets_total || 0),
