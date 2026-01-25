@@ -251,7 +251,7 @@
                                         v-if="receivable.is_opening"
                                         class="mt-1 inline-flex items-center rounded-full bg-sage-100 px-2 py-0.5 text-xs font-semibold text-sage-700"
                                     >
-                                        Opening Balance
+                                        {{ openingTypeLabel(receivable.opening_type) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -626,6 +626,13 @@ const formatDate = (date) => {
         month: 'short',
         day: 'numeric'
     })
+}
+
+const openingTypeLabel = (type) => {
+    if (type === 'reimbursement') {
+        return 'Opening Balance - Reimbursement'
+    }
+    return 'Opening Balance - Main'
 }
 
 const getComponentLabel = (type) => {

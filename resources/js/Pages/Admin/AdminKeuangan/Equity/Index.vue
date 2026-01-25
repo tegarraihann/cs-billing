@@ -53,6 +53,7 @@
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Type</th>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Source SO</th>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
@@ -64,6 +65,7 @@
                                                 <td class="px-4 py-2 text-gray-900">
                                                     {{ row.customer?.company_name || row.customer_name || '-' }}
                                                 </td>
+                                                <td class="px-4 py-2 text-gray-700">{{ openingTypeLabel(row.opening_type) }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ row.invoice_number }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ row.source_so_number || '-' }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ formatDate(row.invoice_date) }}</td>
@@ -83,6 +85,7 @@
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Type</th>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Source SO</th>
                                                 <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
@@ -94,6 +97,7 @@
                                                 <td class="px-4 py-2 text-gray-900">
                                                     {{ row.vendor?.nama_vendor || row.vendor_name || '-' }}
                                                 </td>
+                                                <td class="px-4 py-2 text-gray-700">{{ openingTypeLabel(row.opening_type) }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ row.vendor_invoice_number || '-' }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ row.source_so_number || '-' }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ formatDate(row.vendor_invoice_date) }}</td>
@@ -308,5 +312,12 @@ const formatCurrency = (value) => {
 const resolveTypeLabel = (type) => {
     const match = props.typeOptions?.find((option) => option.value === type)
     return match?.label || type
+}
+
+const openingTypeLabel = (type) => {
+    if (type === 'reimbursement') {
+        return 'Reimbursement'
+    }
+    return 'Main Invoice'
 }
 </script>

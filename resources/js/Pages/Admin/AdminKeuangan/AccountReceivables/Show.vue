@@ -81,6 +81,10 @@
                                         <label class="text-sm font-medium text-gray-500">Opening Balance</label>
                                         <p class="text-sm text-gray-900">Yes</p>
                                     </div>
+                                    <div v-if="receivable.is_opening">
+                                        <label class="text-sm font-medium text-gray-500">Opening Type</label>
+                                        <p class="text-sm text-gray-900">{{ openingTypeLabel(receivable.opening_type) }}</p>
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -594,6 +598,13 @@ const formatDate = (date) => {
         month: 'long',
         day: 'numeric'
     })
+}
+
+const openingTypeLabel = (type) => {
+    if (type === 'reimbursement') {
+        return 'Reimbursement'
+    }
+    return 'Main Invoice'
 }
 
 const formatDateTime = (datetime) => {

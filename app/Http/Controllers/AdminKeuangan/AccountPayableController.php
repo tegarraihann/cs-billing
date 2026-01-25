@@ -1350,6 +1350,7 @@ class AccountPayableController extends Controller
             'payment_method' => $payable->payment_method,
             'payment_notes' => $payable->payment_notes,
             'is_opening' => (bool) $payable->is_opening,
+            'opening_type' => $payable->opening_type,
             'source_so_number' => $payable->source_so_number,
             'opening_payment_date' => $this->formatDateValue($payable->opening_payment_date),
             'vendor_bank_account' => $payable->vendor_bank_account,

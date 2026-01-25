@@ -29,6 +29,7 @@ class AccountPayable extends Model
         'outstanding_amount',
         'status',
         'is_opening',
+        'opening_type',
         'payment_due_date',
         'payment_date',
         'payment_method',

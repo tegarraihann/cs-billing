@@ -317,7 +317,7 @@
                                         {{ row.salesOrder?.order_number || row.sourceSoNumber || 'No Sales Order' }}
                                     </div>
                                     <div v-if="row.isOpening" class="mt-1 inline-flex items-center rounded-full bg-sage-100 px-2 py-0.5 text-xs font-semibold text-sage-700">
-                                        Opening Balance
+                                        {{ openingTypeLabel(row.openingType) }}
                                     </div>
                                     <div class="text-sm text-gray-600">
                                         {{ row.salesOrder?.customer || '-' }}
@@ -690,6 +690,7 @@ const tableRows = computed(() => {
             isOpening,
             sourceSoNumber: openingPayable?.source_so_number || null,
             openingPaymentDate: openingPayable?.opening_payment_date || null,
+            openingType: openingPayable?.opening_type || null,
             serviceDescription: group.service_description || firstPayable.service_description || '',
             serviceRemarks: group.service_remarks || firstPayable.service_remarks || '',
             amount: Number(group.totals?.amount ?? 0),
@@ -737,6 +738,13 @@ const formatDate = (date) => {
         month: 'short',
         day: 'numeric'
     })
+}
+
+const openingTypeLabel = (type) => {
+    if (type === 'reimbursement') {
+        return 'Opening Balance - Reimbursement'
+    }
+    return 'Opening Balance - Main'
 }
 
 const getStatusClass = (status) => {

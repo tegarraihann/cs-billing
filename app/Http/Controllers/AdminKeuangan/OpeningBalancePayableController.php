@@ -13,15 +13,25 @@ class OpeningBalancePayableController extends Controller
 {
     public function index()
     {
-        $payables = AccountPayable::query()
+        $payablesMain = AccountPayable::query()
             ->with('vendor')
             ->where('is_opening', true)
+            ->where('opening_type', 'main')
             ->orderByDesc('vendor_invoice_date')
-            ->paginate(15)
+            ->paginate(15, ['*'], 'main_page')
+            ->withQueryString();
+
+        $payablesReimbursement = AccountPayable::query()
+            ->with('vendor')
+            ->where('is_opening', true)
+            ->where('opening_type', 'reimbursement')
+            ->orderByDesc('vendor_invoice_date')
+            ->paginate(15, ['*'], 'reim_page')
             ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/OpeningPayables/Index', [
-            'payables' => $payables,
+            'payablesMain' => $payablesMain,
+            'payablesReimbursement' => $payablesReimbursement,
         ]);
     }
 
@@ -40,6 +50,7 @@ class OpeningBalancePayableController extends Controller
             'vendor_invoice_date' => 'required|date',
             'amount' => 'required|numeric|min:0.01',
             'source_so_number' => 'required|string|max:255',
+            'opening_type' => 'required|in:main,reimbursement',
             'payment_due_date' => 'nullable|date',
             'opening_payment_date' => 'nullable|date',
             'service_description' => 'nullable|string|max:255',
@@ -50,6 +61,8 @@ class OpeningBalancePayableController extends Controller
         ]);
 
         $vendor = Vendor::findOrFail($validated['vendor_id']);
+        $serviceDescription = $validated['service_description']
+            ?: ($validated['opening_type'] === 'reimbursement' ? 'Opening Balance - Reimbursement' : 'Opening Balance - Main');
 
         AccountPayable::create([
             'sales_order_id' => null,
@@ -57,7 +70,7 @@ class OpeningBalancePayableController extends Controller
             'vendor_name' => $vendor->nama_vendor,
             'vendor_invoice_number' => $validated['vendor_invoice_number'],
             'vendor_invoice_date' => $validated['vendor_invoice_date'],
-            'service_description' => $validated['service_description'] ?: 'Opening Balance',
+            'service_description' => $serviceDescription,
             'service_remarks' => $validated['service_remarks'] ?? null,
             'amount' => $validated['amount'],
             'paid_amount' => 0,
@@ -73,6 +86,7 @@ class OpeningBalancePayableController extends Controller
             'created_by' => Auth::id(),
             'paid_by' => null,
             'is_opening' => true,
+            'opening_type' => $validated['opening_type'],
             'source_so_number' => $validated['source_so_number'],
             'opening_payment_date' => $validated['opening_payment_date'] ?? null,
         ]);

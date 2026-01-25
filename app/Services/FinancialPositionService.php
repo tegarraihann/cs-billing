@@ -51,7 +51,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'EQUITY',
-                    'account_codes' => ['3100', '3200', '3300', '3400', '3500', '3600'],
+                    'account_codes' => ['3100', '3200', '3300', '3400', '3500', '3600', '3700', '3710'],
                 ],
             ],
         ],
@@ -231,6 +231,8 @@ class FinancialPositionService
             '3200' => $this->calculateRetainedEarningsBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
             '3400', '3500', '3600' => $this->calculateEquityEntryBalance($accountCode, $cutoff),
+            '3700' => $this->calculateOpeningReceivableBalance($cutoff),
+            '3710' => $this->calculateOpeningPayableBalance($cutoff),
             default => [
                 'amount' => $this->getManualValue($accountCode, $cutoff) ?? 0.0,
                 'source' => 'manual',
@@ -309,6 +311,49 @@ class FinancialPositionService
             });
 
         $amount = $query->sum('outstanding_amount');
+
+        return [
+            'amount' => $amount,
+            'source' => 'auto',
+            'meta' => [
+                'records' => (clone $query)->count(),
+            ],
+        ];
+    }
+
+    /**
+     * Calculate opening accounts receivable balance (equity section).
+     */
+    private function calculateOpeningReceivableBalance(Carbon $cutoff): array
+    {
+        $query = AccountReceivable::where('is_opening', true)
+            ->whereIn('status', ['outstanding', 'partial', 'overdue'])
+            ->whereDate('invoice_date', '<=', $cutoff->toDateString());
+
+        $amount = (float) $query->sum('outstanding_amount');
+
+        return [
+            'amount' => $amount,
+            'source' => 'auto',
+            'meta' => [
+                'records' => (clone $query)->count(),
+            ],
+        ];
+    }
+
+    /**
+     * Calculate opening accounts payable balance (equity section).
+     */
+    private function calculateOpeningPayableBalance(Carbon $cutoff): array
+    {
+        $query = AccountPayable::where('is_opening', true)
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->where(function ($q) use ($cutoff) {
+                $q->whereNull('vendor_invoice_date')
+                    ->orWhereDate('vendor_invoice_date', '<=', $cutoff->toDateString());
+            });
+
+        $amount = (float) $query->sum('outstanding_amount');
 
         return [
             'amount' => $amount,

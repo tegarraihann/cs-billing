@@ -22,6 +22,7 @@ class AccountReceivable extends Model
         'outstanding_amount',
         'status',
         'is_opening',
+        'opening_type',
         'payment_terms_days',
         'payment_terms_text',
         'last_payment_date',

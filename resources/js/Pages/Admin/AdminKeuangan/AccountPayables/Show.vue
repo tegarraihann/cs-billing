@@ -109,6 +109,10 @@
                                         <label class="text-sm font-medium text-gray-500">Opening Balance</label>
                                         <p class="text-sm text-gray-900">Yes</p>
                                     </div>
+                                    <div v-if="payable.is_opening">
+                                        <label class="text-sm font-medium text-gray-500">Opening Type</label>
+                                        <p class="text-sm text-gray-900">{{ openingTypeLabel(payable.opening_type) }}</p>
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -885,10 +889,11 @@ const headerSubtitle = computed(() => {
         return `SO ${summary.value.sales_order.order_number}`
     }
     if (payable.value?.is_opening) {
+        const label = openingTypeLabel(payable.value.opening_type)
         if (payable.value.source_so_number) {
-            return `Opening Balance - SO ${payable.value.source_so_number}`
+            return `Opening Balance - ${label} - SO ${payable.value.source_so_number}`
         }
-        return 'Opening Balance'
+        return `Opening Balance - ${label}`
     }
     if (summary.value.vendor_names?.length) {
         return `Vendor ${summary.value.vendor_names[0]}`
@@ -1120,6 +1125,13 @@ const formatCurrency = (number) => {
         style: 'currency',
         currency: 'IDR'
     }).format(number || 0)
+}
+
+const openingTypeLabel = (type) => {
+    if (type === 'reimbursement') {
+        return 'Reimbursement'
+    }
+    return 'Main Invoice'
 }
 
 const getComponentCategory = (component) => component?.related_items?.category_name || ''

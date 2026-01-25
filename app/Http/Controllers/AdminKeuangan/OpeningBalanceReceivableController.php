@@ -14,15 +14,25 @@ class OpeningBalanceReceivableController extends Controller
 {
     public function index()
     {
-        $receivables = AccountReceivable::query()
+        $receivablesMain = AccountReceivable::query()
             ->with('customer')
             ->where('is_opening', true)
+            ->where('opening_type', 'main')
             ->orderByDesc('invoice_date')
-            ->paginate(15)
+            ->paginate(15, ['*'], 'main_page')
+            ->withQueryString();
+
+        $receivablesReimbursement = AccountReceivable::query()
+            ->with('customer')
+            ->where('is_opening', true)
+            ->where('opening_type', 'reimbursement')
+            ->orderByDesc('invoice_date')
+            ->paginate(15, ['*'], 'reim_page')
             ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/OpeningReceivables/Index', [
-            'receivables' => $receivables,
+            'receivablesMain' => $receivablesMain,
+            'receivablesReimbursement' => $receivablesReimbursement,
         ]);
     }
 
@@ -41,6 +51,7 @@ class OpeningBalanceReceivableController extends Controller
             'invoice_date' => 'required|date',
             'amount' => 'required|numeric|min:0.01',
             'source_so_number' => 'required|string|max:255',
+            'opening_type' => 'required|in:main,reimbursement',
             'due_date' => 'nullable|date',
             'payment_terms_days' => 'nullable|integer|min:0',
             'payment_terms_text' => 'nullable|string|max:255',
@@ -74,6 +85,7 @@ class OpeningBalanceReceivableController extends Controller
             'notes' => $validated['notes'] ?? null,
             'created_by' => Auth::id(),
             'is_opening' => true,
+            'opening_type' => $validated['opening_type'],
             'source_so_number' => $validated['source_so_number'],
             'opening_payment_date' => $validated['opening_payment_date'] ?? null,
         ]);

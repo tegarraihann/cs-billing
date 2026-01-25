@@ -17,63 +17,72 @@
                     </Link>
                 </div>
 
-                <div class="bg-white shadow overflow-hidden sm:rounded-md">
-                    <div v-if="receivables.data.length" class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SO Number</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="receivable in receivables.data" :key="receivable.id">
-                                    <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ receivable.customer?.company_name || receivable.customer_name || '-' }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ receivable.source_so_number || '-' }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ receivable.invoice_number }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ formatDate(receivable.invoice_date) }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right text-sm text-gray-900">
-                                        {{ formatCurrency(receivable.invoice_amount) }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right text-sm text-gray-900">
-                                        {{ formatCurrency(receivable.outstanding_amount) }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ formatDate(receivable.opening_payment_date) }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right text-sm font-medium">
-                                        <Link
-                                            :href="route('admin-keuangan.account-receivables.show', receivable.id)"
-                                            class="text-sage-600 hover:text-sage-900"
-                                        >
-                                            View
-                                        </Link>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div v-else class="px-6 py-8 text-center text-sm text-gray-500">
-                        No opening receivables recorded.
-                    </div>
-                </div>
+                <div class="space-y-8">
+                    <div v-for="section in sections" :key="section.key">
+                        <div class="mb-3">
+                            <h2 class="text-lg font-semibold text-gray-900">{{ section.title }}</h2>
+                            <p class="text-sm text-gray-600">{{ section.description }}</p>
+                        </div>
 
-                <div v-if="receivables" class="mt-6">
-                    <Pagination :data="receivables" />
+                        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                            <div v-if="section.data && section.data.data && section.data.data.length" class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SO Number</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr v-for="receivable in section.data.data" :key="receivable.id">
+                                            <td class="px-6 py-4 text-sm text-gray-900">
+                                                {{ receivable.customer?.company_name || receivable.customer_name || '-' }}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {{ receivable.source_so_number || '-' }}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">
+                                                {{ receivable.invoice_number }}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {{ formatDate(receivable.invoice_date) }}
+                                            </td>
+                                            <td class="px-6 py-4 text-right text-sm text-gray-900">
+                                                {{ formatCurrency(receivable.invoice_amount) }}
+                                            </td>
+                                            <td class="px-6 py-4 text-right text-sm text-gray-900">
+                                                {{ formatCurrency(receivable.outstanding_amount) }}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {{ formatDate(receivable.opening_payment_date) }}
+                                            </td>
+                                            <td class="px-6 py-4 text-right text-sm font-medium">
+                                                <Link
+                                                    :href="route('admin-keuangan.account-receivables.show', receivable.id)"
+                                                    class="text-sage-600 hover:text-sage-900"
+                                                >
+                                                    View
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div v-else class="px-6 py-8 text-center text-sm text-gray-500">
+                                No opening receivables recorded.
+                            </div>
+                        </div>
+
+                        <div v-if="section.data" class="mt-6">
+                            <Pagination :data="section.data" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,13 +90,30 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 
 const props = defineProps({
-    receivables: Object,
+    receivablesMain: Object,
+    receivablesReimbursement: Object,
 })
+
+const sections = computed(() => ([
+    {
+        key: 'main',
+        title: 'Main Invoice Opening',
+        description: 'Opening receivables for main invoices.',
+        data: props.receivablesMain,
+    },
+    {
+        key: 'reimbursement',
+        title: 'Reimbursement Opening',
+        description: 'Opening receivables for reimbursements.',
+        data: props.receivablesReimbursement,
+    },
+]))
 
 const formatDate = (value) => {
     if (!value) return '-'
