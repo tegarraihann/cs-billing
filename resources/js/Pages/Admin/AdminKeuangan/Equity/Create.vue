@@ -54,6 +54,28 @@
                             </div>
                         </div>
 
+                        <div v-if="needsEmployeeName" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Employee Name</label>
+                                <input
+                                    v-model="form.employee_name"
+                                    type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                    placeholder="Employee name"
+                                />
+                                <div v-if="form.errors.employee_name" class="text-xs text-red-600 mt-2">{{ form.errors.employee_name }}</div>
+                            </div>
+                            <div v-if="needsPaymentDate">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
+                                <input
+                                    v-model="form.payment_date"
+                                    type="date"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                />
+                                <div v-if="form.errors.payment_date" class="text-xs text-red-600 mt-2">{{ form.errors.payment_date }}</div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Reference (Optional)</label>
@@ -193,8 +215,10 @@ const typeConfigMap = {
 const form = useForm({
     entry_type: '',
     entry_date: new Date().toISOString().slice(0, 10),
+    payment_date: '',
     amount: '',
     reference: '',
+    employee_name: '',
     notes: '',
     is_opening: false,
     affects_bank: false,
@@ -202,6 +226,8 @@ const form = useForm({
 })
 
 const selectedConfig = computed(() => typeConfigMap[form.entry_type] || { bankAllowed: false, bankHint: '' })
+const needsEmployeeName = computed(() => ['management_loan', 'management_loan_repayment'].includes(form.entry_type))
+const needsPaymentDate = computed(() => form.entry_type === 'management_loan_repayment')
 
 watch(
     () => form.entry_type,
@@ -209,6 +235,14 @@ watch(
         if (!selectedConfig.value.bankAllowed) {
             form.affects_bank = false
             form.bank_account_id = ''
+        }
+        if (!needsEmployeeName.value) {
+            form.employee_name = ''
+        }
+        if (!needsPaymentDate.value) {
+            form.payment_date = ''
+        } else if (!form.payment_date) {
+            form.payment_date = new Date().toISOString().slice(0, 10)
         }
     }
 )

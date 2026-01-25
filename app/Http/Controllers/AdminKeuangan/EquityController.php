@@ -91,7 +91,9 @@ class EquityController extends Controller
     {
         $validated = $request->validate([
             'entry_type' => 'required|string',
+            'employee_name' => 'nullable|string|max:255',
             'entry_date' => 'required|date',
+            'payment_date' => 'nullable|date',
             'amount' => 'required|numeric|min:0.01',
             'reference' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:2000',
@@ -103,6 +105,15 @@ class EquityController extends Controller
         $config = EquityEntry::resolveTypeConfig($validated['entry_type']);
         if (!$config) {
             return back()->withErrors(['entry_type' => 'Invalid equity type.'])->withInput();
+        }
+
+        if (in_array($validated['entry_type'], ['management_loan', 'management_loan_repayment'], true)
+            && empty($validated['employee_name'])) {
+            return back()->withErrors(['employee_name' => 'Employee name is required for this equity type.'])->withInput();
+        }
+
+        if ($validated['entry_type'] === 'management_loan_repayment' && empty($validated['payment_date'])) {
+            return back()->withErrors(['payment_date' => 'Payment date is required for employee receivable payments.'])->withInput();
         }
 
         if (!$config['bank_allowed']) {
@@ -174,8 +185,10 @@ class EquityController extends Controller
 
             $entry = EquityEntry::create([
                 'entry_type' => $validated['entry_type'],
+                'employee_name' => $validated['employee_name'] ?? null,
                 'account_id' => $accountId,
                 'entry_date' => $validated['entry_date'],
+                'payment_date' => $validated['payment_date'] ?? null,
                 'amount' => (float) $validated['amount'],
                 'direction' => $direction,
                 'is_opening' => (bool) ($validated['is_opening'] ?? false),
@@ -189,11 +202,12 @@ class EquityController extends Controller
 
             if (!empty($validated['affects_bank'])) {
                 $bankTransactionType = $config['bank_transaction_type'] ?? 'credit';
+                $transactionDate = $validated['payment_date'] ?? $validated['entry_date'];
                 $description = $this->buildBankDescription($validated['entry_type'], $validated['notes'] ?? null);
 
                 $bankTransaction = BankTransaction::create([
                     'bank_account_id' => $validated['bank_account_id'],
-                    'transaction_date' => $validated['entry_date'],
+                    'transaction_date' => $transactionDate,
                     'transaction_type' => $bankTransactionType,
                     'amount' => (float) $validated['amount'],
                     'description' => $description,
@@ -206,7 +220,7 @@ class EquityController extends Controller
                     'bank_transaction_id' => $bankTransaction->id,
                     'bank_transaction_type' => $bankTransactionType,
                     'status' => 'settled',
-                    'settled_at' => $validated['entry_date'],
+                    'settled_at' => $transactionDate,
                 ]);
             }
 

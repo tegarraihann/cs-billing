@@ -51,8 +51,10 @@ Tabel utama: `equity_entries`
 
 Field utama:
 - `entry_type`: jenis entry (lihat daftar tipe).
+- `employee_name`: nama karyawan (wajib untuk kasbon & pelunasan).
 - `account_id`: relasi ke COA (Chart of Accounts).
 - `entry_date`: tanggal transaksi.
+- `payment_date`: tanggal pembayaran (wajib untuk pelunasan kasbon).
 - `amount`: nominal.
 - `direction`: `increase` atau `decrease` (dipakai untuk total equity).
 - `is_opening`: penanda opening balance.
@@ -135,7 +137,7 @@ Berikut alur ringkas yang bisa disampaikan ke user non-teknis:
 ### Piutang Karyawan (Kasbon) + Pelunasan
 1. Untuk kasbon baru, pilih tipe **Employee Receivable (Kasbon)** lalu isi tanggal, nominal, dan keterangan (nama karyawan).
 2. Jika uang benar-benar keluar dari bank, centang **Create Bank Transaction** dan pilih bank (bank **debit**).
-3. Untuk pelunasan/cicilan, buat entry baru dengan tipe **Employee Receivable Payment**.
+3. Untuk pelunasan/cicilan, buat entry baru dengan tipe **Employee Receivable Payment**, isi **Payment Date**.
 4. Setiap cicilan masuk ke bank sebagai **credit** dan otomatis mengurangi total kasbon di Equity.
 
 ### Annual Closing

@@ -71,8 +71,10 @@ class EquityEntry extends Model
 
     protected $fillable = [
         'entry_type',
+        'employee_name',
         'account_id',
         'entry_date',
+        'payment_date',
         'amount',
         'direction',
         'is_opening',
@@ -89,6 +91,7 @@ class EquityEntry extends Model
 
     protected $casts = [
         'entry_date' => 'date',
+        'payment_date' => 'date',
         'amount' => 'decimal:2',
         'is_opening' => 'boolean',
         'affects_bank' => 'boolean',

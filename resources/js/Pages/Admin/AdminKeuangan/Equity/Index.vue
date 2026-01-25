@@ -208,6 +208,9 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900">
                                         {{ resolveTypeLabel(entry.entry_type) }}
+                                        <div v-if="entry.employee_name" class="text-xs text-gray-500">
+                                            {{ entry.employee_name }}
+                                        </div>
                                         <div v-if="entry.reference" class="text-xs text-gray-500">Ref: {{ entry.reference }}</div>
                                     </td>
                                     <td class="px-6 py-4 text-sm font-semibold" :class="entry.direction === 'decrease' ? 'text-red-600' : 'text-green-600'">

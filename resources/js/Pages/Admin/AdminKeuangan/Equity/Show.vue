@@ -24,11 +24,19 @@
                                 <p class="text-xs text-gray-500 uppercase tracking-wide">Entry Date</p>
                                 <p class="text-sm font-semibold text-gray-900">{{ formatDate(entry.entry_date) }}</p>
                             </div>
+                            <div v-if="entry.employee_name">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Employee Name</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ entry.employee_name }}</p>
+                            </div>
                             <div>
                                 <p class="text-xs text-gray-500 uppercase tracking-wide">Amount</p>
                                 <p class="text-sm font-semibold" :class="entry.direction === 'decrease' ? 'text-red-600' : 'text-green-600'">
                                     {{ entry.direction === 'decrease' ? '-' : '+' }}{{ formatCurrency(entry.amount) }}
                                 </p>
+                            </div>
+                            <div v-if="entry.payment_date">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Payment Date</p>
+                                <p class="text-sm text-gray-900">{{ formatDate(entry.payment_date) }}</p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500 uppercase tracking-wide">Opening Balance</p>
@@ -152,7 +160,7 @@ const typeLabel = computed(() => props.typeConfig?.label || props.entry.entry_ty
 
 const settlementForm = useForm({
     bank_account_id: '',
-    settlement_date: new Date().toISOString().slice(0, 10),
+    settlement_date: props.entry?.payment_date || new Date().toISOString().slice(0, 10),
     notes: '',
 })
 
