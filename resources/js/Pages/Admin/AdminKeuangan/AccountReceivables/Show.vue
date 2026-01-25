@@ -77,13 +77,21 @@
                                         <label class="text-sm font-medium text-gray-500">Payment Terms</label>
                                         <p class="text-sm text-gray-900">{{ receivable.payment_terms_days }} days</p>
                                     </div>
+                                    <div v-if="receivable.is_opening">
+                                        <label class="text-sm font-medium text-gray-500">Opening Balance</label>
+                                        <p class="text-sm text-gray-900">Yes</p>
+                                    </div>
                                 </div>
                             </div>
                             <div>
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-sm font-medium text-gray-500">SO Number</label>
-                                        <p class="text-sm text-gray-900">{{ receivable.sales_order?.order_number || '-' }}</p>
+                                        <p class="text-sm text-gray-900">{{ receivable.sales_order?.order_number || receivable.source_so_number || '-' }}</p>
+                                    </div>
+                                    <div v-if="receivable.is_opening && receivable.opening_payment_date">
+                                        <label class="text-sm font-medium text-gray-500">Opening Payment Date</label>
+                                        <p class="text-sm text-gray-900">{{ formatDate(receivable.opening_payment_date) }}</p>
                                     </div>
                                     <div v-if="receivable.last_payment_date">
                                         <label class="text-sm font-medium text-gray-500">Last Payment</label>

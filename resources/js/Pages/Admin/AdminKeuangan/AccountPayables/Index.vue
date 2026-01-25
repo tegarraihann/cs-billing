@@ -314,7 +314,10 @@
                             >
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ row.salesOrder?.order_number || 'No Sales Order' }}
+                                        {{ row.salesOrder?.order_number || row.sourceSoNumber || 'No Sales Order' }}
+                                    </div>
+                                    <div v-if="row.isOpening" class="mt-1 inline-flex items-center rounded-full bg-sage-100 px-2 py-0.5 text-xs font-semibold text-sage-700">
+                                        Opening Balance
                                     </div>
                                     <div class="text-sm text-gray-600">
                                         {{ row.salesOrder?.customer || '-' }}
@@ -348,6 +351,9 @@
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         {{ row.vendorInvoiceDate ? formatDate(row.vendorInvoiceDate) : '-' }}
+                                    </div>
+                                    <div v-if="row.isOpening && row.openingPaymentDate" class="text-xs text-gray-500">
+                                        Opening Payment: {{ formatDate(row.openingPaymentDate) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
@@ -662,6 +668,8 @@ const tableRows = computed(() => {
         const vendorNames = vendorSummary.length
             ? vendorSummary.map((entry) => entry.vendor_name)
             : payables.map((current) => current.vendor?.nama_vendor || current.vendor_name)
+        const openingPayable = payables.find((current) => current.is_opening)
+        const isOpening = payables.some((current) => current.is_opening)
 
         const fallbackKey = salesOrder?.id
             ? `sales-order-${salesOrder.id}`
@@ -679,6 +687,9 @@ const tableRows = computed(() => {
                 invoiceNumbers.length ? invoiceNumbers : payables.map((current) => current.vendor_invoice_number)
             ),
             vendorInvoiceDate: group.latest_vendor_invoice_date || firstPayable.vendor_invoice_date || null,
+            isOpening,
+            sourceSoNumber: openingPayable?.source_so_number || null,
+            openingPaymentDate: openingPayable?.opening_payment_date || null,
             serviceDescription: group.service_description || firstPayable.service_description || '',
             serviceRemarks: group.service_remarks || firstPayable.service_remarks || '',
             amount: Number(group.totals?.amount ?? 0),

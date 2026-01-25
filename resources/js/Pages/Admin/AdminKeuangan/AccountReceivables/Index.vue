@@ -247,6 +247,12 @@
                                     <div class="text-sm text-gray-500">
                                         {{ formatDate(receivable.invoice_date) }}
                                     </div>
+                                    <div
+                                        v-if="receivable.is_opening"
+                                        class="mt-1 inline-flex items-center rounded-full bg-sage-100 px-2 py-0.5 text-xs font-semibold text-sage-700"
+                                    >
+                                        Opening Balance
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
@@ -254,7 +260,10 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ receivable.sales_order?.order_number || '-' }}
+                                    {{ receivable.sales_order?.order_number || receivable.source_so_number || '-' }}
+                                    <div v-if="receivable.is_opening && receivable.opening_payment_date" class="text-xs text-gray-500">
+                                        Opening Payment: {{ formatDate(receivable.opening_payment_date) }}
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                                     Rp {{ formatNumber(receivable.invoice_amount) }}

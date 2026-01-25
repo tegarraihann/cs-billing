@@ -107,6 +107,19 @@
                 <span class="font-normal">ACCOUNTS RECEIVABLE</span>
             </a>
 
+            <!-- Opening Receivables -->
+            <a :href="route('admin-keuangan.opening-receivables.index')"
+                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.opening-receivables')
+                        ? 'bg-sage-100 text-sage-800 shadow-sm'
+                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                    ">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v8m-4-4h8m2 6H6a2 2 0 01-2-2V7a2 2 0 012-2h8l4 4v9a2 2 0 01-2 2z" />
+                </svg>
+                <span class="font-normal">OPENING RECEIVABLES</span>
+            </a>
+
             <!-- Account Payables (Hutang) -->
             <a :href="route('admin-keuangan.account-payables.index')"
                 class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.account-payables')
@@ -118,6 +131,19 @@
                         d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 <span class="font-normal">ACCOUNTS PAYABLE</span>
+            </a>
+
+            <!-- Opening Payables -->
+            <a :href="route('admin-keuangan.opening-payables.index')"
+                class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200" :class="isActive('admin-keuangan.opening-payables')
+                        ? 'bg-sage-100 text-sage-800 shadow-sm'
+                        : 'text-sage-700 hover:bg-sage-50 hover:text-sage-800'
+                    ">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span class="font-normal">OPENING PAYABLES</span>
             </a>
 
             <!-- Profit Reports -->
@@ -424,7 +450,11 @@ const route = window.route || function (name, params) {
         'admin-keuangan.sales-orders.index': '/admin-keuangan/sales-orders',
         'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
         'admin-keuangan.account-receivables.index': '/admin-keuangan/account-receivables',
+        'admin-keuangan.opening-receivables.index': '/admin-keuangan/opening-receivables',
+        'admin-keuangan.opening-receivables.create': '/admin-keuangan/opening-receivables/create',
         'admin-keuangan.account-payables.index': '/admin-keuangan/account-payables',
+        'admin-keuangan.opening-payables.index': '/admin-keuangan/opening-payables',
+        'admin-keuangan.opening-payables.create': '/admin-keuangan/opening-payables/create',
         'admin-keuangan.profit-reports.index': '/admin-keuangan/profit-reports',
         'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
         'admin-keuangan.general-expenses.index': '/admin-keuangan/general-expenses',
@@ -490,7 +520,9 @@ const isActive = (routePattern) => {
         'admin-keuangan.sales-orders': '/admin-keuangan/sales-orders',
         'admin-keuangan.invoices': '/admin-keuangan/invoices',
         'admin-keuangan.account-receivables': '/admin-keuangan/account-receivables',
+        'admin-keuangan.opening-receivables': '/admin-keuangan/opening-receivables',
         'admin-keuangan.account-payables': '/admin-keuangan/account-payables',
+        'admin-keuangan.opening-payables': '/admin-keuangan/opening-payables',
         'admin-keuangan.profit-reports': '/admin-keuangan/profit-reports',
         'admin-keuangan.petty-cash': '/admin-keuangan/petty-cash',
         'admin-keuangan.general-expenses': '/admin-keuangan/general-expenses',

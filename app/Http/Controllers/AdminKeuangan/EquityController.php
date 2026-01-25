@@ -5,6 +5,8 @@ namespace App\Http\Controllers\AdminKeuangan;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
+use App\Models\AccountPayable;
+use App\Models\AccountReceivable;
 use App\Models\ChartOfAccount;
 use App\Models\EquityEntry;
 use Illuminate\Http\Request;
@@ -45,11 +47,35 @@ class EquityController extends Controller
             ->groupBy('entry_type')
             ->get();
 
+        $openingReceivables = AccountReceivable::query()
+            ->with('customer')
+            ->where('is_opening', true)
+            ->orderByDesc('invoice_date')
+            ->limit(10)
+            ->get();
+
+        $openingPayables = AccountPayable::query()
+            ->with('vendor')
+            ->where('is_opening', true)
+            ->orderByDesc('vendor_invoice_date')
+            ->limit(10)
+            ->get();
+
+        $openingSummary = [
+            'receivables_total' => (float) AccountReceivable::where('is_opening', true)->sum('outstanding_amount'),
+            'payables_total' => (float) AccountPayable::where('is_opening', true)->sum('outstanding_amount'),
+            'receivables_count' => (int) AccountReceivable::where('is_opening', true)->count(),
+            'payables_count' => (int) AccountPayable::where('is_opening', true)->count(),
+        ];
+
         return Inertia::render('Admin/AdminKeuangan/Equity/Index', [
             'entries' => $entries,
             'filters' => $filters,
             'typeOptions' => EquityEntry::typeOptions(),
             'summary' => $summary,
+            'openingReceivables' => $openingReceivables,
+            'openingPayables' => $openingPayables,
+            'openingSummary' => $openingSummary,
         ]);
     }
 

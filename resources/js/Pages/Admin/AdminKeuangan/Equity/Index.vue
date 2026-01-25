@@ -30,6 +30,86 @@
                     </div>
                 </div>
 
+                <div v-if="openingSummary" class="bg-white shadow rounded-lg mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-900">Opening Balance Notes</h2>
+                                <p class="text-sm text-gray-500">Latest opening receivables and payables recorded in the system.</p>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                Receivables: {{ openingSummary.receivables_count }} -
+                                {{ formatCurrency(openingSummary.receivables_total) }} |
+                                Payables: {{ openingSummary.payables_count }} -
+                                {{ formatCurrency(openingSummary.payables_total) }}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900 mb-2">Opening Receivables</h3>
+                                <div v-if="openingReceivables.length" class="overflow-x-auto border border-gray-200 rounded-lg">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Source SO</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
+                                                <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="row in openingReceivables" :key="row.id">
+                                                <td class="px-4 py-2 text-gray-900">
+                                                    {{ row.customer?.company_name || row.customer_name || '-' }}
+                                                </td>
+                                                <td class="px-4 py-2 text-gray-700">{{ row.invoice_number }}</td>
+                                                <td class="px-4 py-2 text-gray-700">{{ row.source_so_number || '-' }}</td>
+                                                <td class="px-4 py-2 text-gray-700">{{ formatDate(row.invoice_date) }}</td>
+                                                <td class="px-4 py-2 text-right text-gray-900">
+                                                    {{ formatCurrency(row.outstanding_amount) }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div v-else class="text-sm text-gray-500">No opening receivables recorded.</div>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900 mb-2">Opening Payables</h3>
+                                <div v-if="openingPayables.length" class="overflow-x-auto border border-gray-200 rounded-lg">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Source SO</th>
+                                                <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
+                                                <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="row in openingPayables" :key="row.id">
+                                                <td class="px-4 py-2 text-gray-900">
+                                                    {{ row.vendor?.nama_vendor || row.vendor_name || '-' }}
+                                                </td>
+                                                <td class="px-4 py-2 text-gray-700">{{ row.vendor_invoice_number || '-' }}</td>
+                                                <td class="px-4 py-2 text-gray-700">{{ row.source_so_number || '-' }}</td>
+                                                <td class="px-4 py-2 text-gray-700">{{ formatDate(row.vendor_invoice_date) }}</td>
+                                                <td class="px-4 py-2 text-right text-gray-900">
+                                                    {{ formatCurrency(row.outstanding_amount) }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div v-else class="text-sm text-gray-500">No opening payables recorded.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white shadow rounded-lg mb-6">
                     <div class="px-4 py-5 sm:p-6">
                         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -180,6 +260,18 @@ const props = defineProps({
     filters: Object,
     typeOptions: Array,
     summary: Array,
+    openingReceivables: {
+        type: Array,
+        default: () => [],
+    },
+    openingPayables: {
+        type: Array,
+        default: () => [],
+    },
+    openingSummary: {
+        type: Object,
+        default: null,
+    },
 })
 
 const filterForm = reactive({

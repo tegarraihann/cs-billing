@@ -587,6 +587,11 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/export', 'export')->name('export');
     });
 
+    Route::controller(\App\Http\Controllers\AdminKeuangan\OpeningBalanceReceivableController::class)->prefix('opening-receivables')->name('opening-receivables.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+    });
 
     // Account Payables Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\AccountPayableController::class)->prefix('account-payables')->name('account-payables.')->group(function () {
@@ -608,6 +613,12 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/bulk-update-overdue', 'updateOverdueStatus')->name('bulk-update-overdue');
         Route::get('/export', 'export')->name('export');
         Route::get('/summary', 'summary')->name('summary');
+    });
+
+    Route::controller(\App\Http\Controllers\AdminKeuangan\OpeningBalancePayableController::class)->prefix('opening-payables')->name('opening-payables.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
     });
 
     // Profit Reports Routes for Admin Keuangan

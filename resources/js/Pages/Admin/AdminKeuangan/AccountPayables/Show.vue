@@ -105,6 +105,10 @@
                                         <p class="text-sm text-gray-900">{{ formatDate(payable.vendor_invoice_date) }}
                                         </p>
                                     </div>
+                                    <div v-if="payable.is_opening">
+                                        <label class="text-sm font-medium text-gray-500">Opening Balance</label>
+                                        <p class="text-sm text-gray-900">Yes</p>
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -113,9 +117,17 @@
                                         <label class="text-sm font-medium text-gray-500">Sales Order</label>
                                         <p class="text-sm text-gray-900">{{ payable.sales_order.order_number }}</p>
                                     </div>
+                                    <div v-if="payable.is_opening && payable.source_so_number">
+                                        <label class="text-sm font-medium text-gray-500">Source SO Number</label>
+                                        <p class="text-sm text-gray-900">{{ payable.source_so_number }}</p>
+                                    </div>
                                     <div v-if="payable.payment_due_date">
                                         <label class="text-sm font-medium text-gray-500">Payment Due Date</label>
                                         <p class="text-sm text-gray-900">{{ formatDate(payable.payment_due_date) }}</p>
+                                    </div>
+                                    <div v-if="payable.is_opening && payable.opening_payment_date">
+                                        <label class="text-sm font-medium text-gray-500">Opening Payment Date</label>
+                                        <p class="text-sm text-gray-900">{{ formatDate(payable.opening_payment_date) }}</p>
                                     </div>
                                     <div v-if="payable.payment_date">
                                         <label class="text-sm font-medium text-gray-500">Payment Date</label>
@@ -871,6 +883,12 @@ onBeforeUnmount(() => {
 const headerSubtitle = computed(() => {
     if (summary.value.sales_order?.order_number) {
         return `SO ${summary.value.sales_order.order_number}`
+    }
+    if (payable.value?.is_opening) {
+        if (payable.value.source_so_number) {
+            return `Opening Balance - SO ${payable.value.source_so_number}`
+        }
+        return 'Opening Balance'
     }
     if (summary.value.vendor_names?.length) {
         return `Vendor ${summary.value.vendor_names[0]}`
