@@ -11,11 +11,11 @@
                                 <p class="mt-1 text-sm text-gray-600">Manage vendor records for transactions</p>
                             </div>
                             <div class="mt-4 sm:mt-0 flex space-x-3">
-                                <a :href="exportPdfUrl" target="_blank"
+                                <button @click="handleExportPdf"
                                     class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2">
                                     <FileDown class="mr-2 h-4 w-4" />
                                     Export PDF
-                                </a>
+                                </button>
                                 <Link :href="route('admin-keuangan.vendors.create')"
                                     class="inline-flex items-center px-4 py-2 bg-sage-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2">
                                     <Plus class="mr-2 h-4 w-4" />
@@ -220,6 +220,7 @@
 <script setup>
 import { reactive, watch, computed } from "vue";
 import { router, Link } from "@inertiajs/vue3";
+import axios from "axios";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
 import { Trash2, Users, Plus, FileDown } from "lucide-vue-next";
@@ -297,6 +298,38 @@ watch(
         }, 500);
     }
 );
+
+const handleExportPdf = async () => {
+    try {
+        const response = await axios.get(exportPdfUrl.value, {
+            responseType: 'blob'
+        });
+
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+
+        // Check if iframe exists, if not create one
+        let iframe = document.getElementById('pdf-print-iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'pdf-print-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+
+        iframe.src = url;
+
+        iframe.onload = function () {
+            setTimeout(function () {
+                iframe.focus();
+                iframe.contentWindow.print();
+            }, 1);
+        };
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Gagal mengunduh PDF');
+    }
+};
 </script>
 
 <style scoped>

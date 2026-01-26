@@ -240,7 +240,7 @@ class VendorController extends Controller
                 'type' => 'individual'
             ]);
             
-            $pdf->setPaper('A4', 'portrait');
+            $pdf->setPaper('A4', 'landscape');
             
             $fileName = 'vendor-' . str_replace([' ', '/'], '-', $vendor->nama_vendor) . '-' . date('Y-m-d') . '.pdf';
             return $pdf->download($fileName);
@@ -280,9 +280,9 @@ class VendorController extends Controller
                 'search' => $request->search
             ]);
             
-            $pdf->setPaper('A4', 'portrait');
+            $pdf->setPaper('A4', 'landscape');
             
-            return $pdf->download('daftar-vendor-' . date('Y-m-d') . '.pdf');
+            return $pdf->stream('daftar-vendor-' . date('Y-m-d') . '.pdf');
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

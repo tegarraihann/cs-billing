@@ -12,11 +12,11 @@
                         <p class="mt-1 text-sm text-gray-600">Manage customer records and contact information</p>
                     </div>
                     <div class="flex space-x-2">
-                        <a :href="exportPdfUrl" target="_blank"
+                        <button @click="handleExportPdf"
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-900 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <FileDown class="w-4 h-4 mr-2" />
                             Export PDF
-                        </a>
+                        </button>
                         <Link :href="route('admin-keuangan.customers.create')"
                             class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-900 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <Plus class="w-4 h-4 mr-2" />
@@ -158,6 +158,7 @@
 <script setup>
 import { reactive, watch, ref, computed } from "vue";
 import { router, Link, Head } from "@inertiajs/vue3";
+import axios from "axios";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import Pagination from "@/Components/Pagination.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
@@ -257,6 +258,38 @@ watch(
         }, 500);
     }
 );
+
+const handleExportPdf = async () => {
+    try {
+        const response = await axios.get(exportPdfUrl.value, {
+            responseType: 'blob'
+        });
+
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+
+        // Check if iframe exists, if not create one
+        let iframe = document.getElementById('pdf-print-iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'pdf-print-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+
+        iframe.src = url;
+
+        iframe.onload = function () {
+            setTimeout(function () {
+                iframe.focus();
+                iframe.contentWindow.print();
+            }, 1);
+        };
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Gagal mengunduh PDF');
+    }
+};
 </script>
 
 <style scoped>

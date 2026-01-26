@@ -263,10 +263,10 @@ class CustomerController extends Controller
                 'type' => 'individual'
             ]);
             
-            $pdf->setPaper('A4', 'portrait');
+            $pdf->setPaper('A4', 'landscape');
             
             $fileName = 'customer-' . str_replace([' ', '/'], '-', $customer->company_name) . '-' . date('Y-m-d') . '.pdf';
-            return $pdf->download($fileName);
+            return $pdf->stream($fileName);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -300,9 +300,9 @@ class CustomerController extends Controller
                 'search' => $request->search
             ]);
             
-            $pdf->setPaper('A4', 'portrait');
+            $pdf->setPaper('A4', 'landscape');
             
-            return $pdf->download('daftar-customer-' . date('Y-m-d') . '.pdf');
+            return $pdf->stream('daftar-customer-' . date('Y-m-d') . '.pdf');
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

@@ -95,6 +95,8 @@
         
         .table td {
             font-size: 10px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         
         .footer {

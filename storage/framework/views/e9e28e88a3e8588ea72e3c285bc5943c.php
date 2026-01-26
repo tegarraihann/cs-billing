@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $type == 'individual' ? 'Data Vendor - ' . $vendor->nama_vendor : 'Daftar Vendor' }}</title>
+    <title><?php echo e($type == 'individual' ? 'Data Vendor - ' . $vendor->nama_vendor : 'Daftar Vendor'); ?></title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -155,88 +155,88 @@
 <body>
     <div class="header">
         <h1>PT. ESHAKA WIJAYA LOGISTICS</h1>
-        <p>{{ $type == 'individual' ? 'Data Detail Vendor' : 'Daftar Master Data Vendor' }}</p>
-        <p>Dicetak pada: {{ date('d F Y H:i:s') }}</p>
+        <p><?php echo e($type == 'individual' ? 'Data Detail Vendor' : 'Daftar Master Data Vendor'); ?></p>
+        <p>Dicetak pada: <?php echo e(date('d F Y H:i:s')); ?></p>
     </div>
 
-    @if($type == 'individual')
+    <?php if($type == 'individual'): ?>
         <!-- Individual Vendor Detail -->
         <div class="info-section">
             <h2>Informasi Vendor</h2>
             <div class="info-grid">
                 <div class="info-row">
                     <div class="info-label">ID Vendor</div>
-                    <div class="info-value">#{{ $vendor->id }}</div>
+                    <div class="info-value">#<?php echo e($vendor->id); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Nama Vendor</div>
-                    <div class="info-value">{{ $vendor->nama_vendor }}</div>
+                    <div class="info-value"><?php echo e($vendor->nama_vendor); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">PIC (Person In Charge)</div>
-                    <div class="info-value">{{ $vendor->pic ?: '-' }}</div>
+                    <div class="info-value"><?php echo e($vendor->pic ?: '-'); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">No HP</div>
-                    <div class="info-value font-mono">{{ $vendor->no_hp ?: '-' }}</div>
+                    <div class="info-value font-mono"><?php echo e($vendor->no_hp ?: '-'); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Email</div>
-                    <div class="info-value">{{ $vendor->email ?: '-' }}</div>
+                    <div class="info-value"><?php echo e($vendor->email ?: '-'); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">No Kantor</div>
-                    <div class="info-value font-mono">{{ $vendor->no_kantor ?: '-' }}</div>
+                    <div class="info-value font-mono"><?php echo e($vendor->no_kantor ?: '-'); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Nomor Rekening</div>
-                    <div class="info-value font-mono">{{ $vendor->nomor_rekening }}</div>
+                    <div class="info-value font-mono"><?php echo e($vendor->nomor_rekening); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Nama Rekening</div>
-                    <div class="info-value">{{ $vendor->nama_rekening }}</div>
+                    <div class="info-value"><?php echo e($vendor->nama_rekening); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">NIB</div>
-                    <div class="info-value font-mono">{{ $vendor->nib ?: '-' }}</div>
+                    <div class="info-value font-mono"><?php echo e($vendor->nib ?: '-'); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Status Dokumen</div>
                     <div class="info-value">
-                        @if($vendor->photo_path)
+                        <?php if($vendor->photo_path): ?>
                             <span class="status-badge status-aktif">Foto Ada</span>
-                        @endif
-                        @if($vendor->legal_document_path)
+                        <?php endif; ?>
+                        <?php if($vendor->legal_document_path): ?>
                             <span class="status-badge status-aktif">Dokumen Legal Ada</span>
-                        @endif
-                        @if(!$vendor->photo_path && !$vendor->legal_document_path)
+                        <?php endif; ?>
+                        <?php if(!$vendor->photo_path && !$vendor->legal_document_path): ?>
                             <span class="empty-value">Tidak ada dokumen</span>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Tanggal Dibuat</div>
-                    <div class="info-value">{{ $vendor->created_at->format('d F Y H:i') }}</div>
+                    <div class="info-value"><?php echo e($vendor->created_at->format('d F Y H:i')); ?></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Terakhir Diperbarui</div>
-                    <div class="info-value">{{ $vendor->updated_at->format('d F Y H:i') }}</div>
+                    <div class="info-value"><?php echo e($vendor->updated_at->format('d F Y H:i')); ?></div>
                 </div>
             </div>
         </div>
-    @else
+    <?php else: ?>
         <!-- All Vendors List -->
-        @if($search)
+        <?php if($search): ?>
             <div class="search-info">
-                <strong>Filter pencarian:</strong> "{{ $search }}"<br>
-                <strong>Hasil ditemukan:</strong> {{ $vendors->count() }} vendor
+                <strong>Filter pencarian:</strong> "<?php echo e($search); ?>"<br>
+                <strong>Hasil ditemukan:</strong> <?php echo e($vendors->count()); ?> vendor
             </div>
-        @endif
+        <?php endif; ?>
 
         <div class="info-section">
-            <h2>Daftar Vendor ({{ $vendors->count() }} vendor)</h2>
+            <h2>Daftar Vendor (<?php echo e($vendors->count()); ?> vendor)</h2>
             
-            @if($vendors->count() > 0)
+            <?php if($vendors->count() > 0): ?>
                 <table class="table">
                     <thead>
                         <tr>
@@ -252,32 +252,32 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($vendors as $index => $vendor)
+                        <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $vendor->nama_vendor }}</td>
-                                <td>{{ $vendor->pic ?: '-' }}</td>
-                                <td class="font-mono">{{ $vendor->no_hp ?: '-' }}</td>
-                                <td>{{ $vendor->email ?: '-' }}</td>
-                                <td class="font-mono">{{ $vendor->no_kantor ?: '-' }}</td>
-                                <td class="font-mono">{{ $vendor->nomor_rekening }}</td>
-                                <td>{{ $vendor->nama_rekening }}</td>
-                                <td class="font-mono">{{ $vendor->nib ?: '-' }}</td>
+                                <td class="text-center"><?php echo e($index + 1); ?></td>
+                                <td><?php echo e($vendor->nama_vendor); ?></td>
+                                <td><?php echo e($vendor->pic ?: '-'); ?></td>
+                                <td class="font-mono"><?php echo e($vendor->no_hp ?: '-'); ?></td>
+                                <td><?php echo e($vendor->email ?: '-'); ?></td>
+                                <td class="font-mono"><?php echo e($vendor->no_kantor ?: '-'); ?></td>
+                                <td class="font-mono"><?php echo e($vendor->nomor_rekening); ?></td>
+                                <td><?php echo e($vendor->nama_rekening); ?></td>
+                                <td class="font-mono"><?php echo e($vendor->nib ?: '-'); ?></td>
                             </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
-            @else
+            <?php else: ?>
                 <div class="text-center" style="padding: 40px; color: #666;">
                     <p>Tidak ada data vendor yang ditemukan.</p>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="footer">
         <p>Dokumen ini digenerate secara otomatis oleh sistem PT. Eshaka Wijaya Logistics</p>
-        <p>Admin Keuangan - {{ date('d/m/Y H:i:s') }}</p>
+        <p>Admin Keuangan - <?php echo e(date('d/m/Y H:i:s')); ?></p>
     </div>
 </body>
-</html>
+</html><?php /**PATH C:\laragon\www\OfficeManagement\resources\views/admin/admin-keuangan/vendors/pdf.blade.php ENDPATH**/ ?>

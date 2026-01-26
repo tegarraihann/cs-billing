@@ -12,7 +12,8 @@
                                 </div>
                                 <div>
                                     <h1 class="text-2xl font-semibold text-gray-900">Create New Shipping Order</h1>
-                                    <p class="mt-1 text-sm text-gray-600">Create a shipping order document for the customer
+                                    <p class="mt-1 text-sm text-gray-600">Create a shipping order document for the
+                                        customer
                                     </p>
                                 </div>
                             </div>
@@ -186,7 +187,7 @@
                                         <input v-model="form.aju" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.aju" class="mt-2 text-sm text-red-600">{{ form.errors.aju
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">SPPB DATE</label>
@@ -210,14 +211,14 @@
                                         <input v-model="form.pol" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pol" class="mt-2 text-sm text-red-600">{{ form.errors.pol
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">POD</label>
                                         <input v-model="form.pod" type="text"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.pod" class="mt-2 text-sm text-red-600">{{ form.errors.pod
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">GUDANG/UTC</label>
@@ -305,8 +306,7 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Qty
                                                     (Optional)</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
-                                                    placeholder="Quantity"
-                                                    @input="() => recalculateVendorAmounts(item)"
+                                                    placeholder="Quantity" @input="() => recalculateVendorAmounts(item)"
                                                     @blur="calculateTotals"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
@@ -340,23 +340,33 @@
                                             <!-- Row 3: Buying & Selling Amounts -->
                                             <div class="grid grid-cols-1 gap-3 p-3 bg-blue-50 rounded-lg">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Unit Price)</label>
+                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying
+                                                        Amount (Unit Price)</label>
                                                     <input v-model="item.buying_amount" type="text" placeholder="0"
                                                         @input="onBuyingAmountInput(item)"
                                                         @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                                                    <p class="text-xs text-blue-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
-                                                        Total: {{ formatCurrency(getTotalBuyingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0) }})
+                                                    <p class="text-xs text-blue-600 mt-1"
+                                                        v-if="item.quantity && parseFloat(item.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalBuyingAmount(item)) }} ({{
+                                                            item.quantity }} × {{
+                                                            formatCurrency(parseFloat(item.buying_amount.toString().replace(/\./g,
+                                                                '')) || 0) }})
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Unit Price)</label>
+                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling
+                                                        Amount (Unit Price)</label>
                                                     <input v-model="item.selling_amount" type="text" placeholder="0"
                                                         @input="onSellingAmountInput(item)"
                                                         @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500" />
-                                                    <p class="text-xs text-green-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
-                                                        Total: {{ formatCurrency(getTotalSellingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0) }})
+                                                    <p class="text-xs text-green-600 mt-1"
+                                                        v-if="item.quantity && parseFloat(item.quantity) > 0">
+                                                        Total: {{ formatCurrency(getTotalSellingAmount(item)) }} ({{
+                                                            item.quantity }} × {{
+                                                            formatCurrency(parseFloat(item.selling_amount.toString().replace(/\./g,
+                                                                '')) || 0) }})
                                                     </p>
                                                 </div>
                                                 <div>
@@ -373,18 +383,18 @@
                                             <div v-if="item.vendor_id"
                                                 class="grid grid-cols-1 gap-3 p-3 bg-sage-50 rounded-lg">
                                                 <div>
-                                                <label class="block text-xs font-medium text-sage-700 mb-1">Vendor
+                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Vendor
                                                         Name</label>
                                                     <p class="text-sm text-gray-900">{{ item.nama_vendor || '-' }}</p>
                                                 </div>
                                                 <div>
-                                                <label class="block text-xs font-medium text-sage-700 mb-1">Bank
+                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Bank
                                                         Account Number</label>
                                                     <p class="text-sm text-gray-900 font-mono">{{ item.no_rekening ||
                                                         '-' }}</p>
                                                 </div>
                                                 <div>
-                                                <label class="block text-xs font-medium text-sage-700 mb-1">Account
+                                                    <label class="block text-xs font-medium text-sage-700 mb-1">Account
                                                         Holder Name</label>
                                                     <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
                                                 </div>
@@ -446,12 +456,12 @@
                                             <div class="flex justify-between">
                                                 <span>Total Revenue (Selling):</span>
                                                 <span class="font-medium text-green-700">{{ formatCurrency(totalSelling)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span>Total Cost (Buying):</span>
                                                 <span class="font-medium text-red-700">{{ formatCurrency(totalBuying)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span>Operational Costs:</span>
@@ -468,7 +478,7 @@
                                                     Costs:</span>
                                                 <span class="text-sm font-bold text-red-800">{{
                                                     formatCurrency(totalBuying + totalOtherCosts + totalReimbursement)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div
                                                 class="flex justify-between items-center pt-2 border-t border-blue-300 font-bold text-lg">
@@ -541,15 +551,16 @@
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
-                                                    <input v-model="cost.amount" type="number" min="0" step="0.01"
-                                                            placeholder="0"
-                                                            @input="(e) => onCostAmountInput(cost)"
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost
+                                                            Amount (Unit Price)</label>
+                                                        <input v-model="cost.amount" type="number" min="0" step="0.01"
+                                                            placeholder="0" @input="(e) => onCostAmountInput(cost)"
                                                             @blur="() => recalculateCostAmount(cost)"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
-                                                    <p class="text-xs text-orange-600 mt-1" v-if="cost.quantity &&  parseFloat(cost.quantity) > 0">
-                                                        Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
-                                                    </p>
+                                                        <p class="text-xs text-orange-600 mt-1"
+                                                            v-if="cost.quantity && parseFloat(cost.quantity) > 0">
+                                                            Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
+                                                        </p>
                                                     </div>
                                                     <div class="col-span-12">
                                                         <label
@@ -705,8 +716,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="mt-2">
-                                                    <label
-                                                        class="block text-xs font-medium text-purple-700 mb-1">Notes
+                                                    <label class="block text-xs font-medium text-purple-700 mb-1">Notes
                                                         (optional)</label>
                                                     <textarea v-model="item.notes" rows="2"
                                                         placeholder="Additional notes for this reimbursement item"
@@ -756,7 +766,8 @@
                                 </div>
                                 <div v-show="sections.goods" class="p-6 space-y-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/DESCRIPTION</label>
+                                        <label
+                                            class="block text-sm font-medium text-sage-700 mb-2">COMMODITY/DESCRIPTION</label>
                                         <textarea v-model="form.commodity" rows="3"
                                             placeholder="Enter a detailed commodity description"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
@@ -883,7 +894,7 @@
                                         <input v-model="form.top" type="text" placeholder="e.g., NET 30"
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                         <div v-if="form.errors.top" class="mt-2 text-sm text-red-600">{{ form.errors.top
-                                            }}</div>
+                                        }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1250,13 +1261,13 @@ const formatCurrency = (amount) => {
 const formatNumber = (item, field) => {
     const value = item[field];
     if (!value) return;
-    
+
     // Remove all non-numeric characters
     const numericValue = value.toString().replace(/[^\d]/g, '');
-    
+
     // Format with dots as thousand separators
     const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\\d))/g, '.');
-    
+
     item[field] = formatted;
 };
 
