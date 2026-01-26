@@ -182,6 +182,14 @@
   "resources/js/Layouts/GuestLayout.vue": [
     "/build/assets/GuestLayout-B-in8S7e.js"
   ],
+  "resources/js/Layouts/MasterAdminLayout.vue": [
+    "/build/assets/MasterAdminLayout-DOmrD4T_.js",
+    "/build/assets/MasterAdminLayout-B1c0qVMi.css"
+  ],
+  "resources/js/Layouts/MasterAdminLayout.vue?vue&type=style&index=0&scoped=b90f37ad&lang.css": [
+    "/build/assets/MasterAdminLayout-DOmrD4T_.js",
+    "/build/assets/MasterAdminLayout-B1c0qVMi.css"
+  ],
   "resources/js/Pages/Admin/AdminCS/Components/SidebarNavigation.vue": [
     "/build/assets/SidebarNavigation-DplzU1dX.js",
     "/build/assets/SidebarNavigation-Dapf4QXB.css"
@@ -620,12 +628,12 @@
     "/build/assets/SidebarNavigation-CTOeJvf3.css"
   ],
   "resources/js/Pages/Admin/MasterAdmin/Dashboard.vue": [
-    "/build/assets/Dashboard-DV3lIJKH.js",
-    "/build/assets/Dashboard-fEAbepw9.css"
+    "/build/assets/Dashboard-CjRwhJIy.js",
+    "/build/assets/Dashboard-C13nAOEe.css"
   ],
-  "resources/js/Pages/Admin/MasterAdmin/Dashboard.vue?vue&type=style&index=0&scoped=d0a4b3dd&lang.css": [
-    "/build/assets/Dashboard-DV3lIJKH.js",
-    "/build/assets/Dashboard-fEAbepw9.css"
+  "resources/js/Pages/Admin/MasterAdmin/Dashboard.vue?vue&type=style&index=0&scoped=21e187eb&lang.css": [
+    "/build/assets/Dashboard-CjRwhJIy.js",
+    "/build/assets/Dashboard-C13nAOEe.css"
   ],
   "resources/js/Pages/Admin/MasterAdmin/Employees/Create.vue": [
     "/build/assets/Create-BqObQczG.js",
@@ -668,20 +676,20 @@
     "/build/assets/Create-CnwYfiJE.css"
   ],
   "resources/js/Pages/Admin/MasterAdmin/Users/Edit.vue": [
-    "/build/assets/Edit-D8bCHJzD.js",
-    "/build/assets/Edit-D4Jpu9pP.css"
+    "/build/assets/Edit-Ddvoowx7.js",
+    "/build/assets/Edit-BHyMF78x.css"
   ],
-  "resources/js/Pages/Admin/MasterAdmin/Users/Edit.vue?vue&type=style&index=0&scoped=339d8027&lang.css": [
-    "/build/assets/Edit-D8bCHJzD.js",
-    "/build/assets/Edit-D4Jpu9pP.css"
+  "resources/js/Pages/Admin/MasterAdmin/Users/Edit.vue?vue&type=style&index=0&scoped=0be8c4c6&lang.css": [
+    "/build/assets/Edit-Ddvoowx7.js",
+    "/build/assets/Edit-BHyMF78x.css"
   ],
   "resources/js/Pages/Admin/MasterAdmin/Users/Index.vue": [
-    "/build/assets/Index-uh6o9uow.js",
-    "/build/assets/Index-W-y6uUIE.css"
+    "/build/assets/Index-LDqcvjEM.js",
+    "/build/assets/Index-7ho-VaU5.css"
   ],
-  "resources/js/Pages/Admin/MasterAdmin/Users/Index.vue?vue&type=style&index=0&scoped=9a264c14&lang.css": [
-    "/build/assets/Index-uh6o9uow.js",
-    "/build/assets/Index-W-y6uUIE.css"
+  "resources/js/Pages/Admin/MasterAdmin/Users/Index.vue?vue&type=style&index=0&scoped=9c8aeb28&lang.css": [
+    "/build/assets/Index-LDqcvjEM.js",
+    "/build/assets/Index-7ho-VaU5.css"
   ],
   "resources/js/Pages/Admin/MasterAdmin/WebsiteSettings/PengaturanUmum/Index.vue": [
     "/build/assets/Index-Djsd-dlF.js",

@@ -73,7 +73,7 @@ class FinancialPositionService
         $liabilitiesTotal = 0;
         $equityTotal = 0;
 
-        $operationalExpense = null;
+        $incomeStatementProfit = null;
         $currentYearEarnings = null;
         $currentYearMeta = null;
 
@@ -89,13 +89,13 @@ class FinancialPositionService
                 );
 
                 if ($key === 'equity') {
-                    if ($operationalExpense === null) {
-                        $operationalData = $this->getOperationalExpenseForYear($cutoff);
-                        $operationalExpense = (float) $operationalData['amount'];
-                        $currentYearMeta = $operationalData['meta'] ?? null;
+                    if ($incomeStatementProfit === null) {
+                        $incomeStatementData = $this->calculateCurrentYearEarnings($cutoff);
+                        $incomeStatementProfit = (float) ($incomeStatementData['amount'] ?? 0);
+                        $currentYearMeta = $incomeStatementData['meta'] ?? null;
                     }
 
-                    $currentYearEarnings = $assetsTotal - $liabilitiesTotal - $operationalExpense;
+                    $currentYearEarnings = $incomeStatementProfit - $liabilitiesTotal;
 
                     foreach ($rows as $index => $row) {
                         if (($row['account_code'] ?? null) !== '3300') {
@@ -108,9 +108,8 @@ class FinancialPositionService
                             'amount' => round($currentYearEarnings, 2),
                             'source' => 'formula',
                             'meta' => [
-                                'assets_total' => round($assetsTotal, 2),
+                                'income_statement_profit' => round($incomeStatementProfit, 2),
                                 'liabilities_total' => round($liabilitiesTotal, 2),
-                                'operational_expense' => round($operationalExpense, 2),
                                 'period' => $currentYearMeta,
                             ],
                         ];
