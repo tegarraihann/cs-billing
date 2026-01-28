@@ -20,4 +20,5 @@ return new class extends Migration
             $table->dropColumn(['employee_name', 'payment_date']);
         });
     }
+
 };

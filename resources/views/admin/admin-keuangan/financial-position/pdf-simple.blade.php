@@ -42,7 +42,6 @@
         $sections = $statement['sections'] ?? [];
         $balanceCheck = $statement['balance_check'] ?? ['assets_total' => 0, 'liabilities_equity_total' => 0, 'difference' => 0];
         $formatCurrency = fn($v) => 'Rp ' . number_format((float) $v, 0, ',', '.');
-        $hiddenAccountCodes = ['1200', '2100'];
     @endphp
 
     <div class="wrapper">
@@ -75,12 +74,10 @@
                     <table>
                         <tbody>
                             @foreach($group['rows'] as $row)
-                                @if(!in_array((string) $row['account_code'], $hiddenAccountCodes, true))
-                                    <tr>
-                                        <td>{{ $row['account_code'] }} - {{ $row['account_name'] }}</td>
-                                        <td class="amount">{{ $formatCurrency($row['amount']) }}</td>
-                                    </tr>
-                                @endif
+                                <tr>
+                                    <td>{{ $row['account_code'] }} - {{ $row['account_name'] }}</td>
+                                    <td class="amount">{{ $formatCurrency($row['amount']) }}</td>
+                                </tr>
                             @endforeach
                             <tr class="total">
                                 <td>Total {{ $group['title'] }}</td>
@@ -100,12 +97,10 @@
                     <table>
                         <tbody>
                             @foreach($group['rows'] as $row)
-                                @if(!in_array((string) $row['account_code'], $hiddenAccountCodes, true))
-                                    <tr>
-                                        <td>{{ $row['account_code'] }} - {{ $row['account_name'] }}</td>
-                                        <td class="amount">{{ $formatCurrency($row['amount']) }}</td>
-                                    </tr>
-                                @endif
+                                <tr>
+                                    <td>{{ $row['account_code'] }} - {{ $row['account_name'] }}</td>
+                                    <td class="amount">{{ $formatCurrency($row['amount']) }}</td>
+                                </tr>
                             @endforeach
                             <tr class="total">
                                 <td>Total {{ $group['title'] }}</td>

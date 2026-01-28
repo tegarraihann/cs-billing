@@ -300,23 +300,8 @@ watch(
     }
 )
 
-const hiddenAccountCodes = ['1200', '2100']
-
 const sections = computed(() => props.statement?.sections || {})
-const visibleSections = computed(() => {
-    const source = sections.value
-    return Object.fromEntries(
-        Object.entries(source).map(([key, section]) => {
-            const groups = (section.groups || []).map((group) => ({
-                ...group,
-                rows: (group.rows || []).filter(
-                    (row) => !hiddenAccountCodes.includes(String(row.account_code))
-                ),
-            }))
-            return [key, { ...section, groups }]
-        })
-    )
-})
+const visibleSections = computed(() => sections.value)
 
 const balanceCheck = computed(() => ({
     assets_total: Number(props.statement?.balance_check?.assets_total || 0),
