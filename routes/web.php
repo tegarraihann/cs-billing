@@ -742,6 +742,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::post('/transfer', 'transfer')->name('transfer');
         Route::get('/{bankBalance}', 'show')->name('show');
         Route::get('/{bank}/export-pdf', 'exportPdf')->name('export-pdf');
         Route::post('/{bank}/capital-deposit', 'capitalDeposit')->name('capital-deposit');

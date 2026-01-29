@@ -9,13 +9,123 @@
                         <h1 class="text-2xl font-bold text-gray-900">Bank Balance Management</h1>
                         <p class="mt-1 text-sm text-gray-600">Manage bank balances and input monthly opening balances.</p>
                     </div>
-                    <Link
-                        :href="route('admin-keuangan.bank-balance.create')"
-                        class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                    >
-                        <Plus class="w-4 h-4 mr-2" />
-                        Input Opening Balance
-                    </Link>
+                    <div class="flex items-center gap-3">
+                        <button
+                            type="button"
+                            @click="showTransfer = true"
+                            class="inline-flex items-center px-4 py-2 border border-sage-300 rounded-md font-semibold text-xs text-sage-700 uppercase tracking-widest hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                        >
+                            <ArrowLeftRight class="w-4 h-4 mr-2" />
+                            Transfer Bank
+                        </button>
+                        <Link
+                            :href="route('admin-keuangan.bank-balance.create')"
+                            class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                        >
+                            <Plus class="w-4 h-4 mr-2" />
+                            Input Opening Balance
+                        </Link>
+                    </div>
+                </div>
+
+                <div v-if="showTransfer" class="bg-white border border-sage-200 rounded-lg shadow-sm p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Bank Transfer</h2>
+                            <p class="text-sm text-gray-500">Move funds between bank accounts without affecting other modules.</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="closeTransfer"
+                            class="text-xs font-semibold text-gray-500 uppercase tracking-widest hover:text-gray-700"
+                        >
+                            Close
+                        </button>
+                    </div>
+
+                    <form @submit.prevent="submitTransfer" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">From Bank</label>
+                                <select
+                                    v-model="transferForm.from_bank_id"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                >
+                                    <option value="">Select bank</option>
+                                    <option v-for="bank in bankData" :key="bank.id" :value="bank.id">
+                                        {{ bank.bank_name }} - {{ bank.account_number }}
+                                    </option>
+                                </select>
+                                <div v-if="transferForm.errors.from_bank_id" class="text-xs text-red-600 mt-2">{{ transferForm.errors.from_bank_id }}</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">To Bank</label>
+                                <select
+                                    v-model="transferForm.to_bank_id"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                >
+                                    <option value="">Select bank</option>
+                                    <option v-for="bank in bankData" :key="bank.id" :value="bank.id">
+                                        {{ bank.bank_name }} - {{ bank.account_number }}
+                                    </option>
+                                </select>
+                                <div v-if="transferForm.errors.to_bank_id" class="text-xs text-red-600 mt-2">{{ transferForm.errors.to_bank_id }}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Transfer Date</label>
+                                <input
+                                    v-model="transferForm.transfer_date"
+                                    type="date"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                />
+                                <div v-if="transferForm.errors.transfer_date" class="text-xs text-red-600 mt-2">{{ transferForm.errors.transfer_date }}</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Amount (IDR)</label>
+                                <input
+                                    v-model="transferForm.amount"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                />
+                                <div v-if="transferForm.errors.amount" class="text-xs text-red-600 mt-2">{{ transferForm.errors.amount }}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                            <textarea
+                                v-model="transferForm.notes"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                placeholder="Transfer notes"
+                            ></textarea>
+                            <div v-if="transferForm.errors.notes" class="text-xs text-red-600 mt-2">{{ transferForm.errors.notes }}</div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                @click="closeTransfer"
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-semibold rounded-md text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                :disabled="transferForm.processing"
+                                class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-xs font-semibold rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 disabled:opacity-50"
+                            >
+                                Save Transfer
+                            </button>
+                        </div>
+
+                        <div v-if="transferForm.errors.error" class="text-xs text-red-600">{{ transferForm.errors.error }}</div>
+                    </form>
                 </div>
 
                 <!-- Stats Cards -->
@@ -179,11 +289,19 @@
 </template>
 
 <script setup>
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, useForm } from '@inertiajs/vue3'
+import { ref } from 'vue'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
-    Plus, CreditCard, DollarSign, Activity, Calendar,
-    History, Eye, TrendingUp
+    Plus,
+    CreditCard,
+    DollarSign,
+    Activity,
+    Calendar,
+    History,
+    Eye,
+    TrendingUp,
+    ArrowLeftRight,
 } from 'lucide-vue-next'
 
 defineProps({
@@ -205,6 +323,30 @@ defineProps({
         })
     }
 })
+
+const showTransfer = ref(false)
+const transferForm = useForm({
+    from_bank_id: '',
+    to_bank_id: '',
+    transfer_date: new Date().toISOString().slice(0, 10),
+    amount: '',
+    notes: '',
+})
+
+const closeTransfer = () => {
+    showTransfer.value = false
+    transferForm.reset()
+    transferForm.clearErrors()
+    transferForm.transfer_date = new Date().toISOString().slice(0, 10)
+}
+
+const submitTransfer = () => {
+    transferForm.post(route('admin-keuangan.bank-balance.transfer'), {
+        onSuccess: () => {
+            closeTransfer()
+        },
+    })
+}
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

@@ -148,6 +148,70 @@ class BankBalanceController extends Controller
         ]);
     }
 
+    public function transfer(Request $request)
+    {
+        $validated = $request->validate([
+            'from_bank_id' => 'required|exists:bank_accounts,id|different:to_bank_id',
+            'to_bank_id' => 'required|exists:bank_accounts,id',
+            'transfer_date' => 'required|date',
+            'amount' => 'required|numeric|min:0.01',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $fromBank = BankAccount::find($validated['from_bank_id']);
+        $toBank = BankAccount::find($validated['to_bank_id']);
+
+        if (!$fromBank || !$toBank) {
+            return back()->withErrors(['error' => 'Bank account not found.'])->withInput();
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $notes = trim((string) ($validated['notes'] ?? ''));
+            $outDescription = 'Bank transfer to ' . $toBank->bank_name;
+            $inDescription = 'Bank transfer from ' . $fromBank->bank_name;
+            if ($notes !== '') {
+                $outDescription .= ' - ' . $notes;
+                $inDescription .= ' - ' . $notes;
+            }
+
+            BankTransaction::create([
+                'bank_account_id' => $fromBank->id,
+                'transaction_date' => $validated['transfer_date'],
+                'transaction_type' => 'debit',
+                'amount' => $validated['amount'],
+                'description' => $outDescription,
+                'reference_type' => 'bank_transfer',
+                'reference_id' => null,
+                'created_by' => Auth::id(),
+            ]);
+
+            BankTransaction::create([
+                'bank_account_id' => $toBank->id,
+                'transaction_date' => $validated['transfer_date'],
+                'transaction_type' => 'credit',
+                'amount' => $validated['amount'],
+                'description' => $inDescription,
+                'reference_type' => 'bank_transfer',
+                'reference_id' => null,
+                'created_by' => Auth::id(),
+            ]);
+
+            \DB::commit();
+
+            return redirect()
+                ->route('admin-keuangan.bank-balance.index')
+                ->with('success', 'Bank transfer has been recorded.');
+        } catch (\Throwable $th) {
+            \DB::rollBack();
+
+            return back()
+                ->withErrors(['error' => 'Failed to record bank transfer: ' . $th->getMessage()])
+                ->withInput();
+        }
+    }
+
     /**
      * Export bank transactions to PDF (simple Courier template).
      */
