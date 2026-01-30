@@ -60,6 +60,7 @@
                 <option value="expense">Expense</option>
                 <option value="topup">Top Up</option>
                 <option value="refund">Refund</option>
+                <option value="opening">Opening Balance</option>
               </select>
               <p v-if="errors.type" class="mt-1 text-sm text-red-600">
                 {{ errors.type }}
@@ -373,7 +374,7 @@ const projectedBalance = computed(() => {
   // Apply the new transaction
   if (form.type === 'expense') {
     return adjustedBalance - amount
-  } else if (form.type === 'topup' || form.type === 'refund') {
+  } else if (form.type === 'topup' || form.type === 'refund' || form.type === 'opening') {
     return adjustedBalance + amount
   }
   

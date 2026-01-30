@@ -20,6 +20,12 @@
               Sync Balance
             </button>
             <Link
+              :href="route('admin-keuangan.petty-cash.create', { type: 'opening' })"
+              class="inline-flex items-center px-3 py-2 bg-amber-600 text-white text-sm font-medium rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+            >
+              Opening Balance
+            </Link>
+            <Link
               :href="route('admin-keuangan.petty-cash.create')"
               class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
             >
@@ -93,6 +99,7 @@
                   <option value="expense">Expense</option>
                   <option value="topup">Top Up</option>
                   <option value="refund">Refund</option>
+                  <option value="opening">Opening Balance</option>
                 </select>
               </div>
             </div>
@@ -349,7 +356,8 @@ const getTypeLabel = (type) => {
   const labels = {
     expense: 'Expense',
     topup: 'Top Up',
-    refund: 'Refund'
+    refund: 'Refund',
+    opening: 'Opening Balance'
   }
   return labels[type] || type
 }
@@ -358,7 +366,8 @@ const getTypeClass = (type) => {
   const classes = {
     expense: 'bg-red-100 text-red-800',
     topup: 'bg-green-100 text-green-800',
-    refund: 'bg-blue-100 text-blue-800'
+    refund: 'bg-blue-100 text-blue-800',
+    opening: 'bg-amber-100 text-amber-800'
   }
   return classes[type] || 'bg-sage-100 text-sage-800'
 }

@@ -94,7 +94,7 @@ class PettyCashController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
@@ -108,6 +108,7 @@ class PettyCashController extends Controller
             'currentBalance' => $currentBalance,
             'bankAccounts' => $bankAccounts,
             'expenseAccounts' => $expenseAccounts,
+            'initialType' => $request->query('type'),
         ]);
     }
 
@@ -120,7 +121,7 @@ class PettyCashController extends Controller
             'transaction_date' => 'required|date',
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
-            'type' => ['required', Rule::in(['expense', 'topup', 'refund'])],
+            'type' => ['required', Rule::in(['expense', 'topup', 'refund', 'opening'])],
             'so_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -151,7 +152,7 @@ class PettyCashController extends Controller
 
             if ($request->type === 'expense') {
                 $balanceAfter = $balanceBeforeTransaction - $request->amount;
-            } else { // topup or refund
+            } else { // topup, refund, or opening
                 $balanceAfter = $balanceBeforeTransaction + $request->amount;
             }
 
@@ -255,7 +256,7 @@ class PettyCashController extends Controller
             'transaction_date' => 'required|date',
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
-            'type' => ['required', Rule::in(['expense', 'topup', 'refund'])],
+            'type' => ['required', Rule::in(['expense', 'topup', 'refund', 'opening'])],
             'so_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -287,7 +288,7 @@ class PettyCashController extends Controller
 
             if ($request->type === 'expense') {
                 $balanceAfter = $balanceBeforeTransaction - $request->amount;
-            } else { // topup or refund
+            } else { // topup, refund, or opening
                 $balanceAfter = $balanceBeforeTransaction + $request->amount;
             }
 

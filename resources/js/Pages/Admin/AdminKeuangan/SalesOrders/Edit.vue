@@ -1295,7 +1295,8 @@ const getOtherCostLineTotal = (costItem) => {
 };
 
 const getReimbursementLineTotal = (item) => {
-    return normalizeNumberValue(item?.amount);
+    const quantity = resolveQuantityValue(item?.quantity);
+    return quantity * normalizeNumberValue(item?.amount);
 };
 
 // Calculate total other costs

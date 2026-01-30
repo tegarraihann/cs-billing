@@ -317,7 +317,7 @@ class AccountPayable extends Model
                     $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0
                         ? (float) $item->quantity
                         : 1;
-                    $amount = (float) $item->amount;
+                    $amount = (float) $item->amount * $quantity;
                     return [
                         'vendor_id' => $vendorId,
                         'nama_vendor' => $vendorName,
@@ -993,8 +993,8 @@ class AccountPayable extends Model
                 $unit = is_string($item->unit) && trim($item->unit) !== ''
                     ? trim($item->unit)
                     : null;
-                $amount = (float) ($item->amount ?? 0);
-                $unitPrice = $quantity > 0 ? ($amount / $quantity) : $amount;
+                $unitPrice = (float) ($item->amount ?? 0);
+                $amount = $unitPrice * $quantity;
 
                 return [
                     'amount' => $amount,

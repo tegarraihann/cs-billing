@@ -60,6 +60,7 @@
                 <option value="expense">Expense</option>
                 <option value="topup">Top Up</option>
                 <option value="refund">Refund</option>
+                <option value="opening">Opening Balance</option>
               </select>
               <p v-if="errors.type" class="mt-1 text-sm text-red-600">
                 {{ errors.type }}
@@ -87,6 +88,9 @@
               <p v-if="form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
                 Category is only for expense transactions
               </p>
+              <p v-if="form.type === 'opening'" class="mt-1 text-xs text-sage-500">
+                Opening balance does not require category.
+              </p>
             </div>
 
             <!-- Akun Beban (P&L) -->
@@ -107,6 +111,9 @@
               </p>
               <p v-if="form.type !== 'expense'" class="mt-1 text-xs text-sage-500">
                 P&L account is only for expense transactions
+              </p>
+              <p v-if="form.type === 'opening'" class="mt-1 text-xs text-sage-500">
+                Opening balance does not affect P&L.
               </p>
             </div>
 
@@ -131,6 +138,9 @@
               </p>
               <p v-if="['topup', 'refund'].includes(form.type)" class="mt-1 text-xs text-sage-500">
                 Bank balance will decrease by the top up/refund amount.
+              </p>
+              <p v-if="form.type === 'opening'" class="mt-1 text-xs text-sage-500">
+                Opening balance is recorded without bank transaction.
               </p>
             </div>
 
@@ -292,6 +302,10 @@ const props = defineProps({
   errors: {
     type: Object,
     default: () => ({})
+  },
+  initialType: {
+    type: String,
+    default: ''
   }
 })
 
@@ -306,7 +320,7 @@ const form = useForm({
   category_id: '',
   pl_account_id: '',
   amount: '',
-  type: '',
+  type: props.initialType || '',
   bank_account_id: '',
   so_number: '',
   notes: '',
@@ -335,7 +349,7 @@ const projectedBalance = computed(() => {
   const amount = parseFloat(form.amount)
   if (form.type === 'expense') {
     return props.currentBalance - amount
-  } else if (form.type === 'topup' || form.type === 'refund') {
+  } else if (form.type === 'topup' || form.type === 'refund' || form.type === 'opening') {
     return parseFloat(props.currentBalance) + amount
   }
   

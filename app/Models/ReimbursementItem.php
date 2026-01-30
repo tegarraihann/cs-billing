@@ -220,7 +220,8 @@ class ReimbursementItem extends Model
         return self::where('sales_order_id', $salesOrderId)
             ->get()
             ->sum(function ($item) {
-                return (float) $item->amount;
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
             });
     }
 
@@ -230,7 +231,8 @@ class ReimbursementItem extends Model
             ->where('status', 'pending')
             ->get()
             ->sum(function ($item) {
-                return (float) $item->amount;
+                $qty = is_numeric($item->quantity) && (float) $item->quantity > 0 ? (float) $item->quantity : 1;
+                return (float) $item->amount * $qty;
             });
     }
 }
