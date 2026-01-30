@@ -1217,8 +1217,62 @@ const normalizeNumberValue = (value) => {
         return Number.isFinite(value) ? value : 0;
     }
 
-    const normalized = value.toString().replace(/\./g, '').replace(',', '.');
-    const parsed = parseFloat(normalized);
+    const raw = value.toString().trim();
+    if (!raw) {
+        return 0;
+    }
+
+    // If already a standard numeric format (e.g., 7000000 or 7000000.00)
+    if (/^\d+(\.\d+)?$/.test(raw)) {
+        const parsed = parseFloat(raw);
+        return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    // If only comma used as decimal separator (e.g., 7000000,5)
+    if (/^\d+,\d+$/.test(raw)) {
+        const parsed = parseFloat(raw.replace(',', '.'));
+        return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    const hasDot = raw.includes('.');
+    const hasComma = raw.includes(',');
+
+    if (hasComma) {
+        const lastComma = raw.lastIndexOf(',');
+        const lastDot = raw.lastIndexOf('.');
+
+        if (!hasDot || lastComma > lastDot) {
+            // Indonesian format: 1.000,50 or 1.000
+            const normalized = raw.replace(/\./g, '').replace(',', '.');
+            const parsed = parseFloat(normalized);
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        // International format: 1,000.50
+        const parsed = parseFloat(raw.replace(/,/g, ''));
+        return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    if (hasDot) {
+        const parts = raw.split('.');
+        if (parts.length > 2) {
+            const parsed = parseFloat(parts.join(''));
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        if (parts.length === 2) {
+            const [intPart, fracPart] = parts;
+            if (fracPart.length === 3 && intPart.length > 3) {
+                const parsed = parseFloat(intPart + fracPart);
+                return Number.isNaN(parsed) ? 0 : parsed;
+            }
+        }
+
+        const parsed = parseFloat(raw);
+        return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    const parsed = parseFloat(raw);
     return Number.isNaN(parsed) ? 0 : parsed;
 };
 
