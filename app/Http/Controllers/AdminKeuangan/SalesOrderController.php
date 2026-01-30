@@ -35,7 +35,7 @@ class SalesOrderController extends Controller
             });
         }
 
-        $salesOrders = $query->paginate(10)->withQueryString();
+        $salesOrders = $query->paginate(5)->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Index', [
             'salesOrders' => $salesOrders,
@@ -1683,4 +1683,4 @@ class SalesOrderController extends Controller
         return array_values(array_unique($results));
     }
 }
-    
+
