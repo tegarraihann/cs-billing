@@ -58,7 +58,7 @@ class AccountReceivableController extends Controller
             $query->where('invoice_date', '<=', $request->date_to);
         }
 
-        $receivables = $query->paginate(15);
+        $receivables = $query->paginate(5);
 
         // Calculate summary
         $summary = [
