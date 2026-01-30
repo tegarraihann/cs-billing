@@ -1,8 +1,8 @@
 <template>
     <div class="min-h-screen bg-sage-50">
         <!-- Top Navigation Bar -->
-        <nav class="bg-white shadow-sm border-b border-sage-200 fixed top-0 left-0 right-0 z-50">
-            <div class="px-4 sm:px-6 lg:ml-64 lg:px-8">
+        <nav class="bg-white shadow-sm border-b border-sage-200 fixed top-0 left-0 right-0 z-50 lg:left-64">
+            <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <!-- Mobile menu button -->
                     <div class="lg:hidden">

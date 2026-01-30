@@ -1055,7 +1055,7 @@ class SalesOrderController extends Controller
                     $itemRef = 'reimbursement_' . $reimbursementItem->id;
                     $expectedReimbursementRefs[] = $itemRef;
 
-                    $rate = (float) $reimbursementItem->amount;
+                    $lineTotal = (float) $reimbursementItem->amount;
                     $quantity = is_numeric($reimbursementItem->quantity) && (float) $reimbursementItem->quantity > 0
                         ? (float) $reimbursementItem->quantity
                         : null;
@@ -1067,7 +1067,8 @@ class SalesOrderController extends Controller
                         : [];
                     $quantity = $quantity ?? $this->normalizeReceiptQuantity($receiptInfo, 1);
                     $unit = $unit ?? $this->normalizeReceiptUnit($receiptInfo, 'SET');
-                    $amount = $rate * $quantity;
+                    $rate = $quantity && $quantity > 0 ? ($lineTotal / $quantity) : $lineTotal;
+                    $amount = $lineTotal;
 
                     $itemData = [
                         'invoice_id' => $invoice->id,
@@ -1315,8 +1316,9 @@ class SalesOrderController extends Controller
                         $unit = is_string($reimbursement->unit) && trim($reimbursement->unit) !== ''
                             ? trim($reimbursement->unit)
                             : 'SET';
-                        $rate = (float) $reimbursement->amount;
-                        $lineAmount = $rate * $quantity;
+                        $lineTotal = (float) $reimbursement->amount;
+                        $rate = $quantity > 0 ? ($lineTotal / $quantity) : $lineTotal;
+                        $lineAmount = $lineTotal;
                         $invoice->items()
                             ->where('item_ref', 'reimbursement_' . $reimbursement->id)
                             ->update([

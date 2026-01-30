@@ -506,7 +506,9 @@ class AccountReceivableController extends Controller
      */
     public function recordPayment(Request $request, AccountReceivable $accountReceivable)
     {
-        $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        if ($accountReceivable->invoice) {
+            $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        }
         $accountReceivable->refresh();
         $components = $accountReceivable->components()->get();
         $requiresComponent = $components->count() > 1;
@@ -592,17 +594,25 @@ class AccountReceivableController extends Controller
                     : ($component->component_type === 'vat' ? 'VAT' : 'Invoice Main'))
                 : 'Invoice';
 
+            $customerName = $accountReceivable->customer?->company_name
+                ?? $accountReceivable->customer_name
+                ?? 'Customer';
+
+            $invoiceNumber = $accountReceivable->invoice_number
+                ?? $accountReceivable->reference_number
+                ?? 'Opening Balance';
+
             // Record bank transaction (Customer Payment = Credit to bank)
             \App\Models\BankTransaction::recordCustomerPayment(
                 $validated['bank_account_id'],
                 $validated['amount'],
-                "Customer payment for {$componentLabel} {$accountReceivable->invoice_number} from {$accountReceivable->customer->company_name}",
+                "Customer payment for {$componentLabel} {$invoiceNumber} from {$customerName}",
                 $accountReceivable->id,
                 $validated['payment_date']
             );
 
             // Update related invoice status if fully paid
-            if ($accountReceivable->status === 'paid') {
+            if ($accountReceivable->status === 'paid' && $accountReceivable->invoice) {
                 $accountReceivable->invoice->update([
                     'status' => 'paid',
                     'paid_date' => now(),

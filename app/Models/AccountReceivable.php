@@ -145,7 +145,9 @@ class AccountReceivable extends Model
 
     public function recordPayment(float $amount, string $notes = null, ?AccountReceivableComponent $component = null, ?Carbon $paymentDate = null): bool
     {
-        $this->syncComponentsFromInvoice($this->invoice);
+        if ($this->invoice) {
+            $this->syncComponentsFromInvoice($this->invoice);
+        }
 
         $components = $this->components()->get();
         if ($components->isEmpty()) {

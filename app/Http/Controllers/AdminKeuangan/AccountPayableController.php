@@ -1014,8 +1014,8 @@ class AccountPayableController extends Controller
                 $unit = is_string($item->unit) && trim($item->unit) !== ''
                     ? trim($item->unit)
                     : data_get($receiptInfo, 'unit');
-                $unitPrice = (float) ($item->amount ?? 0);
-                $totalAmount = $unitPrice * $quantity;
+                $totalAmount = (float) ($item->amount ?? 0);
+                $unitPrice = $quantity > 0 ? ($totalAmount / $quantity) : $totalAmount;
 
                 return [
                     'id' => $item->id,

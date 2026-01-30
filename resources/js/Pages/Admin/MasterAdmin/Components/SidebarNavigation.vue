@@ -9,14 +9,14 @@
 
   <!-- Sidebar -->
   <aside
-    class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 mt-16 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
+    class="fixed inset-y-0 left-0 bg-white shadow-lg w-64 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
     :class="{
       'translate-x-0': isMobileSidebarOpen,
       '-translate-x-full': !isMobileSidebarOpen,
     }"
   >
     <!-- Sidebar Header -->
-    <div class="px-6 py-6 border-b border-sage-200 flex-shrink-0">
+    <div class="px-6 h-16 border-b border-sage-200 flex-shrink-0 flex items-center">
       <div class="flex items-center space-x-3">
         <div
           class="w-10 h-10 bg-sage-600 rounded-lg flex items-center justify-center"
