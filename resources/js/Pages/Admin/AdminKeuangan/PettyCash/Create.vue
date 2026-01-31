@@ -16,12 +16,12 @@
         </div>
         <div class="flex items-center justify-between">
           <p class="text-sm text-sage-600">Create a new petty cash transaction</p>
-          <div class="text-right">
-            <div class="text-xs text-sage-500">Current Balance</div>
-            <div class="text-lg font-bold text-sage-800">
-              {{ formatCurrency(currentBalance) }}
+            <div class="text-right">
+              <div class="text-xs text-sage-500">Current Balance</div>
+              <div class="text-lg font-bold text-sage-800">
+              {{ formatCurrency(currentBalanceLocal) }}
+              </div>
             </div>
-          </div>
         </div>
       </div>
 
@@ -312,6 +312,7 @@ const props = defineProps({
 // Reactive state
 const fileInput = ref(null)
 const processing = ref(false)
+const currentBalanceLocal = ref(parseFloat(props.currentBalance) || 0)
 
 // Form data
 const form = useForm({
@@ -344,16 +345,16 @@ const today = computed(() => {
 })
 
 const projectedBalance = computed(() => {
-  if (!form.amount || isNaN(form.amount)) return props.currentBalance
+  if (!form.amount || isNaN(form.amount)) return currentBalanceLocal.value
   
   const amount = parseFloat(form.amount)
   if (form.type === 'expense') {
-    return props.currentBalance - amount
+    return currentBalanceLocal.value - amount
   } else if (form.type === 'topup' || form.type === 'refund' || form.type === 'opening') {
-    return parseFloat(props.currentBalance) + amount
+    return currentBalanceLocal.value + amount
   }
   
-  return props.currentBalance
+  return currentBalanceLocal.value
 })
 
 const willBeNegative = computed(() => {
@@ -450,10 +451,34 @@ const submitForm = () => {
 const route = window.route || function(name, params) {
   const routes = {
     'admin-keuangan.petty-cash.index': '/admin-keuangan/petty-cash',
-    'admin-keuangan.petty-cash.store': '/admin-keuangan/petty-cash'
+    'admin-keuangan.petty-cash.store': '/admin-keuangan/petty-cash',
+    'admin-keuangan.petty-cash.balance': '/admin-keuangan/petty-cash/balance'
   }
   return routes[name] || '#'
 }
+
+const fetchBalanceForDate = async (dateValue) => {
+  if (!dateValue) return
+  try {
+    const url = route('admin-keuangan.petty-cash.balance') + `?date=${encodeURIComponent(dateValue)}`
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } })
+    if (!response.ok) return
+    const data = await response.json()
+    if (data && typeof data.balance === 'number') {
+      currentBalanceLocal.value = data.balance
+    }
+  } catch (error) {
+    // Silent fail to avoid blocking form usage
+  }
+}
+
+watch(
+  () => form.transaction_date,
+  (newDate) => {
+    fetchBalanceForDate(newDate)
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

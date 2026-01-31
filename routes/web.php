@@ -633,6 +633,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
     // Petty Cash Management Routes for Admin Keuangan
     Route::controller(\App\Http\Controllers\AdminKeuangan\PettyCashController::class)->prefix('petty-cash')->name('petty-cash.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/balance', 'balanceForDate')->name('balance');
         Route::get('/dashboard', 'dashboard')->name('dashboard');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');

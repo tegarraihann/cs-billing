@@ -91,9 +91,10 @@ class PettyCashBalance extends Model
         // Calculate balance from actual transactions
         $totalTopups = PettyCashTransaction::where('type', 'topup')->sum('amount');
         $totalRefunds = PettyCashTransaction::where('type', 'refund')->sum('amount');
+        $totalOpenings = PettyCashTransaction::where('type', 'opening')->sum('amount');
         $totalExpenses = PettyCashTransaction::where('type', 'expense')->sum('amount');
 
-        return $totalTopups + $totalRefunds - $totalExpenses;
+        return $totalTopups + $totalRefunds + $totalOpenings - $totalExpenses;
     }
 
     /**

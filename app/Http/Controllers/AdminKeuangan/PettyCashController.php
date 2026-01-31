@@ -97,7 +97,7 @@ class PettyCashController extends Controller
     public function create(Request $request)
     {
         $categories = PettyCashCategory::active()->ordered()->get();
-        $currentBalance = PettyCashBalance::getCurrentBalance();
+        $currentBalance = PettyCashBalance::calculateBalanceUpToDate(now()->toDateString(), true);
         $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(['id', 'bank_name', 'account_number', 'account_name']);
         $expenseAccounts = ChartOfAccount::where('account_type', 'expense')
             ->orderBy('account_code')
@@ -148,7 +148,7 @@ class PettyCashController extends Controller
         $pettyCash = null;
         DB::transaction(function () use ($request, &$pettyCash) {
             // Calculate balance after transaction using the date
-            $balanceBeforeTransaction = PettyCashBalance::calculateBalanceUpToDate($request->transaction_date, false);
+            $balanceBeforeTransaction = $this->calculateBalanceBeforeTransaction($request->transaction_date);
 
             if ($request->type === 'expense') {
                 $balanceAfter = $balanceBeforeTransaction - $request->amount;
@@ -284,7 +284,7 @@ class PettyCashController extends Controller
             $newTransactionDate = $request->transaction_date;
 
             // Calculate new balance after the transaction
-            $balanceBeforeTransaction = PettyCashBalance::calculateBalanceUpToDate($newTransactionDate, false);
+            $balanceBeforeTransaction = $this->calculateBalanceBeforeTransaction($newTransactionDate);
 
             if ($request->type === 'expense') {
                 $balanceAfter = $balanceBeforeTransaction - $request->amount;
@@ -442,6 +442,16 @@ class PettyCashController extends Controller
             'monthlyExpenses' => $monthlyExpenses,
             'monthlyTopups' => $monthlyTopups,
             'categoryBreakdown' => $categoryBreakdown,
+        ]);
+    }
+
+    public function balanceForDate(Request $request)
+    {
+        $date = $request->query('date') ?? now()->toDateString();
+        $balance = PettyCashBalance::calculateBalanceUpToDate($date, true);
+
+        return response()->json([
+            'balance' => (float) $balance,
         ]);
     }
 
@@ -662,6 +672,16 @@ class PettyCashController extends Controller
 
         return redirect()->route('admin-keuangan.petty-cash.pending-approval')
             ->with('success', 'Transaksi berhasil diperbarui.');
+    }
+
+    private function calculateBalanceBeforeTransaction($transactionDate): float
+    {
+        $baseBalance = PettyCashBalance::calculateBalanceUpToDate($transactionDate, false);
+        $openingToday = PettyCashTransaction::whereDate('transaction_date', $transactionDate)
+            ->where('type', 'opening')
+            ->sum('amount');
+
+        return (float) $baseBalance + (float) $openingToday;
     }
 
     private function syncProfitLossEntry(?PettyCashTransaction $transaction): void
