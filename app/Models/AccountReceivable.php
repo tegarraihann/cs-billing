@@ -602,6 +602,11 @@ class AccountReceivable extends Model
         return 'outstanding';
     }
 
+    public function resolveComponentStatus(AccountReceivableComponent $component): string
+    {
+        return $this->determineComponentStatus($component);
+    }
+
     protected function componentLabel(string $type): string
     {
         return match ($type) {

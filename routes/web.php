@@ -577,6 +577,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::get('/{accountReceivable}', 'show')->name('show');
         Route::get('/{accountReceivable}/payment-data', 'paymentData')->name('payment-data');
         Route::post('/{accountReceivable}/record-payment', 'recordPayment')->name('record-payment');
+        Route::post('/{accountReceivable}/record-item-payment', 'recordItemPayment')->name('record-item-payment');
         Route::post('/{accountReceivable}/post-vat', 'postVatPayable')->name('post-vat');
         Route::post('/{accountReceivable}/post-vat-11', 'postVatPayable11')->name('post-vat-11');
         Route::post('/{accountReceivable}/post-vat-1-1', 'postVatPayable11_1')->name('post-vat-1-1');

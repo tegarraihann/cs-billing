@@ -295,6 +295,169 @@
                         </div>
                     </div>
 
+                    <!-- Main Invoice Items -->
+                    <div v-if="mainItems.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Main Invoice Items</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Description
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Qty
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Unit
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Unit Price
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Total
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Paid
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Outstanding
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="item in mainItems" :key="item.id">
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            {{ item.description || '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            {{ formatNumber(item.quantity) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            {{ item.unit || '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.unit_price) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.line_total) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.paid_amount || 0) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.outstanding_amount ?? item.line_total) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right">
+                                            <span v-if="item.status" :class="getStatusClass(item.status)"
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                                                {{ getStatusText(item.status) }}
+                                            </span>
+                                            <span v-else class="text-xs text-gray-400">-</span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right">
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center rounded-md border border-sage-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-sage-700 hover:bg-sage-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                :disabled="!canPayItem(item)"
+                                                @click="openItemPaymentModal(item, 'main')"
+                                            >
+                                                Pay
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Reimbursement Items -->
+                    <div v-if="reimbursementItems.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Reimbursement Items</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Description
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Qty
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Unit
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Unit Price
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Total
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Paid
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Outstanding
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="item in reimbursementItems" :key="item.id">
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            {{ item.description || '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            {{ formatNumber(item.quantity) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            {{ item.unit || '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.unit_price) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.line_total) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.paid_amount) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                                            Rp {{ formatNumber(item.outstanding_amount) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right">
+                                            <span :class="getStatusClass(item.status)"
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                                                {{ getStatusText(item.status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right">
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center rounded-md border border-sage-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-sage-700 hover:bg-sage-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                :disabled="!canPayItem(item)"
+                                                @click="openItemPaymentModal(item, 'reimbursement')"
+                                            >
+                                                Pay
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Notes -->
                     <div v-if="receivable.notes" class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 class="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
@@ -407,6 +570,69 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Item Payment Modal -->
+                <div v-if="showItemPaymentModal"
+                    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Record Item Payment</h3>
+                            <div class="mb-4 bg-gray-50 p-3 rounded-md">
+                                <p class="text-sm text-gray-600">Invoice: {{ receivable.invoice_number }}</p>
+                                <p class="text-sm text-gray-600">
+                                    Item: {{ selectedItem?.description || '-' }}
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    Outstanding:
+                                    Rp {{ formatNumber(selectedItemOutstanding) }}
+                                </p>
+                            </div>
+                            <form @submit.prevent="recordItemPayment">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                                    <input v-model="itemPaymentForm.amount" type="text"
+                                        @input="formatItemAmountInput"
+                                        @blur="validateItemAmount"
+                                        required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Enter payment amount (e.g., 2500 or 2.500)" />
+                                    <p v-if="itemAmountError" class="mt-1 text-sm text-red-600">{{ itemAmountError }}</p>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
+                                    <input v-model="itemPaymentForm.payment_date" type="date" required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Account *</label>
+                                    <select v-model="itemPaymentForm.bank_account_id" required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Select Bank Account</option>
+                                        <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                                            {{ bank.bank_name }} - {{ bank.account_number }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                    <textarea v-model="itemPaymentForm.notes" rows="3"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Payment notes (optional)"></textarea>
+                                </div>
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" @click="closeItemPaymentModal"
+                                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" :disabled="isItemPaymentDisabled"
+                                        class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        {{ processingItemPayment ? 'Recording...' : 'Record Payment' }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </AdminKeuanganLayout>
@@ -424,16 +650,29 @@ const props = defineProps({
     bankAccounts: {
         type: Array,
         default: () => []
+    },
+    mainItems: {
+        type: Array,
+        default: () => []
+    },
+    reimbursementItems: {
+        type: Array,
+        default: () => []
     }
 })
 
 const showPaymentModal = ref(false)
+const showItemPaymentModal = ref(false)
 const processing = ref(false)
+const processingItemPayment = ref(false)
 const postingVat = ref(false)
 const postingTax = ref(false)
 const postingPph23 = ref(false)
 const amountError = ref('')
+const itemAmountError = ref('')
 const activeActionMenuId = ref(null)
+const selectedItem = ref(null)
+const selectedItemType = ref('main')
 
 const alertDialog = reactive({
     show: false,
@@ -443,6 +682,15 @@ const alertDialog = reactive({
     confirmText: 'Post',
     cancelText: 'Cancel',
     onConfirm: null
+})
+
+const itemPaymentForm = reactive({
+    item_type: 'main',
+    item_id: '',
+    amount: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    bank_account_id: '',
+    notes: ''
 })
 
 const openConfirm = (message, onConfirm, title = 'Confirmation') => {
@@ -457,6 +705,15 @@ const closeAlert = () => {
     alertDialog.show = false
     alertDialog.onConfirm = null
 }
+
+const selectedItemOutstanding = computed(() => {
+    if (!selectedItem.value) {
+        return 0
+    }
+    const outstanding =
+        selectedItem.value.outstanding_amount ?? selectedItem.value.line_total ?? 0
+    return parseFloat(outstanding || 0)
+})
 
 const handleAlertConfirm = () => {
     if (alertDialog.onConfirm) {
@@ -515,6 +772,16 @@ const isPaymentDisabled = computed(() => {
     if (!paymentForm.payment_date) return true
     if (!paymentForm.bank_account_id) return true
     return false
+})
+
+const isItemPaymentDisabled = computed(() => {
+    return (
+        processingItemPayment.value ||
+        !itemPaymentForm.amount ||
+        !itemPaymentForm.bank_account_id ||
+        !itemPaymentForm.payment_date ||
+        !!itemAmountError.value
+    )
 })
 const hasMultipleComponents = computed(() => componentOptions.value.length > 1)
 const selectedComponent = computed(() => {
@@ -660,6 +927,113 @@ const openPaymentModal = () => {
         : (componentOptions.value[0] ? String(componentOptions.value[0].id) : '')
     amountError.value = ''
     showPaymentModal.value = true
+}
+
+const canPayItem = (item) => {
+    if (!item) return false
+    const outstanding = parseFloat(item.outstanding_amount ?? item.line_total ?? 0)
+    const idValue = String(item.id ?? '')
+    if (idValue.startsWith('so-main-')) {
+        return false
+    }
+    return outstanding > 0
+}
+
+const openItemPaymentModal = (item, type) => {
+    selectedItem.value = item
+    selectedItemType.value = type
+    itemPaymentForm.item_type = type
+    itemPaymentForm.item_id = item?.id ?? ''
+    itemPaymentForm.amount = ''
+    itemPaymentForm.payment_date = new Date().toISOString().split('T')[0]
+    itemPaymentForm.bank_account_id = props.bankAccounts?.length ? props.bankAccounts[0].id : ''
+    itemPaymentForm.notes = ''
+    itemAmountError.value = ''
+    showItemPaymentModal.value = true
+}
+
+const closeItemPaymentModal = () => {
+    showItemPaymentModal.value = false
+    selectedItem.value = null
+    itemAmountError.value = ''
+}
+
+const formatItemAmountInput = (event) => {
+    const value = event.target.value
+    if (!value) {
+        itemPaymentForm.amount = ''
+        return
+    }
+    let formattedValue = value.replace(/[^0-9.,]/g, '')
+    if (formattedValue.includes('.')) {
+        formattedValue = formattedValue.replace(/,/g, '')
+    }
+    itemPaymentForm.amount = formattedValue
+}
+
+const validateItemAmount = () => {
+    if (!itemPaymentForm.amount) {
+        itemAmountError.value = ''
+        return
+    }
+
+    let normalizedValue = itemPaymentForm.amount.toString()
+    if (normalizedValue.includes('.') && normalizedValue.includes(',')) {
+        normalizedValue = normalizedValue.replace(/\./g, '')
+        normalizedValue = normalizedValue.replace(',', '.')
+    } else if (normalizedValue.includes('.')) {
+        const parts = normalizedValue.split('.')
+        if (parts.length === 2) {
+            const decimalPart = parts[1]
+            if (decimalPart.length >= 3 || parseInt(decimalPart, 10) >= 100) {
+                normalizedValue = normalizedValue.replace(/\./g, '')
+            }
+        } else {
+            normalizedValue = normalizedValue.replace(/\./g, '')
+        }
+    } else if (normalizedValue.includes(',')) {
+        normalizedValue = normalizedValue.replace(',', '.')
+    }
+
+    const numericValue = parseFloat(normalizedValue)
+
+    if (isNaN(numericValue) || numericValue <= 0) {
+        itemAmountError.value = 'Please enter a valid amount'
+        return
+    }
+
+    const outstandingLimit = selectedItemOutstanding.value
+    if (numericValue > outstandingLimit) {
+        itemAmountError.value = `Amount cannot exceed outstanding balance (Rp ${formatNumber(outstandingLimit)})`
+        return
+    }
+
+    itemPaymentForm.amount = normalizedValue
+    itemAmountError.value = ''
+}
+
+const recordItemPayment = () => {
+    validateItemAmount()
+
+    if (itemAmountError.value) {
+        return
+    }
+
+    processingItemPayment.value = true
+
+    router.post(
+        route('admin-keuangan.account-receivables.record-item-payment', props.receivable.id),
+        itemPaymentForm,
+        {
+            onSuccess: () => {
+                closeItemPaymentModal()
+                processingItemPayment.value = false
+            },
+            onError: () => {
+                processingItemPayment.value = false
+            }
+        }
+    )
 }
 
 const closePaymentModal = () => {

@@ -11,6 +11,7 @@ use App\Models\FinancialPositionAdjustment;
 use App\Models\ProfitLossPeriod;
 use App\Models\ProfitLossEntry;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -102,14 +103,106 @@ class AccountReceivableController extends Controller
      */
     public function show(AccountReceivable $accountReceivable)
     {
-        $accountReceivable->load(['customer', 'invoice', 'salesOrder', 'creator']);
+        $accountReceivable->load(['customer', 'invoice.items', 'salesOrder.reimbursementItems', 'creator']);
         $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
         $accountReceivable->load('components');
         $bankAccounts = \App\Models\BankAccount::all();
+        $invoice = $accountReceivable->invoice;
+        $salesOrder = $accountReceivable->salesOrder;
+
+        $mainComponent = $accountReceivable->components->firstWhere('component_type', 'main')
+            ?? $accountReceivable->components->firstWhere('component_type', 'invoice_main');
+        $mainComponentStatus = $mainComponent?->status;
+
+        $mainItems = collect();
+        if ($invoice && $invoice->relationLoaded('items')) {
+            $mainItems = $invoice->items
+                ->where('item_type', '!=', 'reimbursement')
+                ->values()
+                ->map(function ($item) use ($mainComponentStatus) {
+                    $quantity = (float) ($item->quantity ?? 1);
+                    $unitPrice = (float) ($item->rate ?? $item->amount ?? 0);
+                    return [
+                        'id' => $item->id,
+                        'description' => $item->description,
+                        'quantity' => $quantity,
+                        'unit' => $item->unit,
+                        'unit_price' => $unitPrice,
+                        'line_total' => (float) ($item->amount ?? ($unitPrice * $quantity)),
+                        'paid_amount' => (float) ($item->paid_amount ?? 0),
+                        'outstanding_amount' => (float) ($item->outstanding_amount ?? $item->getLineTotal()),
+                        'status' => $item->payment_status ?? $mainComponentStatus,
+                    ];
+                });
+        }
+
+        if ($mainItems->isEmpty() && $salesOrder && is_array($salesOrder->vendor_breakdown)) {
+            $mainItems = collect($salesOrder->vendor_breakdown)
+                ->filter(function ($vendor) {
+                    return isset($vendor['selling_amount']) && (float) $vendor['selling_amount'] > 0;
+                })
+                ->values()
+                ->map(function ($vendor, $index) use ($mainComponentStatus) {
+                    $quantity = (float) ($vendor['qty'] ?? $vendor['quantity'] ?? 1);
+                    $unitPrice = (float) ($vendor['selling_amount'] ?? 0);
+                    return [
+                        'id' => 'so-main-' . $index,
+                        'description' => $vendor['description'] ?? 'Service',
+                        'quantity' => $quantity,
+                        'unit' => $vendor['unit'] ?? null,
+                        'unit_price' => $unitPrice,
+                        'line_total' => $unitPrice * $quantity,
+                        'status' => $mainComponentStatus,
+                    ];
+                });
+        }
+
+        $reimbursementItems = collect();
+        if ($salesOrder && $salesOrder->relationLoaded('reimbursementItems')) {
+            $reimbursementItems = $salesOrder->reimbursementItems->values()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'description' => $item->description,
+                    'quantity' => (float) ($item->quantity ?? 1),
+                    'unit' => $item->unit,
+                    'unit_price' => (float) ($item->amount ?? 0),
+                    'line_total' => (float) $item->getLineTotal(),
+                    'paid_amount' => (float) ($item->customer_paid_amount ?? 0),
+                    'outstanding_amount' => (float) ($item->customer_outstanding_amount ?? $item->getLineTotal()),
+                    'status' => $item->customer_payment_status ?? 'outstanding',
+                    'vendor' => $item->vendor?->company_name ?? $item->vendor?->name ?? null,
+                ];
+            });
+        }
+
+        if ($reimbursementItems->isEmpty() && $invoice && $invoice->relationLoaded('items')) {
+            $reimbursementItems = $invoice->items
+                ->where('item_type', 'reimbursement')
+                ->values()
+                ->map(function ($item) {
+                    $quantity = (float) ($item->quantity ?? 1);
+                    $unitPrice = (float) ($item->rate ?? $item->amount ?? 0);
+                    $lineTotal = (float) ($item->amount ?? ($unitPrice * $quantity));
+                    return [
+                        'id' => $item->id,
+                        'description' => $item->description,
+                        'quantity' => $quantity,
+                        'unit' => $item->unit,
+                        'unit_price' => $unitPrice,
+                        'line_total' => $lineTotal,
+                        'paid_amount' => 0,
+                        'outstanding_amount' => $lineTotal,
+                        'status' => 'outstanding',
+                        'vendor' => $item->vendor?->company_name ?? $item->vendor?->name ?? null,
+                    ];
+                });
+        }
 
         return Inertia::render('Admin/AdminKeuangan/AccountReceivables/Show', [
             'receivable' => $accountReceivable,
-            'bankAccounts' => $bankAccounts
+            'bankAccounts' => $bankAccounts,
+            'mainItems' => $mainItems,
+            'reimbursementItems' => $reimbursementItems,
         ]);
     }
 
@@ -622,6 +715,172 @@ class AccountReceivableController extends Controller
         });
 
         return redirect()->back()->with('success', 'Payment recorded successfully');
+    }
+
+    public function recordItemPayment(Request $request, AccountReceivable $accountReceivable)
+    {
+        $accountReceivable->load(['invoice.items', 'salesOrder.reimbursementItems', 'customer']);
+        $accountReceivable->syncComponentsFromInvoice($accountReceivable->invoice);
+        $accountReceivable->load('components');
+
+        $amount = $request->input('amount');
+        if ($amount) {
+            $amount = $this->normalizeIndonesianNumber($amount);
+            $request->merge(['amount' => $amount]);
+        }
+
+        $validated = $request->validate([
+            'item_type' => ['required', Rule::in(['main', 'reimbursement'])],
+            'item_id' => 'required',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'bank_account_id' => 'required|exists:bank_accounts,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $invoiceItem = null;
+        $reimbursementItem = null;
+        $outstanding = 0;
+
+        if ($validated['item_type'] === 'main') {
+            $invoiceItem = InvoiceItem::where('id', $validated['item_id'])
+                ->whereHas('invoice', function ($query) use ($accountReceivable) {
+                    $query->where('id', $accountReceivable->invoice_id);
+                })
+                ->first();
+
+            if (!$invoiceItem) {
+                return redirect()->back()->withErrors(['amount' => 'Main item not found.'])->withInput();
+            }
+
+            $outstanding = $invoiceItem->outstanding_amount ?? $invoiceItem->getLineTotal();
+        } else {
+            $reimbursementItem = $accountReceivable->salesOrder
+                ? $accountReceivable->salesOrder->reimbursementItems->firstWhere('id', (int) $validated['item_id'])
+                : null;
+
+            if (!$reimbursementItem) {
+                $reimbursementItem = \App\Models\ReimbursementItem::where('id', $validated['item_id'])->first();
+            }
+
+            if (!$reimbursementItem) {
+                return redirect()->back()->withErrors(['amount' => 'Reimbursement item not found.'])->withInput();
+            }
+
+            $outstanding = $reimbursementItem->customer_outstanding_amount ?? $reimbursementItem->getLineTotal();
+        }
+
+        if ($validated['amount'] > $outstanding) {
+            return redirect()->back()->withErrors([
+                'amount' => 'Amount cannot exceed outstanding balance (Rp ' . number_format($outstanding, 0, ',', '.') . ')'
+            ])->withInput();
+        }
+
+        DB::transaction(function () use ($accountReceivable, $validated, $invoiceItem, $reimbursementItem) {
+            if ($validated['item_type'] === 'main' && $invoiceItem) {
+                $invoiceItem->updateItemPayment($validated['amount'], $validated['payment_date'], $validated['notes']);
+                $this->syncMainComponentFromItems($accountReceivable);
+            }
+
+            if ($validated['item_type'] === 'reimbursement' && $reimbursementItem) {
+                $reimbursementItem->updateCustomerPayment($validated['amount'], $validated['payment_date'], $validated['notes']);
+                $this->syncReimbursementComponentFromItems($accountReceivable);
+            }
+
+            $accountReceivable->refresh();
+
+            $componentLabel = $validated['item_type'] === 'main' ? 'Main Item' : 'Reimbursement Item';
+            $customerName = $accountReceivable->customer?->company_name
+                ?? $accountReceivable->customer_name
+                ?? 'Customer';
+            $invoiceNumber = $accountReceivable->invoice_number
+                ?? $accountReceivable->reference_number
+                ?? 'Opening Balance';
+
+            \App\Models\BankTransaction::recordCustomerPayment(
+                $validated['bank_account_id'],
+                $validated['amount'],
+                "Customer payment for {$componentLabel} {$invoiceNumber} from {$customerName}",
+                $accountReceivable->id,
+                $validated['payment_date']
+            );
+        });
+
+        return redirect()->back()->with('success', 'Item payment recorded successfully');
+    }
+
+    private function syncMainComponentFromItems(AccountReceivable $accountReceivable): void
+    {
+        $component = $accountReceivable->components->firstWhere('component_type', 'main')
+            ?? $accountReceivable->components->firstWhere('component_type', 'invoice_main');
+
+        if (!$component) {
+            return;
+        }
+
+        $invoice = $accountReceivable->invoice;
+        if (!$invoice) {
+            return;
+        }
+
+        $invoice->load('items');
+        $items = $invoice->items->where('item_type', '!=', 'reimbursement');
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $totalAmount = $items->sum(function (InvoiceItem $item) {
+            return $item->getLineTotal();
+        });
+        $totalPaid = $items->sum(function (InvoiceItem $item) {
+            return (float) ($item->paid_amount ?? 0);
+        });
+        $outstanding = max(0, $totalAmount - $totalPaid);
+
+        $component->amount = $totalAmount;
+        $component->paid_amount = min($totalPaid, $totalAmount);
+        $component->outstanding_amount = $outstanding;
+        $component->status = $accountReceivable->resolveComponentStatus($component);
+        $component->save();
+
+        $accountReceivable->recalculateTotals(false);
+    }
+
+    private function syncReimbursementComponentFromItems(AccountReceivable $accountReceivable): void
+    {
+        $component = $accountReceivable->components->firstWhere('component_type', 'debit_note')
+            ?? $accountReceivable->components->firstWhere('component_type', 'reimbursement');
+
+        if (!$component) {
+            return;
+        }
+
+        $salesOrder = $accountReceivable->salesOrder;
+        if (!$salesOrder) {
+            return;
+        }
+
+        $salesOrder->load('reimbursementItems');
+        $items = $salesOrder->reimbursementItems;
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $totalAmount = $items->sum(function ($item) {
+            return (float) $item->getLineTotal();
+        });
+        $totalPaid = $items->sum(function ($item) {
+            return (float) ($item->customer_paid_amount ?? 0);
+        });
+        $outstanding = max(0, $totalAmount - $totalPaid);
+
+        $component->amount = $totalAmount;
+        $component->paid_amount = min($totalPaid, $totalAmount);
+        $component->outstanding_amount = $outstanding;
+        $component->status = $accountReceivable->resolveComponentStatus($component);
+        $component->save();
+
+        $accountReceivable->recalculateTotals(false);
     }
 
     /**
