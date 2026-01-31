@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use App\Models\SalesOrder;
 
 class AccountReceivable extends Model
 {
@@ -257,6 +258,101 @@ class AccountReceivable extends Model
         return $receivable->fresh();
     }
 
+    public static function createOrUpdatePreInvoiceFromSalesOrder(SalesOrder $salesOrder): ?self
+    {
+        $salesOrder->loadMissing(['customer', 'reimbursementItems']);
+
+        $mainAmount = (float) ($salesOrder->total_selling ?? 0);
+        $reimbursementAmount = (float) $salesOrder->calculateTotalReimbursement();
+        $totalAmount = $mainAmount + $reimbursementAmount;
+
+        if ($totalAmount <= 0) {
+            return null;
+        }
+
+        $invoiceDate = $salesOrder->approved_at ?? $salesOrder->released_at ?? now();
+
+        $receivable = self::where('sales_order_id', $salesOrder->id)
+            ->whereNull('invoice_id')
+            ->where('is_opening', false)
+            ->first();
+
+        if (!$receivable) {
+            $receivable = self::create([
+                'invoice_id' => null,
+                'customer_id' => $salesOrder->customer_id,
+                'customer_name' => $salesOrder->customer?->company_name
+                    ?? $salesOrder->customer
+                    ?? $salesOrder->customer_name
+                    ?? 'Unknown Customer',
+                'sales_order_id' => $salesOrder->id,
+                'invoice_number' => $salesOrder->invoice_number ?? $salesOrder->order_number ?? ('SO-' . $salesOrder->id),
+                'invoice_date' => $invoiceDate,
+                'due_date' => null,
+                'invoice_amount' => $totalAmount,
+                'outstanding_amount' => $totalAmount,
+                'status' => 'outstanding',
+                'created_by' => auth()->id() ?? $salesOrder->created_by,
+            ]);
+        } else {
+            $receivable->update([
+                'customer_id' => $salesOrder->customer_id,
+                'customer_name' => $salesOrder->customer?->company_name
+                    ?? $salesOrder->customer
+                    ?? $salesOrder->customer_name
+                    ?? $receivable->customer_name,
+                'invoice_number' => $salesOrder->invoice_number ?? $receivable->invoice_number,
+                'invoice_date' => $invoiceDate,
+            ]);
+        }
+
+        $components = $receivable->components()->get()->keyBy('component_type');
+
+        $payloads = [
+            'main' => [
+                'description' => 'Invoice Main (Pre-Invoice)',
+                'amount' => $mainAmount,
+            ],
+            'debit_note' => [
+                'description' => 'Debit Note / Reimbursement (Pre-Invoice)',
+                'amount' => $reimbursementAmount,
+            ],
+        ];
+
+        $processedTypes = [];
+        foreach ($payloads as $type => $payload) {
+            if ($payload['amount'] <= 0) {
+                continue;
+            }
+
+            $processedTypes[] = $type;
+            $component = $components->get($type);
+
+            if (!$component) {
+                $component = $receivable->components()->make([
+                    'component_type' => $type,
+                    'paid_amount' => 0,
+                ]);
+            }
+
+            $component->description = $payload['description'];
+            $component->amount = $payload['amount'];
+            $component->paid_amount = min($component->paid_amount, $component->amount);
+            $component->outstanding_amount = max(0, $component->amount - $component->paid_amount);
+            $component->status = $receivable->determineComponentStatus($component);
+            $component->due_date = $receivable->due_date;
+            $component->save();
+        }
+
+        if (!empty($processedTypes)) {
+            $receivable->components()->whereNotIn('component_type', $processedTypes)->delete();
+        }
+
+        $receivable->recalculateTotals(true);
+
+        return $receivable->fresh(['components']);
+    }
+
     /**
      * Update Account Receivable from Invoice data after invoice revision
      */
@@ -290,6 +386,8 @@ class AccountReceivable extends Model
 
         // Update the record
         $updated = $this->update([
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
             'customer_id' => $invoice->customer_id,
             'customer_name' => $invoice->customer->company_name ?? $this->customer_name,
             'sales_order_id' => $invoice->sales_order_id,
@@ -313,6 +411,12 @@ class AccountReceivable extends Model
     public static function syncFromInvoice(Invoice $invoice): self
     {
         $accountReceivable = self::where('invoice_id', $invoice->id)->first();
+        if (!$accountReceivable) {
+            $accountReceivable = self::where('sales_order_id', $invoice->sales_order_id)
+                ->whereNull('invoice_id')
+                ->where('is_opening', false)
+                ->first();
+        }
 
         if ($accountReceivable) {
             $accountReceivable->updateFromInvoice($invoice);

@@ -9,6 +9,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
 use App\Models\AccountPayableComponent;
+use App\Models\AccountReceivable;
 use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
 use App\Models\OperationalCostCategory;
@@ -91,9 +92,10 @@ class InvoiceController extends Controller
     {
         // Check if coming from Sales Order detail page
         if ($request->has('sales_order_id') && $request->has('invoice_type')) {
-            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems'])
+            $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems', 'accountReceivables.components'])
                 ->findOrFail($request->sales_order_id);
             $this->ensureVendorBreakdownPayload($salesOrder);
+            $salesOrder->setAttribute('pre_invoice_receivable', $this->getPreInvoiceReceivable($salesOrder));
 
             // Verify SO is eligible for invoice creation - must be approved by finance
             if ($salesOrder->status !== 'approved' || !$salesOrder->released_at || !$salesOrder->approved_at) {
@@ -124,7 +126,7 @@ class InvoiceController extends Controller
         }
 
         // Get only approved SOs (already released and approved by finance)
-        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems'])
+        $allSalesOrders = SalesOrder::with(['invoices', 'creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems', 'accountReceivables.components'])
             ->select(['id', 'order_number', 'customer', 'customer_name', 'status', 'vendor_breakdown', 'other_costs', 'approved_at', 'released_at', 'shipper', 'vessel', 'bl_awb', 'awb_bl_number', 'pol', 'pod', 'pol_pod', 'eta', 'etd', 'net_weight', 'gross_weight', 'measurement', 'qty', 'package_unit', 'shipment_type', 'container_no', 'party_lcl'])
             ->where('status', 'approved')  // Only approved SOs, not just released
             ->whereNotNull('released_at')
@@ -133,6 +135,7 @@ class InvoiceController extends Controller
             ->get();
         $allSalesOrders->each(function ($salesOrder) {
             $this->ensureVendorBreakdownPayload($salesOrder);
+            $salesOrder->setAttribute('pre_invoice_receivable', $this->getPreInvoiceReceivable($salesOrder));
         });
 
         // Filter SOs that can still have invoices created
@@ -240,6 +243,44 @@ class InvoiceController extends Controller
         ]);
 
         $salesOrder = SalesOrder::findOrFail($validated['sales_order_id']);
+
+        // Filter items based on pre-invoice payment status (paid items should not be invoiced)
+        $preInvoiceReceivable = AccountReceivable::with('components')
+            ->where('sales_order_id', $salesOrder->id)
+            ->whereNull('invoice_id')
+            ->where('is_opening', false)
+            ->first();
+
+        $mainComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'main');
+        $debitComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'debit_note');
+
+        if (isset($validated['items']) && is_array($validated['items'])) {
+            $validated['items'] = array_values(array_filter($validated['items'], function ($item) use ($mainComponent, $debitComponent) {
+                $itemType = $item['item_type'] ?? null;
+
+                if ($itemType === 'billable' && $mainComponent && $mainComponent->status === 'paid') {
+                    return false;
+                }
+
+                if ($itemType === 'reimbursement' && $debitComponent && $debitComponent->status === 'paid') {
+                    return false;
+                }
+
+                if ($itemType === 'reimbursement' && !empty($item['item_ref'])) {
+                    if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $item['item_ref'], $matches)) {
+                        $reimbId = (int) $matches[1];
+                        if ($reimbId > 0) {
+                            $reimb = ReimbursementItem::find($reimbId);
+                            if ($reimb && $reimb->status === 'paid') {
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                return true;
+            }));
+        }
 
         // Check if invoice type already exists for this Sales Order
         $existingInvoice = Invoice::where('sales_order_id', $validated['sales_order_id'])
@@ -1809,6 +1850,49 @@ class InvoiceController extends Controller
         }
 
         return $value;
+    }
+
+    private function getPreInvoiceReceivable(SalesOrder $salesOrder): ?array
+    {
+        $receivable = $salesOrder->accountReceivables
+            ? $salesOrder->accountReceivables
+                ->first(function ($item) {
+                    return $item->invoice_id === null && !$item->is_opening;
+                })
+            : null;
+
+        if (!$receivable) {
+            $receivable = AccountReceivable::with('components')
+                ->where('sales_order_id', $salesOrder->id)
+                ->whereNull('invoice_id')
+                ->where('is_opening', false)
+                ->first();
+        }
+
+        if (!$receivable) {
+            return null;
+        }
+
+        $receivable->loadMissing('components');
+
+        return [
+            'id' => $receivable->id,
+            'status' => $receivable->status,
+            'invoice_amount' => (float) $receivable->invoice_amount,
+            'paid_amount' => (float) $receivable->paid_amount,
+            'outstanding_amount' => (float) $receivable->outstanding_amount,
+            'components' => $receivable->components->map(function ($component) {
+                return [
+                    'id' => $component->id,
+                    'component_type' => $component->component_type,
+                    'description' => $component->description,
+                    'amount' => (float) $component->amount,
+                    'paid_amount' => (float) $component->paid_amount,
+                    'outstanding_amount' => (float) $component->outstanding_amount,
+                    'status' => $component->status,
+                ];
+            })->values(),
+        ];
     }
 
     /**

@@ -1017,6 +1017,14 @@ class AccountPayable extends Model
 
     protected function resolveOtherCostVendorName(array $entry): ?string
     {
+        $vendorId = $this->normalizeVendorIdentifier($entry['vendor_id'] ?? null);
+        if ($vendorId) {
+            $vendor = Vendor::find($vendorId);
+            if ($vendor?->nama_vendor) {
+                return $vendor->nama_vendor;
+            }
+        }
+
         $vendorName = trim((string) ($entry['vendor_name'] ?? ''));
         if ($vendorName !== '') {
             return $vendorName;

@@ -1110,6 +1110,21 @@ const resolveVendorSelectionFromRecord = (record) => {
     return { vendorId: '', vendorType: vendorType ?? null };
 };
 
+const getPreInvoiceComponent = (salesOrder, componentType) => {
+    const components = salesOrder?.pre_invoice_receivable?.components ?? [];
+    return components.find(component => component.component_type === componentType) || null;
+};
+
+const shouldIncludeMainItems = (salesOrder) => {
+    const component = getPreInvoiceComponent(salesOrder, 'main');
+    return !(component && component.status === 'paid');
+};
+
+const shouldIncludeReimbursementItems = (salesOrder) => {
+    const component = getPreInvoiceComponent(salesOrder, 'debit_note');
+    return !(component && component.status === 'paid');
+};
+
 // Function to auto-populate items from sales order
 const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
     if (!salesOrder) return;
@@ -1120,11 +1135,14 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
     operationalCosts.value = [];
 
     const vendorBreakdown = overrides.vendor_breakdown ?? salesOrder.vendor_breakdown ?? [];
-    const reimbursementSource = overrides.reimbursement_items ?? salesOrder.reimbursement_items ?? [];
+    const reimbursementSource = (overrides.reimbursement_items ?? salesOrder.reimbursement_items ?? [])
+        .filter(item => (item?.status ?? 'pending') !== 'paid');
     const otherCostsSource = overrides.other_costs ?? salesOrder.other_costs ?? [];
+    const includeMainItems = shouldIncludeMainItems(salesOrder);
+    const includeReimbursementItems = shouldIncludeReimbursementItems(salesOrder);
 
     // 1. Populate main items from vendor_breakdown
-    if (vendorBreakdown && Array.isArray(vendorBreakdown)) {
+    if (includeMainItems && vendorBreakdown && Array.isArray(vendorBreakdown)) {
         vendorBreakdown.forEach((vendor, index) => {
             const sellingAmount = normalizeNumber(vendor.selling_amount);
             if (sellingAmount > 0) {
@@ -1176,7 +1194,7 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
     }
 
     // 2. Populate reimbursement items from reimbursementItems relationship
-    if (reimbursementSource && Array.isArray(reimbursementSource)) {
+    if (includeReimbursementItems && reimbursementSource && Array.isArray(reimbursementSource)) {
         console.log('Populating reimbursement items from relationship:', reimbursementSource);
         reimbursementSource.forEach((item, index) => {
             if (item.amount && item.amount > 0) {

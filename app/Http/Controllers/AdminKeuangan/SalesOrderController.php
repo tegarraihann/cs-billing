@@ -156,6 +156,9 @@ class SalesOrderController extends Controller
         // Auto-generate Account Payables from vendor breakdown
         \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
 
+        // Auto-generate pre-invoice Account Receivable (main + reimbursement)
+        \App\Models\AccountReceivable::createOrUpdatePreInvoiceFromSalesOrder($salesOrder);
+
         // Log successful approval
         \Log::info('AdminKeuangan Sales Order Approved Successfully', [
             'sales_order_id' => $salesOrder->id,
