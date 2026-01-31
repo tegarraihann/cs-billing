@@ -18,6 +18,10 @@ class ReimbursementItem extends Model
         'vendor_id',
         'category',
         'status',
+        'customer_paid_amount',
+        'customer_outstanding_amount',
+        'customer_payment_status',
+        'customer_paid_at',
         'receipt_info',
         'notes',
         'created_by',
@@ -30,6 +34,9 @@ class ReimbursementItem extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'quantity' => 'decimal:2',
+        'customer_paid_amount' => 'decimal:2',
+        'customer_outstanding_amount' => 'decimal:2',
+        'customer_paid_at' => 'datetime',
         'receipt_info' => 'array',
         'linked_at' => 'datetime',
         'invoiced_at' => 'datetime',
@@ -179,6 +186,44 @@ class ReimbursementItem extends Model
         $updateData['receipt_info'] = empty($receiptInfo) ? null : $receiptInfo;
 
         $this->update($updateData);
+    }
+
+    public function updateCustomerPayment(float $amount, ?string $paidAt = null, ?string $notes = null): void
+    {
+        $lineTotal = $this->getLineTotal();
+        $currentPaid = (float) ($this->customer_paid_amount ?? 0);
+        $newPaid = max(0, $currentPaid + $amount);
+        if ($newPaid > $lineTotal) {
+            $newPaid = $lineTotal;
+        }
+
+        $outstanding = max(0, $lineTotal - $newPaid);
+        $status = 'outstanding';
+        if ($outstanding <= 0.01) {
+            $status = 'paid';
+            $outstanding = 0;
+        } elseif ($newPaid > 0) {
+            $status = 'partial';
+        }
+
+        $this->customer_paid_amount = $newPaid;
+        $this->customer_outstanding_amount = $outstanding;
+        $this->customer_payment_status = $status;
+        $this->customer_paid_at = $status === 'paid'
+            ? ($paidAt ? Carbon::parse($paidAt) : now())
+            : $this->customer_paid_at;
+
+        if ($notes !== null) {
+            $this->notes = $this->notes ? ($this->notes . "\n" . $notes) : $notes;
+        }
+
+        $this->save();
+    }
+
+    public function getLineTotal(): float
+    {
+        $qty = is_numeric($this->quantity) && (float) $this->quantity > 0 ? (float) $this->quantity : 1;
+        return (float) $this->amount * $qty;
     }
 
     public function canBeEdited(): bool

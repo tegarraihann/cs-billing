@@ -919,6 +919,7 @@ class AccountPayableController extends Controller
                 // sehingga tidak perlu menambah entry di other_costs untuk menghindari duplikasi.
 
                 if ($validated['component_type'] === 'reimbursement' && $salesOrder) {
+                    $lineTotal = $amount;
                     $reimbursementItem = ReimbursementItem::create([
                         'sales_order_id' => $salesOrder->id,
                         'description' => $validated['description'],
@@ -926,6 +927,9 @@ class AccountPayableController extends Controller
                         'vendor_id' => $vendor->id ?? null,
                         'category' => $category?->name ?? 'Reimbursement',
                         'status' => 'pending',
+                        'customer_paid_amount' => 0,
+                        'customer_outstanding_amount' => $lineTotal,
+                        'customer_payment_status' => 'outstanding',
                         'created_by' => auth()->id(),
                         'receipt_info' => [
                             'source' => 'account_payable_component',

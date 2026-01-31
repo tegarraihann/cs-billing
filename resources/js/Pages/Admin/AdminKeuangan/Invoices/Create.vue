@@ -1136,7 +1136,7 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
 
     const vendorBreakdown = overrides.vendor_breakdown ?? salesOrder.vendor_breakdown ?? [];
     const reimbursementSource = (overrides.reimbursement_items ?? salesOrder.reimbursement_items ?? [])
-        .filter(item => (item?.status ?? 'pending') !== 'paid');
+        .filter(item => (item?.customer_payment_status ?? item?.status ?? 'pending') !== 'paid');
     const otherCostsSource = overrides.other_costs ?? salesOrder.other_costs ?? [];
     const includeMainItems = shouldIncludeMainItems(salesOrder);
     const includeReimbursementItems = shouldIncludeReimbursementItems(salesOrder);
@@ -1199,7 +1199,10 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
         reimbursementSource.forEach((item, index) => {
             if (item.amount && item.amount > 0) {
                 const quantity = resolveQuantityValue(item.quantity ?? item.qty ?? 1);
-                const rate = normalizeNumber(item.amount);
+                const lineTotal = item.customer_outstanding_amount !== undefined && item.customer_outstanding_amount !== null
+                    ? normalizeNumber(item.customer_outstanding_amount)
+                    : normalizeNumber(item.amount) * quantity;
+                const rate = quantity > 0 ? lineTotal / quantity : normalizeNumber(item.amount);
                 const vendorInfo = resolveVendorSelectionFromRecord(item);
 
                 reimbursementItems.value.push({
@@ -1208,7 +1211,7 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
                     unit: item.unit || 'SET',
                     rate: rate,
                     currency: 'IDR',
-                    amount: rate * quantity,
+                    amount: lineTotal,
                     vendor_id: vendorInfo.vendorId,
                     item_ref: `reimb_${item.id || index}`,
                     type: 'reimbursement',

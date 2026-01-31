@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use App\Models\SalesOrder;
+use App\Models\ReimbursementItem;
 
 class AccountReceivable extends Model
 {
@@ -263,7 +264,15 @@ class AccountReceivable extends Model
         $salesOrder->loadMissing(['customer', 'reimbursementItems']);
 
         $mainAmount = (float) ($salesOrder->total_selling ?? 0);
-        $reimbursementAmount = (float) $salesOrder->calculateTotalReimbursement();
+        $reimbursementAmount = $salesOrder->reimbursementItems
+            ->sum(function (ReimbursementItem $item) {
+                $lineTotal = method_exists($item, 'getLineTotal') ? $item->getLineTotal() : ((float) $item->amount * ((float) $item->quantity ?: 1));
+                $outstanding = $item->customer_outstanding_amount;
+                if ($outstanding === null) {
+                    return $lineTotal;
+                }
+                return max(0, (float) $outstanding);
+            });
         $totalAmount = $mainAmount + $reimbursementAmount;
 
         if ($totalAmount <= 0) {

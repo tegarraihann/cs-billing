@@ -271,7 +271,7 @@ class InvoiceController extends Controller
                         $reimbId = (int) $matches[1];
                         if ($reimbId > 0) {
                             $reimb = ReimbursementItem::find($reimbId);
-                            if ($reimb && $reimb->status === 'paid') {
+                            if ($reimb && ($reimb->customer_payment_status === 'paid' || $reimb->status === 'paid')) {
                                 return false;
                             }
                         }
@@ -592,10 +592,11 @@ class InvoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['pending', 'linked', 'invoiced', 'paid'])],
+            'status' => ['required', Rule::in(['pending', 'linked', 'invoiced', 'paid', 'partial'])],
             'vendor_name' => ['nullable', 'string', 'max:255'],
             'paid_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'payment_amount' => ['nullable', 'numeric', 'min:0.01'],
         ]);
 
         $options = [
@@ -607,7 +608,18 @@ class InvoiceController extends Controller
             $options['paid_at'] = $validated['paid_at'] ?: now()->toDateString();
         }
 
-        $reimbursementItem->updatePaymentStatus($validated['status'], $options);
+        // Keep legacy status flow for vendor-side reimbursement tracking
+        if (in_array($validated['status'], ['pending', 'linked', 'invoiced', 'paid'], true)) {
+            $reimbursementItem->updatePaymentStatus($validated['status'], $options);
+        }
+
+        $paymentAmount = $validated['payment_amount'] ?? null;
+        if ($paymentAmount !== null) {
+            $reimbursementItem->updateCustomerPayment((float) $paymentAmount, $validated['paid_at'] ?? null, $validated['notes'] ?? null);
+        } elseif ($validated['status'] === 'paid') {
+            $lineTotal = $reimbursementItem->getLineTotal();
+            $reimbursementItem->updateCustomerPayment($lineTotal, $validated['paid_at'] ?? null, $validated['notes'] ?? null);
+        }
 
         return redirect()
             ->route('admin-keuangan.invoices.show', $invoice)

@@ -538,6 +538,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
         Route::post('/{salesOrder}/reject', 'reject')->name('reject');
         Route::get('/{salesOrder}/print', 'print')->name('print');
         Route::post('/{salesOrder}/force-refresh', 'forceRefresh')->name('force-refresh');
+        Route::post('/{salesOrder}/reimbursements/{reimbursementItem}/record-payment', 'recordReimbursementPayment')->name('reimbursements.record-payment');
     });
 
     // Invoice Management Routes for Admin Keuangan

@@ -9,6 +9,7 @@ use App\Models\ReimbursementItem;
 use App\Models\InvoiceItem;
 use App\Models\Invoice;
 use App\Models\AccountPayableComponent;
+use App\Models\AccountReceivable;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -214,6 +215,29 @@ class SalesOrderController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Sales order berhasil ditolak.');
+    }
+
+    public function recordReimbursementPayment(Request $request, SalesOrder $salesOrder, ReimbursementItem $reimbursementItem)
+    {
+        if ((int) $reimbursementItem->sales_order_id !== (int) $salesOrder->id) {
+            return redirect()->back()->withErrors(['error' => 'Reimbursement tidak sesuai dengan Sales Order.']);
+        }
+
+        $validated = $request->validate([
+            'payment_amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $reimbursementItem->updateCustomerPayment(
+            (float) $validated['payment_amount'],
+            $validated['payment_date'] ?? null,
+            $validated['notes'] ?? null
+        );
+
+        AccountReceivable::createOrUpdatePreInvoiceFromSalesOrder($salesOrder);
+
+        return redirect()->back()->with('success', 'Pembayaran reimbursement berhasil dicatat.');
     }
 
     /**
@@ -1222,14 +1246,16 @@ class SalesOrderController extends Controller
             if (!empty($item['description']) && !empty($item['amount']) && $item['amount'] > 0) {
                 $rawVendor = $item['vendor_id'] ?? null;
                 $vendorId = $this->resolveVendorId($rawVendor);
+                $quantity = (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
+                    ? (float) $item['quantity']
+                    : 1;
+                $lineTotal = (float) $item['amount'] * $quantity;
 
                 \App\Models\ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
                     'description' => $item['description'],
                     'amount' => $item['amount'],
-                    'quantity' => (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
-                        ? (float) $item['quantity']
-                        : null,
+                    'quantity' => $quantity,
                     'unit' => isset($item['unit']) && is_string($item['unit']) && trim($item['unit']) !== ''
                         ? trim($item['unit'])
                         : null,
@@ -1237,6 +1263,9 @@ class SalesOrderController extends Controller
                     'category' => $item['category'] ?? 'general',
                     'notes' => $item['notes'] ?? null,
                     'status' => 'pending',
+                    'customer_paid_amount' => 0,
+                    'customer_outstanding_amount' => $lineTotal,
+                    'customer_payment_status' => 'outstanding',
                     'created_by' => Auth::id(),
                     'receipt_info' => $this->mergeVendorSelectionIntoReceiptInfo(null, $rawVendor),
                 ]);
@@ -1277,7 +1306,7 @@ class SalesOrderController extends Controller
                 'amount' => $item['amount'],
                 'quantity' => (isset($item['quantity']) && is_numeric($item['quantity']) && (float) $item['quantity'] > 0)
                     ? (float) $item['quantity']
-                    : null,
+                    : 1,
                 'unit' => isset($item['unit']) && is_string($item['unit']) && trim($item['unit']) !== ''
                     ? trim($item['unit'])
                     : null,
@@ -1304,6 +1333,22 @@ class SalesOrderController extends Controller
                 );
 
                 $reimbursement->fill($attributes);
+
+                $lineTotal = (float) $attributes['amount'] * (float) $attributes['quantity'];
+                $paidAmount = (float) ($reimbursement->customer_paid_amount ?? 0);
+                if ($paidAmount > $lineTotal) {
+                    $paidAmount = $lineTotal;
+                }
+                $reimbursement->customer_paid_amount = $paidAmount;
+                $reimbursement->customer_outstanding_amount = max(0, $lineTotal - $paidAmount);
+                if ($reimbursement->customer_outstanding_amount <= 0.01) {
+                    $reimbursement->customer_payment_status = 'paid';
+                    $reimbursement->customer_outstanding_amount = 0;
+                } elseif ($paidAmount > 0) {
+                    $reimbursement->customer_payment_status = 'partial';
+                } else {
+                    $reimbursement->customer_payment_status = 'outstanding';
+                }
 
                 if ($reimbursement->isDirty()) {
                     $reimbursement->save();
@@ -1336,6 +1381,7 @@ class SalesOrderController extends Controller
 
                 $processedIds[] = $reimbursement->id;
             } else {
+                $lineTotal = (float) $attributes['amount'] * (float) $attributes['quantity'];
                 $newItem = ReimbursementItem::create([
                     'sales_order_id' => $salesOrder->id,
                     'description' => $attributes['description'],
@@ -1346,6 +1392,9 @@ class SalesOrderController extends Controller
                     'category' => $attributes['category'],
                     'notes' => $attributes['notes'],
                     'status' => 'pending',
+                    'customer_paid_amount' => 0,
+                    'customer_outstanding_amount' => $lineTotal,
+                    'customer_payment_status' => 'outstanding',
                     'created_by' => Auth::id(),
                     'receipt_info' => $this->mergeVendorSelectionIntoReceiptInfo(null, $rawVendor),
                 ]);
