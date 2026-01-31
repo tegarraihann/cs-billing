@@ -121,7 +121,7 @@ class PettyCashBalance extends Model
         // Get transactions for this date
         $dailyTransactions = PettyCashTransaction::whereBetween('transaction_date', [$startOfDay, $endOfDay])->get();
 
-        $totalIn = $dailyTransactions->whereIn('type', ['topup', 'refund'])->sum('amount');
+        $totalIn = $dailyTransactions->whereIn('type', ['topup', 'refund', 'opening'])->sum('amount');
         $totalOut = $dailyTransactions->where('type', 'expense')->sum('amount');
 
         // Get opening balance (closing balance from previous day)
@@ -162,9 +162,10 @@ class PettyCashBalance extends Model
 
         $totalTopups = $query->clone()->where('type', 'topup')->sum('amount');
         $totalRefunds = $query->clone()->where('type', 'refund')->sum('amount');
+        $totalOpenings = $query->clone()->where('type', 'opening')->sum('amount');
         $totalExpenses = $query->clone()->where('type', 'expense')->sum('amount');
 
-        return $totalTopups + $totalRefunds - $totalExpenses;
+        return $totalTopups + $totalRefunds + $totalOpenings - $totalExpenses;
     }
 
     /**
@@ -204,7 +205,7 @@ class PettyCashBalance extends Model
             // Calculate new balance after this transaction
             if ($transaction->type === 'expense') {
                 $runningBalance -= $transaction->amount;
-            } else { // topup or refund
+            } else { // topup, refund, or opening
                 $runningBalance += $transaction->amount;
             }
 
