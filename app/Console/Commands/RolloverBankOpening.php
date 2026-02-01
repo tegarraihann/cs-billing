@@ -41,9 +41,15 @@ class RolloverBankOpening extends Command
                 continue;
             }
 
-            // Rumus: closing bulan sebelumnya = total credit - total debit bulan sebelumnya
+            // Rumus: closing bulan sebelumnya = opening bulan sebelumnya + (total credit - total debit bulan sebelumnya)
             $prevStart = $now->copy()->subMonth()->startOfMonth();
             $prevEnd = $now->copy()->subMonth()->endOfMonth();
+
+            $previousBalance = $bank->balances()
+                ->where('period_month', $previousMonth)
+                ->first();
+
+            $previousOpening = $previousBalance ? (float) $previousBalance->opening_balance : 0;
 
             $credit = $bank->transactions()
                 ->whereBetween('transaction_date', [$prevStart, $prevEnd])
@@ -55,7 +61,7 @@ class RolloverBankOpening extends Command
                 ->where('transaction_type', 'debit')
                 ->sum('amount');
 
-            $closingPrevMonth = $credit - $debit;
+            $closingPrevMonth = $previousOpening + ($credit - $debit);
 
             BankBalance::create([
                 'bank_account_id' => $bank->id,
