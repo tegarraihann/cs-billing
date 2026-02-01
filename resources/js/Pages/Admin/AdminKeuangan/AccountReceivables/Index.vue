@@ -508,7 +508,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { router, Head } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { DollarSign, AlertTriangle, FileText, CheckCircle } from 'lucide-vue-next'
@@ -529,6 +529,22 @@ const searchForm = reactive({
     date_from: props.filters.date_from || '',
     date_to: props.filters.date_to || ''
 })
+
+const setDefaultMonthFilter = () => {
+    if (props.filters.date_from || props.filters.date_to) {
+        return
+    }
+
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    const format = (date) => date.toISOString().split('T')[0]
+
+    searchForm.date_from = format(start)
+    searchForm.date_to = format(end)
+
+    applyFilters()
+}
 
 const showPaymentModal = ref(false)
 const selectedReceivable = ref(null)
@@ -606,6 +622,10 @@ const applyFilters = () => {
         replace: true
     })
 }
+
+onMounted(() => {
+    setDefaultMonthFilter()
+})
 
 const formatNumber = (number) => {
     return new Intl.NumberFormat('id-ID').format(number || 0)

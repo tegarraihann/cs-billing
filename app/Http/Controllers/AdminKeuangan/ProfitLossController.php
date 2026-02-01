@@ -22,15 +22,33 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProfitLossController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $periods = ProfitLossPeriod::with(['creator', 'approver'])
-                                 ->orderBy('start_date', 'desc')
-                                 ->paginate(10);
+        $query = ProfitLossPeriod::with(['creator', 'approver'])
+            ->orderBy('start_date', 'desc');
+
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        if (!$startDate && !$endDate) {
+            $startDate = now()->startOfMonth()->toDateString();
+            $endDate = now()->endOfMonth()->toDateString();
+        }
+
+        if ($startDate && $endDate) {
+            $query->whereDate('start_date', '>=', $startDate)
+                ->whereDate('end_date', '<=', $endDate);
+        }
+
+        $periods = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/ProfitLoss/Index', [
             'periods' => $periods,
-            'stats' => $this->getStats()
+            'stats' => $this->getStats(),
+            'filters' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
         ]);
     }
 

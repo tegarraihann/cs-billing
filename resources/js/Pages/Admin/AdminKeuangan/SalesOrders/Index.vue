@@ -22,11 +22,21 @@
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                             <div class="md:col-span-3">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                                 <input v-model="form.search" @input="search" type="text"
                                     placeholder="Search by order number, customer, or invoice..."
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                <input v-model="form.start_date" type="date"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                                <input v-model="form.end_date" type="date"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                             </div>
                             <div class="flex items-end">
@@ -207,7 +217,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -221,16 +231,41 @@ const props = defineProps({
 
 const form = reactive({
     search: props.filters.search || '',
+    start_date: props.filters.start_date || '',
+    end_date: props.filters.end_date || '',
 });
 
-const search = debounce(() => {
+const applyFilters = () => {
     router.get(route('admin-keuangan.sales-orders.index'), {
         search: form.search,
+        start_date: form.start_date,
+        end_date: form.end_date,
     }, {
         preserveState: true,
         replace: true,
     });
+};
+
+const search = debounce(() => {
+    applyFilters();
 }, 300);
+
+const setDefaultMonthFilter = () => {
+    if (props.filters.start_date || props.filters.end_date) {
+        return;
+    }
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const format = (date) => date.toISOString().split('T')[0];
+    form.start_date = format(start);
+    form.end_date = format(end);
+    applyFilters();
+};
+
+onMounted(() => {
+    setDefaultMonthFilter();
+});
 
 const formatDateTime = (dateString) => {
     if (!dateString) return '-';

@@ -86,6 +86,45 @@
                     </div>
                 </div>
 
+                <!-- Filters -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Period Filters</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                <input
+                                    v-model="formFilters.start_date"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                <input
+                                    v-model="formFilters.end_date"
+                                    type="date"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                />
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-4">
+                            <button
+                                @click="clearFilters"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                @click="applyFilters"
+                                class="px-4 py-2 text-sm font-medium text-white bg-sage-600 rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
+                            >
+                                Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white shadow overflow-hidden sm:rounded-md">
                     <div class="px-4 py-5 sm:p-6">
                         <div class="overflow-x-auto">
@@ -190,14 +229,57 @@
 </template>
 
 <script setup>
+import { reactive, onMounted } from 'vue'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { Plus, Calendar, CheckCircle, TrendingUp, DollarSign, Eye, Edit, Trash2 } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
     periods: Object,
     stats: Object,
+    filters: {
+        type: Object,
+        default: () => ({})
+    }
+})
+
+const formFilters = reactive({
+    start_date: props.filters.start_date || '',
+    end_date: props.filters.end_date || ''
+})
+
+const applyFilters = () => {
+    router.get(route('admin-keuangan.profit-loss.index'), formFilters, {
+        preserveState: true,
+        preserveScroll: true
+    })
+}
+
+const clearFilters = () => {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    const format = (date) => date.toISOString().split('T')[0]
+    formFilters.start_date = format(start)
+    formFilters.end_date = format(end)
+
+    router.get(route('admin-keuangan.profit-loss.index'), formFilters, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
+}
+
+const setDefaultMonthFilter = () => {
+    if (props.filters.start_date || props.filters.end_date) {
+        return
+    }
+    clearFilters()
+}
+
+onMounted(() => {
+    setDefaultMonthFilter()
 })
 
 const formatCurrency = (amount) => {

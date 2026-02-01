@@ -26,6 +26,13 @@ class AccountReceivableController extends Controller
      */
     public function index(Request $request)
     {
+        if (!$request->filled('date_from') && !$request->filled('date_to')) {
+            $request->merge([
+                'date_from' => now()->startOfMonth()->toDateString(),
+                'date_to' => now()->endOfMonth()->toDateString(),
+            ]);
+        }
+
         $query = AccountReceivable::with(['customer', 'invoice', 'salesOrder'])
             ->orderBy('created_at', 'desc');
 

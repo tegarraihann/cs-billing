@@ -16,29 +16,35 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class BankBalanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $currentMonth = $request->input('period_month') ?? Carbon::now()->format('Y-m');
+
         $bankAccounts = BankAccount::with(['balances' => function($query) {
             $query->latest()->limit(3);
         }])->active()->get();
 
         // Get current balances for each bank
-        $bankData = $bankAccounts->map(function($bank) {
+        $bankData = $bankAccounts->map(function($bank) use ($currentMonth) {
+            $monthBalance = $bank->balances()->where('period_month', $currentMonth)->first();
             return [
                 'id' => $bank->id,
                 'bank_name' => $bank->bank_name,
                 'account_number' => $bank->account_number,
                 'account_name' => $bank->account_name,
-                'current_balance' => $bank->getCurrentBalance(),
-                'last_updated' => $bank->balances->first()?->updated_at,
+                'current_balance' => $monthBalance?->current_balance ?? $bank->getBalanceForMonth($currentMonth),
+                'last_updated' => $monthBalance?->updated_at,
                 'recent_balances' => $bank->balances
             ];
         });
 
         return Inertia::render('Admin/AdminKeuangan/BankBalance/Index', [
             'bankData' => $bankData,
-            'currentMonth' => Carbon::now()->format('Y-m'),
-            'stats' => $this->getStats()
+            'currentMonth' => $currentMonth,
+            'stats' => $this->getStats($currentMonth),
+            'filters' => [
+                'period_month' => $currentMonth,
+            ],
         ]);
     }
 
@@ -304,17 +310,17 @@ class BankBalanceController extends Controller
         }
     }
 
-    private function getStats(): array
+    private function getStats(?string $periodMonth = null): array
     {
+        $currentMonth = $periodMonth ?: Carbon::now()->format('Y-m');
         $mandiri = BankAccount::getMandiri();
         $bca = BankAccount::getBCA();
 
-        $mandiriBalance = $mandiri ? $mandiri->getCurrentBalance() : 0;
-        $bcaBalance = $bca ? $bca->getCurrentBalance() : 0;
+        $mandiriBalance = $mandiri ? $mandiri->getBalanceForMonth($currentMonth) : 0;
+        $bcaBalance = $bca ? $bca->getBalanceForMonth($currentMonth) : 0;
         $totalBalance = $mandiriBalance + $bcaBalance;
 
         // Get current month transactions count
-        $currentMonth = Carbon::now()->format('Y-m');
         $transactionsCount = \App\Models\BankTransaction::forMonth($currentMonth)->count();
 
         return [

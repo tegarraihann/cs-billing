@@ -27,6 +27,20 @@ class SalesOrderController extends Controller
     {
         $query = SalesOrder::with(['creator']);
 
+        if (!$request->filled('start_date') && !$request->filled('end_date')) {
+            $request->merge([
+                'start_date' => now()->startOfMonth()->toDateString(),
+                'end_date' => now()->endOfMonth()->toDateString(),
+            ]);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date,
+                $request->end_date,
+            ]);
+        }
+
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
@@ -44,7 +58,7 @@ class SalesOrderController extends Controller
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Index', [
             'salesOrders' => $salesOrders,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search', 'start_date', 'end_date'])
         ]);
     }
 

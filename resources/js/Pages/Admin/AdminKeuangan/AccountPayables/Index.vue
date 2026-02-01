@@ -453,6 +453,22 @@ const searchForm = reactive({
     date_to: props.filters.date_to || ''
 })
 
+const setDefaultMonthFilter = () => {
+    if (props.filters.date_from || props.filters.date_to) {
+        return
+    }
+
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    const format = (date) => date.toISOString().split('T')[0]
+
+    searchForm.date_from = format(start)
+    searchForm.date_to = format(end)
+
+    applyFilters()
+}
+
 const summarizeList = (items = []) => {
     const filtered = items.filter(Boolean)
     if (filtered.length === 0) {
@@ -625,6 +641,8 @@ onMounted(() => {
     if (vendorSummaryContainer.value) {
         vendorSummaryContainer.value.addEventListener('scroll', handleViewportChange)
     }
+
+    setDefaultMonthFilter()
 })
 
 onBeforeUnmount(() => {

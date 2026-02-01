@@ -27,6 +27,20 @@ class SalesOrderController extends Controller
             ->whereNotNull('released_at')
             ->orderBy('order_number');
 
+        if (!$request->filled('start_date') && !$request->filled('end_date')) {
+            $request->merge([
+                'start_date' => now()->startOfMonth()->toDateString(),
+                'end_date' => now()->endOfMonth()->toDateString(),
+            ]);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('released_at', [
+                $request->start_date,
+                $request->end_date,
+            ]);
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -40,7 +54,7 @@ class SalesOrderController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Index', [
             'salesOrders' => $salesOrders,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'start_date', 'end_date']),
         ]);
     }
 

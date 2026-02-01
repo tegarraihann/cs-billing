@@ -298,7 +298,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { DollarSign, Plus, RefreshCw, Eye, Edit, Trash2 } from 'lucide-vue-next'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
@@ -331,6 +331,26 @@ const formFilters = reactive({
   type: props.filters.type || '',
   status: props.filters.status || ''
 })
+
+const setDefaultMonthFilter = () => {
+  if (props.filters.start_date || props.filters.end_date) {
+    return
+  }
+
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), 1)
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+  const format = (date) => date.toISOString().split('T')[0]
+  formFilters.start_date = format(start)
+  formFilters.end_date = format(end)
+
+  router.get(route('admin-keuangan.petty-cash.index'), formFilters, {
+    preserveState: true,
+    preserveScroll: true,
+    replace: true
+  })
+}
 
 const showDeleteModal = ref(false)
 const selectedTransaction = ref(null)
@@ -414,6 +434,10 @@ const syncTransactionBalances = () => {
     }
   })
 }
+
+onMounted(() => {
+  setDefaultMonthFilter()
+})
 
 // Route helper - using the same pattern as other working files
 const route = window.route || function(name, params) {

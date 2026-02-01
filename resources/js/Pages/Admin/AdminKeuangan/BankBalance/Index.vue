@@ -28,6 +28,32 @@
                     </div>
                 </div>
 
+                <!-- Period Filter -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Period Filter</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Period (YYYY-MM)</label>
+                                <input
+                                    v-model="filterForm.period_month"
+                                    type="month"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                />
+                            </div>
+                            <div class="flex items-end">
+                                <button
+                                    type="button"
+                                    @click="applyFilters"
+                                    class="w-full px-4 py-2 bg-sage-600 text-white rounded-md transition-colors hover:bg-sage-700"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div v-if="showTransfer" class="bg-white border border-sage-200 rounded-lg shadow-sm p-6 mb-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
@@ -289,8 +315,8 @@
 </template>
 
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
+import { ref, onMounted } from 'vue'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
     Plus,
@@ -304,7 +330,7 @@ import {
     ArrowLeftRight,
 } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
     bankData: {
         type: Array,
         default: () => []
@@ -321,6 +347,29 @@ defineProps({
             total_balance: 0,
             transactions_this_month: 0
         })
+    },
+    filters: {
+        type: Object,
+        default: () => ({})
+    }
+})
+
+const filterForm = useForm({
+    period_month: props.filters?.period_month || props.currentMonth
+})
+
+const applyFilters = () => {
+    router.get(route('admin-keuangan.bank-balance.index'), {
+        period_month: filterForm.period_month
+    }, {
+        preserveState: true,
+        replace: true
+    })
+}
+
+onMounted(() => {
+    if (!props.filters?.period_month) {
+        applyFilters()
     }
 })
 

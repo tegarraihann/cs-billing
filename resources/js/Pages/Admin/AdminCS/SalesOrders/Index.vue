@@ -23,7 +23,7 @@
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
           <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                 <input
@@ -47,6 +47,22 @@
                   <option value="confirmed">Confirmed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <input
+                  v-model="form.start_date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                <input
+                  v-model="form.end_date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                />
               </div>
               <div class="flex items-end">
                 <button
@@ -298,7 +314,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onBeforeUnmount } from "vue";
+import { reactive, ref, onBeforeUnmount, onMounted } from "vue";
 import { router, Link } from "@inertiajs/vue3";
 import { debounce } from "lodash";
 import AdminCSLayout from "@/Layouts/AdminCSLayout.vue";
@@ -314,12 +330,16 @@ const props = defineProps({
 const form = reactive({
   search: props.filters?.search || "",
   status: props.filters?.status || "",
+  start_date: props.filters?.start_date || "",
+  end_date: props.filters?.end_date || "",
 });
 
 const applyFilters = () => {
   const params = {};
   if (form.search) params.search = form.search;
   if (form.status) params.status = form.status;
+  if (form.start_date) params.start_date = form.start_date;
+  if (form.end_date) params.end_date = form.end_date;
 
   router.get(route("admin-cs.sales-orders.index"), params, {
     preserveState: true,
@@ -329,6 +349,26 @@ const applyFilters = () => {
 
 const debouncedSearch = debounce(applyFilters, 300);
 const onStatusChange = () => applyFilters();
+
+const setDefaultMonthFilter = () => {
+  if (props.filters?.start_date || props.filters?.end_date) {
+    return;
+  }
+
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const format = (date) => date.toISOString().split("T")[0];
+
+  form.start_date = format(start);
+  form.end_date = format(end);
+
+  applyFilters();
+};
+
+onMounted(() => {
+  setDefaultMonthFilter();
+});
 
 const showReleaseDialog = ref(false);
 const showDeleteDialog = ref(false);

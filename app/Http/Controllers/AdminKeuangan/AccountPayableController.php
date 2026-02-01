@@ -32,6 +32,13 @@ class AccountPayableController extends Controller
      */
     public function index(Request $request)
     {
+        if (!$request->filled('date_from') && !$request->filled('date_to')) {
+            $request->merge([
+                'date_from' => now()->startOfMonth()->toDateString(),
+                'date_to' => now()->endOfMonth()->toDateString(),
+            ]);
+        }
+
         $payables = $this->paginatePayableGroups($request);
 
         // Calculate summary
