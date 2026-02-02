@@ -35,7 +35,7 @@ class SalesOrderController extends Controller
         }
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('released_at', [
+            $query->whereBetween('created_at', [
                 $request->start_date,
                 $request->end_date,
             ]);
