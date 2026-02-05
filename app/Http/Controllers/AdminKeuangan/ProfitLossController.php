@@ -13,9 +13,12 @@ use App\Models\SupplyTransaction;
 use App\Models\GeneralExpense;
 use App\Models\SalesOrder;
 use App\Models\Invoice;
+use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -135,7 +138,8 @@ class ProfitLossController extends Controller
         return Inertia::render('Admin/AdminKeuangan/ProfitLoss/Show', [
             'period' => $period,
             'reportData' => $reportData,
-            'accounts' => ChartOfAccount::getAccountsByType()
+            'accounts' => ChartOfAccount::getAccountsByType(),
+            'bankAccounts' => BankAccount::all(['id', 'bank_name', 'account_number', 'account_name']),
         ]);
     }
 
@@ -265,7 +269,7 @@ class ProfitLossController extends Controller
     public function addEntry(Request $request, ProfitLossPeriod $profitLoss)
     {
         if ($profitLoss->status === 'closed') {
-            return response()->json(['error' => 'Periode sudah finalisasi'], 400);
+            return redirect()->back()->withErrors(['error' => 'Periode sudah finalisasi']);
         }
 
         $request->validate([
@@ -274,11 +278,17 @@ class ProfitLossController extends Controller
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'required|date',
             'notes' => 'nullable|string',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+            'bank_transaction_type' => 'nullable|in:credit,debit',
         ]);
 
         DB::beginTransaction();
         try {
-            ProfitLossEntry::create([
+            if ($request->filled('bank_account_id') && !$request->filled('bank_transaction_type')) {
+                return redirect()->back()->withErrors(['error' => 'Tipe transaksi bank wajib dipilih']);
+            }
+
+            $entry = ProfitLossEntry::create([
                 'period_id' => $profitLoss->id,
                 'account_id' => $request->account_id,
                 'description' => $request->description,
@@ -289,22 +299,50 @@ class ProfitLossController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
+            if ($request->filled('bank_account_id') && $request->filled('bank_transaction_type')) {
+                $bankTransaction = BankTransaction::create([
+                    'bank_account_id' => $request->bank_account_id,
+                    'transaction_date' => $request->transaction_date,
+                    'transaction_type' => $request->bank_transaction_type,
+                    'amount' => $request->amount,
+                    'description' => 'Income Statement Adjustment - ' . $request->description,
+                    'reference_type' => 'profit_loss_adjustment',
+                    'reference_id' => $entry->id,
+                    'created_by' => Auth::id(),
+                ]);
+
+                $entry->update([
+                    'additional_data' => array_merge($entry->additional_data ?? [], [
+                        'bank_transaction_id' => $bankTransaction->id,
+                        'bank_account_id' => $bankTransaction->bank_account_id,
+                        'bank_transaction_type' => $bankTransaction->transaction_type,
+                    ]),
+                ]);
+            }
+
             $profitLoss->calculateTotals();
             
             DB::commit();
-            
-            return response()->json(['success' => 'Entry berhasil ditambahkan']);
+
+            Log::info('ProfitLoss manual entry created', [
+                'period_id' => $profitLoss->id,
+                'entry_id' => $entry->id,
+                'user_id' => Auth::id(),
+                'bank_account_id' => $request->bank_account_id,
+                'bank_transaction_type' => $request->bank_transaction_type,
+            ]);
+            return redirect()->back()->with('success', 'Entry berhasil ditambahkan');
             
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => 'Gagal menambahkan entry: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Gagal menambahkan entry: ' . $e->getMessage()]);
         }
     }
 
     public function updateEntry(Request $request, ProfitLossEntry $entry)
     {
         if ($entry->period->status === 'closed') {
-            return response()->json(['error' => 'Periode sudah finalisasi'], 400);
+            return redirect()->back()->withErrors(['error' => 'Periode sudah finalisasi']);
         }
 
         $request->validate([
@@ -313,10 +351,16 @@ class ProfitLossController extends Controller
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'required|date',
             'notes' => 'nullable|string',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+            'bank_transaction_type' => 'nullable|in:credit,debit',
         ]);
 
         DB::beginTransaction();
         try {
+            if ($request->filled('bank_account_id') && !$request->filled('bank_transaction_type')) {
+                return redirect()->back()->withErrors(['error' => 'Tipe transaksi bank wajib dipilih']);
+            }
+
             $entry->update([
                 'account_id' => $request->account_id,
                 'description' => $request->description,
@@ -325,42 +369,95 @@ class ProfitLossController extends Controller
                 'notes' => $request->notes,
             ]);
 
+            $additional = $entry->additional_data ?? [];
+            $existingBankId = $additional['bank_transaction_id'] ?? null;
+
+            if ($request->filled('bank_account_id') && $request->filled('bank_transaction_type')) {
+                if ($existingBankId) {
+                    $bankTransaction = BankTransaction::find($existingBankId);
+                    if ($bankTransaction) {
+                        $bankTransaction->update([
+                            'bank_account_id' => $request->bank_account_id,
+                            'transaction_date' => $request->transaction_date,
+                            'transaction_type' => $request->bank_transaction_type,
+                            'amount' => $request->amount,
+                            'description' => 'Income Statement Adjustment - ' . $request->description,
+                        ]);
+                    }
+                } else {
+                    $bankTransaction = BankTransaction::create([
+                        'bank_account_id' => $request->bank_account_id,
+                        'transaction_date' => $request->transaction_date,
+                        'transaction_type' => $request->bank_transaction_type,
+                        'amount' => $request->amount,
+                        'description' => 'Income Statement Adjustment - ' . $request->description,
+                        'reference_type' => 'profit_loss_adjustment',
+                        'reference_id' => $entry->id,
+                        'created_by' => Auth::id(),
+                    ]);
+                    $additional['bank_transaction_id'] = $bankTransaction->id;
+                }
+
+                $additional['bank_account_id'] = $request->bank_account_id;
+                $additional['bank_transaction_type'] = $request->bank_transaction_type;
+                $entry->update(['additional_data' => $additional]);
+            } elseif ($existingBankId) {
+                BankTransaction::where('id', $existingBankId)->delete();
+                unset($additional['bank_transaction_id'], $additional['bank_account_id'], $additional['bank_transaction_type']);
+                $entry->update(['additional_data' => $additional]);
+            }
+
             $entry->period->calculateTotals();
             
             DB::commit();
-            
-            return response()->json(['success' => 'Entry berhasil diperbarui']);
+
+            Log::info('ProfitLoss manual entry updated', [
+                'entry_id' => $entry->id,
+                'user_id' => Auth::id(),
+                'bank_account_id' => $request->bank_account_id,
+                'bank_transaction_type' => $request->bank_transaction_type,
+            ]);
+            return redirect()->back()->with('success', 'Entry berhasil diperbarui');
             
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => 'Gagal memperbarui entry: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Gagal memperbarui entry: ' . $e->getMessage()]);
         }
     }
 
     public function deleteEntry(ProfitLossEntry $entry)
     {
         if ($entry->period->status === 'closed') {
-            return response()->json(['error' => 'Periode sudah finalisasi'], 400);
+            return redirect()->back()->withErrors(['error' => 'Periode sudah finalisasi']);
         }
 
         if ($entry->entry_type !== 'manual') {
-            return response()->json(['error' => 'Hanya entry manual yang bisa dihapus'], 400);
+            return redirect()->back()->withErrors(['error' => 'Hanya entry manual yang bisa dihapus']);
         }
 
         DB::beginTransaction();
         try {
             $period = $entry->period;
+            $bankTransactionId = data_get($entry->additional_data, 'bank_transaction_id');
+            if ($bankTransactionId) {
+                BankTransaction::where('id', $bankTransactionId)->delete();
+            }
             $entry->delete();
             
             $period->calculateTotals();
             
             DB::commit();
-            
-            return response()->json(['success' => 'Entry berhasil dihapus']);
+
+            Log::info('ProfitLoss manual entry deleted', [
+                'entry_id' => $entry->id,
+                'user_id' => Auth::id(),
+                'bank_transaction_id' => $bankTransactionId,
+            ]);
+            return redirect()->back()->with('success', 'Entry berhasil dihapus');
             
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => 'Gagal menghapus entry: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Gagal menghapus entry: ' . $e->getMessage()]);
         }
     }
 
@@ -524,18 +621,7 @@ class ProfitLossController extends Controller
             }
         }
 
-        if (class_exists(EquipmentTransaction::class)) {
-            $depreciations = EquipmentTransaction::where('transaction_type', 'depreciation')
-                ->whereBetween('transaction_date', [$startDate, $endDate])
-                ->get();
-
-            foreach ($depreciations as $equipmentTransaction) {
-                $entry = ProfitLossEntry::createFromEquipmentDepreciation($equipmentTransaction, $period->id, Auth::id());
-                if ($entry?->wasRecentlyCreated) {
-                    $summary['equipment']++;
-                }
-            }
-        }
+        // Equipment depreciation does not flow into Profit & Loss (handled in Financial Position)
 
         // General Expenses (approved)
         if (class_exists(GeneralExpense::class)) {

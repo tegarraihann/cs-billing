@@ -148,8 +148,22 @@
                 <!-- Vendor Summary Section -->
                 <div v-if="vendorSummaryRows.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Vendor Summary</h3>
-                        <div ref="vendorSummaryContainer" class="overflow-x-auto" style="overflow-x: auto;">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Vendor Summary</h3>
+                                <p class="text-xs text-gray-500 mt-1">Summary for outstanding payables</p>
+                            </div>
+                            <div class="flex items-center gap-4 text-xs text-gray-600">
+                                <div>
+                                    <span class="font-semibold text-gray-800">{{ vendorSummaryRows.length }}</span> Vendors
+                                </div>
+                                <div>
+                                    Total Outstanding:
+                                    <span class="font-semibold text-red-600">Rp {{ formatNumber(vendorSummaryTotals.outstanding) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div ref="vendorSummaryContainer" class="overflow-x-auto max-h-96 overflow-y-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -524,6 +538,16 @@ const vendorSummaryRows = computed(() => {
     })
 
     return Array.from(groups.values())
+})
+
+const vendorSummaryTotals = computed(() => {
+    return vendorSummaryRows.value.reduce(
+        (acc, row) => {
+            acc.outstanding += Number(row.total_outstanding || 0)
+            return acc
+        },
+        { outstanding: 0 }
+    )
 })
 
 const activeVendorPopover = ref(null)

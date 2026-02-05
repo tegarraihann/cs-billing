@@ -10,6 +10,7 @@ use App\Models\SalesOrderVendorItem;
 
 class SalesOrder extends Model
 {
+    protected $appends = ['is_pricing_locked'];
     protected $fillable = [
         // New required fields based on requirements
         'order_number',
@@ -170,6 +171,19 @@ class SalesOrder extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function getIsPricingLockedAttribute(): bool
+    {
+        $invoices = $this->relationLoaded('invoices')
+            ? $this->invoices
+            : $this->invoices()->get(['id', 'status']);
+
+        if ($invoices->isEmpty()) {
+            return false;
+        }
+
+        return $invoices->every(fn ($invoice) => $invoice->status === 'paid');
     }
 
     public function accountReceivables(): HasMany

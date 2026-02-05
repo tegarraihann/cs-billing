@@ -27,6 +27,14 @@
           </div>
           <div class="flex flex-wrap gap-2">
             <button
+              v-if="period.status !== 'closed'"
+              @click="openAdjustmentModal"
+              class="inline-flex items-center px-3 py-2 border border-sage-600 text-sm leading-4 font-medium rounded-md text-white bg-sage-700 hover:bg-sage-900"
+            >
+              <PlusCircle class="w-4 h-4 mr-2" />
+              Add Adjustment
+            </button>
+            <button
               @click="exportPdf"
               :disabled="isExporting"
               :class="[
@@ -96,6 +104,22 @@
               title="Other Income - Other"
               :amount="otherIncome.lainnya.total"
             />
+            <div v-if="manualRevenueEntries.length" class="space-y-2">
+              <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Manual Entries</div>
+              <div class="space-y-2">
+                <div
+                  v-for="entry in manualRevenueEntries"
+                  :key="entry.id"
+                  class="flex items-center justify-between border border-gray-100 rounded px-3 py-2 bg-gray-50"
+                >
+                  <div class="text-sm text-gray-800">
+                    {{ entry.description }}
+                    <span class="ml-2 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Manual</span>
+                  </div>
+                  <div class="text-sm font-bold text-gray-900">{{ formatCurrency(entry.amount) }}</div>
+                </div>
+              </div>
+            </div>
           </SectionCard>
 
           <SectionCard title="EXPENSES" :total="expensesTotal" tone="text-red-700">
@@ -117,6 +141,22 @@
             <SummaryRow v-if="totalExpensesPrepaid > 0" title="Prepaid Rent Expense" :amount="totalExpensesPrepaid" />
             <SummaryRow v-if="totalExpensesTax > 0" title="Tax Expenses" :amount="totalExpensesTax" />
             <SummaryRow v-if="totalExpensesOther > 0" title="Other Expenses" :amount="totalExpensesOther" />
+            <div v-if="manualExpenseEntries.length" class="space-y-2">
+              <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Manual Entries</div>
+              <div class="space-y-2">
+                <div
+                  v-for="entry in manualExpenseEntries"
+                  :key="entry.id"
+                  class="flex items-center justify-between border border-gray-100 rounded px-3 py-2 bg-gray-50"
+                >
+                  <div class="text-sm text-gray-800">
+                    {{ entry.description }}
+                    <span class="ml-2 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Manual</span>
+                  </div>
+                  <div class="text-sm font-bold text-gray-900">{{ formatCurrency(entry.amount) }}</div>
+                </div>
+              </div>
+            </div>
           </SectionCard>
 
           <SectionCard
@@ -128,6 +168,79 @@
         </div>
       </div>
     </div>
+
+    <!-- Adjustment Modal -->
+    <div
+      v-if="showAdjustmentModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-lg sm:max-w-xl max-h-[90vh] flex flex-col">
+        <div class="px-6 pt-6 text-lg font-semibold text-gray-900">Add Income Statement Adjustment</div>
+        <div class="px-6 py-4 grid grid-cols-1 gap-4 overflow-y-auto flex-1">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
+            <SearchableSelect
+              v-model="adjustmentForm.account_id"
+              :options="accountOptions"
+              label-field="label"
+              sub-label-field="subLabel"
+              value-field="value"
+              :search-fields="['label', 'subLabel']"
+              placeholder="Select Account"
+              input-class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:border-sage-500 focus:ring-sage-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <input v-model="adjustmentForm.amount" type="number" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <input v-model="adjustmentForm.description" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Date</label>
+            <input v-model="adjustmentForm.transaction_date" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bank (Optional)</label>
+            <SearchableSelect
+              v-model="adjustmentForm.bank_account_id"
+              :options="bankOptions"
+              label-field="label"
+              sub-label-field="subLabel"
+              value-field="value"
+              :search-fields="['label', 'subLabel']"
+              placeholder="Select Bank"
+              input-class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:border-sage-500 focus:ring-sage-500"
+            />
+          </div>
+          <div v-if="adjustmentForm.bank_account_id">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bank Transaction Type</label>
+            <select v-model="adjustmentForm.bank_transaction_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500">
+              <option value="">Select Type</option>
+              <option value="credit">Credit (In)</option>
+              <option value="debit">Debit (Out)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea v-model="adjustmentForm.notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"></textarea>
+          </div>
+        </div>
+        <div class="px-6 pb-6 pt-3 border-t border-gray-100 flex justify-end gap-2">
+          <button @click="closeAdjustmentModal" class="px-4 py-2 text-sm border rounded-md">Cancel</button>
+          <button @click="submitAdjustment" class="px-4 py-2 text-sm bg-sage-600 text-white rounded-md">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <AlertDialog
+      :show="alertDialog.show"
+      :type="alertDialog.type"
+      :message="alertDialog.message"
+      @close="alertDialog.show = false"
+    />
   </AdminKeuanganLayout>
 </template>
 
@@ -135,12 +248,16 @@
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ArrowLeft, CheckCircle, ChevronDown, Download, Edit, RefreshCw } from 'lucide-vue-next'
+import { ArrowLeft, CheckCircle, ChevronDown, Download, Edit, RefreshCw, PlusCircle } from 'lucide-vue-next'
 import { computed, ref, defineComponent, h } from 'vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
+import AlertDialog from '@/Components/AlertDialog.vue'
 
 const props = defineProps({
   period: Object,
   reportData: Object,
+  accounts: Object,
+  bankAccounts: Array,
 })
 
 const formatCurrency = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(value) || 0)
@@ -164,6 +281,7 @@ const summaryCards = computed(() => [
 ])
 
 const revenuesMain = computed(() => props.reportData?.revenues?.main || [])
+const revenuesOther = computed(() => props.reportData?.revenues?.other || [])
 const totalRevenuesMain = computed(() => revenuesMain.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const otherIncome = computed(() => {
   const oi = props.reportData?.revenues?.other_income_breakdown || {}
@@ -192,8 +310,113 @@ const totalExpensesTax = computed(() => expensesTax.value.reduce((sum, item) => 
 const totalExpensesOther = computed(() => expensesOther.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesPrepaid = computed(() => expensesPrepaid.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 
+const manualRevenueEntries = computed(() => {
+  return [...revenuesMain.value, ...revenuesOther.value].filter((entry) => entry.entry_type === 'manual')
+})
+
+const operationalEntries = computed(() => {
+  const grouped = props.reportData?.expenses?.operational?.grouped || []
+  return grouped.flatMap((group) => group.entries || [])
+})
+
+const manualExpenseEntries = computed(() => {
+  const allExpenseEntries = [
+    ...expensesSalary.value,
+    ...operationalEntries.value,
+    ...expensesAdmin.value,
+    ...expensesConsumption.value,
+    ...expensesOutside.value,
+    ...expensesPrepaid.value,
+    ...expensesTax.value,
+    ...expensesOther.value,
+  ]
+  return allExpenseEntries.filter((entry) => entry.entry_type === 'manual')
+})
+
+const revenueAccounts = computed(() => props.accounts?.revenue || [])
+const expenseAccounts = computed(() => props.accounts?.expense || [])
+const bankAccounts = computed(() => props.bankAccounts || [])
+
+const accountOptions = computed(() => {
+  const revenue = (revenueAccounts.value || []).map((acc) => ({
+    value: acc.id,
+    label: `${acc.account_code} - ${acc.account_name}`,
+    subLabel: 'Revenue',
+  }))
+  const expense = (expenseAccounts.value || []).map((acc) => ({
+    value: acc.id,
+    label: `${acc.account_code} - ${acc.account_name}`,
+    subLabel: 'Expense',
+  }))
+  return [...revenue, ...expense]
+})
+
+const bankOptions = computed(() => {
+  return (bankAccounts.value || []).map((bank) => ({
+    value: bank.id,
+    label: `${bank.bank_name} - ${bank.account_number}`,
+    subLabel: bank.account_name || '',
+  }))
+})
+
 const isExporting = ref(false)
 const loading = ref(false)
+
+const showAdjustmentModal = ref(false)
+const alertDialog = ref({
+  show: false,
+  type: 'info',
+  message: '',
+})
+const adjustmentForm = ref({
+  account_id: '',
+  amount: '',
+  description: '',
+  transaction_date: props.period?.start_date ?? new Date().toISOString().split('T')[0],
+  notes: '',
+  bank_account_id: '',
+  bank_transaction_type: '',
+})
+
+const openAdjustmentModal = () => {
+  adjustmentForm.value = {
+    account_id: '',
+    amount: '',
+    description: '',
+    transaction_date: props.period?.start_date ?? new Date().toISOString().split('T')[0],
+    notes: '',
+    bank_account_id: '',
+    bank_transaction_type: '',
+  }
+  showAdjustmentModal.value = true
+}
+
+const closeAdjustmentModal = () => {
+  showAdjustmentModal.value = false
+}
+
+const submitAdjustment = () => {
+  router.post(route('admin-keuangan.profit-loss.entries.store', props.period.id), adjustmentForm.value, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showAdjustmentModal.value = false
+      alertDialog.value = {
+        show: true,
+        type: 'success',
+        message: 'Penyesuaian berhasil disimpan.',
+      }
+      router.reload({ preserveScroll: true })
+    },
+    onError: (errors) => {
+      const message = errors?.error || 'Gagal menyimpan penyesuaian.'
+      alertDialog.value = {
+        show: true,
+        type: 'error',
+        message,
+      }
+    },
+  })
+}
 
 const exportPdf = () => {
   if (isExporting.value) return

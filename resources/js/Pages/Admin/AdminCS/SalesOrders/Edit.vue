@@ -212,10 +212,17 @@
                                     <h4 class="text-md font-semibold text-sage-800">Vendor Breakdown (Buying & Selling)
                                     </h4>
                                     <button type="button" @click="addVendorItem"
-                                        class="inline-flex items-center text-sm bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 transition-colors">
+                                        :disabled="isPricingLocked"
+                                        :class="[
+                                            'inline-flex items-center text-sm bg-sage-600 text-white px-3 py-1 rounded transition-colors',
+                                            isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-sage-700'
+                                        ]">
                                         <Plus class="w-4 h-4 mr-2" />
                                         Add Vendor
                                     </button>
+                                </div>
+                                <div v-if="isPricingLocked" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+                                    Pricing terkunci karena invoice sudah dibayar.
                                 </div>
                                 <div v-for="(item, index) in form.vendor_breakdown" :key="index"
                                     class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
@@ -249,9 +256,10 @@
                                             (Optional)</label>
                                         <input v-model="item.quantity" type="number" step="0.01" min="0"
                                             placeholder="Amount"
+                                            :disabled="isPricingLocked"
                                             @input="() => recalculateVendorAmounts(item)"
                                             @blur="calculateTotals"
-                                            class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                            class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                     </div>
 
                                     <!-- Row 2.2: Unit -->
@@ -282,21 +290,23 @@
                                     <!-- Row 3: Buying & Selling Amounts -->
                                     <div class="grid grid-cols-1 gap-3 p-3 bg-blue-50 rounded-lg">
                                         <div>
-                                            <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Unit Price)</label>
-                                            <input v-model="item.buying_amount" type="text" placeholder="0"
-                                                @input="onBuyingAmountInput(item)"
-                                                @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
-                                                class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Unit Price)</label>
+                                                    <input v-model="item.buying_amount" type="text" placeholder="0"
+                                                        :disabled="isPricingLocked"
+                                                        @input="onBuyingAmountInput(item)"
+                                                        @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
+                                                        class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             <p class="text-xs text-blue-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
                                                 Total: {{ formatCurrency(getTotalBuyingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0) }})
                                             </p>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Unit Price)</label>
-                                            <input v-model="item.selling_amount" type="text" placeholder="0"
-                                                @input="onSellingAmountInput(item)"
-                                                @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
-                                                class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                                                    <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Unit Price)</label>
+                                                    <input v-model="item.selling_amount" type="text" placeholder="0"
+                                                        :disabled="isPricingLocked"
+                                                        @input="onSellingAmountInput(item)"
+                                                        @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
+                                                        class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             <p class="text-xs text-green-600 mt-1" v-if="item.quantity && parseFloat(item.quantity) > 0">
                                                 Total: {{ formatCurrency(getTotalSellingAmount(item)) }} ({{ item.quantity }} × {{ formatCurrency(parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0) }})
                                             </p>
@@ -331,7 +341,7 @@
 
                                     <div class="flex justify-end">
                                         <button type="button" @click="removeVendorItem(index)"
-                                            :disabled="form.vendor_breakdown.length <= 1"
+                                            :disabled="isPricingLocked || form.vendor_breakdown.length <= 1"
                                             class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                             <Trash2 class="w-4 h-4 mr-1" />
                                             Remove Vendor
@@ -542,7 +552,11 @@
                                     <h4 class="text-md font-semibold text-orange-800">Other Operational Costs
                                     </h4>
                                     <button type="button" @click="addOtherCost"
-                                        class="inline-flex items-center text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors">
+                                        :disabled="isPricingLocked"
+                                        :class="[
+                                            'inline-flex items-center text-sm bg-orange-600 text-white px-3 py-1 rounded transition-colors',
+                                            isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-orange-700'
+                                        ]">
                                         <Plus class="w-4 h-4 mr-2" />
                                         Add Cost
                                     </button>
@@ -562,9 +576,10 @@
                                                 <label class="block text-xs font-medium text-orange-700 mb-1">Amount (Unit Price)</label>
                                                 <input v-model="cost.amount" type="text"
                                                     placeholder="0"
+                                                    :disabled="isPricingLocked"
                                                     @input="(e) => { formatCostAmount(cost, e); onCostAmountInput(cost); }"
                                                     @blur="() => recalculateCostAmount(cost)"
-                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                                 <p class="text-xs text-orange-600 mt-1" v-if="cost.quantity && parseFloat(cost.quantity) > 0">
                                                     Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
                                                 </p>
@@ -573,8 +588,9 @@
                                                 <label class="block text-xs font-medium text-orange-700 mb-1">Qty</label>
                                                 <input v-model="cost.quantity" type="number" min="0" step="0.01"
                                                     placeholder="0"
+                                                    :disabled="isPricingLocked"
                                                     @input="() => recalculateCostAmount(cost)"
-                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
                                             <div class="col-span-1">
                                                 <label class="block text-xs font-medium text-orange-700 mb-1">Unit</label>
@@ -603,8 +619,9 @@
                                             </div>
                                             <div class="col-span-1 flex items-end">
                                                 <button type="button" @click="removeOtherCost(index)"
-                                                    class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                                                    :disabled="form.other_costs.length <= 1">
+                                                    :disabled="isPricingLocked || form.other_costs.length <= 1"
+                                                    class="w-full px-2 py-1 inline-flex items-center justify-center rounded transition-colors"
+                                                    :class="isPricingLocked ? 'text-red-400 cursor-not-allowed' : 'text-red-600 hover:text-red-800 hover:bg-red-100'">
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -624,7 +641,11 @@
                                     <!-- Bottom Add Button for Other Costs -->
                                     <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
                                         <button type="button" @click="addOtherCost"
-                                            class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                            :disabled="isPricingLocked"
+                                            :class="[
+                                                'inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg transition-colors',
+                                                isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-orange-700'
+                                            ]">
                                             <Plus class="w-4 h-4 mr-2" />
                                             Add More Costs
                                         </button>
@@ -653,7 +674,11 @@
                                 <div class="flex justify-between items-center mb-4">
                                     <h4 class="text-md font-semibold text-purple-800">Items Reimbursement</h4>
                                     <button type="button" @click="addReimbursementItem"
-                                        class="inline-flex items-center text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors">
+                                        :disabled="isPricingLocked"
+                                        :class="[
+                                            'inline-flex items-center text-sm bg-purple-600 text-white px-3 py-1 rounded transition-colors',
+                                            isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+                                        ]">
                                         <Plus class="w-4 h-4 mr-2" />
                                         Add Reimbursement
                                     </button>
@@ -673,7 +698,8 @@
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
                                                     placeholder="1"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    :disabled="isPricingLocked"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
                                             <div class="col-span-2">
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
@@ -684,7 +710,8 @@
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
                                                 <input v-model="item.amount" type="number" step="0.01"
                                                     placeholder="0.00"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    :disabled="isPricingLocked"
+                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
                                             <div class="col-span-2">
                                                 <label class="block text-xs font-medium text-purple-700 mb-1">Category</label>
@@ -703,7 +730,11 @@
                                             </div>
                                             <div class="col-span-1 flex items-end">
                                                 <button type="button" @click="removeReimbursementItem(index)"
-                                                    class="w-full px-2 py-1 inline-flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
+                                                    :disabled="isPricingLocked"
+                                                    :class="[
+                                                        'w-full px-2 py-1 inline-flex items-center justify-center rounded transition-colors',
+                                                        isPricingLocked ? 'text-red-400 cursor-not-allowed' : 'text-red-600 hover:text-red-800 hover:bg-red-100'
+                                                    ]">
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -738,7 +769,11 @@
                                     <!-- Bottom Add Button for Reimbursement -->
                                     <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
                                         <button type="button" @click="addReimbursementItem"
-                                            class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                            :disabled="isPricingLocked"
+                                            :class="[
+                                                'inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg transition-colors',
+                                                isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+                                            ]">
                                             <Plus class="w-4 h-4 mr-2" />
                                             Add More Reimbursement
                                         </button>
@@ -1141,6 +1176,8 @@ const baseOperationalCostCategoryOptions = computed(() => {
         description: category.description || "",
     }));
 });
+
+const isPricingLocked = computed(() => props.salesOrder?.is_pricing_locked ?? false);
 
 const reimbursementItems = ref(initializeReimbursementItems());
 

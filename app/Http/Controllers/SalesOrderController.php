@@ -35,10 +35,15 @@ class SalesOrderController extends Controller
         }
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [
-                $request->start_date,
-                $request->end_date,
-            ]);
+            $startDate = $request->start_date;
+            $endDate = $request->end_date;
+            $query->where(function ($filter) use ($startDate, $endDate) {
+                $filter->whereBetween('so_date', [$startDate, $endDate])
+                    ->orWhere(function ($sub) use ($startDate, $endDate) {
+                        $sub->whereNull('so_date')
+                            ->whereBetween('created_at', [$startDate, $endDate]);
+                    });
+            });
         }
 
         // Search functionality
@@ -445,7 +450,13 @@ class SalesOrderController extends Controller
         $totalSelling = 0;
         $totalBuying = 0;
 
-        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+        $pricingLocked = $salesOrder->is_pricing_locked ?? false;
+        if ($pricingLocked) {
+            $validated['vendor_breakdown'] = $salesOrder->vendor_breakdown;
+            $validated['other_costs'] = $salesOrder->other_costs;
+            $totalSelling = (float) ($salesOrder->total_selling ?? 0);
+            $totalBuying = (float) ($salesOrder->total_buying ?? 0);
+        } elseif (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $totalBuying += floatval($item['buying_amount'] ?? 0);
                 $totalSelling += floatval($item['selling_amount'] ?? 0);
@@ -459,16 +470,20 @@ class SalesOrderController extends Controller
         $validated['status'] = 'draft';
 
         // Extract reimbursement items before updating sales order
-        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        $reimbursementItems = $pricingLocked ? [] : ($validated['reimbursement_items'] ?? []);
         unset($validated['reimbursement_items']);
 
         $salesOrder->update($validated);
 
         // Update reimbursement items
-        $this->updateReimbursementItems($salesOrder, $reimbursementItems);
+        if (!$pricingLocked) {
+            $this->updateReimbursementItems($salesOrder, $reimbursementItems);
+        }
 
         // Sync vendor breakdown items to table
-        $salesOrder->syncVendorBreakdownItems($validated['vendor_breakdown'] ?? [], auth()->id());
+        if (!$pricingLocked) {
+            $salesOrder->syncVendorBreakdownItems($validated['vendor_breakdown'] ?? [], auth()->id());
+        }
 
         return redirect()
             ->route('admin-cs.sales-orders.index')

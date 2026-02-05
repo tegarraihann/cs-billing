@@ -33,7 +33,7 @@ class FinancialPositionService
                 ],
                 [
                     'title' => 'FIXED ASSET',
-                    'account_codes' => ['1510', '1515'],
+                    'account_codes' => ['1510'],
                 ],
             ],
         ],
@@ -42,7 +42,7 @@ class FinancialPositionService
             'groups' => [
                 [
                     'title' => 'CURRENT LIABILITIES',
-                    'account_codes' => ['2100', '2110', '2111', '2114', '2115', '5450', '5451'],
+                    'account_codes' => ['2100', '2110', '2111', '2114', '2115', '2150', '5450', '5451'],
                 ],
             ],
         ],
@@ -220,12 +220,12 @@ class FinancialPositionService
             '1230', '1231' => $this->calculateVatReceivableBalance($accountCode, $cutoff),
             '1300' => $this->calculateSuppliesBalance($cutoff),
             '1510' => $this->calculateEquipmentBalance($cutoff),
-            '1515' => $this->calculateEquipmentAccumulatedBalance($cutoff),
             '1400' => $this->calculatePrepaidRentBalance($cutoff),
             '2110', '2111' => $this->calculateVatPayableBalance($accountCode, $cutoff),
             '2114', '2115' => $this->calculatePph23PayableBalance($accountCode, $cutoff),
             '5450', '5451' => $this->calculateTaxExpensePayableBalance($accountCode, $cutoff),
             '2100' => $this->calculateAccountsPayableBalance($cutoff),
+            '2150' => $this->calculateEquipmentDepreciationLiabilityBalance($cutoff),
             '3100' => $this->calculatePaidInCapitalBalance($accountCode, $cutoff),
             '3200' => $this->calculateRetainedEarningsBalance($cutoff),
             '3300' => $this->calculateCurrentYearEarnings($cutoff),
@@ -565,23 +565,28 @@ class FinancialPositionService
             ->whereDate('transaction_date', '<=', $cutoff->toDateString())
             ->sum('amount');
 
+        $depreciations = EquipmentTransaction::where('transaction_type', 'depreciation')
+            ->whereDate('transaction_date', '<=', $cutoff->toDateString())
+            ->sum('amount');
+
         return [
-            'amount' => (float) $purchases,
+            'amount' => (float) $purchases - (float) $depreciations,
             'source' => 'auto',
             'meta' => [
                 'purchases' => (float) $purchases,
+                'depreciations' => (float) $depreciations,
             ],
         ];
     }
 
-    private function calculateEquipmentAccumulatedBalance(Carbon $cutoff): array
+    private function calculateEquipmentDepreciationLiabilityBalance(Carbon $cutoff): array
     {
         $depreciations = EquipmentTransaction::where('transaction_type', 'depreciation')
             ->whereDate('transaction_date', '<=', $cutoff->toDateString())
             ->sum('amount');
 
         return [
-            'amount' => -(float) $depreciations,
+            'amount' => (float) $depreciations,
             'source' => 'auto',
             'meta' => [
                 'depreciations' => (float) $depreciations,
