@@ -250,6 +250,7 @@ class EquityController extends Controller
             'typeConfig' => $config,
             'bankAccounts' => BankAccount::active()->get(['id', 'bank_name', 'account_number', 'account_name']),
             'canSettle' => $canSettle,
+            'filters' => request()->only(['type', 'status', 'start_date', 'end_date', 'opening']),
         ]);
     }
 

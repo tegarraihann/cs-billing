@@ -56,7 +56,10 @@ class ProfitLossPeriod extends Model
 
     public function calculateTotals(): void
     {
-        $entries = $this->entries()->with('account')->get();
+        $entries = $this->entries()->with('account')->get()
+            ->filter(function ($entry) {
+                return $entry->entry_type !== 'auto_equipment_depreciation';
+            });
 
         $this->total_revenue = $entries->filter(function ($entry) {
             return $entry->account->account_type === 'revenue';
@@ -122,7 +125,11 @@ class ProfitLossPeriod extends Model
 
     public function getReportData(): array
     {
-        $entries = $this->entries()->with('account')->get()->groupBy('account.account_type');
+        $entries = $this->entries()->with('account')->get()
+            ->filter(function ($entry) {
+                return $entry->entry_type !== 'auto_equipment_depreciation';
+            })
+            ->groupBy('account.account_type');
 
         $revenue_entries = collect(($entries->get('revenue', collect()))->all())->groupBy(function ($entry) {
             if ($entry->reference_type === 'other_income') {

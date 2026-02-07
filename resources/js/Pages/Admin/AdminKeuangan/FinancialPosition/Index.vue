@@ -89,7 +89,7 @@
                             <Wallet class="w-6 h-6 text-emerald-600" />
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm text-gray-500">Total Equity</p>
+                            <p class="text-sm text-gray-500">Equity (Info)</p>
                             <p class="text-lg font-semibold text-gray-900">
                                 {{ equityTotalDisplay }}
                             </p>
@@ -167,8 +167,8 @@
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                                         {{ group.title }}
                                     </h3>
-                                    <span class="text-sm font-semibold text-gray-900">
-                                        {{ sectionKey === 'equity' ? '-' : formatCurrency(group.total) }}
+                                    <span v-if="sectionKey !== 'equity'" class="text-sm font-semibold text-gray-900">
+                                        {{ formatCurrency(group.total) }}
                                     </span>
                                 </div>
 
@@ -229,13 +229,13 @@
                                                 </td>
                                             </tr>
                                         </tbody>
-                                        <tfoot>
+                                        <tfoot v-if="sectionKey !== 'equity'">
                                             <tr class="bg-gray-50">
                                                 <td class="px-4 py-3 text-sm font-semibold text-gray-700">
                                                     Total {{ group.title }}
                                                 </td>
                                                 <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                                                    {{ sectionKey === 'equity' ? '-' : formatCurrency(group.total) }}
+                                                    {{ formatCurrency(group.total) }}
                                                 </td>
                                                 <td></td>
                                             </tr>
@@ -245,12 +245,12 @@
                             </div>
                         </div>
 
-                        <div class="px-6 py-4 border-t border-sage-200 bg-sage-50 flex items-center justify-between">
+                        <div v-if="sectionKey !== 'equity'" class="px-6 py-4 border-t border-sage-200 bg-sage-50 flex items-center justify-between">
                             <span class="text-sm font-semibold text-sage-800">
                                 Total {{ section.title }}
                             </span>
                             <span class="text-base font-bold text-sage-900">
-                                {{ sectionKey === 'equity' ? '-' : formatCurrency(section.total) }}
+                                {{ formatCurrency(section.total) }}
                             </span>
                         </div>
                     </div>

@@ -546,7 +546,7 @@ class ProfitLossController extends Controller
 
         // Revenue: gunakan profit shipment (gross revenue - operational costs) dari invoice yang posted ke P&L
         ProfitLossEntry::where('period_id', $period->id)
-            ->whereIn('entry_type', ['auto_invoice', 'auto_so'])
+            ->whereIn('entry_type', ['auto_invoice', 'auto_so', 'auto_equipment_depreciation'])
             ->delete();
 
         $invoiceGroups = Invoice::with('items')

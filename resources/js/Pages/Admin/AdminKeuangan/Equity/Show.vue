@@ -10,7 +10,7 @@
                         <p class="mt-1 text-sm text-gray-600">{{ typeLabel }}</p>
                     </div>
                     <Link
-                        :href="route('admin-keuangan.equity.index')"
+                        :href="route('admin-keuangan.equity.index', filters || {})"
                         class="inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-semibold rounded-md text-gray-700 hover:bg-gray-50"
                     >
                         Back
@@ -154,6 +154,10 @@ const props = defineProps({
     typeConfig: Object,
     bankAccounts: Array,
     canSettle: Boolean,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const typeLabel = computed(() => props.typeConfig?.label || props.entry.entry_type)
