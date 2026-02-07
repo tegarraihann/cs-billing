@@ -172,6 +172,15 @@
                         </div>
                     </div>
 
+                    <!-- Payment Information -->
+                    <div v-if="displayPaymentNotes" class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Information</h2>
+                        <div>
+                            <label class="text-sm font-medium text-gray-500">Payment Notes</label>
+                            <p class="text-sm text-gray-700 whitespace-pre-line">{{ displayPaymentNotes }}</p>
+                        </div>
+                    </div>
+
                     <!-- Components Breakdown -->
                     <div v-if="componentOptions.length" class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 class="text-lg font-semibold text-gray-900 mb-4">Receivable Component Breakdown</h2>
@@ -754,6 +763,10 @@ const paymentForm = reactive({
     bank_account_id: '',
     notes: '',
     component_id: ''
+})
+
+const displayPaymentNotes = computed(() => {
+    return props.receivable?.notes || ''
 })
 
 const componentOptions = computed(() => (props.receivable.components || []).map(component => ({

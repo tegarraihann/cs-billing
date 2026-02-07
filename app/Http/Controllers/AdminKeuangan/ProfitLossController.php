@@ -284,6 +284,11 @@ class ProfitLossController extends Controller
 
         DB::beginTransaction();
         try {
+            $account = ChartOfAccount::find($request->account_id);
+            if (!$account || !in_array($account->account_type, ['revenue', 'expense'], true)) {
+                return redirect()->back()->withErrors(['error' => 'Akun penyesuaian harus bertipe revenue atau expense.']);
+            }
+
             if ($request->filled('bank_account_id') && !$request->filled('bank_transaction_type')) {
                 return redirect()->back()->withErrors(['error' => 'Tipe transaksi bank wajib dipilih']);
             }
@@ -357,6 +362,11 @@ class ProfitLossController extends Controller
 
         DB::beginTransaction();
         try {
+            $account = ChartOfAccount::find($request->account_id);
+            if (!$account || !in_array($account->account_type, ['revenue', 'expense'], true)) {
+                return redirect()->back()->withErrors(['error' => 'Akun penyesuaian harus bertipe revenue atau expense.']);
+            }
+
             if ($request->filled('bank_account_id') && !$request->filled('bank_transaction_type')) {
                 return redirect()->back()->withErrors(['error' => 'Tipe transaksi bank wajib dipilih']);
             }
@@ -470,6 +480,25 @@ class ProfitLossController extends Controller
         DB::beginTransaction();
         try {
             $summary = $this->autoGenerateEntries($profitLoss);
+
+            // Recalculate totals to ensure manual entries are included
+            $profitLoss->calculateTotals();
+
+            // Warn if there are manual entries with non revenue/expense accounts
+            $invalidManualEntries = $profitLoss->entries()
+                ->with('account')
+                ->where('entry_type', 'manual')
+                ->get()
+                ->filter(function ($entry) {
+                    return !$entry->account || !in_array($entry->account->account_type, ['revenue', 'expense'], true);
+                });
+
+            if ($invalidManualEntries->isNotEmpty()) {
+                \Log::warning('ProfitLoss manual entries with non revenue/expense accounts', [
+                    'period_id' => $profitLoss->id,
+                    'entry_ids' => $invalidManualEntries->pluck('id')->values()->all(),
+                ]);
+            }
             
             DB::commit();
             
@@ -477,6 +506,10 @@ class ProfitLossController extends Controller
             $message = $totalCreated > 0
                 ? "Sinkronisasi selesai. {$totalCreated} entry baru ditambahkan atau diperbarui."
                 : 'Sinkronisasi selesai. Tidak ada entry baru yang perlu ditambahkan.';
+
+            if (isset($invalidManualEntries) && $invalidManualEntries->isNotEmpty()) {
+                $message .= ' Perhatian: ada penyesuaian manual yang tidak terhitung karena akun bukan revenue/expense.';
+            }
             
             return redirect()->back()->with('success', $message);
             

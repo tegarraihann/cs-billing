@@ -234,7 +234,7 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm font-medium">
-                                        <Link :href="route('admin-keuangan.equity.show', entry.id)" class="text-sage-600 hover:text-sage-900">
+                                        <Link :href="route('admin-keuangan.equity.show', { equityEntry: entry.id, ...filterForm })" class="text-sage-600 hover:text-sage-900">
                                             View
                                         </Link>
                                     </td>
@@ -256,8 +256,8 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { Head, Link, router, useRemember } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
@@ -281,21 +281,31 @@ const props = defineProps({
     },
 })
 
-const filterForm = reactive({
-    start_date: props.filters?.start_date || '',
-    end_date: props.filters?.end_date || '',
+const currentMonthRange = computed(() => {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    return {
+        start: start.toISOString().slice(0, 10),
+        end: end.toISOString().slice(0, 10),
+    }
+})
+
+const filterForm = useRemember({
+    start_date: props.filters?.start_date || currentMonthRange.value.start,
+    end_date: props.filters?.end_date || currentMonthRange.value.end,
     type: props.filters?.type || '',
     status: props.filters?.status || '',
     opening: props.filters?.opening ?? '',
-})
+}, 'equity-filters')
 
 const applyFilters = () => {
-    router.get(route('admin-keuangan.equity.index'), { ...filterForm }, { preserveState: true })
+    router.get(route('admin-keuangan.equity.index'), { ...filterForm }, { preserveState: true, preserveScroll: true })
 }
 
 const resetFilters = () => {
-    filterForm.start_date = ''
-    filterForm.end_date = ''
+    filterForm.start_date = currentMonthRange.value.start
+    filterForm.end_date = currentMonthRange.value.end
     filterForm.type = ''
     filterForm.status = ''
     filterForm.opening = ''

@@ -35,15 +35,9 @@ class SalesOrderController extends Controller
         }
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $startDate = $request->start_date;
-            $endDate = $request->end_date;
-            $query->where(function ($filter) use ($startDate, $endDate) {
-                $filter->whereBetween('so_date', [$startDate, $endDate])
-                    ->orWhere(function ($sub) use ($startDate, $endDate) {
-                        $sub->whereNull('so_date')
-                            ->whereBetween('created_at', [$startDate, $endDate]);
-                    });
-            });
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
         // Search functionality

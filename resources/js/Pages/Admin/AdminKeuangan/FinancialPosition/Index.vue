@@ -91,7 +91,7 @@
                         <div class="ml-4">
                             <p class="text-sm text-gray-500">Total Equity</p>
                             <p class="text-lg font-semibold text-gray-900">
-                                {{ formatCurrency(equityTotal) }}
+                                {{ equityTotalDisplay }}
                             </p>
                         </div>
                     </div>
@@ -168,7 +168,7 @@
                                         {{ group.title }}
                                     </h3>
                                     <span class="text-sm font-semibold text-gray-900">
-                                        {{ formatCurrency(group.total) }}
+                                        {{ sectionKey === 'equity' ? '-' : formatCurrency(group.total) }}
                                     </span>
                                 </div>
 
@@ -235,7 +235,7 @@
                                                     Total {{ group.title }}
                                                 </td>
                                                 <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                                                    {{ formatCurrency(group.total) }}
+                                                    {{ sectionKey === 'equity' ? '-' : formatCurrency(group.total) }}
                                                 </td>
                                                 <td></td>
                                             </tr>
@@ -250,7 +250,7 @@
                                 Total {{ section.title }}
                             </span>
                             <span class="text-base font-bold text-sage-900">
-                                {{ formatCurrency(section.total) }}
+                                {{ sectionKey === 'equity' ? '-' : formatCurrency(section.total) }}
                             </span>
                         </div>
                     </div>
@@ -311,6 +311,7 @@ const balanceCheck = computed(() => ({
 
 const liabilitiesTotal = computed(() => Number(props.statement?.sections?.liabilities?.total || 0))
 const equityTotal = computed(() => Number(props.statement?.sections?.equity?.total || 0))
+const equityTotalDisplay = computed(() => '-')
 
 const isBalanced = computed(() => Math.abs(balanceCheck.value.difference) < 0.01)
 
