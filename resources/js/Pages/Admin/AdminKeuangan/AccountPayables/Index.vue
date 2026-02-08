@@ -819,6 +819,7 @@ const showPayable = (row) => {
 
 const visitPage = (url) => {
     router.visit(url, {
+        data: { ...searchForm },
         preserveState: true,
         replace: true
     })
