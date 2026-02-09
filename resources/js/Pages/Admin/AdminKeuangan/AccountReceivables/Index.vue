@@ -934,6 +934,7 @@ const downloadSOA = (receivable) => {
 
 const visitPage = (url) => {
     router.visit(url, {
+        data: { ...searchForm },
         preserveState: true,
         replace: true
     })
