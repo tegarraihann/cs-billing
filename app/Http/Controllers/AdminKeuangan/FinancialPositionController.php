@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AdminKeuangan;
 
 use App\Http\Controllers\Controller;
 use App\Services\FinancialPositionService;
+use App\Models\EquityYearClosing;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,9 +19,23 @@ class FinancialPositionController extends Controller
 
     public function index(Request $request)
     {
-        $cutoffDate = $request->input('date', now()->toDateString());
+        $year = $request->input('year');
+        $cutoffDate = $request->input('date');
+
+        if ($year) {
+            $cutoffDate = Carbon::createFromDate((int) $year, 12, 31)->toDateString();
+        }
+
+        if (!$cutoffDate) {
+            $cutoffDate = now()->toDateString();
+        }
 
         $statement = $this->financialPositionService->getStatement($cutoffDate);
+        $closedYears = EquityYearClosing::query()
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->unique()
+            ->values();
 
         if ($request->wantsJson()) {
             return response()->json($statement);
@@ -30,13 +45,24 @@ class FinancialPositionController extends Controller
             'statement' => $statement,
             'filters' => [
                 'date' => $cutoffDate,
+                'year' => $year,
             ],
+            'closedYears' => $closedYears,
         ]);
     }
 
     public function downloadPdf(Request $request)
     {
-        $cutoffDate = $request->input('date', now()->toDateString());
+        $year = $request->input('year');
+        $cutoffDate = $request->input('date');
+
+        if ($year) {
+            $cutoffDate = Carbon::createFromDate((int) $year, 12, 31)->toDateString();
+        }
+
+        if (!$cutoffDate) {
+            $cutoffDate = now()->toDateString();
+        }
         $statement = $this->financialPositionService->getStatement($cutoffDate);
         $cutoffCarbon = Carbon::parse($cutoffDate);
 

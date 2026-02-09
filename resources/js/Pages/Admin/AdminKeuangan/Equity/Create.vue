@@ -48,8 +48,12 @@
                                     min="0"
                                     step="0.01"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
-                                    required
+                                    :disabled="isAnnualClosing"
+                                    :required="!isAnnualClosing"
                                 />
+                                <p v-if="isAnnualClosing" class="text-xs text-gray-500 mt-2">
+                                    Amount will be calculated automatically based on the year-end closing formula.
+                                </p>
                                 <div v-if="form.errors.amount" class="text-xs text-red-600 mt-2">{{ form.errors.amount }}</div>
                             </div>
                         </div>
@@ -228,6 +232,7 @@ const form = useForm({
 const selectedConfig = computed(() => typeConfigMap[form.entry_type] || { bankAllowed: false, bankHint: '' })
 const needsEmployeeName = computed(() => ['management_loan', 'management_loan_repayment'].includes(form.entry_type))
 const needsPaymentDate = computed(() => form.entry_type === 'management_loan_repayment')
+const isAnnualClosing = computed(() => form.entry_type === 'annual_closing')
 
 watch(
     () => form.entry_type,
@@ -243,6 +248,9 @@ watch(
             form.payment_date = ''
         } else if (!form.payment_date) {
             form.payment_date = new Date().toISOString().slice(0, 10)
+        }
+        if (isAnnualClosing.value) {
+            form.amount = ''
         }
     }
 )

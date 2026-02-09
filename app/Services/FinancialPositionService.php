@@ -73,7 +73,7 @@ class FinancialPositionService
         $liabilitiesTotal = 0;
         $equityTotal = 0;
 
-        $incomeStatementProfit = null;
+        $bankTotal = 0;
         $currentYearEarnings = null;
         $currentYearMeta = null;
 
@@ -88,14 +88,24 @@ class FinancialPositionService
                     $cutoff
                 );
 
-                if ($key === 'equity') {
-                    if ($incomeStatementProfit === null) {
-                        $incomeStatementData = $this->calculateCurrentYearEarnings($cutoff);
-                        $incomeStatementProfit = (float) ($incomeStatementData['amount'] ?? 0);
-                        $currentYearMeta = $incomeStatementData['meta'] ?? null;
+                if ($key === 'assets') {
+                    foreach ($rows as $row) {
+                        if (in_array($row['account_code'] ?? null, ['1120', '1130', '1140'], true)) {
+                            $bankTotal += (float) ($row['amount'] ?? 0);
+                        }
                     }
+                }
 
-                    $currentYearEarnings = $incomeStatementProfit - $liabilitiesTotal;
+                if ($key === 'equity') {
+                    if ($currentYearEarnings === null) {
+                        $baseNetAssets = ($assetsTotal - $bankTotal) - $liabilitiesTotal;
+                        $equityAggregate = $this->aggregateCurrentYearEquityAdjustments($cutoff);
+                        $currentYearEarnings = $baseNetAssets + $equityAggregate['amount'];
+                        $currentYearMeta = [
+                            'base_net_assets' => round($baseNetAssets, 2),
+                            'equity_adjustments' => $equityAggregate['meta'],
+                        ];
+                    }
 
                     foreach ($rows as $index => $row) {
                         if (($row['account_code'] ?? null) !== '3300') {
@@ -108,9 +118,10 @@ class FinancialPositionService
                             'amount' => round($currentYearEarnings, 2),
                             'source' => 'formula',
                             'meta' => [
-                                'income_statement_profit' => round($incomeStatementProfit, 2),
+                                'assets_total' => round($assetsTotal, 2),
+                                'bank_total' => round($bankTotal, 2),
                                 'liabilities_total' => round($liabilitiesTotal, 2),
-                                'period' => $currentYearMeta,
+                                'adjustments' => $currentYearMeta,
                             ],
                         ];
                     }
@@ -151,6 +162,8 @@ class FinancialPositionService
             'sections' => $sections,
             'balance_check' => [
                 'assets_total' => round($assetsTotal, 2),
+                'bank_total' => round($bankTotal, 2),
+                'assets_excluding_bank' => round($assetsTotal - $bankTotal, 2),
                 'liabilities_equity_total' => round($liabilitiesEquityTotal, 2),
                 'difference' => round($assetsTotal - $liabilitiesEquityTotal, 2),
             ],
@@ -749,6 +762,45 @@ class FinancialPositionService
             'meta' => [
                 'entries_count' => $entries->count(),
                 'adjustments_count' => $adjustmentCount,
+            ],
+        ];
+    }
+
+    private function aggregateCurrentYearEquityAdjustments(Carbon $cutoff): array
+    {
+        $accountId = ChartOfAccount::idByCode('3300');
+        if (!$accountId) {
+            return ['amount' => 0.0, 'source' => 'auto', 'meta' => null];
+        }
+
+        $startOfYear = $cutoff->copy()->startOfYear()->toDateString();
+        $endDate = $cutoff->toDateString();
+
+        $entries = EquityEntry::where('account_id', $accountId)
+            ->whereDate('entry_date', '>=', $startOfYear)
+            ->whereDate('entry_date', '<=', $endDate)
+            ->get(['amount', 'direction']);
+
+        $entryTotal = $entries->sum(function ($entry) {
+            $direction = $entry->direction ?? 'increase';
+            $sign = $direction === 'decrease' ? -1 : 1;
+            return $sign * (float) $entry->amount;
+        });
+
+        $adjustmentsQuery = FinancialPositionAdjustment::where('account_id', $accountId)
+            ->whereDate('effective_date', '>=', $startOfYear)
+            ->whereDate('effective_date', '<=', $endDate);
+
+        $adjustmentTotal = (float) $adjustmentsQuery->sum('amount');
+        $adjustmentCount = $adjustmentsQuery->count();
+
+        return [
+            'amount' => round($entryTotal + $adjustmentTotal, 2),
+            'source' => 'auto',
+            'meta' => [
+                'entries_count' => $entries->count(),
+                'adjustments_count' => $adjustmentCount,
+                'year' => $cutoff->year,
             ],
         ];
     }

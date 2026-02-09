@@ -19,6 +19,24 @@
                         @submit.prevent="refreshData"
                     >
                         <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                            <div v-if="closedYears.length">
+                                <label for="closing-year" class="block text-sm font-medium text-gray-700">
+                                    Closed Year
+                                </label>
+                                <div class="mt-1 relative">
+                                    <select
+                                        id="closing-year"
+                                        v-model="selectedYear"
+                                        @change="handleYearChange"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring focus:ring-sage-200 focus:ring-opacity-50 text-sm"
+                                    >
+                                        <option value="">Custom Date</option>
+                                        <option v-for="year in closedYears" :key="year" :value="year">
+                                            {{ year }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                             <div>
                                 <label for="cutoff-date" class="block text-sm font-medium text-gray-700">
                                     Cut-off Date
@@ -28,7 +46,7 @@
                                         id="cutoff-date"
                                         type="date"
                                         v-model="selectedDate"
-                                        @change="refreshData"
+                                        @change="handleDateChange"
                                         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring focus:ring-sage-200 focus:ring-opacity-50 text-sm"
                                     />
                                     <Calendar class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
@@ -286,9 +304,14 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    closedYears: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const selectedDate = ref(props.filters?.date || new Date().toISOString().slice(0, 10))
+const selectedYear = ref(props.filters?.year || '')
 const isRefreshing = ref(false)
 
 watch(
@@ -323,7 +346,7 @@ const refreshData = () => {
     isRefreshing.value = true
     router.get(
         route('admin-keuangan.financial-position.index'),
-        { date: selectedDate.value },
+        { date: selectedDate.value, year: selectedYear.value || undefined },
         {
             preserveState: true,
             replace: true,
@@ -334,12 +357,27 @@ const refreshData = () => {
     )
 }
 
+const handleYearChange = () => {
+    if (selectedYear.value) {
+        selectedDate.value = `${selectedYear.value}-12-31`
+    }
+    refreshData()
+}
+
+const handleDateChange = () => {
+    selectedYear.value = ''
+    refreshData()
+}
+
 const exportPdf = () => {
     if (!selectedDate.value) {
         return
     }
 
-    const url = route('admin-keuangan.financial-position.pdf', { date: selectedDate.value })
+    const url = route('admin-keuangan.financial-position.pdf', {
+        date: selectedDate.value,
+        year: selectedYear.value || undefined,
+    })
     window.open(url, '_blank')
 }
 

@@ -9,10 +9,14 @@ use App\Models\AccountPayable;
 use App\Models\AccountReceivable;
 use App\Models\ChartOfAccount;
 use App\Models\EquityEntry;
+use App\Models\EquityYearClosing;
+use App\Services\FinancialPositionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class EquityController extends Controller
 {
@@ -94,7 +98,12 @@ class EquityController extends Controller
             'employee_name' => 'nullable|string|max:255',
             'entry_date' => 'required|date',
             'payment_date' => 'nullable|date',
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => [
+                Rule::requiredIf($request->input('entry_type') !== 'annual_closing'),
+                'nullable',
+                'numeric',
+                'min:0.01',
+            ],
             'reference' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:2000',
             'is_opening' => 'boolean',
@@ -136,8 +145,21 @@ class EquityController extends Controller
             DB::beginTransaction();
 
             if ($validated['entry_type'] === 'annual_closing') {
-                $closingAmount = (float) $validated['amount'];
                 $closingDate = $validated['entry_date'];
+                $closingYear = (int) \Carbon\Carbon::parse($closingDate)->year;
+
+                if (EquityYearClosing::where('year', $closingYear)->exists()) {
+                    DB::rollBack();
+                    return back()
+                        ->withErrors(['entry_type' => 'Tahun tersebut sudah ditutup.'])
+                        ->withInput();
+                }
+
+                $statement = app(FinancialPositionService::class)->getStatement($closingDate);
+                $assetsTotal = (float) data_get($statement, 'balance_check.assets_total', 0);
+                $bankTotal = (float) data_get($statement, 'balance_check.bank_total', 0);
+                $liabilitiesTotal = (float) data_get($statement, 'sections.liabilities.total', 0);
+                $closingAmount = ($assetsTotal - $bankTotal) - $liabilitiesTotal;
                 $notes = trim((string) ($validated['notes'] ?? ''));
 
                 $retainedAccountId = ChartOfAccount::idByCode('3200');
@@ -176,7 +198,21 @@ class EquityController extends Controller
                     'created_by' => Auth::id(),
                 ]);
 
+                EquityYearClosing::create([
+                    'year' => $closingYear,
+                    'closing_date' => $closingDate,
+                    'amount' => $closingAmount,
+                    'notes' => $notes !== '' ? $notes : 'Annual closing snapshot.',
+                    'created_by' => Auth::id(),
+                ]);
+
                 DB::commit();
+
+                Log::info('Equity annual closing recorded', [
+                    'year' => $closingYear,
+                    'amount' => $closingAmount,
+                    'user_id' => Auth::id(),
+                ]);
 
                 return redirect()
                     ->route('admin-keuangan.equity.index')
