@@ -192,7 +192,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-            <input v-model="adjustmentForm.amount" type="number" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" />
+            <input v-model="adjustmentForm.amount" type="number" min="0" step="0.01" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>

@@ -125,11 +125,12 @@
                                                     <input
                                                         :id="`opening_balance_${bank.id}`"
                                                         v-model="form.balances[index].opening_balance"
-                                                        type="text"
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
                                                         class="mt-1 block w-full pl-12 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sage-500 focus:border-sage-500 sm:text-sm"
                                                         :class="{ 'border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500': errors[`balances.${index}.opening_balance`] }"
                                                         placeholder="0"
-                                                        @input="formatCurrencyInput($event, index)"
                                                     />
                                                 </div>
                                                 <div v-if="errors[`balances.${index}.opening_balance`]" class="mt-2 text-sm text-red-600">
@@ -188,11 +189,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
-    ArrowLeft, Info, AlertTriangle, CreditCard, Save
+    ArrowLeft, Info, AlertTriangle, CreditCard
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -242,24 +243,27 @@ const formatCurrency = (amount) => {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
     }).format(amount || 0)
 }
 
-const formatCurrencyInput = (event, index) => {
-    let value = event.target.value.replace(/[^\d]/g, '')
-    if (value) {
-        // Format with thousand separators
-        value = new Intl.NumberFormat('en-US').format(parseInt(value))
+const normalizeDecimalInput = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return '0'
     }
-    form.balances[index].opening_balance = value
+
+    if (typeof value === 'number') {
+        return value
+    }
+
+    const normalized = value.toString().trim().replace(',', '.')
+    return normalized === '' ? '0' : normalized
 }
 
 const submit = () => {
-    // Convert formatted currency back to numbers
     const processedBalances = form.balances.map(balance => ({
         ...balance,
-        opening_balance: balance.opening_balance.replace(/[^\d]/g, '') || '0'
+        opening_balance: normalizeDecimalInput(balance.opening_balance)
     }))
 
     form.transform(data => ({

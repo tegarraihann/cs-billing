@@ -1,0 +1,13 @@
+BCA JANUARY 2026 - MATCHING SUMMARY
+===================================
+Period: 2026-01
+Bank Account ID: 2
+
+Opening Balance : 6199444.00
+Total Inflow    : 386935928.00
+Total Outflow   : 278330968.00
+Closing (Calc)  : 114804404.00
+
+Generated files:
+- C:\laragon\www\OfficeManagement\dokumen\bca-jan-2026-matching-report.csv
+- C:\laragon\www\OfficeManagement\dokumen\bca-jan-2026-outflow-grouped.csv

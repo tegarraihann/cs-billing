@@ -966,39 +966,71 @@ class AccountReceivableController extends Controller
 
     /**
      * Normalize Indonesian number format to standard format
-     * Examples: 2.500 -> 2500, 2.500,50 -> 2500.50, 2500,50 -> 2500.50
+     * Examples: 2.500 -> 2500, 2.500,50 -> 2500.50, 2500,50 -> 2500.50, 45.67 -> 45.67
      */
     private function normalizeIndonesianNumber($value)
     {
-        if (!$value) {
+        if ($value === null || $value === '') {
             return $value;
         }
 
-        $value = trim($value);
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
 
-        // Handle Indonesian format
-        if (strpos($value, '.') !== false && strpos($value, ',') !== false) {
-            // Format: 2.500,50 (dot = thousand separator, comma = decimal)
-            $value = str_replace('.', '', $value);
-            $value = str_replace(',', '.', $value);
-        } elseif (strpos($value, '.') !== false && strpos($value, ',') === false) {
-            // Could be: 2.500 (thousand) or 2500.50 (decimal)
-            $parts = explode('.', $value);
-            if (count($parts) === 2) {
-                $decimalPart = $parts[1];
-                // If decimal part has 3+ digits or is > 99, treat as thousand separator
-                if (strlen($decimalPart) >= 3 || intval($decimalPart) >= 100 || strlen($parts[0]) >= 2) {
-                    // Likely thousand separator: 2.500 or 12.500
-                    $value = str_replace('.', '', $value);
-                }
-                // Otherwise keep as decimal: 25.50
+        $value = str_replace(' ', '', trim((string) $value));
+        $hasDot = strpos($value, '.') !== false;
+        $hasComma = strpos($value, ',') !== false;
+
+        if ($hasDot && $hasComma) {
+            $lastDot = strrpos($value, '.');
+            $lastComma = strrpos($value, ',');
+
+            // Indonesian style: 1.234,56
+            if ($lastComma > $lastDot) {
+                return str_replace(',', '.', str_replace('.', '', $value));
             } else {
-                // Multiple dots, treat as thousand separators: 1.000.500
-                $value = str_replace('.', '', $value);
+                // International style: 1,234.56
+                return str_replace(',', '', $value);
             }
-        } elseif (strpos($value, ',') !== false) {
-            // Format: 2500,50 (comma as decimal)
-            $value = str_replace(',', '.', $value);
+        }
+
+        if ($hasComma) {
+            $parts = explode(',', $value);
+            if (count($parts) === 2 && strlen($parts[1]) <= 2) {
+                return str_replace(',', '.', $value);
+            }
+
+            return str_replace(',', '', $value);
+        }
+
+        if ($hasDot) {
+            $parts = explode('.', $value);
+
+            if (count($parts) === 2) {
+                $leftPart = $parts[0];
+                $rightPart = $parts[1];
+
+                if (strlen($rightPart) <= 2) {
+                    return $value;
+                }
+
+                if (strlen($rightPart) === 3 && strlen($leftPart) <= 3) {
+                    return str_replace('.', '', $value);
+                }
+
+                return $value;
+            }
+
+            $isThousandGrouping = true;
+            for ($i = 1; $i < count($parts); $i++) {
+                if (strlen($parts[$i]) !== 3) {
+                    $isThousandGrouping = false;
+                    break;
+                }
+            }
+
+            return $isThousandGrouping ? str_replace('.', '', $value) : $value;
         }
 
         return $value;
