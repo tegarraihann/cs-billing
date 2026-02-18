@@ -34,6 +34,20 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 480),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Idle Timeout Security
+    |--------------------------------------------------------------------------
+    |
+    | These values are used by SessionTimeoutMiddleware to enforce idle logout
+    | for authenticated users. Keep this independent from session lifetime.
+    |
+    */
+
+    'idle_timeout' => (int) env('SESSION_IDLE_TIMEOUT', 10),
+
+    'idle_warning_seconds' => (int) env('SESSION_IDLE_WARNING_SECONDS', 30),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*

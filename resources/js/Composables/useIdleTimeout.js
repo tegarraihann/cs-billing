@@ -1,5 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 export function useIdleTimeout({ idleMinutes = 10, warningSeconds = 30 } = {}) {
   const showIdleModal = ref(false)
@@ -13,7 +14,23 @@ export function useIdleTimeout({ idleMinutes = 10, warningSeconds = 30 } = {}) {
   let idleTimer = null
   let countdownTimer = null
 
-  const formatRoute = (name) => (window.route ? window.route(name) : '/')
+  const fallbackRoutes = {
+    login: '/login',
+    logout: '/logout',
+    'extend-session': '/extend-session',
+  }
+
+  const formatRoute = (name) => {
+    if (window.route) {
+      try {
+        return window.route(name)
+      } catch (_) {
+        // fallback to plain URL below
+      }
+    }
+
+    return fallbackRoutes[name] || '/'
+  }
 
   const clearIdleTimers = () => {
     if (idleTimer) clearTimeout(idleTimer)
@@ -42,8 +59,20 @@ export function useIdleTimeout({ idleMinutes = 10, warningSeconds = 30 } = {}) {
     }, 1000)
   }
 
-  const stayLoggedIn = () => {
-    resetIdleTimer()
+  const stayLoggedIn = async () => {
+    if (idleProcessing.value) return
+    idleProcessing.value = true
+
+    try {
+      await axios.post(formatRoute('extend-session'))
+      resetIdleTimer()
+    } catch (_) {
+      idleProcessing.value = false
+      forceLogout()
+      return
+    }
+
+    idleProcessing.value = false
   }
 
   const forceLogout = () => {

@@ -221,18 +221,45 @@ class BankBalanceController extends Controller
     /**
      * Export bank transactions to PDF (simple Courier template).
      */
-    public function exportPdf(BankAccount $bank)
+    public function exportPdf(Request $request, BankAccount $bank)
     {
-        $bank->load(['balances' => function ($query) {
-            $query->orderBy('period_month', 'asc');
-        }]);
+        $request->validate([
+            'period_month' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+        ]);
 
-        $transactions = $bank->transactions()
+        $periodMonth = $request->input('period_month');
+        $periodStart = null;
+        $periodEnd = null;
+        $periodLabel = 'All Periods';
+
+        $transactionsQuery = $bank->transactions()
             ->orderBy('transaction_date', 'asc')
-            ->orderBy('created_at', 'asc')
-            ->get();
+            ->orderBy('created_at', 'asc');
 
-        $openingBalance = (float) ($bank->balances->first()->opening_balance ?? 0);
+        $openingBalance = (float) (
+            $bank->balances()
+                ->orderBy('period_month', 'asc')
+                ->value('opening_balance') ?? 0
+        );
+
+        if ($periodMonth) {
+            $periodStart = Carbon::createFromFormat('Y-m', $periodMonth)->startOfMonth();
+            $periodEnd = Carbon::createFromFormat('Y-m', $periodMonth)->endOfMonth();
+            $transactionsQuery->whereBetween('transaction_date', [
+                $periodStart->toDateString(),
+                $periodEnd->toDateString(),
+            ]);
+
+            $openingBalance = (float) (
+                $bank->balances()
+                    ->where('period_month', $periodMonth)
+                    ->value('opening_balance') ?? 0
+            );
+
+            $periodLabel = $periodStart->format('F Y');
+        }
+
+        $transactions = $transactionsQuery->get();
         $generatedAt = now();
 
         $pdf = Pdf::loadView('admin.admin-keuangan.bank-balance.pdf', [
@@ -240,13 +267,18 @@ class BankBalanceController extends Controller
             'transactions' => $transactions,
             'openingBalance' => $openingBalance,
             'generatedAt' => $generatedAt,
-        ])->setPaper('a4', 'portrait')->setOptions([
+            'periodMonth' => $periodMonth,
+            'periodLabel' => $periodLabel,
+            'periodStart' => $periodStart,
+            'periodEnd' => $periodEnd,
+        ])->setPaper('a4', 'landscape')->setOptions([
             'defaultFont' => 'Courier',
             'isHtml5ParserEnabled' => true,
             'isPhpEnabled' => true,
         ]);
 
-        $filename = 'BankStatement_' . preg_replace('/\s+/', '_', $bank->bank_name) . '_' . $bank->account_number . '.pdf';
+        $filenameSuffix = $periodMonth ? ('_' . str_replace('-', '_', $periodMonth)) : '_all_periods';
+        $filename = 'BankStatement_' . preg_replace('/\s+/', '_', $bank->bank_name) . '_' . $bank->account_number . $filenameSuffix . '.pdf';
 
         return $pdf->download($filename);
     }

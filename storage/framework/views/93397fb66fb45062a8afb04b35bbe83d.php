@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Order - <?php echo e($salesOrder->order_number); ?></title>
+    <style>
+        @page {
+            margin: 1cm 1cm;
+            font-family: 'Times New Roman', serif;
+        }
+
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 9px;
+            line-height: 1.2;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+        }
+
+        .company-info {
+            float: left;
+            width: 60%;
+        }
+
+        .company-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 3px;
+        }
+
+        .company-address {
+            font-size: 8px;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .document-info {
+            float: right;
+            width: 35%;
+            text-align: right;
+        }
+
+        .document-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 3px;
+        }
+
+        .document-number {
+            font-size: 10px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 2px;
+        }
+
+        .document-date {
+            font-size: 8px;
+            color: #333;
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .main-content {
+            margin-top: 15px;
+        }
+
+        .section {
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 9px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+            padding: 2px 5px;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+        }
+
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .info-row {
+            display: table-row;
+        }
+
+        .info-col {
+            display: table-cell;
+            padding: 1px 3px;
+            vertical-align: top;
+            width: 50%;
+        }
+
+        .info-label {
+            font-weight: bold;
+            width: 30%;
+            display: inline-block;
+        }
+
+        .info-value {
+            width: 65%;
+            display: inline-block;
+            white-space: pre-wrap;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 8px;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #ccc;
+            padding: 3px 2px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-align: center;
+            font-size: 8px;
+        }
+
+        .table td.center {
+            text-align: center;
+        }
+
+        .table td.right {
+            text-align: right;
+        }
+
+        .financial-summary {
+            margin-top: 10px;
+            border: 1px solid #000;
+            padding: 5px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            font-size: 8px;
+        }
+
+        .summary-label {
+            font-weight: bold;
+        }
+
+        .summary-value {
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .total-row {
+            border-top: 1px solid #000;
+            margin-top: 3px;
+            padding-top: 3px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 15px;
+            font-size: 7px;
+        }
+
+        .signature-section {
+            margin-top: 20px;
+            display: table;
+            width: 100%;
+        }
+
+        .signature-col {
+            display: table-cell;
+            width: 33.33%;
+            text-align: center;
+            vertical-align: top;
+            padding: 0 10px;
+        }
+
+        .signature-title {
+            font-size: 8px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .signature-name {
+            font-size: 8px;
+            border-top: 1px solid #000;
+            padding-top: 2px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border: 1px solid #000;
+            font-size: 7px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-draft {
+            background-color: #f0f0f0;
+            color: #666;
+            border: 1px solid #ccc;
+        }
+
+        .status-released {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+        }
+
+        .status-confirmed {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+
+        .status-approved {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+            border: 1px solid #7b1fa2;
+        }
+
+        .status-rejected {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header clearfix">
+        <div class="company-info">
+            <div class="company-name">PT. NAMA PERUSAHAAN</div>
+            <div class="company-address">
+                Alamat Perusahaan<br>
+                Kota, Kode Pos<br>
+                Telp: (021) 2309-5467 | Email: info@company.com
+            </div>
+        </div>
+        <div class="document-info">
+            <div class="document-title">SHIPPING ORDER</div>
+            <div class="document-number"><?php echo e($salesOrder->order_number); ?></div>
+            <div class="document-date">
+                Tanggal: <?php echo e($salesOrder->so_date ? \Carbon\Carbon::parse($salesOrder->so_date)->format('d/m/Y') : \Carbon\Carbon::parse($salesOrder->created_at)->format('d/m/Y')); ?>
+
+            </div>
+            <div class="status-badge status-<?php echo e($salesOrder->status ?? 'draft'); ?>">
+                <?php echo e(strtoupper($salesOrder->status ?? 'DRAFT')); ?>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Basic Information -->
+        <div class="section">
+            <div class="section-title">INFORMASI DASAR</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">ORDER NUMB:</span>
+                        <span class="info-value"><?php echo e($salesOrder->order_number); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">REF NO:</span>
+                        <span class="info-value"><?php echo e($salesOrder->ref_no ?: '-'); ?></span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">CUSTOMER:</span>
+                        <span class="info-value"><?php echo e($salesOrder->customer); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">SHIPPER:</span>
+                        <span class="info-value"><?php echo e($salesOrder->shipper ?: '-'); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="section">
+            <div class="section-title">INFORMASI PENGIRIMAN</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">BL/AWB:</span>
+                        <span class="info-value"><?php echo e($salesOrder->bl_awb ?: '-'); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">LINER:</span>
+                        <span class="info-value"><?php echo e($salesOrder->liner ?: '-'); ?></span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">VESSEL:</span>
+                        <span class="info-value"><?php echo e($salesOrder->vessel ?: '-'); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">POL/POD:</span>
+                        <span class="info-value"><?php echo e(collect([$salesOrder->pol, $salesOrder->pod])->filter()->join(' / ') ?: '-'); ?></span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">ETA:</span>
+                        <span class="info-value"><?php echo e($salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->format('d/m/Y') : '-'); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">ETD:</span>
+                        <span class="info-value"><?php echo e($salesOrder->etd ? \Carbon\Carbon::parse($salesOrder->etd)->format('d/m/Y') : '-'); ?></span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">SHIPMENT TYPE:</span>
+                        <span class="info-value"><?php echo e($salesOrder->shipment_type ?: '-'); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">EXCHANGE RATE:</span>
+                        <span class="info-value"><?php echo e($salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 4) : '-'); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Breakdown -->
+        <?php if(!empty($salesOrder->vendor_breakdown) && is_array($salesOrder->vendor_breakdown)): ?>
+        <div class="section">
+            <div class="section-title">RINCIAN KEUANGAN</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">JENIS BIAYA</th>
+                        <th style="width: 20%;">VENDOR</th>
+                        <th style="width: 15%;">BUYING</th>
+                        <th style="width: 15%;">SELLING</th>
+                        <th style="width: 15%;">PROFIT</th>
+                        <th style="width: 15%;">REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $__currentLoopData = $salesOrder->vendor_breakdown; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td><?php echo e($item['description'] ?? 'Service Type'); ?></td>
+                        <td><?php echo e($item['nama_vendor'] ?? '-'); ?></td>
+                        <td class="right"><?php echo e('Rp ' . number_format($item['buying_amount'] ?? 0, 0, ',', '.')); ?></td>
+                        <td class="right"><?php echo e('Rp ' . number_format($item['selling_amount'] ?? 0, 0, ',', '.')); ?></td>
+                        <td class="right" style="<?php echo e((($item['selling_amount'] ?? 0) - ($item['buying_amount'] ?? 0)) >= 0 ? 'color: green;' : 'color: red;'); ?>">
+                            <?php echo e('Rp ' . number_format(($item['selling_amount'] ?? 0) - ($item['buying_amount'] ?? 0), 0, ',', '.')); ?>
+
+                        </td>
+                        <td><?php echo e($item['remarks'] ?? '-'); ?></td>
+                    </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+
+        <!-- Financial Summary -->
+        <div class="financial-summary">
+            <div class="summary-row">
+                <span class="summary-label">Total Buying:</span>
+                <span class="summary-value">Rp <?php echo e(number_format($salesOrder->total_buying ?? 0, 0, ',', '.')); ?></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Total Selling:</span>
+                <span class="summary-value">Rp <?php echo e(number_format($salesOrder->total_selling ?? 0, 0, ',', '.')); ?></span>
+            </div>
+            <div class="summary-row total-row" style="<?php echo e((($salesOrder->total_selling ?? 0) - ($salesOrder->total_buying ?? 0)) >= 0 ? 'color: green;' : 'color: red;'); ?>">
+                <span class="summary-label">Total Profit:</span>
+                <span class="summary-value">Rp <?php echo e(number_format(($salesOrder->total_selling ?? 0) - ($salesOrder->total_buying ?? 0), 0, ',', '.')); ?></span>
+            </div>
+        </div>
+
+        <?php
+            $reimbs = $salesOrder->reimbursementItems ?? collect();
+            if ($reimbs instanceof \Illuminate\Support\Collection) {
+                $reimbs = $reimbs->all();
+            }
+            $hasReimbs = !empty($reimbs);
+            $totalReimb = 0;
+        ?>
+
+        <?php if($hasReimbs): ?>
+        <div class="section">
+            <div class="section-title">ITEMS REIMBURSEMENT (FINANCE)</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">DESCRIPTION</th>
+                        <th style="width: 20%;" class="right">AMOUNT</th>
+                        <th style="width: 35%;">REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $__currentLoopData = $reimbs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
+                            $amount = floatval($item['amount'] ?? 0);
+                            $totalReimb += $amount;
+                        ?>
+                        <tr>
+                            <td><?php echo e($item['description'] ?? '-'); ?></td>
+                            <td class="right"><?php echo e($amount > 0 ? 'Rp ' . number_format($amount, 0, ',', '.') : '-'); ?></td>
+                            <td><?php echo e($item['notes'] ?? $item['remarks'] ?? '-'); ?></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td class="summary-label">TOTAL REIMBURSEMENT</td>
+                        <td class="right summary-label"><?php echo e('Rp ' . number_format($totalReimb, 0, ',', '.')); ?></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+
+        <!-- Commodity Information -->
+        <?php if($salesOrder->commodity || $salesOrder->qty || $salesOrder->net_weight || $salesOrder->measurement): ?>
+        <div class="section">
+            <div class="section-title">INFORMASI BARANG</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">COMMODITY:</span>
+                        <span class="info-value"><?php echo e($salesOrder->commodity ?: '-'); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">QTY:</span>
+                        <span class="info-value"><?php echo e($salesOrder->qty ?: '-'); ?></span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">NET WEIGHT:</span>
+                        <span class="info-value"><?php echo e($salesOrder->net_weight ? $salesOrder->net_weight . ' KG' : '-'); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">MEASUREMENT:</span>
+                        <span class="info-value"><?php echo e($salesOrder->measurement ? $salesOrder->measurement . ' M³' : '-'); ?></span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-col">
+                        <span class="info-label">CONTAINER NO:</span>
+                        <span class="info-value"><?php echo e(is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : ($salesOrder->container_no ?: '-')); ?></span>
+                    </div>
+                    <div class="info-col">
+                        <span class="info-label">GROSS WEIGHT:</span>
+                        <span class="info-value"><?php echo e(isset($salesOrder->gross_weight) ? number_format($salesOrder->gross_weight, 2) . ' KG' : '-'); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Remarks -->
+        <?php if($salesOrder->remarks || $salesOrder->note): ?>
+        <div class="section">
+            <div class="section-title">CATATAN</div>
+            <?php if($salesOrder->remarks): ?>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">REMARKS:</span>
+                <span class="info-value"><?php echo e($salesOrder->remarks); ?></span>
+            </div>
+            <?php endif; ?>
+            <?php if($salesOrder->note): ?>
+            <div>
+                <span class="info-label">NOTE:</span>
+                <span class="info-value"><?php echo e($salesOrder->note); ?></span>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- Signatures -->
+        <div class="signature-section">
+            <div class="signature-col">
+                <div class="signature-title">PREPARED BY</div>
+                <div class="signature-name"><?php echo e($salesOrder->creator->name ?? 'System'); ?></div>
+            </div>
+            <div class="signature-col">
+                <div class="signature-title">CHECKED BY</div>
+                <div class="signature-name">Admin CS</div>
+            </div>
+            <div class="signature-col">
+                <div class="signature-title">APPROVED BY</div>
+                <div class="signature-name">Admin Keuangan</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div>Dicetak pada: <?php echo e($generatedAt->format('d/m/Y H:i:s')); ?></div>
+        <div>Dokumen ini digenerate secara otomatis oleh sistem.</div>
+    </div>
+</body>
+</html>
+<?php /**PATH C:\laragon\www\OfficeManagement\resources\views\admin\admin-keuangan\sales-orders\pdf.blade.php ENDPATH**/ ?>

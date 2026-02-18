@@ -31,18 +31,28 @@
             border-bottom: 1px solid #000;
             text-align: left;
             vertical-align: top;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
         }
         .transactions th { border-top: 1px solid #000; }
-        .col-date { width: 12%; }
-        .col-desc { width: 28%; }
-        .col-type { width: 10%; }
-        .col-debit { width: 12%; }
-        .col-credit { width: 12%; }
+        .col-date { width: 10%; }
+        .col-desc { width: 27%; }
+        .col-type { width: 8%; }
+        .col-ref-type { width: 10%; }
+        .col-ref-id { width: 9%; }
+        .col-debit { width: 11%; }
+        .col-credit { width: 11%; }
         .col-balance { width: 14%; }
-        .col-notes { width: 12%; }
-        .text-right { text-align: right; }
+        .text-right {
+            text-align: right;
+            white-space: nowrap;
+        }
         .text-center { text-align: center; }
         .notes { font-size: 10px; }
+        .ref-type-cell {
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -53,6 +63,7 @@
         <div class="title">BANK STATEMENT</div>
         <div class="subtitle">{{ $bank->bank_name }} - {{ $bank->account_name }} ({{ $bank->account_number }})</div>
         <div class="meta">
+            Period: {{ $periodLabel }}<br>
             Generated: {{ $generatedAt->format('d M Y H:i') }}<br>
             Opening Balance: {{ number_format($openingBalance, 2, '.', ',') }}
         </div>
@@ -84,10 +95,11 @@
                 <th class="col-date">Date</th>
                 <th class="col-desc">Description</th>
                 <th class="col-type text-center">Type</th>
+                <th class="col-ref-type">Ref Type</th>
+                <th class="col-ref-id text-right">Ref ID</th>
                 <th class="col-debit text-right">Debit</th>
                 <th class="col-credit text-right">Credit</th>
                 <th class="col-balance text-right">Balance</th>
-                <th class="col-notes">Notes</th>
             </tr>
         </thead>
         <tbody>
@@ -104,14 +116,15 @@
                     <td>{{ \Carbon\Carbon::parse($txn->transaction_date)->format('d M Y') }}</td>
                     <td>{{ $txn->description ?? '-' }}</td>
                     <td class="text-center">{{ ucfirst($txn->transaction_type) }}</td>
+                    <td class="ref-type-cell">{{ $txn->reference_type ?? '-' }}</td>
+                    <td class="text-right">{{ $txn->reference_id ?? '-' }}</td>
                     <td class="text-right">{{ $txn->transaction_type === 'debit' ? number_format($amount, 2, '.', ',') : '' }}</td>
                     <td class="text-right">{{ $txn->transaction_type === 'credit' ? number_format($amount, 2, '.', ',') : '' }}</td>
                     <td class="text-right">{{ number_format($runningBalance, 2, '.', ',') }}</td>
-                    <td class="notes">{{ $txn->reference_type ?? '' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center" style="padding: 10px;">No transactions.</td>
+                    <td colspan="8" class="text-center" style="padding: 10px;">No transactions.</td>
                 </tr>
             @endforelse
         </tbody>

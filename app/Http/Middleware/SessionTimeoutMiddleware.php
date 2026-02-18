@@ -23,14 +23,17 @@ class SessionTimeoutMiddleware
             return $next($request);
         }
 
-        // Get session lifetime in minutes
-        $sessionLifetime = config('session.lifetime');
+        // Dedicated idle timeout config (separate from generic session lifetime)
+        $idleTimeoutMinutes = (int) config('session.idle_timeout', config('session.lifetime'));
+        $warningSeconds = max(0, (int) config('session.idle_warning_seconds', 0));
 
         // Check if last activity time exists
         if (Session::has('last_activity')) {
             $lastActivity = Session::get('last_activity');
             $now = Carbon::now();
-            $sessionExpiry = Carbon::parse($lastActivity)->addMinutes($sessionLifetime);
+            $sessionExpiry = Carbon::parse($lastActivity)
+                ->addMinutes($idleTimeoutMinutes)
+                ->addSeconds($warningSeconds);
 
             // If session has expired
             if ($now->greaterThan($sessionExpiry)) {
@@ -41,6 +44,8 @@ class SessionTimeoutMiddleware
                     'last_activity' => $lastActivity,
                     'session_expired_at' => $sessionExpiry,
                     'current_time' => $now,
+                    'idle_timeout_minutes' => $idleTimeoutMinutes,
+                    'idle_warning_seconds' => $warningSeconds,
                     'ip' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'url' => $request->fullUrl(),

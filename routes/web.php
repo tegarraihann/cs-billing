@@ -96,7 +96,7 @@ Route::middleware('auth')->get('/dashboard', function () {
 })->name('dashboard');
 
 // MASTER ADMIN ROUTES
-Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('masteradmin.')->group(function () { // Removed session.timeout
+Route::middleware(['auth', 'session.timeout', 'role:masteradmin'])->prefix('master-admin')->name('masteradmin.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -227,7 +227,7 @@ Route::middleware(['auth', 'role:masteradmin'])->prefix('master-admin')->name('m
 });
 
 // ADMIN CS ROUTES
-Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () { // Removed session.timeout
+Route::middleware(['auth', 'session.timeout', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -292,7 +292,7 @@ Route::middleware(['auth', 'role:admin_cs'])->prefix('admin-cs')->name('admin-cs
 });
 
 // ADMIN KEUANGAN ROUTES
-Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () { // Removed session.timeout
+Route::middleware(['auth', 'session.timeout', 'role:admin_keuangan'])->prefix('admin-keuangan')->name('admin-keuangan.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -834,7 +834,7 @@ Route::middleware(['auth', 'role:admin_keuangan'])->prefix('admin-keuangan')->na
 });
 
 // SHARED ROUTES (All authenticated users)
-Route::middleware(['auth'])->group(function () { // Removed session.timeout
+Route::middleware(['auth', 'session.timeout'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
@@ -844,35 +844,22 @@ Route::middleware(['auth'])->group(function () { // Removed session.timeout
     Route::get('/profile/data', [ProfileController::class, 'getProfileData'])->name('profile.data');
     Route::post('/profile/verify-password', [ProfileController::class, 'verifyPassword'])->name('profile.verify-password');
 
-    // Auto logout - extend session endpoint (DISABLED)
-    /*
+    // Secure endpoint to refresh session activity from frontend idle warning
     Route::post('/extend-session', function (Request $request) {
         try {
-            // Validate CSRF token (automatically handled by web middleware)
-
-            // Update last activity time for middleware
-            Session::put('last_activity', Carbon\Carbon::now());
-
-            // Store session info for security tracking
-            $sessionData = [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'extended_at' => now()
-            ];
-
-            // Check for suspicious activity (IP/User Agent change)
+            $currentIp = $request->ip();
+            $currentUserAgent = $request->userAgent();
             $lastIp = Session::get('session_ip');
-            $lastUserAgent = Session::get('session_user_agent');
+            $lastUserAgent = Session::get('session_user_agent', $currentUserAgent);
 
-            if ($lastIp && ($lastIp !== $request->ip())) {
-                // Possible session hijacking - log and force logout
+            if ($lastIp && ($lastIp !== $currentIp)) {
                 \Log::channel('security')->warning('Possible Session Hijacking Detected', [
                     'user_id' => Auth::id(),
                     'user_email' => Auth::user()->email,
                     'original_ip' => $lastIp,
-                    'current_ip' => $request->ip(),
+                    'current_ip' => $currentIp,
                     'original_user_agent' => $lastUserAgent,
-                    'current_user_agent' => $request->userAgent(),
+                    'current_user_agent' => $currentUserAgent,
                     'action' => 'extend_session_blocked'
                 ]);
 
@@ -888,26 +875,27 @@ Route::middleware(['auth'])->group(function () { // Removed session.timeout
                 ], 401);
             }
 
-            // Update session security info
-            Session::put('session_ip', $request->ip());
-            Session::put('session_user_agent', $request->userAgent());
-
-            // Regenerate token for security
+            Session::put('last_activity', now());
+            Session::put('session_ip', $currentIp);
+            Session::put('session_user_agent', $currentUserAgent);
+            Session::put('login_time', Session::get('login_time', now()));
             $request->session()->regenerateToken();
 
-            // Log successful session extension
+            $idleMinutes = (int) config('session.idle_timeout', config('session.lifetime'));
+            $warningSeconds = max(0, (int) config('session.idle_warning_seconds', 0));
+
             \Log::channel('session')->info('Session Extended Successfully', [
                 'user_id' => Auth::id(),
                 'user_email' => Auth::user()->email,
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
+                'ip' => $currentIp,
+                'user_agent' => $currentUserAgent,
                 'extended_at' => now()
             ]);
 
             return response()->json([
                 'success' => true,
                 'extended_at' => now(),
-                'expires_at' => now()->addMinutes(config('session.lifetime')),
+                'expires_at' => now()->addMinutes($idleMinutes)->addSeconds($warningSeconds),
                 'message' => 'Session berhasil diperpanjang'
             ]);
 
@@ -924,13 +912,14 @@ Route::middleware(['auth'])->group(function () { // Removed session.timeout
             ], 500);
         }
     })->middleware(['throttle:30,1'])->name('extend-session');
-    */
 });
 
 // Test session timeout
 Route::get('/test-session-timeout', function () {
     return response()->json([
         'session_lifetime' => config('session.lifetime'),
+        'idle_timeout' => config('session.idle_timeout'),
+        'idle_warning_seconds' => config('session.idle_warning_seconds'),
         'last_activity' => Session::get('last_activity'),
         'session_ip' => Session::get('session_ip'),
         'current_ip' => request()->ip(),
@@ -939,7 +928,7 @@ Route::get('/test-session-timeout', function () {
         'current_time' => now(),
         'middleware_active' => true
     ]);
-})->middleware(['auth'])->name('test-session-timeout'); // Removed session.timeout
+})->middleware(['auth', 'session.timeout'])->name('test-session-timeout');
 
 // Test PDF route - test new profit-loss template
 Route::get('/test-pdf', function () {
