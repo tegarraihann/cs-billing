@@ -640,7 +640,13 @@ class SalesOrderController extends Controller
         $totalSelling = 0;
         $totalBuying = 0;
 
-        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+        $pricingLocked = $salesOrder->is_pricing_locked ?? false;
+        if ($pricingLocked) {
+            $validated['vendor_breakdown'] = $salesOrder->vendor_breakdown;
+            $validated['other_costs'] = $salesOrder->other_costs;
+            $totalSelling = (float) ($salesOrder->total_selling ?? 0);
+            $totalBuying = (float) ($salesOrder->total_buying ?? 0);
+        } elseif (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $qty = 1;
                 if (array_key_exists('quantity', $item) && $item['quantity'] !== '' && $item['quantity'] !== null && is_numeric($item['quantity'])) {
