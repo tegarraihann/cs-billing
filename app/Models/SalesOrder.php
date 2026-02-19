@@ -175,6 +175,10 @@ class SalesOrder extends Model
 
     public function getIsPricingLockedAttribute(): bool
     {
+        if (!self::isPricingLockEnabled()) {
+            return false;
+        }
+
         $invoices = $this->relationLoaded('invoices')
             ? $this->invoices
             : $this->invoices()->get(['id', 'status']);
@@ -184,6 +188,11 @@ class SalesOrder extends Model
         }
 
         return $invoices->every(fn ($invoice) => $invoice->status === 'paid');
+    }
+
+    public static function isPricingLockEnabled(): bool
+    {
+        return (bool) config('app.so_pricing_lock_enabled', true);
     }
 
     public function accountReceivables(): HasMany

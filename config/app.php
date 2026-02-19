@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Sales Order Pricing Lock
+    |--------------------------------------------------------------------------
+    |
+    | Toggle this flag to temporarily disable pricing lock behavior on
+    | Sales Order edit flows (frontend + backend).
+    |
+    */
+    'so_pricing_lock_enabled' => (bool) env('SO_PRICING_LOCK_ENABLED', true),
+
 ];
