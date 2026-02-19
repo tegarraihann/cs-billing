@@ -50,7 +50,8 @@ class VendorController extends Controller
                 ) asc
             ")
             ->orderBy('nama_vendor', 'asc')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/Vendors/Index', [
             'vendors' => $vendors,
@@ -204,14 +205,14 @@ class VendorController extends Controller
         $vendor->update($validated);
 
         return redirect()
-            ->route('admin-keuangan.vendors.index')
+            ->route('admin-keuangan.vendors.index', $request->only(['search', 'page']))
             ->with('success', 'Vendor berhasil diperbarui.');
     }
 
     /**
      * Remove the specified vendor from storage.
      */
-    public function destroy(Vendor $vendor)
+    public function destroy(Request $request, Vendor $vendor)
     {
         // Delete associated files
         if ($vendor->photo_path) {
@@ -225,7 +226,7 @@ class VendorController extends Controller
         $vendor->delete();
 
         return redirect()
-            ->route('admin-keuangan.vendors.index')
+            ->route('admin-keuangan.vendors.index', $request->only(['search', 'page']))
             ->with('success', 'Vendor berhasil dihapus.');
     }
 

@@ -27,7 +27,7 @@
                                     <X class="mr-2 h-4 w-4" />
                                     Tolak
                                 </button>
-                                <Link :href="route('admin-keuangan.sales-orders.index')"
+                                <Link :href="backToIndexUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 <ArrowLeft class="mr-2 h-4 w-4" />
                                 Kembali
@@ -801,13 +801,32 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { router, Link } from '@inertiajs/vue3';
+import { router, Link, usePage } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import { FileText, Check, X, ArrowLeft } from 'lucide-vue-next';
 
 const props = defineProps({
     salesOrder: Object,
 });
+
+const page = usePage();
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'start_date', 'end_date', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.sales-orders.index', backQuery.value));
 
 const showRejectModal = ref(false);
 const rejectionReason = ref('');

@@ -234,7 +234,7 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm font-medium">
-                                        <Link :href="route('admin-keuangan.equity.show', { equityEntry: entry.id, ...filterForm })" class="text-sage-600 hover:text-sage-900">
+                                        <Link :href="route('admin-keuangan.equity.show', { equityEntry: entry.id, ...currentIndexQuery })" class="text-sage-600 hover:text-sage-900">
                                             View
                                         </Link>
                                     </td>
@@ -247,8 +247,32 @@
                     </div>
                 </div>
 
-                <div v-if="entries" class="mt-6">
-                    <Pagination :data="entries" />
+                <div v-if="entries" class="mt-6 bg-white px-4 py-3 border border-gray-200 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Showing {{ entries.from || 0 }} to {{ entries.to || 0 }} of {{ entries.total || 0 }} results
+                        </div>
+                        <div class="flex space-x-1">
+                            <template v-for="link in entries.links" :key="link.label">
+                                <button
+                                    v-if="link.url"
+                                    @click="visitPage(link.url)"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-md',
+                                        link.active
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                    ]"
+                                    v-html="link.label"
+                                ></button>
+                                <span
+                                    v-else
+                                    class="px-3 py-2 text-sm text-gray-400"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -260,7 +284,6 @@ import { computed } from 'vue'
 import { Head, Link, router, useRemember } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import Pagination from '@/Components/Pagination.vue'
 
 const props = defineProps({
     entries: Object,
@@ -299,8 +322,25 @@ const filterForm = useRemember({
     opening: props.filters?.opening ?? '',
 }, 'equity-filters')
 
+const currentIndexQuery = computed(() => {
+    const query = {
+        start_date: filterForm.start_date || undefined,
+        end_date: filterForm.end_date || undefined,
+        type: filterForm.type || undefined,
+        status: filterForm.status || undefined,
+        opening: filterForm.opening !== '' ? filterForm.opening : undefined,
+    }
+
+    const currentPage = props.entries?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
+})
+
 const applyFilters = () => {
-    router.get(route('admin-keuangan.equity.index'), { ...filterForm }, { preserveState: true, preserveScroll: true })
+    router.get(route('admin-keuangan.equity.index'), { ...filterForm }, { preserveState: true, preserveScroll: true, replace: true })
 }
 
 const resetFilters = () => {
@@ -310,6 +350,21 @@ const resetFilters = () => {
     filterForm.status = ''
     filterForm.opening = ''
     applyFilters()
+}
+
+const visitPage = (url) => {
+    router.visit(url, {
+        data: {
+            start_date: filterForm.start_date || '',
+            end_date: filterForm.end_date || '',
+            type: filterForm.type || '',
+            status: filterForm.status || '',
+            opening: filterForm.opening ?? '',
+        },
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
 }
 
 const formatDate = (value) => {

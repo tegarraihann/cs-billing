@@ -248,6 +248,18 @@ const form = reactive({
     search: props.filters?.search || "",
 });
 
+const currentIndexQuery = computed(() => {
+    const query = {};
+    if (form.search) query.search = form.search;
+
+    const currentPage = props.vendors?.current_page;
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage;
+    }
+
+    return query;
+});
+
 // Computed property for export PDF URL
 const exportPdfUrl = computed(() => {
     const baseUrl = route('admin-keuangan.vendors.export.pdf');
@@ -271,7 +283,10 @@ const search = () => {
 };
 
 const goToDetail = (vendor) => {
-    router.get(route("admin-keuangan.vendors.show", vendor.id));
+    router.get(route("admin-keuangan.vendors.show", {
+        vendor: vendor.id,
+        ...currentIndexQuery.value,
+    }));
 };
 
 const formatDate = (dateString) => {
@@ -280,7 +295,10 @@ const formatDate = (dateString) => {
 
 const deleteVendor = (vendorId) => {
     if (confirm("Are you sure you want to delete this vendor?")) {
-        router.delete(route("admin-keuangan.vendors.destroy", vendorId), {
+        router.delete(route("admin-keuangan.vendors.destroy", {
+            vendor: vendorId,
+            ...currentIndexQuery.value,
+        }), {
             onSuccess: () => {
                 alert("Vendor deleted successfully!");
             },

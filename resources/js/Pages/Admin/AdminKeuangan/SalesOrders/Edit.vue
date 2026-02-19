@@ -18,12 +18,12 @@
                                 </div>
                             </div>
                             <div class="mt-4 sm:mt-0 flex space-x-3">
-                                <Link :href="route('admin-keuangan.sales-orders.show', salesOrder.id)"
+                                <Link :href="showDetailUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 <Eye class="mr-2 h-4 w-4" />
                                 View Details
                                 </Link>
-                                <Link :href="route('admin-keuangan.sales-orders.index')"
+                                <Link :href="backToIndexUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 <ArrowLeft class="mr-2 h-4 w-4" />
                                 Back
@@ -860,7 +860,7 @@
                             <!-- Submit Buttons -->
                             <div
                                 class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6">
-                                <Link :href="route('admin-keuangan.sales-orders.index')"
+                                <Link :href="backToIndexUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 Batal
                                 </Link>
@@ -893,7 +893,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { useForm, Link } from "@inertiajs/vue3";
+import { useForm, Link, usePage } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
 import SearchableSelect from "@/Components/SearchableSelect.vue";
@@ -973,6 +973,29 @@ const vendorSelectOptions = computed(() => {
 
     return [...baseOptions, ...vendorOptions];
 });
+
+const page = usePage();
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'start_date', 'end_date', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.sales-orders.index', backQuery.value));
+const showDetailUrl = computed(() => route('admin-keuangan.sales-orders.show', {
+    salesOrder: props.salesOrder.id,
+    ...backQuery.value,
+}));
 
 const isPricingLocked = computed(() => props.salesOrder?.is_pricing_locked ?? false);
 
@@ -1507,7 +1530,7 @@ const submit = () => {
             } else {
                 console.log('Not redirected to index, component:', page.component);
                 showAlert("success", "Success", "Sales order updated successfully.", "OK", "", () => {
-                    window.location.href = route('admin-keuangan.sales-orders.index');
+                    window.location.href = backToIndexUrl.value;
                 });
             }
         },

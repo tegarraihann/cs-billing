@@ -32,7 +32,8 @@ class InvoiceController extends Controller
             // Basic query first - include items for profit margin calculations
             $invoices = Invoice::with(['salesOrder', 'customer', 'confirmedBy', 'items'])
                               ->orderBy('created_at', 'desc')
-                              ->paginate(10);
+                              ->paginate(10)
+                              ->withQueryString();
 
             // Processing for each invoice to determine available types
             foreach ($invoices as $invoice) {
@@ -860,18 +861,35 @@ class InvoiceController extends Controller
 
         $this->autoPostInvoice($invoice);
 
-        return redirect()->route('admin-keuangan.invoices.show', $invoice)
+        return redirect()->route('admin-keuangan.invoices.show', array_merge(
+            ['invoice' => $invoice->id],
+            $request->only([
+                'search',
+                'status',
+                'invoice_type',
+                'date_from',
+                'date_to',
+                'page',
+            ])
+        ))
             ->with('success', 'Invoice berhasil diperbarui.');
     }
 
-    public function destroy(Invoice $invoice)
+    public function destroy(Request $request, Invoice $invoice)
     {
         try {
             \DB::transaction(function () use ($invoice) {
                 $invoice->delete();
             });
 
-            return redirect()->route('admin-keuangan.invoices.index')
+            return redirect()->route('admin-keuangan.invoices.index', $request->only([
+                'search',
+                'status',
+                'invoice_type',
+                'date_from',
+                'date_to',
+                'page',
+            ]))
                 ->with('success', 'Invoice berhasil dihapus.');
         } catch (\Throwable $e) {
             \Log::error('Gagal menghapus invoice', [

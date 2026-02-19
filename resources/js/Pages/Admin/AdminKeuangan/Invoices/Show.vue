@@ -9,7 +9,7 @@
                         <p class="text-sage-600">{{ invoice.invoice_number }}</p>
                     </div>
                     <div class="flex space-x-3">
-                        <Link :href="route('admin-keuangan.invoices.index')"
+                        <Link :href="backToIndexUrl"
                             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-600 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1101,7 +1101,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue';
-import { useForm, Link, router } from '@inertiajs/vue3';
+import { useForm, Link, router, usePage } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 
 const props = defineProps({
@@ -1136,6 +1136,7 @@ const profitLossForm = reactive({
 const profitLossPeriods = ref([]);
 const profitLossAccounts = ref([]);
 const selectedReimbursementEntry = ref(null);
+const page = usePage();
 
 const reimbursementPaymentForm = useForm({
     status: 'paid',
@@ -1144,7 +1145,24 @@ const reimbursementPaymentForm = useForm({
     notes: ''
 });
 
-const route = window.route || function (name, params) {
+const appendQuery = (path, query = {}) => {
+    const params = new URLSearchParams();
+
+    Object.entries(query || {}).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            params.append(key, value);
+        }
+    });
+
+    const queryString = params.toString();
+    return queryString ? `${path}?${queryString}` : path;
+};
+
+const route = function (name, params = {}) {
+    if (window.route) {
+        return window.route(name, params);
+    }
+
     const routes = {
         'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
         'admin-keuangan.invoices.pdf': (id) => `/admin-keuangan/invoices/${id}/pdf`,
@@ -1166,8 +1184,35 @@ const route = window.route || function (name, params) {
             return '#';
         },
     };
-    return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#';
+
+    const resolver = routes[name];
+    if (!resolver) {
+        return '#';
+    }
+
+    if (typeof resolver === 'function') {
+        return resolver(params);
+    }
+
+    return appendQuery(resolver, params);
 };
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'status', 'invoice_type', 'date_from', 'date_to', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.invoices.index', backQuery.value));
 
 const formatDate = (dateString) => {
     if (!dateString) return '-';

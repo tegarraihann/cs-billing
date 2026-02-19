@@ -38,7 +38,7 @@ class PrepaidRentController extends Controller
             $query->whereDate('transaction_date', '<=', $request->date_to);
         }
 
-        $transactions = $query->paginate(15)->withQueryString();
+        $transactions = $query->paginate(5)->withQueryString();
 
         $totalTopup = PrepaidRentTransaction::topups()->sum('amount');
         $totalAmortization = PrepaidRentTransaction::amortizations()->sum('amount');
@@ -52,7 +52,7 @@ class PrepaidRentController extends Controller
             ],
             'bankAccounts' => BankAccount::all(['id', 'bank_name', 'account_number', 'account_name']),
             'pettyCashCategories' => PettyCashCategory::active()->ordered()->get(['id', 'name']),
-            'filters' => $request->only(['transaction_type', 'date_from', 'date_to']),
+            'filters' => $request->only(['transaction_type', 'date_from', 'date_to', 'page']),
             'expenseAccounts' => ChartOfAccount::where('account_type', 'expense')
                 ->orderBy('account_code')
                 ->get(['id', 'account_code', 'account_name']),

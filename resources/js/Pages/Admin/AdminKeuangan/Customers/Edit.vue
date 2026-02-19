@@ -16,12 +16,12 @@
                             </div>
                         </div>
                         <div class="mt-4 sm:mt-0 flex space-x-3">
-                            <Link :href="route('admin-keuangan.customers.show', customer.id)"
+                            <Link :href="showCustomerUrl"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                                 <Eye class="mr-2 h-4 w-4" />
                                 View Details
                             </Link>
-                            <Link :href="route('admin-keuangan.customers.index')"
+                            <Link :href="backToIndexUrl"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                                 <ArrowLeft class="mr-2 h-4 w-4" />
                                 Back
@@ -316,7 +316,7 @@
                         <!-- Submit Buttons -->
                         <div
                             class="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t border-sage-200">
-                            <Link :href="route('admin-keuangan.customers.index')"
+                            <Link :href="backToIndexUrl"
                                 class="inline-flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
                                 Cancel
                             </Link>
@@ -342,14 +342,37 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useForm, Link } from "@inertiajs/vue3";
+import { ref, computed } from "vue";
+import { useForm, Link, usePage } from "@inertiajs/vue3";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import { Edit, Eye, ArrowLeft, Building, ChevronDown } from "lucide-vue-next";
 
 const props = defineProps({
     customer: Object,
 });
+
+const page = usePage();
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.customers.index', backQuery.value));
+const showCustomerUrl = computed(() => route('admin-keuangan.customers.show', {
+    customer: props.customer.id,
+    ...backQuery.value,
+}));
 
 // Collapsible states
 const isCompanyInfoOpen = ref(true);
@@ -408,7 +431,10 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(route("admin-keuangan.customers.update", props.customer.id), {
+    form.put(route("admin-keuangan.customers.update", {
+        customer: props.customer.id,
+        ...backQuery.value,
+    }), {
         onSuccess: () => {
             // Handle success
         },

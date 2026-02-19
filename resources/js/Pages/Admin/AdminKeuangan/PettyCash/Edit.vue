@@ -5,7 +5,10 @@
       <div class="mb-6">
         <div class="flex items-center space-x-4 mb-2">
           <Link
-            :href="route('admin-keuangan.petty-cash.show', transaction.id)"
+            :href="route('admin-keuangan.petty-cash.show', {
+              pettyCash: transaction.id,
+              ...returnQuery
+            })"
             class="text-sage-600 hover:text-sage-800 transition-colors"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +268,10 @@
           <!-- Actions -->
           <div class="flex justify-end space-x-3 pt-4 border-t border-sage-200">
             <Link
-              :href="route('admin-keuangan.petty-cash.show', transaction.id)"
+              :href="route('admin-keuangan.petty-cash.show', {
+                pettyCash: transaction.id,
+                ...returnQuery
+              })"
               class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
             >
               Cancel
@@ -320,6 +326,10 @@ const props = defineProps({
   linkedBankAccountId: {
     type: [Number, String, null],
     default: null
+  },
+  returnQuery: {
+    type: Object,
+    default: () => ({})
   },
   currentBalance: {
     type: [Number, String],
@@ -440,7 +450,10 @@ const submitForm = () => {
     }
   }
 
-  form.put(route('admin-keuangan.petty-cash.update', props.transaction.id), {
+  form.put(route('admin-keuangan.petty-cash.update', {
+    pettyCash: props.transaction.id,
+    ...props.returnQuery
+  }), {
     onStart: () => processing.value = true,
     onFinish: () => processing.value = false
   })
@@ -452,11 +465,35 @@ const route = window.route || function(name, params) {
     'admin-keuangan.petty-cash.show': '/admin-keuangan/petty-cash',
     'admin-keuangan.petty-cash.update': '/admin-keuangan/petty-cash'
   }
-  let url = routes[name] || '#'
-  if (params) {
-    url += `/${params}`
+  const fallbackBase = routes[name] || '#'
+
+  if (!params) {
+    return fallbackBase
   }
-  return url
+
+  if (typeof params === 'object') {
+    const resourceId = params.pettyCash ?? params.id
+    const query = { ...params }
+    delete query.pettyCash
+    delete query.id
+
+    let url = fallbackBase
+    if (resourceId !== undefined && resourceId !== null) {
+      url += `/${resourceId}`
+    }
+
+    const queryString = new URLSearchParams(
+      Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+
+    if (queryString) {
+      url += `?${queryString}`
+    }
+
+    return url
+  }
+
+  return `${fallbackBase}/${params}`
 }
 </script>
 

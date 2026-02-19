@@ -8,7 +8,7 @@
                         <h2 class="text-2xl font-bold text-sage-800">Edit Invoice</h2>
                         <p class="text-sage-600">{{ invoice.invoice_number }}</p>
                     </div>
-                    <Link :href="route('admin-keuangan.invoices.index')"
+                    <Link :href="backToIndexUrl"
                         class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -594,7 +594,7 @@
                             Total: {{ formatCurrency(calculateTotal()) }}
                         </div>
                         <div class="flex space-x-4">
-                            <Link :href="route('admin-keuangan.invoices.index')"
+                            <Link :href="backToIndexUrl"
                                 class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                             Batal
                             </Link>
@@ -612,7 +612,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useForm, Link } from '@inertiajs/vue3'
+import { useForm, Link, usePage } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 const props = defineProps({
@@ -629,13 +629,72 @@ const props = defineProps({
     }
 })
 
-const route = window.route || function (name, params) {
+const page = usePage()
+
+const appendQuery = (path, query = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(query || {}).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            params.append(key, value)
+        }
+    })
+
+    const queryString = params.toString()
+    return queryString ? `${path}?${queryString}` : path
+}
+
+const route = function (name, params = {}) {
+    if (window.route) {
+        return window.route(name, params)
+    }
+
     const routes = {
         'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
-        'admin-keuangan.invoices.update': '/admin-keuangan/invoices/' + (params || ''),
+        'admin-keuangan.invoices.update': '/admin-keuangan/invoices',
     };
-    return routes[name] || '#';
-};
+
+    if (name === 'admin-keuangan.invoices.update') {
+        if (typeof params === 'number' || typeof params === 'string') {
+            return `/admin-keuangan/invoices/${params}`
+        }
+
+        const invoiceId = params.invoice ?? params.id
+        const query = { ...params }
+        delete query.invoice
+        delete query.id
+
+        if (!invoiceId) {
+            return '#'
+        }
+
+        return appendQuery(`/admin-keuangan/invoices/${invoiceId}`, query)
+    }
+
+    const basePath = routes[name]
+    if (!basePath) {
+        return '#'
+    }
+
+    return appendQuery(basePath, params)
+}
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : ''
+    const params = new URLSearchParams(queryString)
+    const query = {}
+    const preservedQueryKeys = ['search', 'status', 'invoice_type', 'date_from', 'date_to', 'page']
+
+    preservedQueryKeys.forEach((key) => {
+        const value = params.get(key)
+        if (value) {
+            query[key] = value
+        }
+    })
+
+    return query
+})
+
+const backToIndexUrl = computed(() => route('admin-keuangan.invoices.index', backQuery.value))
 
 // Separate reactive arrays for main, reimbursement items, and operational costs
 const mainItems = ref([])
@@ -933,7 +992,10 @@ const submit = () => {
         form.invoice_type = 'main'
     }
 
-    form.put(route('admin-keuangan.invoices.update', props.invoice.id))
+    form.put(route('admin-keuangan.invoices.update', {
+        invoice: props.invoice.id,
+        ...backQuery.value
+    }))
 }
 
 // Initialize items separation and amounts

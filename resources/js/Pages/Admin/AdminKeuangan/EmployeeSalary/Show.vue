@@ -6,7 +6,7 @@
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="mb-6">
                     <Link 
-                        :href="route('admin-keuangan.employee-salary.index')" 
+                        :href="route('admin-keuangan.employee-salary.index', filters || {})" 
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
@@ -229,6 +229,10 @@ const props = defineProps({
     salary: Object,
     bankAccounts: Array,
     salaryAccounts: Array,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const loading = ref(false)

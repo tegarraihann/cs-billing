@@ -187,6 +187,18 @@ const form = reactive({
     search: props.filters?.search || "",
 });
 
+const currentIndexQuery = computed(() => {
+    const query = {};
+    if (form.search) query.search = form.search;
+
+    const currentPage = props.customers?.current_page;
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage;
+    }
+
+    return query;
+});
+
 // Computed property for export PDF URL
 const exportPdfUrl = computed(() => {
     const baseUrl = route('admin-keuangan.customers.export.pdf');
@@ -210,7 +222,10 @@ const search = () => {
 };
 
 const goToDetail = (customer) => {
-    router.get(route('admin-keuangan.customers.show', customer.id));
+    router.get(route('admin-keuangan.customers.show', {
+        customer: customer.id,
+        ...currentIndexQuery.value,
+    }));
 };
 
 // Delete dialog state
@@ -224,16 +239,10 @@ const deleteCustomer = (customer) => {
 
 const confirmDelete = () => {
     if (customerToDelete.value) {
-        router.delete(route("admin-keuangan.customers.destroy", customerToDelete.value.id), {
-            onSuccess: () => {
-                // Refresh the page
-                router.get(route("admin-keuangan.customers.index"), {
-                    search: form.search,
-                }, {
-                    preserveState: true,
-                    replace: true,
-                });
-            },
+        router.delete(route("admin-keuangan.customers.destroy", {
+            customer: customerToDelete.value.id,
+            ...currentIndexQuery.value,
+        }), {
             onError: (errors) => {
                 alert('Failed to delete customer: ' + Object.values(errors).join(', '));
             }

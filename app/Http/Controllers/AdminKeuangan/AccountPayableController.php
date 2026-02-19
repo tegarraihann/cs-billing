@@ -1120,7 +1120,8 @@ class AccountPayableController extends Controller
             ->selectRaw('MAX(account_payables.id) as representative_payable_id')
             ->groupBy($groupingExpression)
             ->orderByDesc('latest_created_at')
-            ->paginate(5);
+            ->paginate(5)
+            ->withQueryString();
 
         $groupItems = collect($paginator->items());
 

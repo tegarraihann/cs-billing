@@ -79,7 +79,7 @@ class PettyCashController extends Controller
             $query->where('status', $request->status);
         }
 
-        $transactions = $query->paginate(15)->withQueryString();
+        $transactions = $query->paginate(5)->withQueryString();
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
 
@@ -213,19 +213,20 @@ class PettyCashController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PettyCashTransaction $pettyCash)
+    public function show(Request $request, PettyCashTransaction $pettyCash)
     {
         $pettyCash->load(['category', 'user', 'approver']);
 
         return Inertia::render('Admin/AdminKeuangan/PettyCash/Show', [
             'transaction' => $pettyCash,
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PettyCashTransaction $pettyCash)
+    public function edit(Request $request, PettyCashTransaction $pettyCash)
     {
         $categories = PettyCashCategory::active()->ordered()->get();
         $currentBalance = PettyCashBalance::getCurrentBalance();
@@ -244,6 +245,7 @@ class PettyCashController extends Controller
             'bankAccounts' => $bankAccounts,
             'expenseAccounts' => $expenseAccounts,
             'linkedBankAccountId' => $linkedBankAccountId,
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
@@ -367,14 +369,14 @@ class PettyCashController extends Controller
         $pettyCash->loadMissing('category');
         $this->syncProfitLossEntry($pettyCash);
 
-        return redirect()->route('admin-keuangan.petty-cash.index')
+        return redirect()->route('admin-keuangan.petty-cash.index', $this->resolveIndexQuery($request))
             ->with('success', 'Transaksi petty cash berhasil diperbarui.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PettyCashTransaction $pettyCash)
+    public function destroy(Request $request, PettyCashTransaction $pettyCash)
     {
         DB::transaction(function () use ($pettyCash) {
             $transactionDate = $pettyCash->transaction_date;
@@ -399,8 +401,18 @@ class PettyCashController extends Controller
                 ->delete();
         });
 
-        return redirect()->route('admin-keuangan.petty-cash.index')
+        return redirect()->route('admin-keuangan.petty-cash.index', $this->resolveIndexQuery($request))
             ->with('success', 'Transaksi petty cash berhasil dihapus.');
+    }
+
+    private function resolveIndexQuery(Request $request): array
+    {
+        return array_filter(
+            $request->only(['start_date', 'end_date', 'category_id', 'type', 'status', 'page']),
+            function ($value) {
+                return $value !== null && $value !== '';
+            }
+        );
     }
 
     /**

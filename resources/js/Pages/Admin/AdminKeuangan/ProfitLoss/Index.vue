@@ -183,7 +183,10 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex space-x-2">
                                                 <Link 
-                                                    :href="route('admin-keuangan.profit-loss.show', period.id)"
+                                                    :href="route('admin-keuangan.profit-loss.show', {
+                                                        profitLoss: period.id,
+                                                        ...currentIndexQuery
+                                                    })"
                                                     class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
                                                 title="View Details"
                                                 >
@@ -191,7 +194,10 @@
                                                 </Link>
                                                 <Link 
                                                     v-if="period.status !== 'closed'"
-                                                    :href="route('admin-keuangan.profit-loss.edit', period.id)"
+                                                    :href="route('admin-keuangan.profit-loss.edit', {
+                                                        profitLoss: period.id,
+                                                        ...currentIndexQuery
+                                                    })"
                                                     class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
                                                     title="Edit"
                                                 >
@@ -230,6 +236,7 @@
 
 <script setup>
 import { reactive, onMounted } from 'vue'
+import { computed } from 'vue'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
@@ -249,10 +256,28 @@ const formFilters = reactive({
     end_date: props.filters.end_date || ''
 })
 
+const currentIndexQuery = computed(() => {
+    const query = {
+        start_date: formFilters.start_date || '',
+        end_date: formFilters.end_date || '',
+    }
+
+    const currentPage = props.periods?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
+})
+
 const applyFilters = () => {
-    router.get(route('admin-keuangan.profit-loss.index'), formFilters, {
+    router.get(route('admin-keuangan.profit-loss.index'), {
+        ...formFilters,
+        page: 1,
+    }, {
         preserveState: true,
-        preserveScroll: true
+        preserveScroll: true,
+        replace: true,
     })
 }
 
@@ -317,7 +342,10 @@ const getStatusText = (status) => {
 
 const deletePeriod = (period) => {
     if (confirm('Are you sure you want to delete this period? All related data will also be removed.')) {
-        router.delete(route('admin-keuangan.profit-loss.destroy', period.id))
+        router.delete(route('admin-keuangan.profit-loss.destroy', {
+            profitLoss: period.id,
+            ...currentIndexQuery.value
+        }))
     }
 }
 </script>

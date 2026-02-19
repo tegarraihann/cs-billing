@@ -42,7 +42,7 @@ class SupplyTransactionController extends Controller
             $query->whereDate('transaction_date', '<=', $request->date_to);
         }
 
-        $transactions = $query->paginate(15)->withQueryString();
+        $transactions = $query->paginate(5)->withQueryString();
 
         $topupTotal = SupplyTransaction::topups()->sum('amount');
         $usageTotal = SupplyTransaction::consumptions()->sum('amount');
@@ -66,7 +66,7 @@ class SupplyTransactionController extends Controller
             'expenseAccounts' => ChartOfAccount::where('account_type', 'expense')
                 ->orderBy('account_code')
                 ->get(['id', 'account_code', 'account_name']),
-            'filters' => $request->only(['category', 'transaction_type', 'date_from', 'date_to']),
+            'filters' => $request->only(['category', 'transaction_type', 'date_from', 'date_to', 'page']),
         ]);
     }
 

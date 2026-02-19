@@ -66,7 +66,7 @@ class GeneralExpenseController extends Controller
             $query->where('status', $request->status);
         }
 
-        $expenses = $query->paginate(15)->withQueryString();
+        $expenses = $query->paginate(5)->withQueryString();
 
         // Get summary data
         $currentMonth = now()->month;
@@ -205,19 +205,20 @@ class GeneralExpenseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(GeneralExpense $generalExpense)
+    public function show(Request $request, GeneralExpense $generalExpense)
     {
         $generalExpense->load(['items', 'creator', 'approver']);
 
         return Inertia::render('Admin/AdminKeuangan/GeneralExpenses/Show', [
             'generalExpense' => $generalExpense,
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(GeneralExpense $generalExpense)
+    public function edit(Request $request, GeneralExpense $generalExpense)
     {
         $generalExpense->load('items');
 
@@ -238,6 +239,7 @@ class GeneralExpenseController extends Controller
             'expenseAccounts' => ChartOfAccount::where('account_type', 'expense')
                 ->orderBy('account_code')
                 ->get(['id', 'account_code', 'account_name']),
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
@@ -339,7 +341,7 @@ class GeneralExpenseController extends Controller
                 }
             });
 
-            return redirect()->route('admin-keuangan.general-expenses.index')
+            return redirect()->route('admin-keuangan.general-expenses.index', $this->resolveIndexQuery($request))
                 ->with('success', 'General expense berhasil diupdate.');
 
         } catch (\Exception $e) {
@@ -350,7 +352,7 @@ class GeneralExpenseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(GeneralExpense $generalExpense)
+    public function destroy(Request $request, GeneralExpense $generalExpense)
     {
         // Only allow deleting if still draft
         if ($generalExpense->isApproved()) {
@@ -365,7 +367,7 @@ class GeneralExpenseController extends Controller
 
             $generalExpense->delete();
 
-            return redirect()->route('admin-keuangan.general-expenses.index')
+            return redirect()->route('admin-keuangan.general-expenses.index', $this->resolveIndexQuery($request))
                 ->with('success', 'General expense berhasil dihapus.');
 
         } catch (\Exception $e) {
@@ -473,6 +475,16 @@ class GeneralExpenseController extends Controller
         $filename = 'general_expenses_' . now()->format('Ymd_His') . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    private function resolveIndexQuery(Request $request): array
+    {
+        return array_filter(
+            $request->only(['month', 'year', 'category', 'status', 'period', 'expense_date', 'page']),
+            function ($value) {
+                return $value !== null && $value !== '';
+            }
+        );
     }
 
     /**

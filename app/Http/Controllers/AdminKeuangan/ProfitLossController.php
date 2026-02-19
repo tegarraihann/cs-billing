@@ -51,6 +51,7 @@ class ProfitLossController extends Controller
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
+                'page' => $request->query('page'),
             ],
         ]);
     }
@@ -130,7 +131,7 @@ class ProfitLossController extends Controller
         }
     }
 
-    public function show(ProfitLossPeriod $profitLoss)
+    public function show(Request $request, ProfitLossPeriod $profitLoss)
     {
         $period = $profitLoss->load(['creator', 'approver']);
         $reportData = $period->getReportData();
@@ -140,10 +141,11 @@ class ProfitLossController extends Controller
             'reportData' => $reportData,
             'accounts' => ChartOfAccount::getAccountsByType(),
             'bankAccounts' => BankAccount::all(['id', 'bank_name', 'account_number', 'account_name']),
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
-    public function edit(ProfitLossPeriod $profitLoss)
+    public function edit(Request $request, ProfitLossPeriod $profitLoss)
     {
         if ($profitLoss->status === 'closed') {
             return redirect()->back()->withErrors(['error' => 'Periode yang sudah ditutup tidak dapat diedit']);
@@ -154,7 +156,8 @@ class ProfitLossController extends Controller
         
         return Inertia::render('Admin/AdminKeuangan/ProfitLoss/Edit', [
             'period' => $period,
-            'accounts' => $accounts
+            'accounts' => $accounts,
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
@@ -184,7 +187,10 @@ class ProfitLossController extends Controller
             
             DB::commit();
             
-            return redirect()->route('admin-keuangan.profit-loss.show', $profitLoss)
+            return redirect()->route('admin-keuangan.profit-loss.show', [
+                'profitLoss' => $profitLoss->id,
+                ...$this->resolveIndexQuery($request),
+            ])
                            ->with('success', 'Periode berhasil diperbarui');
                            
         } catch (\Exception $e) {
@@ -195,7 +201,7 @@ class ProfitLossController extends Controller
         }
     }
 
-    public function destroy(ProfitLossPeriod $profitLoss)
+    public function destroy(Request $request, ProfitLossPeriod $profitLoss)
     {
         if ($profitLoss->status === 'closed') {
             return redirect()->back()->withErrors(['error' => 'Periode yang sudah finalisasi tidak dapat dihapus']);
@@ -208,7 +214,7 @@ class ProfitLossController extends Controller
             
             DB::commit();
             
-            return redirect()->route('admin-keuangan.profit-loss.index')
+            return redirect()->route('admin-keuangan.profit-loss.index', $this->resolveIndexQuery($request))
                            ->with('success', 'Periode berhasil dihapus');
                            
         } catch (\Exception $e) {
@@ -264,6 +270,16 @@ class ProfitLossController extends Controller
             DB::rollback();
             return redirect()->back()->withErrors(['error' => 'Gagal finalisasi periode: ' . $e->getMessage()]);
         }
+    }
+
+    private function resolveIndexQuery(Request $request): array
+    {
+        return collect([
+            'start_date' => $request->query('start_date'),
+            'end_date' => $request->query('end_date'),
+            'page' => $request->query('page'),
+        ])->filter(fn ($value) => $value !== null && $value !== '')
+            ->toArray();
     }
 
     public function addEntry(Request $request, ProfitLossPeriod $profitLoss)

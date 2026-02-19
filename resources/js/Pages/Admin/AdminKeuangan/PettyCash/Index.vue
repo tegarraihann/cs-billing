@@ -167,14 +167,20 @@
                   <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
                     <div class="flex items-center justify-center space-x-2">
                       <Link
-                        :href="route('admin-keuangan.petty-cash.show', transaction.id)"
+                        :href="route('admin-keuangan.petty-cash.show', {
+                          pettyCash: transaction.id,
+                          ...currentIndexQuery
+                        })"
                         class="text-gray-600 hover:text-gray-800 transition-colors"
                         title="View Details"
                       >
                         <Eye class="w-4 h-4" />
                       </Link>
                       <Link
-                        :href="route('admin-keuangan.petty-cash.edit', transaction.id)"
+                        :href="route('admin-keuangan.petty-cash.edit', {
+                          pettyCash: transaction.id,
+                          ...currentIndexQuery
+                        })"
                         class="text-blue-600 hover:text-blue-800 transition-colors"
                         title="Edit"
                       >
@@ -200,65 +206,30 @@
         </div>
 
           <!-- Pagination -->
-          <div v-if="props.transactions.links.length > 3" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div class="flex-1 flex justify-between sm:hidden">
-              <Link
-                v-if="props.transactions.prev_page_url"
-                :href="props.transactions.prev_page_url"
-                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Previous
-              </Link>
-              <Link
-                v-if="props.transactions.next_page_url"
-                :href="props.transactions.next_page_url"
-                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Next
-              </Link>
-            </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p class="text-sm text-gray-700">
-                  Showing
-                  <span class="font-medium">{{ props.transactions.from ?? 0 }}</span>
-                  to
-                  <span class="font-medium">{{ props.transactions.to ?? 0 }}</span>
-                  of
-                  <span class="font-medium">{{ props.transactions.total }}</span>
-                  transactions
-                </p>
+          <div v-if="props.transactions.links.length > 3" class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-700">
+                Showing {{ props.transactions.from ?? 0 }} to {{ props.transactions.to ?? 0 }} of {{ props.transactions.total }} transactions
               </div>
-              <div>
-                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <template v-for="link in props.transactions.links" :key="link.label">
-                    <Link
-                      v-if="link.url"
-                      :href="link.url"
-                      :class="[
-                        'relative inline-flex items-center px-2 py-2 text-sm font-medium',
-                        link.active
-                          ? 'z-10 bg-sage-50 border-sage-500 text-sage-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                        link.label.includes('Previous') ? 'rounded-l-md' : '',
-                        link.label.includes('Next') ? 'rounded-r-md' : '',
-                        !link.label.includes('Previous') && !link.label.includes('Next') ? 'border-t border-b' : 'border'
-                      ]"
-                      v-html="link.label"
-                    />
-                    <span
-                      v-else
-                      :class="[
-                        'relative inline-flex items-center px-2 py-2 text-sm font-medium',
-                        'bg-white border-gray-300 text-gray-300 cursor-default',
-                        link.label.includes('Previous') ? 'rounded-l-md' : '',
-                        link.label.includes('Next') ? 'rounded-r-md' : '',
-                        !link.label.includes('Previous') && !link.label.includes('Next') ? 'border-t border-b' : 'border'
-                      ]"
-                      v-html="link.label"
-                    />
-                  </template>
-                </nav>
+              <div class="flex space-x-1">
+                <template v-for="link in props.transactions.links" :key="link.label">
+                  <button
+                    v-if="link.url"
+                    @click="visitPage(link.url)"
+                    :class="[
+                      'px-3 py-2 text-sm rounded-md',
+                      link.active
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                    ]"
+                    v-html="link.label"
+                  ></button>
+                  <span
+                    v-else
+                    class="px-3 py-2 text-sm text-gray-400"
+                    v-html="link.label"
+                  ></span>
+                </template>
               </div>
             </div>
           </div>
@@ -332,6 +303,23 @@ const formFilters = reactive({
   status: props.filters.status || ''
 })
 
+const currentIndexQuery = computed(() => {
+  const query = {
+    start_date: formFilters.start_date || undefined,
+    end_date: formFilters.end_date || undefined,
+    category_id: formFilters.category_id || undefined,
+    type: formFilters.type || undefined,
+    status: formFilters.status || undefined
+  }
+
+  const currentPage = props.transactions?.current_page
+  if (currentPage && Number(currentPage) > 1) {
+    query.page = currentPage
+  }
+
+  return query
+})
+
 const setDefaultMonthFilter = () => {
   if (props.filters.start_date || props.filters.end_date) {
     return
@@ -399,7 +387,8 @@ const getAmountClass = (type) => {
 const applyFilters = () => {
   router.get(route('admin-keuangan.petty-cash.index'), formFilters, {
     preserveState: true,
-    preserveScroll: true
+    preserveScroll: true,
+    replace: true
   })
 }
 
@@ -408,6 +397,15 @@ const clearFilters = () => {
     formFilters[key] = ''
   })
   router.get(route('admin-keuangan.petty-cash.index'))
+}
+
+const visitPage = (url) => {
+  router.visit(url, {
+    data: { ...formFilters },
+    preserveState: true,
+    preserveScroll: true,
+    replace: true
+  })
 }
 
 const confirmDelete = (transaction) => {
@@ -449,6 +447,39 @@ const route = window.route || function(name, params) {
     'admin-keuangan.petty-cash.destroy': (id) => `/admin-keuangan/petty-cash/${id}`,
     'admin-keuangan.petty-cash.sync-transaction-balances': '/admin-keuangan/petty-cash/sync-transaction-balances'
   }
-  return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#'
+  const definition = routes[name]
+  if (!definition) {
+    return '#'
+  }
+
+  if (typeof definition !== 'function') {
+    if (!params || typeof params !== 'object') {
+      return definition
+    }
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+    return queryString ? `${definition}?${queryString}` : definition
+  }
+
+  if (params && typeof params === 'object') {
+    const resourceId = params.pettyCash ?? params.id
+    const query = { ...params }
+    delete query.pettyCash
+    delete query.id
+
+    let url = definition(resourceId)
+    const queryString = new URLSearchParams(
+      Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+
+    if (queryString) {
+      url += `?${queryString}`
+    }
+
+    return url
+  }
+
+  return definition(params)
 }
 </script>

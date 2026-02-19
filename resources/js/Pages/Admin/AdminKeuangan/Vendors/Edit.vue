@@ -18,12 +18,12 @@
                                 </div>
                             </div>
                             <div class="mt-4 sm:mt-0 flex space-x-3">
-                                <Link :href="route('admin-keuangan.vendors.show', vendor.id)"
+                                <Link :href="showVendorUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     <Eye class="mr-2 h-4 w-4" />
                                     View Details
                                 </Link>
-                                <Link :href="route('admin-keuangan.vendors.index')"
+                                <Link :href="backToIndexUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     <ArrowLeft class="mr-2 h-4 w-4" />
                                     Back
@@ -201,7 +201,7 @@
 
                             <!-- Submit & Cancel Buttons -->
                             <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                                <Link :href="route('admin-keuangan.vendors.show', vendor.id)"
+                                <Link :href="showVendorUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     <X class="w-4 h-4 mr-2" />
                                     Cancel
@@ -222,7 +222,8 @@
 </template>
 
 <script setup>
-import { Link, useForm } from "@inertiajs/vue3";
+import { Link, useForm, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import { Edit, Eye, ArrowLeft, X, LoaderCircle, CheckCircle } from "lucide-vue-next";
 
@@ -230,6 +231,29 @@ const props = defineProps({
     vendor: Object,
     errors: Object,
 });
+
+const page = usePage();
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.vendors.index', backQuery.value));
+const showVendorUrl = computed(() => route('admin-keuangan.vendors.show', {
+    vendor: props.vendor.id,
+    ...backQuery.value,
+}));
 
 // Form data using Inertia's useForm helper with pre-filled data
 const form = useForm({
@@ -264,7 +288,10 @@ const submit = () => {
         form.transform((data) => ({
             ...data,
             _method: 'PUT'
-        })).post(route("admin-keuangan.vendors.update", props.vendor.id), {
+        })).post(route("admin-keuangan.vendors.update", {
+            vendor: props.vendor.id,
+            ...backQuery.value,
+        }), {
             onSuccess: () => {
                 // Redirect will be handled by the controller
             },
@@ -274,7 +301,10 @@ const submit = () => {
         });
     } else {
         // Use PUT method for regular data updates
-        form.put(route("admin-keuangan.vendors.update", props.vendor.id), {
+        form.put(route("admin-keuangan.vendors.update", {
+            vendor: props.vendor.id,
+            ...backQuery.value,
+        }), {
             onSuccess: () => {
                 // Redirect will be handled by the controller
             },

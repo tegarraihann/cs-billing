@@ -19,7 +19,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4">
                             <Link
-                                :href="route('admin-keuangan.other-incomes.index')"
+                                :href="route('admin-keuangan.other-incomes.index', returnQuery)"
                                 class="text-sage-600 hover:text-sage-800 transition-colors"
                             >
                                 <ArrowLeft class="w-5 h-5" />
@@ -32,7 +32,10 @@
                         <div class="flex space-x-2">
                             <Link
                                 v-if="!otherIncome.posted_to_profit_loss"
-                                :href="route('admin-keuangan.other-incomes.edit', otherIncome.id)"
+                                :href="route('admin-keuangan.other-incomes.edit', {
+                                    otherIncome: otherIncome.id,
+                                    ...returnQuery
+                                })"
                                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition"
                             >
                                 <Edit class="w-4 h-4 mr-2" />
@@ -387,6 +390,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    returnQuery: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const paymentForm = useForm({
@@ -544,7 +551,10 @@ const unpostFromProfitLoss = () => {
 const deleteIncome = () => {
     openConfirm(
         'Are you sure you want to delete this income?',
-        () => router.delete(route('admin-keuangan.other-incomes.destroy', props.otherIncome.id)),
+        () => router.delete(route('admin-keuangan.other-incomes.destroy', {
+            otherIncome: props.otherIncome.id,
+            ...props.returnQuery
+        })),
         'Delete Income'
     )
 }

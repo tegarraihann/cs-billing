@@ -15,7 +15,7 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <a
-                                :href="route('admin-keuangan.bank-balance.export-pdf', bank.id)"
+                                :href="exportPdfUrl"
                                 class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -24,7 +24,7 @@
                                 Export PDF
                             </a>
                             <Link
-                                :href="route('admin-keuangan.bank-balance.index')"
+                                :href="route('admin-keuangan.bank-balance.index', indexFilters)"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
                             >
                                 <ArrowLeft class="w-4 h-4 mr-2" />
@@ -165,7 +165,7 @@
                 <!-- Actions -->
                 <div class="flex flex-col lg:flex-row lg:items-center lg:space-x-4 space-y-4 lg:space-y-0 mb-6">
                     <Link
-                        :href="route('admin-keuangan.bank-balance.history', bank.id)"
+                        :href="route('admin-keuangan.bank-balance.history', { bank: bank.id, ...indexFilters })"
                         class="inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
                     >
                         <History class="w-4 h-4 mr-2" />
@@ -274,6 +274,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
@@ -302,7 +303,24 @@ const props = defineProps({
     transactions: {
         type: Array,
         default: () => []
+    },
+    filters: {
+        type: Object,
+        default: () => ({})
     }
+})
+
+const indexFilters = computed(() => ({
+    period_month: props.filters?.period_month || undefined,
+}))
+
+const exportPdfUrl = computed(() => {
+    const baseUrl = route('admin-keuangan.bank-balance.export-pdf', props.bank.id)
+    if (!props.filters?.period_month) {
+        return baseUrl
+    }
+
+    return `${baseUrl}?period_month=${encodeURIComponent(props.filters.period_month)}`
 })
 
 const formatCurrency = (amount) => {

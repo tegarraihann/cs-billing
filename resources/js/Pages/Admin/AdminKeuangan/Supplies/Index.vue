@@ -151,8 +151,35 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="p-4 border-t border-sage-100">
-                        <Pagination :data="transactions" />
+                    <div
+                        v-if="transactions.links && transactions.data.length > 0"
+                        class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-700">
+                                Showing {{ transactions.from || 0 }} to {{ transactions.to || 0 }} of {{ transactions.total || 0 }} results
+                            </div>
+                            <div class="flex space-x-1">
+                                <template v-for="link in transactions.links" :key="link.label">
+                                    <button
+                                        v-if="link.url"
+                                        @click="visitPage(link.url)"
+                                        :class="[
+                                            'px-3 py-2 text-sm rounded-md',
+                                            link.active
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                        ]"
+                                        v-html="link.label"
+                                    ></button>
+                                    <span
+                                        v-else
+                                        class="px-3 py-2 text-sm text-gray-400"
+                                        v-html="link.label"
+                                    ></span>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -404,7 +431,6 @@
 
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import Pagination from '@/Components/Pagination.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import { computed, reactive, ref, watch } from 'vue'
 import SearchableSelect from '@/Components/SearchableSelect.vue'
@@ -588,8 +614,12 @@ const submitUsage = () => {
 }
 
 const applyFilters = () => {
-    router.get(route('admin-keuangan.supplies.index'), filters, {
+    router.get(route('admin-keuangan.supplies.index'), {
+        ...filters,
+        page: 1,
+    }, {
         preserveState: true,
+        preserveScroll: true,
         replace: true,
     })
 }
@@ -599,7 +629,27 @@ const resetFilters = () => {
     filters.transaction_type = ''
     filters.date_from = ''
     filters.date_to = ''
-    applyFilters()
+    router.get(route('admin-keuangan.supplies.index'), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
+
+const visitPage = (url) => {
+    if (!url) return
+
+    const target = new URL(url, window.location.origin)
+    const page = target.searchParams.get('page')
+
+    router.get(route('admin-keuangan.supplies.index'), {
+        ...filters,
+        page: page || 1,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
 }
 
 const openTopupModal = () => {

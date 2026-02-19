@@ -1,0 +1,771 @@
+import { computed, ref, withCtx, unref, createVNode, createTextVNode, createBlock, createCommentVNode, toDisplayString, withDirectives, openBlock, Fragment, renderList, vModelSelect, useSSRContext } from "vue";
+import { ssrRenderComponent, ssrInterpolate, ssrIncludeBooleanAttr, ssrLooseContain, ssrLooseEqual, ssrRenderList, ssrRenderAttr, ssrRenderClass } from "vue/server-renderer";
+import { A as AdminKeuanganLayout } from "./AdminKeuanganLayout-C1XXA0iB.js";
+import { useRemember, Head, Link, router } from "@inertiajs/vue3";
+import { Globe, Users, Plus, DollarSign, Clock, CheckCircle, Eye, Edit, Check, Trash2 } from "lucide-vue-next";
+import "./DropdownLink-DlebuOGD.js";
+import "./SidebarNavigation-CLvY_m2-.js";
+import "./_plugin-vue_export-helper-1tPrXgE0.js";
+import "./useIdleTimeout-CR--SBvC.js";
+import "axios";
+const _sfc_main = {
+  __name: "Index",
+  __ssrInlineRender: true,
+  props: {
+    salaries: Object,
+    stats: Object,
+    filters: Object,
+    divisions: Object,
+    periods: Array,
+    bankAccounts: Array,
+    salaryAccounts: Array
+  },
+  setup(__props) {
+    var _a, _b, _c;
+    const props = __props;
+    const filterForm = useRemember({
+      period: ((_a = props.filters) == null ? void 0 : _a.period) || "",
+      division: ((_b = props.filters) == null ? void 0 : _b.division) || "",
+      status: ((_c = props.filters) == null ? void 0 : _c.status) || ""
+    }, "employee-salary-filters");
+    const currentIndexQuery = computed(() => {
+      var _a2;
+      const query = {
+        period: filterForm.period || void 0,
+        division: filterForm.division || void 0,
+        status: filterForm.status || void 0
+      };
+      const currentPage = (_a2 = props.salaries) == null ? void 0 : _a2.current_page;
+      if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage;
+      }
+      return query;
+    });
+    const applyFilters = () => {
+      router.get(route("admin-keuangan.employee-salary.index"), {
+        period: filterForm.period || void 0,
+        division: filterForm.division || void 0,
+        status: filterForm.status || void 0
+      }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+      });
+    };
+    const resetFilters = () => {
+      filterForm.period = "";
+      filterForm.division = "";
+      filterForm.status = "";
+      applyFilters();
+    };
+    const visitPage = (url) => {
+      router.visit(url, {
+        data: {
+          period: filterForm.period || void 0,
+          division: filterForm.division || void 0,
+          status: filterForm.status || void 0
+        },
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+      });
+    };
+    const formatCurrency = (amount) => {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "IDR"
+      }).format(amount || 0);
+    };
+    const formatDate = (date) => {
+      return new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    };
+    const formatPeriod = (period) => {
+      const [year, month] = period.split("-");
+      const months = {
+        "01": "Jan",
+        "02": "Feb",
+        "03": "Mar",
+        "04": "Apr",
+        "05": "May",
+        "06": "Jun",
+        "07": "Jul",
+        "08": "Aug",
+        "09": "Sep",
+        "10": "Oct",
+        "11": "Nov",
+        "12": "Dec"
+      };
+      return `${months[month]} ${year}`;
+    };
+    const getDivisionLabel = (division) => {
+      const labels = {
+        "customer_support": "Customer Support",
+        "marketing": "Marketing",
+        "finance": "Finance",
+        "operations": "Operations",
+        "management": "Management"
+      };
+      return labels[division] || division;
+    };
+    const getStatusBadge = (status) => {
+      const badges = {
+        "draft": "bg-yellow-100 text-yellow-800",
+        "paid": "bg-green-100 text-green-800",
+        "cancelled": "bg-red-100 text-red-800"
+      };
+      return badges[status] || "bg-gray-100 text-gray-800";
+    };
+    const getStatusText = (status) => {
+      const texts = {
+        "draft": "Draft",
+        "paid": "Paid",
+        "cancelled": "Cancelled"
+      };
+      return texts[status] || status;
+    };
+    const showApproveModal = ref(false);
+    const selectedSalary = ref(null);
+    const selectedBankAccountId = ref("");
+    const selectedPlAccountId = ref("");
+    const openApproveModal = (salary) => {
+      selectedSalary.value = salary;
+      selectedBankAccountId.value = "";
+      selectedPlAccountId.value = "";
+      showApproveModal.value = true;
+    };
+    const closeApproveModal = () => {
+      showApproveModal.value = false;
+      selectedSalary.value = null;
+      selectedBankAccountId.value = "";
+      selectedPlAccountId.value = "";
+    };
+    const submitApprove = () => {
+      if (!selectedSalary.value || !selectedBankAccountId.value || !selectedPlAccountId.value) return;
+      router.post(
+        route("admin-keuangan.employee-salary.approve", selectedSalary.value.id),
+        {
+          bank_account_id: selectedBankAccountId.value,
+          pl_account_id: selectedPlAccountId.value
+        },
+        {
+          onFinish: closeApproveModal
+        }
+      );
+    };
+    const deleteSalary = (salary) => {
+      if (confirm(`Delete salary record for ${salary.employee_name}?`)) {
+        router.delete(route("admin-keuangan.employee-salary.destroy", salary.id));
+      }
+    };
+    return (_ctx, _push, _parent, _attrs) => {
+      _push(ssrRenderComponent(AdminKeuanganLayout, _attrs, {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(unref(Head), { title: "Employee Salary" }, null, _parent2, _scopeId));
+            _push2(`<div class="py-6"${_scopeId}><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"${_scopeId}><div class="flex justify-between items-center mb-6"${_scopeId}><div${_scopeId}><h1 class="text-2xl font-bold text-gray-900"${_scopeId}>Employee Salary</h1><p class="mt-1 text-sm text-gray-600"${_scopeId}>Manage employee salary records.</p></div><div class="flex space-x-3"${_scopeId}>`);
+            _push2(ssrRenderComponent(unref(Link), {
+              href: _ctx.route("admin-keuangan.employee-salary.all-in-create"),
+              class: "inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150"
+            }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(unref(Globe), { class: "w-4 h-4 mr-2" }, null, _parent3, _scopeId2));
+                  _push3(` ALL IN `);
+                } else {
+                  return [
+                    createVNode(unref(Globe), { class: "w-4 h-4 mr-2" }),
+                    createTextVNode(" ALL IN ")
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(unref(Link), {
+              href: _ctx.route("admin-keuangan.employee-salary.bulk-create"),
+              class: "inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+            }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(unref(Users), { class: "w-4 h-4 mr-2" }, null, _parent3, _scopeId2));
+                  _push3(` Bulk Input `);
+                } else {
+                  return [
+                    createVNode(unref(Users), { class: "w-4 h-4 mr-2" }),
+                    createTextVNode(" Bulk Input ")
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(unref(Link), {
+              href: _ctx.route("admin-keuangan.employee-salary.create"),
+              class: "inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
+            }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(unref(Plus), { class: "w-4 h-4 mr-2" }, null, _parent3, _scopeId2));
+                  _push3(` Add Salary `);
+                } else {
+                  return [
+                    createVNode(unref(Plus), { class: "w-4 h-4 mr-2" }),
+                    createTextVNode(" Add Salary ")
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(`</div></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"${_scopeId}><div class="bg-white overflow-hidden shadow rounded-lg"${_scopeId}><div class="p-5"${_scopeId}><div class="flex items-center"${_scopeId}><div class="flex-shrink-0"${_scopeId}>`);
+            _push2(ssrRenderComponent(unref(Users), { class: "h-6 w-6 text-gray-400" }, null, _parent2, _scopeId));
+            _push2(`</div><div class="ml-5 w-0 flex-1"${_scopeId}><dl${_scopeId}><dt class="text-sm font-medium text-gray-500 truncate"${_scopeId}>Total Employees</dt><dd class="text-lg font-medium text-gray-900"${_scopeId}>${ssrInterpolate(__props.stats.total_employees)}</dd></dl></div></div></div></div><div class="bg-white overflow-hidden shadow rounded-lg"${_scopeId}><div class="p-5"${_scopeId}><div class="flex items-center"${_scopeId}><div class="flex-shrink-0"${_scopeId}>`);
+            _push2(ssrRenderComponent(unref(DollarSign), { class: "h-6 w-6 text-blue-400" }, null, _parent2, _scopeId));
+            _push2(`</div><div class="ml-5 w-0 flex-1"${_scopeId}><dl${_scopeId}><dt class="text-sm font-medium text-gray-500 truncate"${_scopeId}>Total This Month</dt><dd class="text-lg font-medium text-gray-900"${_scopeId}>${ssrInterpolate(formatCurrency(__props.stats.current_month_total))}</dd></dl></div></div></div></div><div class="bg-white overflow-hidden shadow rounded-lg"${_scopeId}><div class="p-5"${_scopeId}><div class="flex items-center"${_scopeId}><div class="flex-shrink-0"${_scopeId}>`);
+            _push2(ssrRenderComponent(unref(Clock), { class: "h-6 w-6 text-yellow-400" }, null, _parent2, _scopeId));
+            _push2(`</div><div class="ml-5 w-0 flex-1"${_scopeId}><dl${_scopeId}><dt class="text-sm font-medium text-gray-500 truncate"${_scopeId}>Draft</dt><dd class="text-lg font-medium text-gray-900"${_scopeId}>${ssrInterpolate(__props.stats.draft_count)}</dd></dl></div></div></div></div><div class="bg-white overflow-hidden shadow rounded-lg"${_scopeId}><div class="p-5"${_scopeId}><div class="flex items-center"${_scopeId}><div class="flex-shrink-0"${_scopeId}>`);
+            _push2(ssrRenderComponent(unref(CheckCircle), { class: "h-6 w-6 text-green-400" }, null, _parent2, _scopeId));
+            _push2(`</div><div class="ml-5 w-0 flex-1"${_scopeId}><dl${_scopeId}><dt class="text-sm font-medium text-gray-500 truncate"${_scopeId}>Paid</dt><dd class="text-lg font-medium text-gray-900"${_scopeId}>${ssrInterpolate(__props.stats.paid_count)}</dd></dl></div></div></div></div></div><div class="bg-white shadow overflow-hidden sm:rounded-md mb-6"${_scopeId}><div class="px-4 py-5 sm:p-6"${_scopeId}><h3 class="text-lg leading-6 font-medium text-gray-900 mb-4"${_scopeId}>Filters</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4"${_scopeId}><div${_scopeId}><label class="block text-sm font-medium text-gray-700 mb-1"${_scopeId}>Period</label><select class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"${_scopeId}><option value=""${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).period) ? ssrLooseContain(unref(filterForm).period, "") : ssrLooseEqual(unref(filterForm).period, "")) ? " selected" : ""}${_scopeId}>All Periods</option><!--[-->`);
+            ssrRenderList(__props.periods, (period) => {
+              _push2(`<option${ssrRenderAttr("value", period)}${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).period) ? ssrLooseContain(unref(filterForm).period, period) : ssrLooseEqual(unref(filterForm).period, period)) ? " selected" : ""}${_scopeId}>${ssrInterpolate(formatPeriod(period))}</option>`);
+            });
+            _push2(`<!--]--></select></div><div${_scopeId}><label class="block text-sm font-medium text-gray-700 mb-1"${_scopeId}>Division</label><select class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"${_scopeId}><option value=""${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).division) ? ssrLooseContain(unref(filterForm).division, "") : ssrLooseEqual(unref(filterForm).division, "")) ? " selected" : ""}${_scopeId}>All Divisions</option><!--[-->`);
+            ssrRenderList(__props.divisions, (label, key) => {
+              _push2(`<option${ssrRenderAttr("value", key)}${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).division) ? ssrLooseContain(unref(filterForm).division, key) : ssrLooseEqual(unref(filterForm).division, key)) ? " selected" : ""}${_scopeId}>${ssrInterpolate(label)}</option>`);
+            });
+            _push2(`<!--]--></select></div><div${_scopeId}><label class="block text-sm font-medium text-gray-700 mb-1"${_scopeId}>Status</label><select class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"${_scopeId}><option value=""${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).status) ? ssrLooseContain(unref(filterForm).status, "") : ssrLooseEqual(unref(filterForm).status, "")) ? " selected" : ""}${_scopeId}>All Statuses</option><option value="draft"${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).status) ? ssrLooseContain(unref(filterForm).status, "draft") : ssrLooseEqual(unref(filterForm).status, "draft")) ? " selected" : ""}${_scopeId}>Draft</option><option value="paid"${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).status) ? ssrLooseContain(unref(filterForm).status, "paid") : ssrLooseEqual(unref(filterForm).status, "paid")) ? " selected" : ""}${_scopeId}>Paid</option><option value="cancelled"${ssrIncludeBooleanAttr(Array.isArray(unref(filterForm).status) ? ssrLooseContain(unref(filterForm).status, "cancelled") : ssrLooseEqual(unref(filterForm).status, "cancelled")) ? " selected" : ""}${_scopeId}>Cancelled</option></select></div></div><div class="mt-4 flex items-center gap-2"${_scopeId}><button type="button" class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-xs font-semibold rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"${_scopeId}> Apply Filters </button><button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-semibold rounded-md text-gray-700 hover:bg-gray-50"${_scopeId}> Reset </button></div></div></div><div class="bg-white shadow overflow-hidden sm:rounded-md"${_scopeId}><div class="px-4 py-5 sm:p-6"${_scopeId}><div class="overflow-x-auto"${_scopeId}><table class="min-w-full divide-y divide-gray-200"${_scopeId}><thead class="bg-gray-50"${_scopeId}><tr${_scopeId}><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"${_scopeId}> Employee </th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"${_scopeId}> Position </th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"${_scopeId}> Period </th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"${_scopeId}> Total Salary </th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"${_scopeId}> Status </th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"${_scopeId}> Salary Date </th><th scope="col" class="relative px-6 py-3"${_scopeId}><span class="sr-only"${_scopeId}>Actions</span></th></tr></thead><tbody class="bg-white divide-y divide-gray-200"${_scopeId}>`);
+            if (!__props.salaries || !__props.salaries.data || __props.salaries.data.length === 0) {
+              _push2(`<tr${_scopeId}><td colspan="7" class="px-6 py-12 text-center text-gray-500"${_scopeId}><div class="flex flex-col items-center"${_scopeId}>`);
+              _push2(ssrRenderComponent(unref(Users), { class: "w-12 h-12 text-gray-300 mb-4" }, null, _parent2, _scopeId));
+              _push2(`<h3 class="text-lg font-medium text-gray-900 mb-2"${_scopeId}>No salary records yet</h3><p class="text-sm text-gray-500 mb-4"${_scopeId}>Start by adding an employee salary record.</p>`);
+              _push2(ssrRenderComponent(unref(Link), {
+                href: _ctx.route("admin-keuangan.employee-salary.create"),
+                class: "inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
+              }, {
+                default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                  if (_push3) {
+                    _push3(ssrRenderComponent(unref(Plus), { class: "w-4 h-4 mr-2" }, null, _parent3, _scopeId2));
+                    _push3(` Add First Salary `);
+                  } else {
+                    return [
+                      createVNode(unref(Plus), { class: "w-4 h-4 mr-2" }),
+                      createTextVNode(" Add First Salary ")
+                    ];
+                  }
+                }),
+                _: 1
+              }, _parent2, _scopeId));
+              _push2(`</div></td></tr>`);
+            } else {
+              _push2(`<!--[-->`);
+              ssrRenderList(__props.salaries.data, (salary) => {
+                _push2(`<tr class="hover:bg-gray-50"${_scopeId}><td class="px-6 py-4 whitespace-nowrap"${_scopeId}><div class="text-sm font-medium text-gray-900"${_scopeId}>${ssrInterpolate(salary.employee_name)}</div><div class="text-sm text-gray-500"${_scopeId}>${ssrInterpolate(salary.employee_id || "N/A")}</div></td><td class="px-6 py-4 whitespace-nowrap"${_scopeId}><div class="text-sm text-gray-900"${_scopeId}>${ssrInterpolate(salary.position)}</div><div class="text-sm text-gray-500"${_scopeId}>${ssrInterpolate(getDivisionLabel(salary.division))}</div></td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"${_scopeId}>${ssrInterpolate(formatPeriod(salary.period_month))}</td><td class="px-6 py-4 whitespace-nowrap"${_scopeId}><div class="text-sm font-medium text-gray-900"${_scopeId}>${ssrInterpolate(formatCurrency(salary.total_salary))}</div></td><td class="px-6 py-4 whitespace-nowrap"${_scopeId}><span class="${ssrRenderClass([getStatusBadge(salary.status), "inline-flex px-2 py-1 text-xs font-semibold rounded-full"])}"${_scopeId}>${ssrInterpolate(getStatusText(salary.status))}</span></td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"${_scopeId}>${ssrInterpolate(formatDate(salary.salary_date))}</td><td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"${_scopeId}><div class="flex space-x-2"${_scopeId}>`);
+                _push2(ssrRenderComponent(unref(Link), {
+                  href: _ctx.route("admin-keuangan.employee-salary.show", { employeeSalary: salary.id, ...currentIndexQuery.value }),
+                  class: "text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50",
+                  title: "View Details"
+                }, {
+                  default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                    if (_push3) {
+                      _push3(ssrRenderComponent(unref(Eye), { class: "w-4 h-4" }, null, _parent3, _scopeId2));
+                    } else {
+                      return [
+                        createVNode(unref(Eye), { class: "w-4 h-4" })
+                      ];
+                    }
+                  }),
+                  _: 2
+                }, _parent2, _scopeId));
+                if (salary.status === "draft") {
+                  _push2(ssrRenderComponent(unref(Link), {
+                    href: _ctx.route("admin-keuangan.employee-salary.edit", salary.id),
+                    class: "text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50",
+                    title: "Edit"
+                  }, {
+                    default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                      if (_push3) {
+                        _push3(ssrRenderComponent(unref(Edit), { class: "w-4 h-4" }, null, _parent3, _scopeId2));
+                      } else {
+                        return [
+                          createVNode(unref(Edit), { class: "w-4 h-4" })
+                        ];
+                      }
+                    }),
+                    _: 2
+                  }, _parent2, _scopeId));
+                } else {
+                  _push2(`<!---->`);
+                }
+                if (salary.status === "draft") {
+                  _push2(`<button class="text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50" title="Approve"${_scopeId}>`);
+                  _push2(ssrRenderComponent(unref(Check), { class: "w-4 h-4" }, null, _parent2, _scopeId));
+                  _push2(`</button>`);
+                } else {
+                  _push2(`<!---->`);
+                }
+                if (salary.status === "draft") {
+                  _push2(`<button class="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50" title="Delete"${_scopeId}>`);
+                  _push2(ssrRenderComponent(unref(Trash2), { class: "w-4 h-4" }, null, _parent2, _scopeId));
+                  _push2(`</button>`);
+                } else {
+                  _push2(`<!---->`);
+                }
+                _push2(`</div></td></tr>`);
+              });
+              _push2(`<!--]-->`);
+            }
+            _push2(`</tbody></table></div>`);
+            if (__props.salaries && __props.salaries.links) {
+              _push2(`<div class="mt-6 bg-white px-4 py-3 border border-gray-200 rounded-lg"${_scopeId}><div class="flex items-center justify-between"${_scopeId}><div class="text-sm text-gray-700"${_scopeId}> Showing ${ssrInterpolate(__props.salaries.from || 0)} to ${ssrInterpolate(__props.salaries.to || 0)} of ${ssrInterpolate(__props.salaries.total || 0)} results </div><div class="flex space-x-1"${_scopeId}><!--[-->`);
+              ssrRenderList(__props.salaries.links, (link) => {
+                _push2(`<!--[-->`);
+                if (link.url) {
+                  _push2(`<button class="${ssrRenderClass([
+                    "px-3 py-2 text-sm rounded-md",
+                    link.active ? "bg-blue-500 text-white" : "bg-white text-gray-500 hover:text-gray-700 border border-gray-300"
+                  ])}"${_scopeId}>${link.label ?? ""}</button>`);
+                } else {
+                  _push2(`<span class="px-3 py-2 text-sm text-gray-400"${_scopeId}>${link.label ?? ""}</span>`);
+                }
+                _push2(`<!--]-->`);
+              });
+              _push2(`<!--]--></div></div></div>`);
+            } else {
+              _push2(`<!---->`);
+            }
+            _push2(`</div></div></div></div>`);
+            if (showApproveModal.value) {
+              _push2(`<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"${_scopeId}><div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white"${_scopeId}><div class="flex items-center justify-between mb-4"${_scopeId}><h3 class="text-lg font-semibold text-gray-900"${_scopeId}>Approve &amp; Pay Salary</h3><button class="text-gray-400 hover:text-gray-600"${_scopeId}>×</button></div><div class="space-y-4"${_scopeId}><div class="text-sm text-gray-600"${_scopeId}>${ssrInterpolate(selectedSalary.value ? `Salary for ${selectedSalary.value.employee_name} totaling ${formatCurrency(selectedSalary.value.total_salary)}` : "")}</div><div${_scopeId}><label class="block text-sm font-medium text-gray-700 mb-2"${_scopeId}>Bank Account</label><select class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"${_scopeId}><option value="" disabled${ssrIncludeBooleanAttr(Array.isArray(selectedBankAccountId.value) ? ssrLooseContain(selectedBankAccountId.value, "") : ssrLooseEqual(selectedBankAccountId.value, "")) ? " selected" : ""}${_scopeId}>Select bank account</option><!--[-->`);
+              ssrRenderList(__props.bankAccounts, (account) => {
+                _push2(`<option${ssrRenderAttr("value", account.id)}${ssrIncludeBooleanAttr(Array.isArray(selectedBankAccountId.value) ? ssrLooseContain(selectedBankAccountId.value, account.id) : ssrLooseEqual(selectedBankAccountId.value, account.id)) ? " selected" : ""}${_scopeId}>${ssrInterpolate(account.bank_name)} - ${ssrInterpolate(account.account_number)} (${ssrInterpolate(account.account_name)}) </option>`);
+              });
+              _push2(`<!--]--></select></div><div${_scopeId}><label class="block text-sm font-medium text-gray-700 mb-2"${_scopeId}>P&amp;L Account (Salary Expense)</label><select class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"${_scopeId}><option value="" disabled${ssrIncludeBooleanAttr(Array.isArray(selectedPlAccountId.value) ? ssrLooseContain(selectedPlAccountId.value, "") : ssrLooseEqual(selectedPlAccountId.value, "")) ? " selected" : ""}${_scopeId}>Select P&amp;L account</option><!--[-->`);
+              ssrRenderList(__props.salaryAccounts, (account) => {
+                _push2(`<option${ssrRenderAttr("value", account.id)}${ssrIncludeBooleanAttr(Array.isArray(selectedPlAccountId.value) ? ssrLooseContain(selectedPlAccountId.value, account.id) : ssrLooseEqual(selectedPlAccountId.value, account.id)) ? " selected" : ""}${_scopeId}>${ssrInterpolate(account.account_code)} - ${ssrInterpolate(account.account_name)}</option>`);
+              });
+              _push2(`<!--]--></select></div></div><div class="mt-6 flex justify-end gap-2"${_scopeId}><button type="button" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700"${_scopeId}> Cancel </button><button type="button"${ssrIncludeBooleanAttr(!selectedBankAccountId.value || !selectedPlAccountId.value) ? " disabled" : ""} class="px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"${_scopeId}> Approve &amp; Pay </button></div></div></div>`);
+            } else {
+              _push2(`<!---->`);
+            }
+          } else {
+            return [
+              createVNode(unref(Head), { title: "Employee Salary" }),
+              createVNode("div", { class: "py-6" }, [
+                createVNode("div", { class: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" }, [
+                  createVNode("div", { class: "flex justify-between items-center mb-6" }, [
+                    createVNode("div", null, [
+                      createVNode("h1", { class: "text-2xl font-bold text-gray-900" }, "Employee Salary"),
+                      createVNode("p", { class: "mt-1 text-sm text-gray-600" }, "Manage employee salary records.")
+                    ]),
+                    createVNode("div", { class: "flex space-x-3" }, [
+                      createVNode(unref(Link), {
+                        href: _ctx.route("admin-keuangan.employee-salary.all-in-create"),
+                        class: "inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(unref(Globe), { class: "w-4 h-4 mr-2" }),
+                          createTextVNode(" ALL IN ")
+                        ]),
+                        _: 1
+                      }, 8, ["href"]),
+                      createVNode(unref(Link), {
+                        href: _ctx.route("admin-keuangan.employee-salary.bulk-create"),
+                        class: "inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(unref(Users), { class: "w-4 h-4 mr-2" }),
+                          createTextVNode(" Bulk Input ")
+                        ]),
+                        _: 1
+                      }, 8, ["href"]),
+                      createVNode(unref(Link), {
+                        href: _ctx.route("admin-keuangan.employee-salary.create"),
+                        class: "inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(unref(Plus), { class: "w-4 h-4 mr-2" }),
+                          createTextVNode(" Add Salary ")
+                        ]),
+                        _: 1
+                      }, 8, ["href"])
+                    ])
+                  ]),
+                  createVNode("div", { class: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" }, [
+                    createVNode("div", { class: "bg-white overflow-hidden shadow rounded-lg" }, [
+                      createVNode("div", { class: "p-5" }, [
+                        createVNode("div", { class: "flex items-center" }, [
+                          createVNode("div", { class: "flex-shrink-0" }, [
+                            createVNode(unref(Users), { class: "h-6 w-6 text-gray-400" })
+                          ]),
+                          createVNode("div", { class: "ml-5 w-0 flex-1" }, [
+                            createVNode("dl", null, [
+                              createVNode("dt", { class: "text-sm font-medium text-gray-500 truncate" }, "Total Employees"),
+                              createVNode("dd", { class: "text-lg font-medium text-gray-900" }, toDisplayString(__props.stats.total_employees), 1)
+                            ])
+                          ])
+                        ])
+                      ])
+                    ]),
+                    createVNode("div", { class: "bg-white overflow-hidden shadow rounded-lg" }, [
+                      createVNode("div", { class: "p-5" }, [
+                        createVNode("div", { class: "flex items-center" }, [
+                          createVNode("div", { class: "flex-shrink-0" }, [
+                            createVNode(unref(DollarSign), { class: "h-6 w-6 text-blue-400" })
+                          ]),
+                          createVNode("div", { class: "ml-5 w-0 flex-1" }, [
+                            createVNode("dl", null, [
+                              createVNode("dt", { class: "text-sm font-medium text-gray-500 truncate" }, "Total This Month"),
+                              createVNode("dd", { class: "text-lg font-medium text-gray-900" }, toDisplayString(formatCurrency(__props.stats.current_month_total)), 1)
+                            ])
+                          ])
+                        ])
+                      ])
+                    ]),
+                    createVNode("div", { class: "bg-white overflow-hidden shadow rounded-lg" }, [
+                      createVNode("div", { class: "p-5" }, [
+                        createVNode("div", { class: "flex items-center" }, [
+                          createVNode("div", { class: "flex-shrink-0" }, [
+                            createVNode(unref(Clock), { class: "h-6 w-6 text-yellow-400" })
+                          ]),
+                          createVNode("div", { class: "ml-5 w-0 flex-1" }, [
+                            createVNode("dl", null, [
+                              createVNode("dt", { class: "text-sm font-medium text-gray-500 truncate" }, "Draft"),
+                              createVNode("dd", { class: "text-lg font-medium text-gray-900" }, toDisplayString(__props.stats.draft_count), 1)
+                            ])
+                          ])
+                        ])
+                      ])
+                    ]),
+                    createVNode("div", { class: "bg-white overflow-hidden shadow rounded-lg" }, [
+                      createVNode("div", { class: "p-5" }, [
+                        createVNode("div", { class: "flex items-center" }, [
+                          createVNode("div", { class: "flex-shrink-0" }, [
+                            createVNode(unref(CheckCircle), { class: "h-6 w-6 text-green-400" })
+                          ]),
+                          createVNode("div", { class: "ml-5 w-0 flex-1" }, [
+                            createVNode("dl", null, [
+                              createVNode("dt", { class: "text-sm font-medium text-gray-500 truncate" }, "Paid"),
+                              createVNode("dd", { class: "text-lg font-medium text-gray-900" }, toDisplayString(__props.stats.paid_count), 1)
+                            ])
+                          ])
+                        ])
+                      ])
+                    ])
+                  ]),
+                  createVNode("div", { class: "bg-white shadow overflow-hidden sm:rounded-md mb-6" }, [
+                    createVNode("div", { class: "px-4 py-5 sm:p-6" }, [
+                      createVNode("h3", { class: "text-lg leading-6 font-medium text-gray-900 mb-4" }, "Filters"),
+                      createVNode("div", { class: "grid grid-cols-1 md:grid-cols-3 gap-4" }, [
+                        createVNode("div", null, [
+                          createVNode("label", { class: "block text-sm font-medium text-gray-700 mb-1" }, "Period"),
+                          withDirectives(createVNode("select", {
+                            "onUpdate:modelValue": ($event) => unref(filterForm).period = $event,
+                            class: "w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                          }, [
+                            createVNode("option", { value: "" }, "All Periods"),
+                            (openBlock(true), createBlock(Fragment, null, renderList(__props.periods, (period) => {
+                              return openBlock(), createBlock("option", {
+                                key: period,
+                                value: period
+                              }, toDisplayString(formatPeriod(period)), 9, ["value"]);
+                            }), 128))
+                          ], 8, ["onUpdate:modelValue"]), [
+                            [vModelSelect, unref(filterForm).period]
+                          ])
+                        ]),
+                        createVNode("div", null, [
+                          createVNode("label", { class: "block text-sm font-medium text-gray-700 mb-1" }, "Division"),
+                          withDirectives(createVNode("select", {
+                            "onUpdate:modelValue": ($event) => unref(filterForm).division = $event,
+                            class: "w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                          }, [
+                            createVNode("option", { value: "" }, "All Divisions"),
+                            (openBlock(true), createBlock(Fragment, null, renderList(__props.divisions, (label, key) => {
+                              return openBlock(), createBlock("option", {
+                                key,
+                                value: key
+                              }, toDisplayString(label), 9, ["value"]);
+                            }), 128))
+                          ], 8, ["onUpdate:modelValue"]), [
+                            [vModelSelect, unref(filterForm).division]
+                          ])
+                        ]),
+                        createVNode("div", null, [
+                          createVNode("label", { class: "block text-sm font-medium text-gray-700 mb-1" }, "Status"),
+                          withDirectives(createVNode("select", {
+                            "onUpdate:modelValue": ($event) => unref(filterForm).status = $event,
+                            class: "w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                          }, [
+                            createVNode("option", { value: "" }, "All Statuses"),
+                            createVNode("option", { value: "draft" }, "Draft"),
+                            createVNode("option", { value: "paid" }, "Paid"),
+                            createVNode("option", { value: "cancelled" }, "Cancelled")
+                          ], 8, ["onUpdate:modelValue"]), [
+                            [vModelSelect, unref(filterForm).status]
+                          ])
+                        ])
+                      ]),
+                      createVNode("div", { class: "mt-4 flex items-center gap-2" }, [
+                        createVNode("button", {
+                          type: "button",
+                          onClick: applyFilters,
+                          class: "inline-flex items-center px-4 py-2 bg-sage-600 text-white text-xs font-semibold rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
+                        }, " Apply Filters "),
+                        createVNode("button", {
+                          type: "button",
+                          onClick: resetFilters,
+                          class: "inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-semibold rounded-md text-gray-700 hover:bg-gray-50"
+                        }, " Reset ")
+                      ])
+                    ])
+                  ]),
+                  createVNode("div", { class: "bg-white shadow overflow-hidden sm:rounded-md" }, [
+                    createVNode("div", { class: "px-4 py-5 sm:p-6" }, [
+                      createVNode("div", { class: "overflow-x-auto" }, [
+                        createVNode("table", { class: "min-w-full divide-y divide-gray-200" }, [
+                          createVNode("thead", { class: "bg-gray-50" }, [
+                            createVNode("tr", null, [
+                              createVNode("th", {
+                                scope: "col",
+                                class: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              }, " Employee "),
+                              createVNode("th", {
+                                scope: "col",
+                                class: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              }, " Position "),
+                              createVNode("th", {
+                                scope: "col",
+                                class: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              }, " Period "),
+                              createVNode("th", {
+                                scope: "col",
+                                class: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              }, " Total Salary "),
+                              createVNode("th", {
+                                scope: "col",
+                                class: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              }, " Status "),
+                              createVNode("th", {
+                                scope: "col",
+                                class: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              }, " Salary Date "),
+                              createVNode("th", {
+                                scope: "col",
+                                class: "relative px-6 py-3"
+                              }, [
+                                createVNode("span", { class: "sr-only" }, "Actions")
+                              ])
+                            ])
+                          ]),
+                          createVNode("tbody", { class: "bg-white divide-y divide-gray-200" }, [
+                            !__props.salaries || !__props.salaries.data || __props.salaries.data.length === 0 ? (openBlock(), createBlock("tr", { key: 0 }, [
+                              createVNode("td", {
+                                colspan: "7",
+                                class: "px-6 py-12 text-center text-gray-500"
+                              }, [
+                                createVNode("div", { class: "flex flex-col items-center" }, [
+                                  createVNode(unref(Users), { class: "w-12 h-12 text-gray-300 mb-4" }),
+                                  createVNode("h3", { class: "text-lg font-medium text-gray-900 mb-2" }, "No salary records yet"),
+                                  createVNode("p", { class: "text-sm text-gray-500 mb-4" }, "Start by adding an employee salary record."),
+                                  createVNode(unref(Link), {
+                                    href: _ctx.route("admin-keuangan.employee-salary.create"),
+                                    class: "inline-flex items-center px-4 py-2 bg-sage-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sage-700 focus:bg-sage-700 active:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(Plus), { class: "w-4 h-4 mr-2" }),
+                                      createTextVNode(" Add First Salary ")
+                                    ]),
+                                    _: 1
+                                  }, 8, ["href"])
+                                ])
+                              ])
+                            ])) : (openBlock(true), createBlock(Fragment, { key: 1 }, renderList(__props.salaries.data, (salary) => {
+                              return openBlock(), createBlock("tr", {
+                                key: salary.id,
+                                class: "hover:bg-gray-50"
+                              }, [
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap" }, [
+                                  createVNode("div", { class: "text-sm font-medium text-gray-900" }, toDisplayString(salary.employee_name), 1),
+                                  createVNode("div", { class: "text-sm text-gray-500" }, toDisplayString(salary.employee_id || "N/A"), 1)
+                                ]),
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap" }, [
+                                  createVNode("div", { class: "text-sm text-gray-900" }, toDisplayString(salary.position), 1),
+                                  createVNode("div", { class: "text-sm text-gray-500" }, toDisplayString(getDivisionLabel(salary.division)), 1)
+                                ]),
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap text-sm text-gray-900" }, toDisplayString(formatPeriod(salary.period_month)), 1),
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap" }, [
+                                  createVNode("div", { class: "text-sm font-medium text-gray-900" }, toDisplayString(formatCurrency(salary.total_salary)), 1)
+                                ]),
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap" }, [
+                                  createVNode("span", {
+                                    class: [getStatusBadge(salary.status), "inline-flex px-2 py-1 text-xs font-semibold rounded-full"]
+                                  }, toDisplayString(getStatusText(salary.status)), 3)
+                                ]),
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap text-sm text-gray-500" }, toDisplayString(formatDate(salary.salary_date)), 1),
+                                createVNode("td", { class: "px-6 py-4 whitespace-nowrap text-right text-sm font-medium" }, [
+                                  createVNode("div", { class: "flex space-x-2" }, [
+                                    createVNode(unref(Link), {
+                                      href: _ctx.route("admin-keuangan.employee-salary.show", { employeeSalary: salary.id, ...currentIndexQuery.value }),
+                                      class: "text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50",
+                                      title: "View Details"
+                                    }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(Eye), { class: "w-4 h-4" })
+                                      ]),
+                                      _: 2
+                                    }, 1032, ["href"]),
+                                    salary.status === "draft" ? (openBlock(), createBlock(unref(Link), {
+                                      key: 0,
+                                      href: _ctx.route("admin-keuangan.employee-salary.edit", salary.id),
+                                      class: "text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50",
+                                      title: "Edit"
+                                    }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(Edit), { class: "w-4 h-4" })
+                                      ]),
+                                      _: 2
+                                    }, 1032, ["href"])) : createCommentVNode("", true),
+                                    salary.status === "draft" ? (openBlock(), createBlock("button", {
+                                      key: 1,
+                                      onClick: ($event) => openApproveModal(salary),
+                                      class: "text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50",
+                                      title: "Approve"
+                                    }, [
+                                      createVNode(unref(Check), { class: "w-4 h-4" })
+                                    ], 8, ["onClick"])) : createCommentVNode("", true),
+                                    salary.status === "draft" ? (openBlock(), createBlock("button", {
+                                      key: 2,
+                                      onClick: ($event) => deleteSalary(salary),
+                                      class: "text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50",
+                                      title: "Delete"
+                                    }, [
+                                      createVNode(unref(Trash2), { class: "w-4 h-4" })
+                                    ], 8, ["onClick"])) : createCommentVNode("", true)
+                                  ])
+                                ])
+                              ]);
+                            }), 128))
+                          ])
+                        ])
+                      ]),
+                      __props.salaries && __props.salaries.links ? (openBlock(), createBlock("div", {
+                        key: 0,
+                        class: "mt-6 bg-white px-4 py-3 border border-gray-200 rounded-lg"
+                      }, [
+                        createVNode("div", { class: "flex items-center justify-between" }, [
+                          createVNode("div", { class: "text-sm text-gray-700" }, " Showing " + toDisplayString(__props.salaries.from || 0) + " to " + toDisplayString(__props.salaries.to || 0) + " of " + toDisplayString(__props.salaries.total || 0) + " results ", 1),
+                          createVNode("div", { class: "flex space-x-1" }, [
+                            (openBlock(true), createBlock(Fragment, null, renderList(__props.salaries.links, (link) => {
+                              return openBlock(), createBlock(Fragment, {
+                                key: link.label
+                              }, [
+                                link.url ? (openBlock(), createBlock("button", {
+                                  key: 0,
+                                  onClick: ($event) => visitPage(link.url),
+                                  class: [
+                                    "px-3 py-2 text-sm rounded-md",
+                                    link.active ? "bg-blue-500 text-white" : "bg-white text-gray-500 hover:text-gray-700 border border-gray-300"
+                                  ],
+                                  innerHTML: link.label
+                                }, null, 10, ["onClick", "innerHTML"])) : (openBlock(), createBlock("span", {
+                                  key: 1,
+                                  class: "px-3 py-2 text-sm text-gray-400",
+                                  innerHTML: link.label
+                                }, null, 8, ["innerHTML"]))
+                              ], 64);
+                            }), 128))
+                          ])
+                        ])
+                      ])) : createCommentVNode("", true)
+                    ])
+                  ])
+                ])
+              ]),
+              showApproveModal.value ? (openBlock(), createBlock("div", {
+                key: 0,
+                class: "fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+              }, [
+                createVNode("div", { class: "relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white" }, [
+                  createVNode("div", { class: "flex items-center justify-between mb-4" }, [
+                    createVNode("h3", { class: "text-lg font-semibold text-gray-900" }, "Approve & Pay Salary"),
+                    createVNode("button", {
+                      onClick: closeApproveModal,
+                      class: "text-gray-400 hover:text-gray-600"
+                    }, "×")
+                  ]),
+                  createVNode("div", { class: "space-y-4" }, [
+                    createVNode("div", { class: "text-sm text-gray-600" }, toDisplayString(selectedSalary.value ? `Salary for ${selectedSalary.value.employee_name} totaling ${formatCurrency(selectedSalary.value.total_salary)}` : ""), 1),
+                    createVNode("div", null, [
+                      createVNode("label", { class: "block text-sm font-medium text-gray-700 mb-2" }, "Bank Account"),
+                      withDirectives(createVNode("select", {
+                        "onUpdate:modelValue": ($event) => selectedBankAccountId.value = $event,
+                        class: "w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                      }, [
+                        createVNode("option", {
+                          value: "",
+                          disabled: ""
+                        }, "Select bank account"),
+                        (openBlock(true), createBlock(Fragment, null, renderList(__props.bankAccounts, (account) => {
+                          return openBlock(), createBlock("option", {
+                            key: account.id,
+                            value: account.id
+                          }, toDisplayString(account.bank_name) + " - " + toDisplayString(account.account_number) + " (" + toDisplayString(account.account_name) + ") ", 9, ["value"]);
+                        }), 128))
+                      ], 8, ["onUpdate:modelValue"]), [
+                        [vModelSelect, selectedBankAccountId.value]
+                      ])
+                    ]),
+                    createVNode("div", null, [
+                      createVNode("label", { class: "block text-sm font-medium text-gray-700 mb-2" }, "P&L Account (Salary Expense)"),
+                      withDirectives(createVNode("select", {
+                        "onUpdate:modelValue": ($event) => selectedPlAccountId.value = $event,
+                        class: "w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                      }, [
+                        createVNode("option", {
+                          value: "",
+                          disabled: ""
+                        }, "Select P&L account"),
+                        (openBlock(true), createBlock(Fragment, null, renderList(__props.salaryAccounts, (account) => {
+                          return openBlock(), createBlock("option", {
+                            key: account.id,
+                            value: account.id
+                          }, toDisplayString(account.account_code) + " - " + toDisplayString(account.account_name), 9, ["value"]);
+                        }), 128))
+                      ], 8, ["onUpdate:modelValue"]), [
+                        [vModelSelect, selectedPlAccountId.value]
+                      ])
+                    ])
+                  ]),
+                  createVNode("div", { class: "mt-6 flex justify-end gap-2" }, [
+                    createVNode("button", {
+                      type: "button",
+                      onClick: closeApproveModal,
+                      class: "px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700"
+                    }, " Cancel "),
+                    createVNode("button", {
+                      type: "button",
+                      onClick: submitApprove,
+                      disabled: !selectedBankAccountId.value || !selectedPlAccountId.value,
+                      class: "px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    }, " Approve & Pay ", 8, ["disabled"])
+                  ])
+                ])
+              ])) : createCommentVNode("", true)
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+};
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Admin/AdminKeuangan/EmployeeSalary/Index.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+export {
+  _sfc_main as default
+};

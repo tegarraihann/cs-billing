@@ -7,7 +7,7 @@
             <div class="mb-6">
                 <div class="flex items-center space-x-4 mb-2">
                     <Link
-                        :href="route('admin-keuangan.other-incomes.index')"
+                        :href="route('admin-keuangan.other-incomes.index', returnQuery)"
                         class="text-sage-600 hover:text-sage-800 transition-colors"
                     >
                         <ArrowLeft class="w-5 h-5" />
@@ -300,7 +300,7 @@
                     <!-- Buttons -->
                     <div class="flex justify-end space-x-3 pt-4 border-t border-sage-200">
                         <Link
-                            :href="route('admin-keuangan.other-incomes.index')"
+                            :href="route('admin-keuangan.other-incomes.index', returnQuery)"
                             class="inline-flex items-center px-4 py-2 border border-sage-300 rounded-lg text-sm font-medium text-sage-700 bg-white hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                         >
                             Cancel
@@ -352,6 +352,10 @@ const props = defineProps({
     revenueAccounts: {
         type: Array,
         default: () => [],
+    },
+    returnQuery: {
+        type: Object,
+        default: () => ({}),
     },
 })
 
@@ -489,7 +493,10 @@ const submitForm = () => {
             ...data,
             _method: 'put',
         }))
-        .post(route('admin-keuangan.other-incomes.update', props.otherIncome.id), {
+        .post(route('admin-keuangan.other-incomes.update', {
+            otherIncome: props.otherIncome.id,
+            ...props.returnQuery,
+        }), {
             preserveScroll: true,
             forceFormData: true,
         })

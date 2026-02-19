@@ -530,6 +530,36 @@ const searchForm = reactive({
     date_to: props.filters.date_to || ''
 })
 
+const currentIndexQuery = computed(() => {
+    const query = {
+        search: searchForm.search || undefined,
+        status: searchForm.status || undefined,
+        customer_id: searchForm.customer_id || undefined,
+        date_from: searchForm.date_from || undefined,
+        date_to: searchForm.date_to || undefined
+    }
+
+    const currentPage = props.receivables?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
+})
+
+const buildUrlWithQuery = (path, query = {}) => {
+    const params = new URLSearchParams()
+
+    Object.entries(query).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            params.append(key, value)
+        }
+    })
+
+    const queryString = params.toString()
+    return queryString ? `${path}?${queryString}` : path
+}
+
 const setDefaultMonthFilter = () => {
     if (props.filters.date_from || props.filters.date_to) {
         return
@@ -689,7 +719,12 @@ const getStatusText = (status) => {
 }
 
 const showReceivable = (receivable) => {
-    router.visit(route('admin-keuangan.account-receivables.show', receivable.id))
+    const detailUrl = buildUrlWithQuery(
+        `/admin-keuangan/account-receivables/${receivable.id}`,
+        currentIndexQuery.value
+    )
+
+    router.visit(detailUrl)
 }
 
 const openPaymentModal = (receivable) => {

@@ -20,21 +20,22 @@ class EmployeeSalaryController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->only(['period', 'division', 'status', 'page']);
         $query = EmployeeSalary::with(['creator', 'approver']);
 
-        if ($request->period) {
-            $query->byPeriod($request->period);
+        if ($filters['period'] ?? null) {
+            $query->byPeriod($filters['period']);
         }
 
-        if ($request->division) {
-            $query->byDivision($request->division);
+        if ($filters['division'] ?? null) {
+            $query->byDivision($filters['division']);
         }
 
-        if ($request->status) {
-            $query->byStatus($request->status);
+        if ($filters['status'] ?? null) {
+            $query->byStatus($filters['status']);
         }
 
-        $salaries = $query->orderBy('salary_date', 'desc')->paginate(15);
+        $salaries = $query->orderBy('salary_date', 'desc')->paginate(5)->withQueryString();
         
         $stats = [
             'total_employees' => EmployeeSalary::active()->count(),
@@ -46,7 +47,7 @@ class EmployeeSalaryController extends Controller
         return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/Index', [
             'salaries' => $salaries,
             'stats' => $stats,
-            'filters' => $request->only(['period', 'division', 'status']),
+            'filters' => $filters,
             'divisions' => $this->getDivisions(),
             'periods' => $this->getAvailablePeriods(),
             'bankAccounts' => BankAccount::active()
@@ -130,6 +131,7 @@ class EmployeeSalaryController extends Controller
         
         return Inertia::render('Admin/AdminKeuangan/EmployeeSalary/Show', [
             'salary' => $salary,
+            'filters' => request()->only(['period', 'division', 'status', 'page']),
             'bankAccounts' => BankAccount::active()
                 ->orderBy('bank_name')
                 ->get(['id', 'bank_name', 'account_number', 'account_name']),

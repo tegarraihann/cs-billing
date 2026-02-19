@@ -6,7 +6,7 @@
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="mb-6">
                     <Link 
-                        :href="route('admin-keuangan.profit-loss.show', period.id)" 
+                        :href="route('admin-keuangan.profit-loss.show', { profitLoss: period.id, ...returnQuery })" 
                         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2" />
@@ -125,7 +125,7 @@
 
                             <div class="mt-8 flex justify-end space-x-3">
                                 <Link
-                                    :href="route('admin-keuangan.profit-loss.show', period.id)"
+                                    :href="route('admin-keuangan.profit-loss.show', { profitLoss: period.id, ...returnQuery })"
                                     class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                 >
                                     Cancel
@@ -175,6 +175,10 @@ const props = defineProps({
     period: Object,
     accounts: Array,
     errors: Object,
+    returnQuery: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const form = useForm({
@@ -187,7 +191,10 @@ const form = useForm({
 const processing = computed(() => form.processing)
 
 const submit = () => {
-    form.put(route('admin-keuangan.profit-loss.update', props.period.id))
+    form.put(route('admin-keuangan.profit-loss.update', {
+        profitLoss: props.period.id,
+        ...props.returnQuery
+    }))
 }
 
 const formatDate = (dateString) => {

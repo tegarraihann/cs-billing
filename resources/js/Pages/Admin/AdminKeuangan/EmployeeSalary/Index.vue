@@ -100,6 +100,66 @@
                     </div>
                 </div>
 
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Period</label>
+                                <select
+                                    v-model="filterForm.period"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                >
+                                    <option value="">All Periods</option>
+                                    <option v-for="period in periods" :key="period" :value="period">
+                                        {{ formatPeriod(period) }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                                <select
+                                    v-model="filterForm.division"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                >
+                                    <option value="">All Divisions</option>
+                                    <option v-for="(label, key) in divisions" :key="key" :value="key">
+                                        {{ label }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    v-model="filterForm.status"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
+                                >
+                                    <option value="">All Statuses</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <button
+                                type="button"
+                                @click="applyFilters"
+                                class="inline-flex items-center px-4 py-2 bg-sage-600 text-white text-xs font-semibold rounded-md hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
+                            >
+                                Apply Filters
+                            </button>
+                            <button
+                                type="button"
+                                @click="resetFilters"
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-semibold rounded-md text-gray-700 hover:bg-gray-50"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white shadow overflow-hidden sm:rounded-md">
                     <div class="px-4 py-5 sm:p-6">
                         <div class="overflow-x-auto">
@@ -131,7 +191,7 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-if="!salaries || !salaries.data || salaries.data.length === 0">
-                                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                             <div class="flex flex-col items-center">
                                                 <Users class="w-12 h-12 text-gray-300 mb-4" />
                                                 <h3 class="text-lg font-medium text-gray-900 mb-2">No salary records yet</h3>
@@ -172,7 +232,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex space-x-2">
                                                 <Link 
-                                                    :href="route('admin-keuangan.employee-salary.show', salary.id)"
+                                                    :href="route('admin-keuangan.employee-salary.show', { employeeSalary: salary.id, ...currentIndexQuery })"
                                                     class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
                                                 title="View Details"
                                                 >
@@ -208,10 +268,32 @@
                                 </tbody>
                             </table>
                         </div>
-
-
-                        <div v-if="salaries && salaries.links && salaries.last_page > 1" class="mt-6">
-                            <Pagination :data="salaries" />
+                        <div v-if="salaries && salaries.links" class="mt-6 bg-white px-4 py-3 border border-gray-200 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Showing {{ salaries.from || 0 }} to {{ salaries.to || 0 }} of {{ salaries.total || 0 }} results
+                                </div>
+                                <div class="flex space-x-1">
+                                    <template v-for="link in salaries.links" :key="link.label">
+                                        <button
+                                            v-if="link.url"
+                                            @click="visitPage(link.url)"
+                                            :class="[
+                                                'px-3 py-2 text-sm rounded-md',
+                                                link.active
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                            ]"
+                                            v-html="link.label"
+                                        ></button>
+                                        <span
+                                            v-else
+                                            class="px-3 py-2 text-sm text-gray-400"
+                                            v-html="link.label"
+                                        ></span>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -277,12 +359,11 @@
 
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import Pagination from '@/Components/Pagination.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, router, useRemember } from '@inertiajs/vue3'
 import { Plus, Users, DollarSign, Clock, CheckCircle, Eye, Edit, Check, Trash2, Globe } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
-defineProps({
+const props = defineProps({
     salaries: Object,
     stats: Object,
     filters: Object,
@@ -291,6 +372,59 @@ defineProps({
     bankAccounts: Array,
     salaryAccounts: Array,
 })
+
+const filterForm = useRemember({
+    period: props.filters?.period || '',
+    division: props.filters?.division || '',
+    status: props.filters?.status || '',
+}, 'employee-salary-filters')
+
+const currentIndexQuery = computed(() => {
+    const query = {
+        period: filterForm.period || undefined,
+        division: filterForm.division || undefined,
+        status: filterForm.status || undefined,
+    }
+
+    const currentPage = props.salaries?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
+})
+
+const applyFilters = () => {
+    router.get(route('admin-keuangan.employee-salary.index'), {
+        period: filterForm.period || undefined,
+        division: filterForm.division || undefined,
+        status: filterForm.status || undefined,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
+
+const resetFilters = () => {
+    filterForm.period = ''
+    filterForm.division = ''
+    filterForm.status = ''
+    applyFilters()
+}
+
+const visitPage = (url) => {
+    router.visit(url, {
+        data: {
+            period: filterForm.period || undefined,
+            division: filterForm.division || undefined,
+            status: filterForm.status || undefined,
+        },
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

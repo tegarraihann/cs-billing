@@ -467,6 +467,23 @@ const searchForm = reactive({
     date_to: props.filters.date_to || ''
 })
 
+const currentIndexQuery = computed(() => {
+    const query = {
+        search: searchForm.search || undefined,
+        status: searchForm.status || undefined,
+        vendor_id: searchForm.vendor_id || undefined,
+        date_from: searchForm.date_from || undefined,
+        date_to: searchForm.date_to || undefined,
+    }
+
+    const currentPage = props.payables?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
+})
+
 const setDefaultMonthFilter = () => {
     if (props.filters.date_from || props.filters.date_to) {
         return
@@ -813,7 +830,8 @@ const showPayable = (row) => {
     }
 
     router.visit(route('admin-keuangan.account-payables.show', {
-        accountPayable: row.primaryPayableId
+        accountPayable: row.primaryPayableId,
+        ...currentIndexQuery.value
     }))
 }
 

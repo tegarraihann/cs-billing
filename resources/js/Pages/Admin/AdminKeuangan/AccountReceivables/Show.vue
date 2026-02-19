@@ -649,7 +649,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { router, Head } from '@inertiajs/vue3'
+import { router, Head, usePage } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import AlertDialog from '@/Components/AlertDialog.vue'
 import { ArrowLeft, CreditCard, FileText, MoreVertical } from 'lucide-vue-next'
@@ -668,6 +668,65 @@ const props = defineProps({
         type: Array,
         default: () => []
     }
+})
+
+const page = usePage()
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : ''
+    const params = new URLSearchParams(queryString)
+    const query = {}
+    const preservedKeys = [
+        'search',
+        'status',
+        'customer_id',
+        'date_from',
+        'date_to',
+        'page',
+        'source',
+        'main_page',
+        'reim_page',
+    ]
+
+    preservedKeys.forEach((key) => {
+        const value = params.get(key)
+        if (value) {
+            query[key] = value
+        }
+    })
+
+    return query
+})
+
+const buildUrlWithQuery = (path, query = {}) => {
+    const params = new URLSearchParams()
+
+    Object.entries(query).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            params.append(key, value)
+        }
+    })
+
+    const queryString = params.toString()
+    return queryString ? `${path}?${queryString}` : path
+}
+
+const backDestinationUrl = computed(() => {
+    if (backQuery.value.source === 'opening-receivables') {
+        return buildUrlWithQuery('/admin-keuangan/opening-receivables', {
+            main_page: backQuery.value.main_page || 1,
+            reim_page: backQuery.value.reim_page || 1,
+        })
+    }
+
+    return buildUrlWithQuery('/admin-keuangan/account-receivables', {
+        search: backQuery.value.search,
+        status: backQuery.value.status,
+        customer_id: backQuery.value.customer_id,
+        date_from: backQuery.value.date_from,
+        date_to: backQuery.value.date_to,
+        page: backQuery.value.page,
+    })
 })
 
 const showPaymentModal = ref(false)
@@ -928,7 +987,7 @@ const getInvoiceStatusClass = (status) => {
 }
 
 const goBack = () => {
-    router.visit(route('admin-keuangan.account-receivables.index'))
+    router.visit(backDestinationUrl.value)
 }
 
 const openPaymentModal = () => {

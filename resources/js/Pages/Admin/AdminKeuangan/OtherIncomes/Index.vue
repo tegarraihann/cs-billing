@@ -237,7 +237,10 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex justify-end space-x-2">
                                                 <Link
-                                                    :href="route('admin-keuangan.other-incomes.show', income.id)"
+                                                    :href="route('admin-keuangan.other-incomes.show', {
+                                                        otherIncome: income.id,
+                                                        ...currentIndexQuery
+                                                    })"
                                                     class="text-sage-600 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
                                                     title="View Details"
                                                 >
@@ -245,7 +248,10 @@
                                                 </Link>
                                                 <Link
                                                     v-if="!income.posted_to_profit_loss"
-                                                    :href="route('admin-keuangan.other-incomes.edit', income.id)"
+                                                    :href="route('admin-keuangan.other-incomes.edit', {
+                                                        otherIncome: income.id,
+                                                        ...currentIndexQuery
+                                                    })"
                                                     class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
                                                     title="Edit"
                                                 >
@@ -297,8 +303,32 @@
                             </div>
                         </div>
 
-                        <div v-if="otherIncomes.links && otherIncomes.data.length > 0" class="mt-6">
-                            <Pagination :data="otherIncomes" />
+                        <div v-if="otherIncomes.links && otherIncomes.data.length > 0" class="mt-6 bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Showing {{ otherIncomes.from || 0 }} to {{ otherIncomes.to || 0 }} of {{ otherIncomes.total || 0 }} results
+                                </div>
+                                <div class="flex space-x-1">
+                                    <template v-for="link in otherIncomes.links" :key="link.label">
+                                        <button
+                                            v-if="link.url"
+                                            @click="visitPage(link.url)"
+                                            :class="[
+                                                'px-3 py-2 text-sm rounded-md',
+                                                link.active
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                            ]"
+                                            v-html="link.label"
+                                        ></button>
+                                        <span
+                                            v-else
+                                            class="px-3 py-2 text-sm text-gray-400"
+                                            v-html="link.label"
+                                        ></span>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -309,10 +339,9 @@
 
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import Pagination from '@/Components/Pagination.vue'
 import AlertDialog from '@/Components/AlertDialog.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import {
     Plus,
     Calendar,
@@ -345,6 +374,24 @@ const filterForm = ref({
     posted: props.filters?.posted || '',
     status: props.filters?.status || '',
     customer_id: props.filters?.customer_id || '',
+})
+
+const currentIndexQuery = computed(() => {
+    const query = {
+        start_date: filterForm.value.start_date || '',
+        end_date: filterForm.value.end_date || '',
+        category: filterForm.value.category || '',
+        posted: filterForm.value.posted || '',
+        status: filterForm.value.status || '',
+        customer_id: filterForm.value.customer_id || '',
+    }
+
+    const currentPage = props.otherIncomes?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
 })
 
 const formatCurrency = (amount) => {
@@ -417,9 +464,13 @@ const getCategoryBadge = (category) => {
 }
 
 const applyFilters = () => {
-    router.get(route('admin-keuangan.other-incomes.index'), filterForm.value, {
+    router.get(route('admin-keuangan.other-incomes.index'), {
+        ...filterForm.value,
+        page: 1,
+    }, {
         preserveState: true,
         preserveScroll: true,
+        replace: true,
     })
 }
 
@@ -432,30 +483,65 @@ const resetFilters = () => {
         status: '',
         customer_id: '',
     }
-    router.get(route('admin-keuangan.other-incomes.index'))
+    router.get(route('admin-keuangan.other-incomes.index'), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
 }
 
 const postToProfitLoss = (income) => {
     openConfirm(
         `Post income "${income.description}" to Profit & Loss?`,
-        () => router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', income.id))
+        () => router.post(route('admin-keuangan.other-incomes.post-to-profit-loss', income.id), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        })
     )
 }
 
 const unpostFromProfitLoss = (income) => {
     openConfirm(
         `Unpost income "${income.description}" from Profit & Loss?`,
-        () => router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', income.id))
+        () => router.post(route('admin-keuangan.other-incomes.unpost-from-profit-loss', income.id), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        })
     )
 }
 
 const deleteIncome = (income) => {
     openConfirm(
         `Are you sure you want to delete income "${income.description}"?`,
-        () => router.delete(route('admin-keuangan.other-incomes.destroy', income.id)),
+        () => router.delete(route('admin-keuangan.other-incomes.destroy', {
+            otherIncome: income.id,
+            ...currentIndexQuery.value,
+        }), {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        }),
         'Delete Income'
     )
 }
 
 const closeAndReset = () => closeAlert()
+
+const visitPage = (url) => {
+    if (!url) return
+
+    const target = new URL(url, window.location.origin)
+    const page = target.searchParams.get('page')
+
+    router.get(route('admin-keuangan.other-incomes.index'), {
+        ...filterForm.value,
+        page: page || 1,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
 </script>

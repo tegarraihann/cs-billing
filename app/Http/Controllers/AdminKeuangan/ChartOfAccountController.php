@@ -67,7 +67,7 @@ class ChartOfAccountController extends Controller
             ->unique()
             ->sort()
             ->values();
-
+ 
         $parentAccounts = ChartOfAccount::ordered()
             ->get(['account_code', 'account_name']);
 

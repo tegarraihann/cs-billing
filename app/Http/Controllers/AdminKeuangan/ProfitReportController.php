@@ -46,51 +46,36 @@ class ProfitReportController extends Controller
             $query->where('customer_id', $customerId);
         }
 
-        $salesOrders = $query->get();
+        $salesOrdersForSummary = (clone $query)->get();
 
         // Calculate profit for each sales order
-        $profitData = $salesOrders->map(function ($salesOrder) {
-            // Use invoice data for accurate profit calculation
-            $revenue = $this->calculateTotalRevenue($salesOrder);
-            $operationalCosts = $this->calculateOperationalCosts($salesOrder);
-            $taxExpense = $this->calculateTaxExpense($salesOrder);
-            $costs = $operationalCosts + $taxExpense;
-
-            $profit = $revenue - $costs;
-            $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
-            
-            // Get payment status
-            $invoiceTotal = $salesOrder->invoices->sum('total');
-            $receivablesPaid = $salesOrder->accountReceivables->sum('paid_amount');
-            $payablesPaid = $salesOrder->accountPayables->sum('paid_amount');
-            
-            return [
-                'sales_order' => $salesOrder,
-                'revenue' => $revenue,
-                'costs' => $costs,
-                'operational_costs' => $operationalCosts,
-                'tax_expense' => $taxExpense,
-                'profit' => $profit,
-                'profit_margin' => $profitMargin,
-                'invoice_total' => $invoiceTotal,
-                'receivables_paid' => $receivablesPaid,
-                'payables_paid' => $payablesPaid,
-                'profit_status' => $this->getProfitStatus($profit, $profitMargin)
-            ];
+        $profitSummaryData = $salesOrdersForSummary->map(function ($salesOrder) {
+            return $this->buildProfitData($salesOrder);
         });
+
+        $profitData = (clone $query)
+            ->orderByDesc('created_at')
+            ->paginate(5)
+            ->withQueryString();
+
+        $profitData->setCollection(
+            $profitData->getCollection()->map(function ($salesOrder) {
+                return $this->buildProfitData($salesOrder);
+            })->values()
+        );
 
         // Calculate summary
         $summary = [
-            'total_revenue' => $profitData->sum('revenue'),
-            'total_costs' => $profitData->sum('costs'),
-            'total_tax_expense' => $profitData->sum('tax_expense'),
-            'total_profit' => $profitData->sum('profit'),
-            'total_receivables_paid' => $profitData->sum('receivables_paid'),
-            'total_payables_paid' => $profitData->sum('payables_paid'),
-            'average_profit_margin' => $profitData->avg('profit_margin'),
-            'profitable_shipments' => $profitData->where('profit', '>', 0)->count(),
-            'loss_shipments' => $profitData->where('profit', '<', 0)->count(),
-            'breakeven_shipments' => $profitData->where('profit', '=', 0)->count(),
+            'total_revenue' => $profitSummaryData->sum('revenue'),
+            'total_costs' => $profitSummaryData->sum('costs'),
+            'total_tax_expense' => $profitSummaryData->sum('tax_expense'),
+            'total_profit' => $profitSummaryData->sum('profit'),
+            'total_receivables_paid' => $profitSummaryData->sum('receivables_paid'),
+            'total_payables_paid' => $profitSummaryData->sum('payables_paid'),
+            'average_profit_margin' => $profitSummaryData->avg('profit_margin'),
+            'profitable_shipments' => $profitSummaryData->where('profit', '>', 0)->count(),
+            'loss_shipments' => $profitSummaryData->where('profit', '<', 0)->count(),
+            'breakeven_shipments' => $profitSummaryData->where('profit', '=', 0)->count(),
         ];
 
         // Get customers for filter
@@ -99,7 +84,7 @@ class ProfitReportController extends Controller
             ->get();
 
         return Inertia::render('Admin/AdminKeuangan/Reports/ProfitShipment', [
-            'profitData' => $profitData->values(),
+            'profitData' => $profitData,
             'summary' => $summary,
             'filters' => [
                 'dateFrom' => $filters['dateFrom'],
@@ -203,7 +188,7 @@ class ProfitReportController extends Controller
     /**
      * Get detailed profit analysis for a specific sales order
      */
-    public function salesOrderDetail(SalesOrder $salesOrder)
+    public function salesOrderDetail(Request $request, SalesOrder $salesOrder)
     {
         $salesOrder->load([
             'customer', 
@@ -285,7 +270,13 @@ class ProfitReportController extends Controller
                 'profit_status' => $this->getProfitStatus($profit, $profitMargin)
             ],
             'costBreakdown' => $costBreakdown,
-            'revenueBreakdown' => $revenueBreakdown
+            'revenueBreakdown' => $revenueBreakdown,
+            'returnQuery' => array_filter(
+                $request->only(['period', 'month', 'quarter', 'year', 'date_from', 'date_to', 'customer_id', 'page']),
+                function ($value) {
+                    return $value !== null && $value !== '';
+                }
+            ),
         ]);
     }
 
@@ -406,6 +397,30 @@ class ProfitReportController extends Controller
         } else {
             return 'breakeven';
         }
+    }
+
+    private function buildProfitData(SalesOrder $salesOrder): array
+    {
+        $revenue = $this->calculateTotalRevenue($salesOrder);
+        $operationalCosts = $this->calculateOperationalCosts($salesOrder);
+        $taxExpense = $this->calculateTaxExpense($salesOrder);
+        $costs = $operationalCosts + $taxExpense;
+        $profit = $revenue - $costs;
+        $profitMargin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;
+
+        return [
+            'sales_order' => $salesOrder,
+            'revenue' => $revenue,
+            'costs' => $costs,
+            'operational_costs' => $operationalCosts,
+            'tax_expense' => $taxExpense,
+            'profit' => $profit,
+            'profit_margin' => $profitMargin,
+            'invoice_total' => $salesOrder->invoices->sum('total'),
+            'receivables_paid' => $salesOrder->accountReceivables->sum('paid_amount'),
+            'payables_paid' => $salesOrder->accountPayables->sum('paid_amount'),
+            'profit_status' => $this->getProfitStatus($profit, $profitMargin),
+        ];
     }
 
     private function getPeriodProfitData($dateFrom, $dateTo)

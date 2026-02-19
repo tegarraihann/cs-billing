@@ -64,7 +64,7 @@
                                             </td>
                                             <td class="px-6 py-4 text-right text-sm font-medium">
                                                 <Link
-                                                    :href="route('admin-keuangan.account-payables.show', payable.id)"
+                                                    :href="buildPayableDetailUrl(payable.id)"
                                                     class="text-sage-600 hover:text-sage-900"
                                                 >
                                                     View
@@ -79,8 +79,32 @@
                             </div>
                         </div>
 
-                        <div v-if="section.data" class="mt-6">
-                            <Pagination :data="section.data" />
+                        <div v-if="section.data && section.data.data && section.data.data.length" class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Showing {{ section.data.from || 0 }} to {{ section.data.to || 0 }} of {{ section.data.total || 0 }} results
+                                </div>
+                                <div class="flex space-x-1">
+                                    <template v-for="(link, linkIndex) in section.data.links" :key="`${section.key}-${linkIndex}`">
+                                        <button
+                                            v-if="link.url"
+                                            @click="visitPage(link.url)"
+                                            :class="[
+                                                'px-3 py-2 text-sm rounded-md',
+                                                link.active
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                            ]"
+                                            v-html="link.label"
+                                        ></button>
+                                        <span
+                                            v-else
+                                            class="px-3 py-2 text-sm text-gray-400"
+                                            v-html="link.label"
+                                        ></span>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -91,9 +115,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import Pagination from '@/Components/Pagination.vue'
 
 const props = defineProps({
     payablesMain: Object,
@@ -114,6 +137,40 @@ const sections = computed(() => ([
         data: props.payablesReimbursement,
     },
 ]))
+
+const currentOpeningPaginationQuery = computed(() => ({
+    source: 'opening-payables',
+    main_page: props.payablesMain?.current_page || 1,
+    reim_page: props.payablesReimbursement?.current_page || 1,
+}))
+
+const buildUrlWithQuery = (path, query = {}) => {
+    const params = new URLSearchParams()
+
+    Object.entries(query).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            params.append(key, value)
+        }
+    })
+
+    const queryString = params.toString()
+    return queryString ? `${path}?${queryString}` : path
+}
+
+const buildPayableDetailUrl = (payableId) => {
+    return buildUrlWithQuery(
+        `/admin-keuangan/account-payables/${payableId}`,
+        currentOpeningPaginationQuery.value
+    )
+}
+
+const visitPage = (url) => {
+    router.visit(url, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
 
 const formatDate = (value) => {
     if (!value) return '-'

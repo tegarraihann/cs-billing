@@ -15,14 +15,14 @@
                         </div>
                         <div class="flex space-x-3">
                             <Link
-                                :href="route('admin-keuangan.bank-balance.show', bank.id)"
+                                :href="route('admin-keuangan.bank-balance.show', { bankBalance: bank.id, ...indexFilters })"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
                             >
                                 <Eye class="w-4 h-4 mr-2" />
                                 View Details
                             </Link>
                             <Link
-                                :href="route('admin-keuangan.bank-balance.index')"
+                                :href="route('admin-keuangan.bank-balance.index', indexFilters)"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:ring-offset-2"
                             >
                                 <ArrowLeft class="w-4 h-4 mr-2" />
@@ -43,6 +43,31 @@
                             </div>
                             <div class="text-right">
                                 <CreditCard class="w-16 h-16 text-blue-200" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Period Filter</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Period (YYYY-MM)</label>
+                                <input
+                                    v-model="filterForm.period_month"
+                                    type="month"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500"
+                                />
+                            </div>
+                            <div class="flex items-end">
+                                <button
+                                    type="button"
+                                    @click="applyFilters"
+                                    class="w-full px-4 py-2 bg-sage-600 text-white rounded-md transition-colors hover:bg-sage-700"
+                                >
+                                    Apply
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -75,24 +100,31 @@
 
                                 <!-- Pagination for Balances -->
                                 <div v-if="balances.links" class="mt-4">
-                                    <nav class="flex justify-center">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm text-gray-700">
+                                            Showing {{ balances.from || 0 }} to {{ balances.to || 0 }} of {{ balances.total || 0 }} results
+                                        </div>
                                         <div class="flex space-x-1">
-                                            <template v-for="link in balances.links" :key="link.label">
-                                                <Link
+                                            <template v-for="link in balances.links" :key="`balances-${link.label}`">
+                                                <button
                                                     v-if="link.url"
-                                                    :href="link.url"
-                                                    class="px-3 py-2 text-sm rounded-md"
-                                                    :class="link.active ? 'bg-sage-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+                                                    @click="visitPage(link.url)"
+                                                    :class="[
+                                                        'px-3 py-2 text-sm rounded-md',
+                                                        link.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                                    ]"
                                                     v-html="link.label"
-                                                />
+                                                ></button>
                                                 <span
                                                     v-else
                                                     class="px-3 py-2 text-sm text-gray-400"
                                                     v-html="link.label"
-                                                />
+                                                ></span>
                                             </template>
                                         </div>
-                                    </nav>
+                                    </div>
                                 </div>
                             </div>
 
@@ -139,24 +171,31 @@
 
                                 <!-- Pagination for Transactions -->
                                 <div v-if="transactions.links" class="mt-4">
-                                    <nav class="flex justify-center">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm text-gray-700">
+                                            Showing {{ transactions.from || 0 }} to {{ transactions.to || 0 }} of {{ transactions.total || 0 }} results
+                                        </div>
                                         <div class="flex space-x-1">
-                                            <template v-for="link in transactions.links" :key="link.label">
-                                                <Link
+                                            <template v-for="link in transactions.links" :key="`transactions-${link.label}`">
+                                                <button
                                                     v-if="link.url"
-                                                    :href="link.url"
-                                                    class="px-3 py-2 text-sm rounded-md"
-                                                    :class="link.active ? 'bg-sage-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+                                                    @click="visitPage(link.url)"
+                                                    :class="[
+                                                        'px-3 py-2 text-sm rounded-md',
+                                                        link.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                                    ]"
                                                     v-html="link.label"
-                                                />
+                                                ></button>
                                                 <span
                                                     v-else
                                                     class="px-3 py-2 text-sm text-gray-400"
                                                     v-html="link.label"
-                                                />
+                                                ></span>
                                             </template>
                                         </div>
-                                    </nav>
+                                    </div>
                                 </div>
                             </div>
 
@@ -176,14 +215,15 @@
 </template>
 
 <script setup>
-import { Head, Link } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { Head, Link, router, useRemember } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
     ArrowLeft, Eye, CreditCard, Calendar, Activity,
     TrendingUp, TrendingDown
 } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
     bank: {
         type: Object,
         required: true
@@ -199,8 +239,41 @@ defineProps({
     currentBalance: {
         type: Number,
         default: 0
+    },
+    filters: {
+        type: Object,
+        default: () => ({})
     }
 })
+
+const filterForm = useRemember({
+    period_month: props.filters?.period_month || ''
+}, `bank-balance-history-filters-${props.bank?.id}`)
+
+const indexFilters = computed(() => ({
+    period_month: filterForm.period_month || undefined
+}))
+
+const applyFilters = () => {
+    router.get(route('admin-keuangan.bank-balance.history', props.bank.id), {
+        period_month: filterForm.period_month || undefined
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
+}
+
+const visitPage = (url) => {
+    router.visit(url, {
+        data: {
+            period_month: filterForm.period_month || undefined
+        },
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
+}
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

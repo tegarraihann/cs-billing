@@ -7,7 +7,7 @@
       <div class="mb-6">
         <div class="flex items-center space-x-4 mb-2">
           <Link
-            :href="route('admin-keuangan.general-expenses.index')"
+            :href="route('admin-keuangan.general-expenses.index', returnQuery)"
             class="text-sage-600 hover:text-sage-800 transition-colors"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,13 +288,16 @@
           <!-- Actions -->
           <div class="flex justify-end space-x-3 pt-4 border-t border-sage-200">
             <Link
-              :href="route('admin-keuangan.general-expenses.index')"
+              :href="route('admin-keuangan.general-expenses.index', returnQuery)"
               class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
             >
               Cancel
             </Link>
             <Link
-              :href="route('admin-keuangan.general-expenses.show', generalExpense.id)"
+              :href="route('admin-keuangan.general-expenses.show', {
+                generalExpense: generalExpense.id,
+                ...returnQuery
+              })"
               class="px-4 py-2 text-sm font-medium text-sage-700 bg-white border border-sage-300 rounded-lg hover:bg-sage-50 transition-colors"
             >
               View Details
@@ -337,6 +340,10 @@ const props = defineProps({
   expenseAccounts: {
     type: Array,
     default: () => []
+  },
+  returnQuery: {
+    type: Object,
+    default: () => ({})
   },
   errors: {
     type: Object,
@@ -469,7 +476,10 @@ const submitForm = () => {
   // Set total_amount to calculated total
   form.total_amount = calculatedTotal.value
 
-  form.put(route('admin-keuangan.general-expenses.update', props.generalExpense.id), {
+  form.put(route('admin-keuangan.general-expenses.update', {
+    generalExpense: props.generalExpense.id,
+    ...props.returnQuery
+  }), {
     onSuccess: () => {
       processing.value = false
     },
@@ -494,6 +504,39 @@ const route = window.route || function(name, params) {
     'admin-keuangan.general-expenses.show': (id) => `/admin-keuangan/general-expenses/${id}`,
     'admin-keuangan.general-expenses.update': (id) => `/admin-keuangan/general-expenses/${id}`
   }
-  return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#'
+  const definition = routes[name]
+  if (!definition) {
+    return '#'
+  }
+
+  if (typeof definition !== 'function') {
+    if (!params || typeof params !== 'object') {
+      return definition
+    }
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+    return queryString ? `${definition}?${queryString}` : definition
+  }
+
+  if (params && typeof params === 'object') {
+    const resourceId = params.generalExpense ?? params.id
+    const query = { ...params }
+    delete query.generalExpense
+    delete query.id
+
+    let url = definition(resourceId)
+    const queryString = new URLSearchParams(
+      Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+
+    if (queryString) {
+      url += `?${queryString}`
+    }
+
+    return url
+  }
+
+  return definition(params)
 }
 </script>

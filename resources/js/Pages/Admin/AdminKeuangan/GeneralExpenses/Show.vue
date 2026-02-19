@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-4">
             <Link
-              :href="route('admin-keuangan.general-expenses.index')"
+              :href="route('admin-keuangan.general-expenses.index', returnQuery)"
               class="text-sage-600 hover:text-sage-800 transition-colors"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,7 +27,10 @@
             <div class="flex space-x-2">
               <Link
                 v-if="generalExpense.status === 'draft'"
-                :href="route('admin-keuangan.general-expenses.edit', generalExpense.id)"
+                :href="route('admin-keuangan.general-expenses.edit', {
+                  generalExpense: generalExpense.id,
+                  ...returnQuery
+                })"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <Edit class="w-4 h-4 mr-2" />
@@ -64,21 +67,21 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">Expense Date</label>
-                <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
+                <p class="text-sm text-gray-900 bg-white border border-gray-200 px-3 py-2 rounded-lg">
                   {{ formatDate(generalExpense.expense_date) }}
                 </p>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">Category</label>
-                <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
+                <p class="text-sm text-gray-900 bg-white border border-gray-200 px-3 py-2 rounded-lg">
                   {{ generalExpense.category }}
                 </p>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-sage-700 mb-2">Period</label>
-                <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
+                <p class="text-sm text-gray-900 bg-white border border-gray-200 px-3 py-2 rounded-lg">
                   {{ formatPeriod(generalExpense.period_month, generalExpense.period_year) }}
                 </p>
               </div>
@@ -93,7 +96,7 @@
 
             <div v-if="generalExpense.notes" class="mt-6">
               <label class="block text-sm font-medium text-sage-700 mb-2">Notes</label>
-              <p class="text-sm text-sage-900 bg-sage-50 px-3 py-2 rounded-lg">
+              <p class="text-sm text-gray-900 bg-white border border-gray-200 px-3 py-2 rounded-lg">
                 {{ generalExpense.notes }}
               </p>
             </div>
@@ -107,7 +110,7 @@
               <div
                 v-for="(item, index) in generalExpense.items"
                 :key="item.id"
-                class="p-4 border border-sage-200 rounded-lg bg-sage-50"
+                class="p-4 border border-gray-200 rounded-lg bg-white"
               >
                 <div class="flex justify-between items-start mb-3">
                   <h3 class="text-sm font-medium text-sage-800">Item #{{ index + 1 }}</h3>
@@ -209,7 +212,7 @@
 
             <div class="space-y-3">
               <Link
-                :href="route('admin-keuangan.general-expenses.index')"
+                :href="route('admin-keuangan.general-expenses.index', returnQuery)"
                 class="w-full inline-flex justify-center items-center px-4 py-2 bg-sage-600 text-white text-sm font-medium rounded-lg hover:bg-sage-700 transition-colors"
               >
                 <ArrowLeft class="w-4 h-4 mr-2" />
@@ -292,6 +295,10 @@ const props = defineProps({
   generalExpense: {
     type: Object,
     required: true
+  },
+  returnQuery: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -356,8 +363,10 @@ const confirmDelete = () => {
 
 const deleteExpense = () => {
   router.delete(route('admin-keuangan.general-expenses.destroy', props.generalExpense.id), {
+    data: { ...props.returnQuery },
     onSuccess: () => {
       showDeleteModal.value = false
+      router.visit(route('admin-keuangan.general-expenses.index', props.returnQuery))
     }
   })
 }
@@ -387,6 +396,39 @@ const route = window.route || function(name, params) {
     'admin-keuangan.general-expenses.approve': (id) => `/admin-keuangan/general-expenses/${id}/approve`,
     'admin-keuangan.general-expenses.export': '/admin-keuangan/general-expenses/export'
   }
-  return typeof routes[name] === 'function' ? routes[name](params) : routes[name] || '#'
+  const definition = routes[name]
+  if (!definition) {
+    return '#'
+  }
+
+  if (typeof definition !== 'function') {
+    if (!params || typeof params !== 'object') {
+      return definition
+    }
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+    return queryString ? `${definition}?${queryString}` : definition
+  }
+
+  if (params && typeof params === 'object') {
+    const resourceId = params.generalExpense ?? params.id
+    const query = { ...params }
+    delete query.generalExpense
+    delete query.id
+
+    let url = definition(resourceId)
+    const queryString = new URLSearchParams(
+      Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+
+    if (queryString) {
+      url += `?${queryString}`
+    }
+
+    return url
+  }
+
+  return definition(params)
 }
 </script>

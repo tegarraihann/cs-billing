@@ -282,7 +282,7 @@
                                 </div>
                                 <div class="flex space-x-3">
                                     <Link
-                                        :href="route('admin-keuangan.bank-balance.history', bank.id)"
+                                        :href="route('admin-keuangan.bank-balance.history', { bank: bank.id, period_month: filterForm.period_month })"
                                         class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                     >
                                         <History class="w-4 h-4 mr-2" />
@@ -296,7 +296,7 @@
                                         Export PDF
                                     </a>
                                     <Link
-                                        :href="route('admin-keuangan.bank-balance.show', bank.id)"
+                                        :href="route('admin-keuangan.bank-balance.show', { bankBalance: bank.id, period_month: filterForm.period_month })"
                                         class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                                     >
                                         <Eye class="w-4 h-4 mr-2" />
@@ -322,7 +322,7 @@
 </template>
 
 <script setup>
-import { Head, Link, useForm, router } from '@inertiajs/vue3'
+import { Head, Link, useForm, router, useRemember } from '@inertiajs/vue3'
 import { ref, onMounted } from 'vue'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import {
@@ -362,15 +362,16 @@ const props = defineProps({
     }
 })
 
-const filterForm = useForm({
+const filterForm = useRemember({
     period_month: props.filters?.period_month || props.currentMonth
-})
+}, 'bank-balance-index-filters')
 
 const applyFilters = () => {
     router.get(route('admin-keuangan.bank-balance.index'), {
         period_month: filterForm.period_month
     }, {
         preserveState: true,
+        preserveScroll: true,
         replace: true
     })
 }

@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-4">
             <Link
-              :href="route('admin-keuangan.petty-cash.index')"
+              :href="route('admin-keuangan.petty-cash.index', returnQuery)"
               class="text-sage-600 hover:text-sage-800 transition-colors"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,10 @@
           </div>
           <div class="flex space-x-3">
             <Link
-              :href="route('admin-keuangan.petty-cash.edit', transaction.id)"
+              :href="route('admin-keuangan.petty-cash.edit', {
+                pettyCash: transaction.id,
+                ...returnQuery
+              })"
               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,10 +213,14 @@ import { Link, router } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 // Props
-defineProps({
+const { transaction, returnQuery } = defineProps({
   transaction: {
     type: Object,
     required: true
+  },
+  returnQuery: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -305,8 +312,9 @@ const confirmDelete = () => {
 
 const deleteTransaction = () => {
   router.delete(route('admin-keuangan.petty-cash.destroy', transaction.id), {
+    data: { ...returnQuery },
     onSuccess: () => {
-      router.visit(route('admin-keuangan.petty-cash.index'))
+      router.visit(route('admin-keuangan.petty-cash.index', returnQuery))
     }
   })
 }
@@ -318,11 +326,35 @@ const route = window.route || function(name, params) {
     'admin-keuangan.petty-cash.edit': '/admin-keuangan/petty-cash',
     'admin-keuangan.petty-cash.destroy': '/admin-keuangan/petty-cash'
   }
-  let url = routes[name] || '#'
-  if (params) {
-    url += `/${params}`
+  const fallbackBase = routes[name] || '#'
+
+  if (!params) {
+    return fallbackBase
   }
-  return url
+
+  if (typeof params === 'object') {
+    const resourceId = params.pettyCash ?? params.id
+    const query = { ...params }
+    delete query.pettyCash
+    delete query.id
+
+    let url = fallbackBase
+    if (resourceId !== undefined && resourceId !== null) {
+      url += `/${resourceId}`
+    }
+
+    const queryString = new URLSearchParams(
+      Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ).toString()
+
+    if (queryString) {
+      url += `?${queryString}`
+    }
+
+    return url
+  }
+
+  return `${fallbackBase}/${params}`
 }
 </script>
 

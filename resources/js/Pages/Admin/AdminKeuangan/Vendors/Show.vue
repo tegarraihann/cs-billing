@@ -22,12 +22,12 @@
                                     <FileText class="mr-2 h-4 w-4" />
                                     Export PDF
                                 </a>
-                                <Link :href="route('admin-keuangan.vendors.edit', vendor.id)"
+                                <Link :href="editVendorUrl"
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-600 hover:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                                     <Edit class="mr-2 h-4 w-4" />
                                     Edit
                                 </Link>
-                                <Link :href="route('admin-keuangan.vendors.index')"
+                                <Link :href="backToIndexUrl"
                                     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     <ArrowLeft class="mr-2 h-4 w-4" />
                                     Back
@@ -202,13 +202,37 @@
 </template>
 
 <script setup>
-import { Link, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import { Users, FileText, Edit, ArrowLeft, Trash2 } from "lucide-vue-next";
 
 const props = defineProps({
     vendor: Object,
 });
+
+const page = usePage();
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.vendors.index', backQuery.value));
+const editVendorUrl = computed(() => route('admin-keuangan.vendors.edit', {
+    vendor: props.vendor.id,
+    ...backQuery.value,
+}));
 
 // Route helper definitions
 const routes = {
@@ -236,7 +260,10 @@ const formatDateTime = (dateString) => {
 
 const deleteVendor = () => {
     if (confirm(`Are you sure you want to delete vendor "${props.vendor.nama_vendor}"?`)) {
-        router.delete(route("admin-keuangan.vendors.destroy", props.vendor.id), {
+        router.delete(route("admin-keuangan.vendors.destroy", {
+            vendor: props.vendor.id,
+            ...backQuery.value,
+        }), {
             onSuccess: () => {
                 // Redirect will be handled by the controller
             },

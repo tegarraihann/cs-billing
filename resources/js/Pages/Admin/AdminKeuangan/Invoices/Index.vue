@@ -202,7 +202,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div class="flex justify-center gap-2">
                         <Link
-                          :href="route('admin-keuangan.invoices.show', invoice.id)"
+                          :href="getInvoiceDetailUrl(invoice.id)"
                           class="text-blue-600 hover:text-blue-900"
                         >
                           View
@@ -239,7 +239,7 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { Plus, DollarSign, FileText, CheckCircle, Clock } from 'lucide-vue-next';
 
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 
@@ -249,13 +249,52 @@ const props = defineProps({
   stats: Object,
 });
 
-const route = window.route || function(name, params) {
+const appendQuery = (path, query = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(query || {}).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      params.append(key, value);
+    }
+  });
+
+  const queryString = params.toString();
+  return queryString ? `${path}?${queryString}` : path;
+};
+
+const route = (name, params = {}) => {
+  if (window.route) {
+    return window.route(name, params);
+  }
+
   const routes = {
     'admin-keuangan.invoices.index': '/admin-keuangan/invoices',
     'admin-keuangan.invoices.create': '/admin-keuangan/invoices/create',
-    'admin-keuangan.invoices.show': (id) => `/admin-keuangan/invoices/${id}`,
+    'admin-keuangan.invoices.show': '/admin-keuangan/invoices',
   };
-  return routes[name] ? (typeof routes[name] === 'function' ? routes[name](params) : routes[name]) : '#';
+
+  if (name === 'admin-keuangan.invoices.show') {
+    if (typeof params === 'number' || typeof params === 'string') {
+      return `/admin-keuangan/invoices/${params}`;
+    }
+
+    const invoiceId = params.invoice ?? params.id;
+    const query = { ...params };
+    delete query.invoice;
+    delete query.id;
+
+    if (!invoiceId) {
+      return '#';
+    }
+
+    return appendQuery(`/admin-keuangan/invoices/${invoiceId}`, query);
+  }
+
+  const basePath = routes[name];
+  if (!basePath) {
+    return '#';
+  }
+
+  return appendQuery(basePath, params);
 };
 
 const form = reactive({
@@ -264,6 +303,28 @@ const form = reactive({
   invoice_type: props.filters?.invoice_type || '',
   date_from: props.filters?.date_from || '',
   date_to: props.filters?.date_to || ''
+});
+
+const currentIndexQuery = computed(() => {
+  const query = {
+    search: form.search || undefined,
+    status: form.status || undefined,
+    invoice_type: form.invoice_type || undefined,
+    date_from: form.date_from || undefined,
+    date_to: form.date_to || undefined,
+  };
+
+  const currentPage = props.invoices?.current_page;
+  if (currentPage && Number(currentPage) > 1) {
+    query.page = currentPage;
+  }
+
+  return query;
+});
+
+const getInvoiceDetailUrl = (invoiceId) => route('admin-keuangan.invoices.show', {
+  invoice: invoiceId,
+  ...currentIndexQuery.value,
 });
 
 const search = debounce(() => {

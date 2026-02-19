@@ -133,8 +133,35 @@
                             </table>
                         </div>
 
-                        <div class="mt-4">
-                            <Pagination :data="transactions" />
+                        <div
+                            v-if="transactions.links && transactions.data.length > 0"
+                            class="mt-4 bg-white px-4 py-3 border-t border-gray-200 sm:px-6"
+                        >
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Showing {{ transactions.from || 0 }} to {{ transactions.to || 0 }} of {{ transactions.total || 0 }} results
+                                </div>
+                                <div class="flex space-x-1">
+                                    <template v-for="link in transactions.links" :key="link.label">
+                                        <button
+                                            v-if="link.url"
+                                            @click="visitPage(link.url)"
+                                            :class="[
+                                                'px-3 py-2 text-sm rounded-md',
+                                                link.active
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                            ]"
+                                            v-html="link.label"
+                                        ></button>
+                                        <span
+                                            v-else
+                                            class="px-3 py-2 text-sm text-gray-400"
+                                            v-html="link.label"
+                                        ></span>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -318,7 +345,6 @@
 
 <script setup>
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
-import Pagination from '@/Components/Pagination.vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { reactive, ref, computed, watch } from 'vue'
 import SearchableSelect from '@/Components/SearchableSelect.vue'
@@ -377,6 +403,22 @@ const filterForm = reactive({
     category: props.filters?.category ?? '',
     date_from: props.filters?.date_from ?? '',
     date_to: props.filters?.date_to ?? ''
+})
+
+const currentIndexQuery = computed(() => {
+    const query = {
+        transaction_type: filterForm.transaction_type || '',
+        category: filterForm.category || '',
+        date_from: filterForm.date_from || '',
+        date_to: filterForm.date_to || ''
+    }
+
+    const currentPage = props.transactions?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
 })
 
 const purchaseForm = useForm({
@@ -440,8 +482,12 @@ const closeDepreciationModal = () => {
 }
 
 const applyFilters = () => {
-    router.get(route('admin-keuangan.equipment.index'), filterForm, {
+    router.get(route('admin-keuangan.equipment.index'), {
+        ...filterForm,
+        page: 1
+    }, {
         preserveState: true,
+        preserveScroll: true,
         replace: true
     })
 }
@@ -451,7 +497,35 @@ const resetFilters = () => {
     filterForm.category = ''
     filterForm.date_from = ''
     filterForm.date_to = ''
-    applyFilters()
+    router.get(route('admin-keuangan.equipment.index'), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
+}
+
+const visitPage = (url) => {
+    if (!url) return
+
+    const target = new URL(url, window.location.origin)
+    const page = target.searchParams.get('page')
+
+    router.get(route('admin-keuangan.equipment.index'), {
+        ...filterForm,
+        page: page || 1
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
+}
+
+const reloadCurrentState = () => {
+    router.get(route('admin-keuangan.equipment.index'), currentIndexQuery.value, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
 }
 
 const submitPurchase = () => {
@@ -459,7 +533,7 @@ const submitPurchase = () => {
         onSuccess: () => {
             closePurchaseModal()
             purchaseForm.reset()
-            applyFilters()
+            reloadCurrentState()
         }
     })
 }
@@ -468,6 +542,8 @@ const submitDepreciation = () => {
     depreciationForm.post(route('admin-keuangan.equipment.depreciation'), {
         onSuccess: () => {
             closeDepreciationModal()
+            depreciationForm.reset()
+            reloadCurrentState()
         }
     })
 }

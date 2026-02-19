@@ -673,7 +673,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { router, Head, useForm } from '@inertiajs/vue3'
+import { router, Head, useForm, usePage } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, CreditCard, Edit, Plus, MoreVertical } from 'lucide-vue-next'
 import AlertDialog from '@/Components/AlertDialog.vue'
@@ -717,6 +717,52 @@ const props = defineProps({
         type: Array,
         default: () => []
     }
+})
+
+const page = usePage()
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : ''
+    const params = new URLSearchParams(queryString)
+    const query = {}
+    const preservedKeys = [
+        'search',
+        'status',
+        'vendor_id',
+        'date_from',
+        'date_to',
+        'page',
+        'source',
+        'main_page',
+        'reim_page',
+    ]
+
+    preservedKeys.forEach((key) => {
+        const value = params.get(key)
+        if (value) {
+            query[key] = value
+        }
+    })
+
+    return query
+})
+
+const backDestinationUrl = computed(() => {
+    if (backQuery.value.source === 'opening-payables') {
+        return route('admin-keuangan.opening-payables.index', {
+            main_page: backQuery.value.main_page || 1,
+            reim_page: backQuery.value.reim_page || 1,
+        })
+    }
+
+    return route('admin-keuangan.account-payables.index', {
+        search: backQuery.value.search,
+        status: backQuery.value.status,
+        vendor_id: backQuery.value.vendor_id,
+        date_from: backQuery.value.date_from,
+        date_to: backQuery.value.date_to,
+        page: backQuery.value.page,
+    })
 })
 
 const bankAccounts = computed(() => props.bankAccounts ?? [])
@@ -1365,7 +1411,7 @@ const postPph23Payable2 = (component = null) => {
 }
 
 const goBack = () => {
-    router.visit(route('admin-keuangan.account-payables.index'))
+    router.visit(backDestinationUrl.value)
 }
 
 const resetPaymentForm = () => {

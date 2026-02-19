@@ -118,39 +118,69 @@ class BankBalanceController extends Controller
         }
     }
 
-    public function show(BankAccount $bankBalance)
+    public function show(Request $request, BankAccount $bankBalance)
     {
+        $periodMonth = $request->input('period_month');
         $bank = $bankBalance->load(['balances' => function($query) {
             $query->orderBy('period_month', 'desc');
-        }, 'transactions' => function($query) {
+        }, 'transactions' => function($query) use ($periodMonth) {
+            if ($periodMonth) {
+                $start = Carbon::createFromFormat('Y-m', $periodMonth)->startOfMonth()->toDateString();
+                $end = Carbon::createFromFormat('Y-m', $periodMonth)->endOfMonth()->toDateString();
+                $query->whereBetween('transaction_date', [$start, $end]);
+            }
+
             $query->orderBy('transaction_date', 'desc')->limit(50);
         }]);
 
         return Inertia::render('Admin/AdminKeuangan/BankBalance/Show', [
             'bank' => $bank,
-            'currentBalance' => $bank->getCurrentBalance(),
-            'stats' => $this->getBankStats($bank),
+            'currentBalance' => $periodMonth ? $bank->getBalanceForMonth($periodMonth) : $bank->getCurrentBalance(),
+            'stats' => $this->getBankStats($bank, $periodMonth),
             'transactions' => $bank->transactions,
+            'filters' => [
+                'period_month' => $periodMonth,
+            ],
         ]);
     }
 
-    public function history(BankAccount $bank)
+    public function history(Request $request, BankAccount $bank)
     {
-        $balances = $bank->balances()
-                        ->orderBy('period_month', 'desc')
-                        ->paginate(12);
+        $periodMonth = $request->input('period_month');
+        $balancesQuery = $bank->balances()
+                        ->orderBy('period_month', 'desc');
 
-        $transactions = $bank->transactions()
+        if ($periodMonth) {
+            $balancesQuery->where('period_month', $periodMonth);
+        }
+
+        $balances = $balancesQuery
+                        ->paginate(12, ['*'], 'balances_page')
+                        ->withQueryString();
+
+        $transactionsQuery = $bank->transactions()
                             ->with('creator')
                             ->orderBy('transaction_date', 'desc')
-                            ->orderBy('created_at', 'desc')
-                            ->paginate(20);
+                            ->orderBy('created_at', 'desc');
+
+        if ($periodMonth) {
+            $start = Carbon::createFromFormat('Y-m', $periodMonth)->startOfMonth()->toDateString();
+            $end = Carbon::createFromFormat('Y-m', $periodMonth)->endOfMonth()->toDateString();
+            $transactionsQuery->whereBetween('transaction_date', [$start, $end]);
+        }
+
+        $transactions = $transactionsQuery
+                            ->paginate(20, ['*'], 'transactions_page')
+                            ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/BankBalance/History', [
             'bank' => $bank,
             'balances' => $balances,
             'transactions' => $transactions,
-            'currentBalance' => $bank->getCurrentBalance()
+            'currentBalance' => $periodMonth ? $bank->getBalanceForMonth($periodMonth) : $bank->getCurrentBalance(),
+            'filters' => [
+                'period_month' => $periodMonth,
+            ],
         ]);
     }
 
@@ -363,9 +393,9 @@ class BankBalanceController extends Controller
         ];
     }
 
-    private function getBankStats(BankAccount $bank): array
+    private function getBankStats(BankAccount $bank, ?string $periodMonth = null): array
     {
-        $currentMonth = Carbon::now()->format('Y-m');
+        $currentMonth = $periodMonth ?: Carbon::now()->format('Y-m');
 
         $creditThisMonth = $bank->transactions()
                                ->forMonth($currentMonth)

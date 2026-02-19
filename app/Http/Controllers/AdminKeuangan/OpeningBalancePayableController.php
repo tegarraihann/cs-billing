@@ -18,7 +18,7 @@ class OpeningBalancePayableController extends Controller
             ->where('is_opening', true)
             ->where('opening_type', 'main')
             ->orderByDesc('vendor_invoice_date')
-            ->paginate(15, ['*'], 'main_page')
+            ->paginate(5, ['*'], 'main_page')
             ->withQueryString();
 
         $payablesReimbursement = AccountPayable::query()
@@ -26,7 +26,7 @@ class OpeningBalancePayableController extends Controller
             ->where('is_opening', true)
             ->where('opening_type', 'reimbursement')
             ->orderByDesc('vendor_invoice_date')
-            ->paginate(15, ['*'], 'reim_page')
+            ->paginate(5, ['*'], 'reim_page')
             ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/OpeningPayables/Index', [

@@ -178,12 +178,12 @@
                                         <!-- Aksi -->
                                         <td class="px-6 py-4 text-sm font-medium">
                                             <div class="flex items-center space-x-2">
-                                                <Link :href="route('admin-keuangan.sales-orders.show', salesOrder.id)"
+                                                <Link :href="getShowUrl(salesOrder.id)"
                                                     class="text-sage-800 hover:text-sage-900 p-2 rounded-md hover:bg-sage-50"
                                                     title="View Details">
                                                     <Eye class="w-4 h-4" />
                                                 </Link>
-                                                <Link :href="route('admin-keuangan.sales-orders.edit', salesOrder.id)"
+                                                <Link :href="getEditUrl(salesOrder.id)"
                                                     class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
                                                     title="Edit">
                                                     <Edit class="w-4 h-4" />
@@ -217,7 +217,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -234,6 +234,35 @@ const form = reactive({
     start_date: props.filters.start_date || '',
     end_date: props.filters.end_date || '',
 });
+
+const currentIndexQuery = computed(() => {
+    const query = {};
+
+    if (form.search) query.search = form.search;
+    if (form.start_date) query.start_date = form.start_date;
+    if (form.end_date) query.end_date = form.end_date;
+
+    const currentPage = props.salesOrders?.current_page;
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage;
+    }
+
+    return query;
+});
+
+const getShowUrl = (salesOrderId) => {
+    return route('admin-keuangan.sales-orders.show', {
+        salesOrder: salesOrderId,
+        ...currentIndexQuery.value,
+    });
+};
+
+const getEditUrl = (salesOrderId) => {
+    return route('admin-keuangan.sales-orders.edit', {
+        salesOrder: salesOrderId,
+        ...currentIndexQuery.value,
+    });
+};
 
 const applyFilters = () => {
     router.get(route('admin-keuangan.sales-orders.index'), {

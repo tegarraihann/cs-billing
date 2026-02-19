@@ -20,12 +20,12 @@
                                 <FileText class="mr-2 h-4 w-4" />
                                 Export PDF
                             </a>
-                            <Link :href="route('admin-keuangan.customers.edit', customer.id)"
+                            <Link :href="editCustomerUrl"
                                 class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage-700 hover:bg-sage-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                                 <Edit class="mr-2 h-4 w-4" />
                                 Edit
                             </Link>
-                            <Link :href="route('admin-keuangan.customers.index')"
+                            <Link :href="backToIndexUrl"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500">
                                 <ArrowLeft class="mr-2 h-4 w-4" />
                                 Back
@@ -201,13 +201,37 @@
 </template>
 
 <script setup>
-import { Link } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
 import { Users, FileText, Edit, ArrowLeft, Building, User, TrendingUp } from "lucide-vue-next";
 
 const props = defineProps({
     customer: Object,
 });
+
+const page = usePage();
+
+const backQuery = computed(() => {
+    const queryString = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const query = {};
+
+    ['search', 'page'].forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            query[key] = value;
+        }
+    });
+
+    return query;
+});
+
+const backToIndexUrl = computed(() => route('admin-keuangan.customers.index', backQuery.value));
+const editCustomerUrl = computed(() => route('admin-keuangan.customers.edit', {
+    customer: props.customer.id,
+    ...backQuery.value,
+}));
 
 // Route helper definitions
 const routes = {

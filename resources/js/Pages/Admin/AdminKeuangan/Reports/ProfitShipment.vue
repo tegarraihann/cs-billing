@@ -237,7 +237,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr
-                                v-for="item in profitData"
+                                v-for="item in profitRows"
                                 :key="item.sales_order.id"
                                 class="hover:bg-gray-50"
                             >
@@ -292,13 +292,41 @@
                                     </button>
                                 </td>
                             </tr>
-                            <tr v-if="profitData.length === 0">
+                            <tr v-if="profitRows.length === 0">
                                 <td colspan="9" class="px-6 py-4 text-center text-gray-500">
                                     No data for the selected period
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Showing {{ profitData?.from || 0 }} to {{ profitData?.to || 0 }} of {{ profitData?.total || 0 }} results
+                        </div>
+                        <div class="flex space-x-1">
+                            <template v-for="link in (profitData?.links || [])" :key="link.label">
+                                <button
+                                    v-if="link.url"
+                                    @click="visitPage(link.url)"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-md',
+                                        link.active
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                    ]"
+                                    v-html="link.label"
+                                ></button>
+                                <span
+                                    v-else
+                                    class="px-3 py-2 text-sm text-gray-400"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -314,8 +342,11 @@ import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue"
 
 const props = defineProps({
     profitData: {
-        type: Array,
-        default: () => []
+        type: Object,
+        default: () => ({
+            data: [],
+            links: []
+        })
     },
     summary: {
         type: Object,
@@ -371,10 +402,30 @@ const searchForm = reactive({
     customer_id: props.filters.customerId || ""
 })
 
+const profitRows = computed(() => props.profitData?.data || [])
+
 const isMonthly = computed(() => searchForm.period === "monthly")
 const isQuarterly = computed(() => searchForm.period === "quarterly")
 const isCustomPeriod = computed(() => searchForm.period === "custom")
 const showYearSelect = computed(() => ["monthly", "quarterly", "yearly"].includes(searchForm.period))
+
+const currentIndexQuery = computed(() => {
+    const payload = buildFilterPayload()
+    const query = {}
+
+    Object.entries(payload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            query[key] = value
+        }
+    })
+
+    const currentPage = props.profitData?.current_page
+    if (currentPage && Number(currentPage) > 1) {
+        query.page = currentPage
+    }
+
+    return query
+})
 
 const isInitializing = ref(true)
 const isExporting = ref(false)
@@ -627,7 +678,18 @@ const exportPdf = async () => {
 }
 
 const viewDetail = (salesOrder) => {
-    router.visit(route("admin-keuangan.profit-reports.sales-order-detail", salesOrder.id))
+    router.visit(route("admin-keuangan.profit-reports.sales-order-detail", {
+        salesOrder: salesOrder.id,
+        ...currentIndexQuery.value
+    }))
+}
+
+const visitPage = (url) => {
+    router.visit(url, {
+        data: buildFilterPayload(),
+        preserveState: true,
+        replace: true
+    })
 }
 </script>
 

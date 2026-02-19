@@ -53,7 +53,8 @@ class CustomerController extends Controller
             ->orderByRaw('sort_name asc')
             ->orderByRaw("{$trimmedName} asc")
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/Customers/Index', [
             'customers' => $customers,
@@ -228,14 +229,14 @@ class CustomerController extends Controller
         $customer->update($validated);
 
         return redirect()
-            ->route('admin-keuangan.customers.index')
+            ->route('admin-keuangan.customers.index', $request->only(['search', 'page']))
             ->with('success', 'Data pelanggan berhasil diperbarui.');
     }
 
     /**
      * Remove the specified customer
      */
-    public function destroy(Customer $customer)
+    public function destroy(Request $request, Customer $customer)
     {
         // Delete associated files
         if ($customer->photo_path) {
@@ -248,7 +249,7 @@ class CustomerController extends Controller
         $customer->delete();
 
         return redirect()
-            ->route('admin-keuangan.customers.index')
+            ->route('admin-keuangan.customers.index', $request->only(['search', 'page']))
             ->with('success', 'Data pelanggan berhasil dihapus.');
     }
 

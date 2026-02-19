@@ -42,7 +42,7 @@ class EquipmentTransactionController extends Controller
             $query->where('category', $request->category);
         }
 
-        $transactions = $query->paginate(15)->withQueryString();
+        $transactions = $query->paginate(5)->withQueryString();
 
         $totalPurchase = EquipmentTransaction::purchases()->sum('amount');
         $totalDepreciation = EquipmentTransaction::depreciations()->sum('amount');
@@ -66,7 +66,7 @@ class EquipmentTransactionController extends Controller
             'expenseAccounts' => ChartOfAccount::where('account_type', 'expense')
                 ->orderBy('account_code')
                 ->get(['id', 'account_code', 'account_name']),
-            'filters' => $request->only(['transaction_type', 'date_from', 'date_to', 'category']),
+            'filters' => $request->only(['transaction_type', 'date_from', 'date_to', 'category', 'page']),
         ]);
     }
 

@@ -52,7 +52,7 @@ class OtherIncomeController extends Controller
             }
         }
 
-        $otherIncomes = $query->paginate(15)->withQueryString();
+        $otherIncomes = $query->paginate(5)->withQueryString();
 
         $summary = [
             'total_amount' => OtherIncome::sum('amount'),
@@ -88,7 +88,7 @@ class OtherIncomeController extends Controller
                 OtherIncome::STATUS_PARTIAL,
                 OtherIncome::STATUS_PAID,
             ],
-            'filters' => $request->only(['start_date', 'end_date', 'category', 'posted', 'status', 'customer_id']),
+            'filters' => $request->only(['start_date', 'end_date', 'category', 'posted', 'status', 'customer_id', 'page']),
         ]);
     }
 
@@ -143,7 +143,7 @@ class OtherIncomeController extends Controller
             ->with('success', 'Pendapatan lain-lain berhasil ditambahkan.');
     }
 
-    public function show(OtherIncome $otherIncome)
+    public function show(Request $request, OtherIncome $otherIncome)
     {
         $otherIncome->load(['creator', 'approver', 'customer', 'payments.creator', 'payments.bankAccount']);
 
@@ -155,10 +155,11 @@ class OtherIncomeController extends Controller
                 OtherIncome::STATUS_PARTIAL,
                 OtherIncome::STATUS_PAID,
             ],
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
-    public function edit(OtherIncome $otherIncome)
+    public function edit(Request $request, OtherIncome $otherIncome)
     {
         $categories = OperationalCostCategory::orderBy('name')
             ->pluck('name')
@@ -175,6 +176,7 @@ class OtherIncomeController extends Controller
             'linkedBankAccountId' => $linkedBankAccountId,
             'revenueAccounts' => ChartOfAccount::orderBy('account_code')
                 ->get(['id', 'account_code', 'account_name']),
+            'returnQuery' => $this->resolveIndexQuery($request),
         ]);
     }
 
@@ -243,7 +245,10 @@ class OtherIncomeController extends Controller
             }
         });
 
-        return redirect()->route('admin-keuangan.other-incomes.show', $otherIncome->id)
+        return redirect()->route('admin-keuangan.other-incomes.show', [
+            'otherIncome' => $otherIncome->id,
+            ...$this->resolveIndexQuery($request),
+        ])
             ->with('success', 'Pendapatan lain-lain berhasil diperbarui.');
     }
 
@@ -302,7 +307,7 @@ class OtherIncomeController extends Controller
         return back()->with('success', 'Pembayaran piutang berhasil dicatat.');
     }
 
-    public function destroy(OtherIncome $otherIncome)
+    public function destroy(Request $request, OtherIncome $otherIncome)
     {
         if ($otherIncome->posted_to_profit_loss) {
             return redirect()->back()
@@ -319,7 +324,7 @@ class OtherIncomeController extends Controller
             $otherIncome->delete();
         });
 
-        return redirect()->route('admin-keuangan.other-incomes.index')
+        return redirect()->route('admin-keuangan.other-incomes.index', $this->resolveIndexQuery($request))
             ->with('success', 'Pendapatan lain-lain berhasil dihapus.');
     }
 
@@ -445,5 +450,20 @@ class OtherIncomeController extends Controller
         }
 
         return $createdEntries;
+    }
+
+    private function resolveIndexQuery(Request $request): array
+    {
+        return collect([
+            'start_date' => $request->query('start_date'),
+            'end_date' => $request->query('end_date'),
+            'category' => $request->query('category'),
+            'posted' => $request->query('posted'),
+            'status' => $request->query('status'),
+            'customer_id' => $request->query('customer_id'),
+            'page' => $request->query('page'),
+        ])
+            ->filter(fn ($value) => $value !== null && $value !== '')
+            ->toArray();
     }
 }

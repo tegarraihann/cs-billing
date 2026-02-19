@@ -22,7 +22,7 @@ class EquityController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = $request->only(['type', 'status', 'start_date', 'end_date', 'opening']);
+        $filters = $request->only(['type', 'status', 'start_date', 'end_date', 'opening', 'page']);
 
         $entries = EquityEntry::query()
             ->with(['bankAccount', 'account', 'creator'])
@@ -43,7 +43,7 @@ class EquityController extends Controller
             })
             ->orderByDesc('entry_date')
             ->orderByDesc('created_at')
-            ->paginate(15)
+            ->paginate(5)
             ->withQueryString();
 
         $summary = EquityEntry::query()
@@ -286,7 +286,7 @@ class EquityController extends Controller
             'typeConfig' => $config,
             'bankAccounts' => BankAccount::active()->get(['id', 'bank_name', 'account_number', 'account_name']),
             'canSettle' => $canSettle,
-            'filters' => request()->only(['type', 'status', 'start_date', 'end_date', 'opening']),
+            'filters' => request()->only(['type', 'status', 'start_date', 'end_date', 'opening', 'page']),
         ]);
     }
 
