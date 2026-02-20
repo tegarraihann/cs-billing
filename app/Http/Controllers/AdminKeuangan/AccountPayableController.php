@@ -1203,12 +1203,25 @@ class AccountPayableController extends Controller
         }
 
         if ($dateFrom = $request->get('date_from')) {
-            $query->whereDate('vendor_invoice_date', '>=', $dateFrom);
+            $this->applyDateFallbackFilter($query, '>=', $dateFrom);
         }
 
         if ($dateTo = $request->get('date_to')) {
-            $query->whereDate('vendor_invoice_date', '<=', $dateTo);
+            $this->applyDateFallbackFilter($query, '<=', $dateTo);
         }
+    }
+
+    private function applyDateFallbackFilter($query, string $operator, string $date): void
+    {
+        $query->where(function ($dateQuery) use ($operator, $date) {
+            $dateQuery->where(function ($invoiceDateQuery) use ($operator, $date) {
+                $invoiceDateQuery->whereNotNull('vendor_invoice_date')
+                    ->whereDate('vendor_invoice_date', $operator, $date);
+            })->orWhere(function ($createdDateQuery) use ($operator, $date) {
+                $createdDateQuery->whereNull('vendor_invoice_date')
+                    ->whereDate('created_at', $operator, $date);
+            });
+        });
     }
 
     private function fetchPayablesBySalesOrder(Request $request, array $salesOrderIds): Collection
