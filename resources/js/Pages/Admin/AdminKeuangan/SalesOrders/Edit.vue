@@ -607,13 +607,12 @@
                                             <h4 class="text-md font-semibold text-orange-800">Other Costs
                                                 (Operational)</h4>
                                             <button type="button" @click="addOtherCost"
-                                                :disabled="isPricingLocked"
-                                                :class="[
-                                                    'text-sm bg-orange-600 text-white px-3 py-1 rounded transition-colors',
-                                                    isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-orange-700'
-                                                ]">
+                                                class="text-sm bg-orange-600 text-white px-3 py-1 rounded transition-colors hover:bg-orange-700">
                                                 + Add Cost
                                             </button>
+                                        </div>
+                                        <div v-if="hasLockedOtherCosts" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                            Beberapa item sudah <strong>Paid</strong> di AP, jadi item tersebut terkunci dan tidak bisa diubah/dihapus.
                                         </div>
 
                                         <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
@@ -621,7 +620,7 @@
                                                 class="relative border border-orange-200 rounded-lg p-3 bg-white">
                                                 <button type="button" @click="removeOtherCost(index)"
                                                     class="absolute bottom-1 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                                                    :disabled="isPricingLocked || form.other_costs.length <= 1">
+                                                    :disabled="isOtherCostLocked(cost) || form.other_costs.length <= 1">
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
                                                 <div class="grid grid-cols-12 gap-3">
@@ -630,6 +629,7 @@
                                                             class="block text-xs font-medium text-orange-700 mb-1">Cost Description</label>
                                                         <input v-model="cost.description" type="text"
                                                             placeholder="Example: handling fees, documents, etc."
+                                                            :disabled="isOtherCostLocked(cost)"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -637,7 +637,7 @@
                                                             class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
                                                     <input v-model="cost.amount" type="number" min="0" step="0.01"
                                                         placeholder="0"
-                                                        :disabled="isPricingLocked"
+                                                        :disabled="isOtherCostLocked(cost)"
                                                         @input="(e) => onCostAmountInput(cost)"
                                                         @blur="() => recalculateCostAmount(cost)"
                                                         class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
@@ -651,7 +651,7 @@
                                                             (Optional)</label>
                                                         <input v-model="cost.quantity" type="number" min="0" step="0.01"
                                                             placeholder="Quantity"
-                                                            :disabled="isPricingLocked"
+                                                            :disabled="isOtherCostLocked(cost)"
                                                             @input="() => recalculateCostAmount(cost)"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                                     </div>
@@ -660,6 +660,7 @@
                                                             class="block text-xs font-medium text-orange-700 mb-1">Unit
                                                             (Optional)</label>
                                                         <input v-model="cost.unit" type="text" placeholder="Unit"
+                                                            :disabled="isOtherCostLocked(cost)"
                                                             class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -670,6 +671,7 @@
                                                             placeholder="Select category" label-field="label"
                                                             value-field="value" sub-label-field="description"
                                                             :search-fields="['label', 'description']"
+                                                            :disabled="isOtherCostLocked(cost)"
                                                             :input-class="`w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${baseOperationalCostCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -679,6 +681,7 @@
                                                             :options="vendorSelectOptions"
                                                             placeholder="Select vendor"
                                                             :search-fields="['label']"
+                                                            :disabled="isOtherCostLocked(cost)"
                                                             :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
                                                         <p class="text-xs text-orange-600 mt-1">Select vendor jika sudah
                                                             tahu akan
@@ -699,11 +702,7 @@
                                             <!-- Bottom Add Button for Other Costs -->
                                             <div class="mt-6 pt-4 border-t border-orange-200">
                                                 <button type="button" @click="addOtherCost"
-                                                    :disabled="isPricingLocked"
-                                                    :class="[
-                                                        'w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-orange-200 rounded-lg text-orange-700 transition-colors',
-                                                        isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-orange-300 hover:bg-orange-50'
-                                                    ]">
+                                                    class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-orange-200 rounded-lg text-orange-700 transition-colors hover:border-orange-300 hover:bg-orange-50">
                                                     <Plus class="w-5 h-5 mb-1" />
                                                     <span class="text-sm font-medium">Add Another Cost</span>
                                                 </button>
@@ -735,13 +734,12 @@
                                         <div class="flex justify-between items-center mb-4">
                                             <h4 class="text-md font-semibold text-purple-800">Reimbursement Items</h4>
                                             <button type="button" @click="addReimbursementItem"
-                                                :disabled="isPricingLocked"
-                                                :class="[
-                                                    'text-sm bg-purple-600 text-white px-3 py-1 rounded transition-colors',
-                                                    isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
-                                                ]">
+                                                class="text-sm bg-purple-600 text-white px-3 py-1 rounded transition-colors hover:bg-purple-700">
                                                 + Add Reimbursement
                                             </button>
+                                        </div>
+                                        <div v-if="hasLockedReimbursements" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                            Item reimbursement yang sudah <strong>Paid</strong> di AP terkunci dan tidak bisa diubah/dihapus.
                                         </div>
 
                                         <div v-if="reimbursementItems && reimbursementItems.length > 0"
@@ -749,10 +747,10 @@
                                             <div v-for="(item, index) in reimbursementItems" :key="'reimburse-' + index"
                                                 class="relative border border-purple-200 rounded-lg p-3 pb-8 bg-white">
                                                 <button type="button" @click="removeReimbursementItem(index)"
-                                                    :disabled="isPricingLocked"
+                                                    :disabled="isReimbursementLocked(item)"
                                                     :class="[
                                                         'absolute bottom-2 right-4 px-2 py-1 flex items-center justify-center rounded transition-colors',
-                                                        isPricingLocked ? 'opacity-50 cursor-not-allowed text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-100'
+                                                        isReimbursementLocked(item) ? 'opacity-50 cursor-not-allowed text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-100'
                                                     ]">
                                                     <Trash2 class="w-4 h-4" />
                                                 </button>
@@ -762,6 +760,7 @@
                                                             class="block text-xs font-medium text-purple-700 mb-1">Description</label>
                                                         <input v-model="item.description" type="text"
                                                             placeholder="Example: transport, accommodation, etc."
+                                                            :disabled="isReimbursementLocked(item)"
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
                                                     <div class="col-span-6">
@@ -769,13 +768,14 @@
                                                             class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
                                                         <input v-model="item.quantity" type="number" min="0" step="0.01"
                                                             placeholder="1"
-                                                            :disabled="isPricingLocked"
+                                                            :disabled="isReimbursementLocked(item)"
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                                     </div>
                                                     <div class="col-span-6">
                                                         <label
                                                             class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
                                                         <input v-model="item.unit" type="text" placeholder="Unit"
+                                                            :disabled="isReimbursementLocked(item)"
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -783,7 +783,7 @@
                                                             class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
                                                         <input v-model="item.amount" type="number" min="0" step="0.01"
                                                             placeholder="0"
-                                                            :disabled="isPricingLocked"
+                                                            :disabled="isReimbursementLocked(item)"
                                                             class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                                     </div>
                                                     <div class="col-span-12">
@@ -794,6 +794,7 @@
                                                             placeholder="Select category" label-field="label"
                                                             value-field="value" sub-label-field="description"
                                                             :search-fields="['label', 'description']"
+                                                            :disabled="isReimbursementLocked(item)"
                                                             :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
                                                         <p v-if="reimbursementCategoryOptions.length === 0"
                                                             class="text-xs text-purple-600 mt-1">
@@ -808,6 +809,7 @@
                                                             :options="vendorSelectOptions"
                                                             placeholder="Select vendor"
                                                             :search-fields="['label']"
+                                                            :disabled="isReimbursementLocked(item)"
                                                             :input-class="'w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
                                                         <p class="text-xs text-purple-600 mt-1">Select vendor jika sudah
                                                             tahu akan dibayar ke siapa</p>
@@ -819,6 +821,7 @@
                                                         (opsional)</label>
                                                     <textarea v-model="item.notes" rows="2"
                                                         placeholder="Additional notes for this reimbursement item"
+                                                        :disabled="isReimbursementLocked(item)"
                                                         class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"></textarea>
                                                 </div>
                                             </div>
@@ -836,11 +839,7 @@
                                             <!-- Bottom Add Button for Reimbursement -->
                                             <div class="mt-6 pt-4 border-t border-purple-200">
                                                 <button type="button" @click="addReimbursementItem"
-                                                    :disabled="isPricingLocked"
-                                                    :class="[
-                                                        'w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-purple-200 rounded-lg text-purple-700 transition-colors',
-                                                        isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-purple-300 hover:bg-purple-50'
-                                                    ]">
+                                                    class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-purple-200 rounded-lg text-purple-700 transition-colors hover:border-purple-300 hover:bg-purple-50">
                                                     <Plus class="w-5 h-5 mb-1" />
                                                     <span class="text-sm font-medium">Add Another Reimbursement</span>
                                                 </button>
@@ -915,17 +914,19 @@ const initializeOtherCosts = () => {
     if (props.salesOrder.other_costs && Array.isArray(props.salesOrder.other_costs)) {
         return props.salesOrder.other_costs.length > 0
             ? props.salesOrder.other_costs.map(cost => ({
+                id: cost.id || null,
                 description: cost.description || "",
                 amount: cost.amount || 0,
                 category: cost.category || "",
                 notes: cost.notes || "",
                 vendor_id: cost.vendor_id || "",
                 quantity: cost.quantity ?? '',
-                unit: cost.unit ?? ''
+                unit: cost.unit ?? '',
+                is_paid_locked: !!cost.is_paid_locked,
             }))
-            : [{ description: "", amount: 0, category: "", notes: "", vendor_id: "", quantity: "", unit: "" }];
+            : [{ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "", quantity: "", unit: "", is_paid_locked: false }];
     }
-    return [{ description: "", amount: 0, category: "", notes: "", vendor_id: "", quantity: "", unit: "" }];
+    return [{ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "", quantity: "", unit: "", is_paid_locked: false }];
 };
 
 // Initialize reimbursement items from salesOrder data
@@ -995,7 +996,12 @@ const showDetailUrl = computed(() => route('admin-keuangan.sales-orders.show', {
     ...backQuery.value,
 }));
 
-const isPricingLocked = computed(() => props.salesOrder?.is_pricing_locked ?? false);
+// Global lock dimatikan: lock hanya berlaku per item paid (other cost / reimbursement).
+const isPricingLocked = computed(() => false);
+const isOtherCostLocked = (cost) => !!cost?.is_paid_locked;
+const isReimbursementLocked = (item) => !!item?.is_paid_locked;
+const hasLockedOtherCosts = computed(() => (form.other_costs || []).some(isOtherCostLocked));
+const hasLockedReimbursements = computed(() => (reimbursementItems.value || []).some(isReimbursementLocked));
 
 const reimbursementItems = ref(
     rawReimbursementItems.length > 0
@@ -1023,9 +1029,10 @@ const reimbursementItems = ref(
                 category: item.category ?? "",
                 notes: item.notes ?? "",
                 vendor_id: normalizedVendorId,
+                is_paid_locked: !!item.is_paid_locked,
             };
         })
-        : [{ id: null, description: "", amount: 0, quantity: "", unit: "", category: "", notes: "", vendor_id: "" }]
+        : [{ id: null, description: "", amount: 0, quantity: "", unit: "", category: "", notes: "", vendor_id: "", is_paid_locked: false }]
 );
 
 const reimbursementCategoryOptions = computed(() => {
@@ -1217,7 +1224,7 @@ const removeContainerNo = (index) => {
 
 // Other costs management methods
 const addOtherCost = () => {
-    form.other_costs.push({ description: "", amount: 0, category: "", notes: "", vendor_id: "", quantity: "", unit: "" });
+    form.other_costs.push({ id: null, description: "", amount: 0, category: "", notes: "", vendor_id: "", quantity: "", unit: "", is_paid_locked: false });
 };
 
 const removeOtherCost = (index) => {
@@ -1236,7 +1243,8 @@ const addReimbursementItem = () => {
         unit: "",
         category: "",
         notes: "",
-        vendor_id: ""
+        vendor_id: "",
+        is_paid_locked: false,
     });
 };
 
@@ -1510,8 +1518,12 @@ const submit = () => {
         other_costs: form.other_costs
             .filter(c => c.description && c.amount && c.amount > 0)
             .map(c => ({
-                ...c,
+                id: c.id ?? null,
+                description: c.description ?? '',
                 amount: normalizeNumberValue(c.amount),
+                category: c.category || '',
+                notes: c.notes || '',
+                vendor_id: c.vendor_id === '' ? null : c.vendor_id,
                 quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
                 unit: c.unit || ''
             }))

@@ -14,6 +14,7 @@ use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -402,13 +403,7 @@ class SalesOrderController extends Controller
         $totalSelling = 0;
         $totalBuying = 0;
 
-        $pricingLocked = $salesOrder->is_pricing_locked ?? false;
-        if ($pricingLocked) {
-            $validated['vendor_breakdown'] = $salesOrder->vendor_breakdown;
-            $validated['other_costs'] = $salesOrder->other_costs;
-            $totalSelling = (float) ($salesOrder->total_selling ?? 0);
-            $totalBuying = (float) ($salesOrder->total_buying ?? 0);
-        } elseif (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $qty = 1;
                 if (array_key_exists('quantity', $item) && $item['quantity'] !== '' && $item['quantity'] !== null && is_numeric($item['quantity'])) {
@@ -444,6 +439,8 @@ class SalesOrderController extends Controller
             $tempSO = new SalesOrder($validated);
             $validated['invoice_number'] = Invoice::generateInvoiceNumberFromSO($tempSO);
         }
+
+        $validated['other_costs'] = $this->normalizeOtherCostEntries($validated['other_costs'] ?? []);
 
         // Extract reimbursement items before creating sales order
         $reimbursementItems = $validated['reimbursement_items'] ?? [];
@@ -518,6 +515,7 @@ class SalesOrderController extends Controller
         $salesOrder->load(['reimbursementItems.vendor']);
         $this->hydrateOtherCostsWithVendors($salesOrder);
         $this->hydrateVendorBreakdownFromInvoices($salesOrder);
+        $this->enrichSalesOrderWithPaidComponentLocks($salesOrder);
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
@@ -574,6 +572,7 @@ class SalesOrderController extends Controller
 
             // Other costs validation
             'other_costs' => 'nullable|array',
+            'other_costs.*.id' => 'nullable|string|max:64',
             'other_costs.*.description' => 'required_with:other_costs|string|max:255',
             'other_costs.*.amount' => 'required_with:other_costs|numeric|min:0',
             'other_costs.*.category' => 'nullable|string|max:100',
@@ -605,6 +604,7 @@ class SalesOrderController extends Controller
 
             // Reimbursement items validation
             'reimbursement_items' => 'nullable|array',
+            'reimbursement_items.*.id' => 'nullable|integer|exists:reimbursement_items,id',
             'reimbursement_items.*.description' => 'required_with:reimbursement_items|string|max:255',
             'reimbursement_items.*.amount' => 'required_with:reimbursement_items|numeric|min:0',
             'reimbursement_items.*.quantity' => 'nullable|numeric|min:0',
@@ -640,13 +640,7 @@ class SalesOrderController extends Controller
         $totalSelling = 0;
         $totalBuying = 0;
 
-        $pricingLocked = $salesOrder->is_pricing_locked ?? false;
-        if ($pricingLocked) {
-            $validated['vendor_breakdown'] = $salesOrder->vendor_breakdown;
-            $validated['other_costs'] = $salesOrder->other_costs;
-            $totalSelling = (float) ($salesOrder->total_selling ?? 0);
-            $totalBuying = (float) ($salesOrder->total_buying ?? 0);
-        } elseif (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
+        if (isset($validated['vendor_breakdown']) && is_array($validated['vendor_breakdown'])) {
             foreach ($validated['vendor_breakdown'] as $item) {
                 $qty = 1;
                 if (array_key_exists('quantity', $item) && $item['quantity'] !== '' && $item['quantity'] !== null && is_numeric($item['quantity'])) {
@@ -665,29 +659,31 @@ class SalesOrderController extends Controller
         // Don't change status on update - preserve existing status
         // This prevents released Sales Orders from being reverted to draft when edited
 
+        $existingOtherCosts = $this->normalizeOtherCostEntries(
+            is_array($salesOrder->other_costs) ? $salesOrder->other_costs : []
+        );
+        $incomingOtherCosts = $this->normalizeOtherCostEntries($validated['other_costs'] ?? []);
+        $paidLocks = $this->getPaidComponentLocks($salesOrder);
+        $validated['other_costs'] = $this->enforcePaidOtherCostLocks($incomingOtherCosts, $existingOtherCosts, $paidLocks);
+
         // Extract reimbursement items before updating sales order
-        $reimbursementItems = $pricingLocked ? [] : ($validated['reimbursement_items'] ?? []);
+        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        $reimbursementItems = $this->enforcePaidReimbursementLocks($reimbursementItems, $salesOrder, $paidLocks);
         unset($validated['reimbursement_items']);
 
         $salesOrder->update($validated);
 
         // Update reimbursement items
-        if (!$pricingLocked) {
-            $this->updateReimbursementItems($salesOrder, $reimbursementItems);
-        }
+        $this->updateReimbursementItems($salesOrder, $reimbursementItems);
 
         // Sync vendor breakdown items to table
-        if (!$pricingLocked) {
-            $salesOrder->syncVendorBreakdownItems($validated['vendor_breakdown'] ?? [], auth()->id());
-        }
+        $salesOrder->syncVendorBreakdownItems($validated['vendor_breakdown'] ?? [], auth()->id());
 
         // Re-sync vendor COGS items on related invoices and regenerate hutang vendor
-        if (!$pricingLocked) {
-            $salesOrder->refresh();
-            $this->syncVendorBreakdownToInvoices($salesOrder);
-            $this->syncOperationalAndReimbursementToInvoices($salesOrder);
-            \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
-        }
+        $salesOrder->refresh();
+        $this->syncVendorBreakdownToInvoices($salesOrder);
+        $this->syncOperationalAndReimbursementToInvoices($salesOrder);
+        \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
 
         return redirect()
             ->route('admin-keuangan.sales-orders.index')
@@ -1566,6 +1562,240 @@ class SalesOrderController extends Controller
         }
 
         return empty($existingReceiptInfo) ? null : $existingReceiptInfo;
+    }
+
+    private function enrichSalesOrderWithPaidComponentLocks(SalesOrder $salesOrder): void
+    {
+        $locks = $this->getPaidComponentLocks($salesOrder);
+        $lockedOtherCostIds = $locks['other_cost_ids'];
+        $lockedOtherCostIndexes = $locks['other_cost_indexes'];
+        $lockedOtherCostLookupRefs = $locks['other_cost_lookup_refs'];
+        $lockedReimbursementIds = $locks['reimbursement_ids'];
+
+        $otherCosts = $this->normalizeOtherCostEntries(
+            is_array($salesOrder->other_costs) ? $salesOrder->other_costs : []
+        );
+
+        foreach ($otherCosts as $index => &$cost) {
+            $lookupRef = $this->buildOtherCostLookupRef($cost, $index);
+            $cost['is_paid_locked'] =
+                in_array((string) ($cost['id'] ?? ''), $lockedOtherCostIds, true)
+                || in_array($index, $lockedOtherCostIndexes, true)
+                || in_array($lookupRef, $lockedOtherCostLookupRefs, true);
+        }
+        unset($cost);
+
+        $salesOrder->setAttribute('other_costs', $otherCosts);
+
+        $salesOrder->loadMissing('reimbursementItems');
+        $salesOrder->reimbursementItems->each(function (ReimbursementItem $item) use ($lockedReimbursementIds) {
+            $item->setAttribute(
+                'is_paid_locked',
+                in_array((int) $item->id, $lockedReimbursementIds, true)
+            );
+        });
+    }
+
+    private function normalizeOtherCostEntries(array $otherCosts): array
+    {
+        $normalized = [];
+
+        foreach ($otherCosts as $entry) {
+            if (!is_array($entry)) {
+                $entry = (array) $entry;
+            }
+
+            $entry['id'] = !empty($entry['id'])
+                ? (string) $entry['id']
+                : $this->generateOtherCostId();
+
+            $normalized[] = $entry;
+        }
+
+        return $normalized;
+    }
+
+    private function generateOtherCostId(): string
+    {
+        return 'oc_' . Str::uuid()->toString();
+    }
+
+    private function getPaidComponentLocks(SalesOrder $salesOrder): array
+    {
+        $salesOrder->loadMissing('accountPayables.components');
+
+        $otherCostIds = [];
+        $otherCostIndexes = [];
+        $otherCostLookupRefs = [];
+        $reimbursementIds = [];
+
+        foreach ($salesOrder->accountPayables as $accountPayable) {
+            foreach ($accountPayable->components as $component) {
+                if (($component->status ?? null) !== 'paid') {
+                    continue;
+                }
+
+                $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+
+                if ($component->component_type === 'operational_cost') {
+                    if (isset($relatedItems['other_cost_id'])) {
+                        $otherCostIds[] = (string) $relatedItems['other_cost_id'];
+                    }
+
+                    if (isset($relatedItems['other_cost_index']) && is_numeric($relatedItems['other_cost_index'])) {
+                        $otherCostIndexes[] = (int) $relatedItems['other_cost_index'];
+                    }
+
+                    if (!empty($relatedItems['lookup_ref'])) {
+                        $otherCostLookupRefs[] = (string) $relatedItems['lookup_ref'];
+                    }
+                }
+
+                if ($component->component_type === 'reimbursement') {
+                    if (isset($relatedItems['reimbursement_item_id']) && is_numeric($relatedItems['reimbursement_item_id'])) {
+                        $reimbursementIds[] = (int) $relatedItems['reimbursement_item_id'];
+                    }
+                }
+            }
+        }
+
+        return [
+            'other_cost_ids' => array_values(array_unique($otherCostIds)),
+            'other_cost_indexes' => array_values(array_unique($otherCostIndexes)),
+            'other_cost_lookup_refs' => array_values(array_unique($otherCostLookupRefs)),
+            'reimbursement_ids' => array_values(array_unique($reimbursementIds)),
+        ];
+    }
+
+    private function enforcePaidOtherCostLocks(array $incomingOtherCosts, array $existingOtherCosts, array $locks): array
+    {
+        $lockedIds = [];
+        $existingById = [];
+        $incomingById = [];
+
+        foreach ($incomingOtherCosts as $index => $entry) {
+            if (!empty($entry['id'])) {
+                $incomingById[(string) $entry['id']] = $index;
+            }
+        }
+
+        foreach ($existingOtherCosts as $index => $entry) {
+            $entryId = (string) ($entry['id'] ?? '');
+            if ($entryId === '') {
+                continue;
+            }
+
+            $existingById[$entryId] = $entry;
+
+            $lookupRef = $this->buildOtherCostLookupRef($entry, $index);
+            $isLocked =
+                in_array($entryId, $locks['other_cost_ids'] ?? [], true)
+                || in_array($index, $locks['other_cost_indexes'] ?? [], true)
+                || in_array($lookupRef, $locks['other_cost_lookup_refs'] ?? [], true);
+
+            if ($isLocked) {
+                $lockedIds[] = $entryId;
+            }
+        }
+
+        foreach (array_values(array_unique($lockedIds)) as $lockedId) {
+            if (!isset($existingById[$lockedId])) {
+                continue;
+            }
+
+            $lockedPayload = $existingById[$lockedId];
+            if (isset($incomingById[$lockedId])) {
+                $incomingOtherCosts[$incomingById[$lockedId]] = $lockedPayload;
+                continue;
+            }
+
+            $incomingOtherCosts[] = $lockedPayload;
+        }
+
+        return array_values($incomingOtherCosts);
+    }
+
+    private function enforcePaidReimbursementLocks(array $incomingReimbursements, SalesOrder $salesOrder, array $locks): array
+    {
+        $lockedIds = array_values(array_unique(array_map('intval', $locks['reimbursement_ids'] ?? [])));
+        if (empty($lockedIds)) {
+            return $incomingReimbursements;
+        }
+
+        $salesOrder->loadMissing('reimbursementItems');
+        $existingLockedItems = $salesOrder->reimbursementItems
+            ->whereIn('id', $lockedIds)
+            ->keyBy('id');
+
+        $incomingById = [];
+        foreach ($incomingReimbursements as $index => $entry) {
+            if (isset($entry['id']) && is_numeric($entry['id'])) {
+                $incomingById[(int) $entry['id']] = $index;
+            }
+        }
+
+        foreach ($lockedIds as $lockedId) {
+            /** @var ReimbursementItem|null $existing */
+            $existing = $existingLockedItems->get($lockedId);
+            if (!$existing) {
+                continue;
+            }
+
+            $lockedPayload = $this->reimbursementItemToPayload($existing);
+            if (isset($incomingById[$lockedId])) {
+                $incomingReimbursements[$incomingById[$lockedId]] = $lockedPayload;
+                continue;
+            }
+
+            $incomingReimbursements[] = $lockedPayload;
+        }
+
+        return array_values($incomingReimbursements);
+    }
+
+    private function reimbursementItemToPayload(ReimbursementItem $item): array
+    {
+        return [
+            'id' => (int) $item->id,
+            'description' => $item->description,
+            'amount' => (float) $item->amount,
+            'quantity' => (float) ($item->quantity ?? 1),
+            'unit' => $item->unit,
+            'category' => $item->category,
+            'notes' => $item->notes,
+            'vendor_id' => $item->vendor_id,
+        ];
+    }
+
+    private function buildOtherCostLookupRef(array $entry, int $index): string
+    {
+        if (!empty($entry['id'])) {
+            return 'other_cost_' . (string) $entry['id'];
+        }
+
+        $description = trim((string) ($entry['description'] ?? ''));
+        $amount = (float) ($entry['amount'] ?? 0);
+        $vendorId = $this->resolveVendorId($entry['vendor_id'] ?? null);
+        $vendorName = $this->resolveOtherCostVendorName($entry);
+
+        return 'other_cost_' . md5(json_encode([
+            'description' => $description,
+            'amount' => $amount,
+            'vendor_id' => $vendorId,
+            'vendor_name' => $vendorName,
+            'category' => $entry['category'] ?? null,
+        ]));
+    }
+
+    private function resolveOtherCostVendorName(array $entry): ?string
+    {
+        $vendorName = $entry['vendor_name'] ?? $entry['nama_vendor'] ?? null;
+        if (!is_string($vendorName)) {
+            return null;
+        }
+
+        $vendorName = trim($vendorName);
+        return $vendorName !== '' ? $vendorName : null;
     }
 
     /**
