@@ -537,20 +537,19 @@
                         </div>
                     </div>
 
-                    <!-- Biaya Beban Lain Section -->
+                    <!-- Other Costs Section -->
                     <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                         <div @click="toggleSection('other_costs')"
                             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                            <h3 class="text-lg font-semibold text-sage-800">Other Operational Costs</h3>
+                            <h3 class="text-lg font-semibold text-sage-800">Other Costs (Operational)</h3>
                             <ChevronDown :class="{ 'rotate-180': !sections.other_costs }"
                                 class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                         </div>
                         <div v-show="sections.other_costs" class="p-6">
-                            <!-- Biaya Beban Lain Section -->
                             <div class="bg-orange-50 rounded-lg p-4">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h4 class="text-md font-semibold text-orange-800">Other Operational Costs
-                                    </h4>
+                                    <h4 class="text-md font-semibold text-orange-800">Other Costs
+                                        (Operational)</h4>
                                     <button type="button" @click="addOtherCost"
                                         :disabled="isPricingLocked"
                                         :class="[
@@ -563,42 +562,55 @@
                                 </div>
 
                                 <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
-                                    <div v-for="(cost, index) in form.other_costs" :key="index"
-                                        class="border border-orange-200 rounded-lg p-3 bg-white">
+                                    <div v-for="(cost, index) in form.other_costs" :key="'cost-' + index"
+                                        class="relative border border-orange-200 rounded-lg p-3 bg-white">
+                                        <button type="button" @click="removeOtherCost(index)"
+                                            class="absolute bottom-1 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                                            :disabled="isPricingLocked || form.other_costs.length <= 1">
+                                            <Trash2 class="w-4 h-4" />
+                                        </button>
                                         <div class="grid grid-cols-12 gap-3">
-                                            <div class="col-span-3">
-                                                <label class="block text-xs font-medium text-orange-700 mb-1">Cost Description</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Cost Description</label>
                                                 <input v-model="cost.description" type="text"
-                                                    placeholder="Example: Handling fee, documentation, etc."
-                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    placeholder="Example: handling fees, documents, etc."
+                                                    class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-orange-700 mb-1">Amount (Unit Price)</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
                                                 <input v-model="cost.amount" type="text"
                                                     placeholder="0"
                                                     :disabled="isPricingLocked"
                                                     @input="(e) => { formatCostAmount(cost, e); onCostAmountInput(cost); }"
                                                     @blur="() => recalculateCostAmount(cost)"
-                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
-                                                <p class="text-xs text-orange-600 mt-1" v-if="cost.quantity && parseFloat(cost.quantity) > 0">
+                                                    class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
+                                                <p class="text-xs text-orange-600 mt-1"
+                                                    v-if="cost.quantity && parseFloat(cost.quantity) > 0">
                                                     Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
                                                 </p>
                                             </div>
-                                            <div class="col-span-1">
-                                                <label class="block text-xs font-medium text-orange-700 mb-1">Qty</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Qty
+                                                    (Optional)</label>
                                                 <input v-model="cost.quantity" type="number" min="0" step="0.01"
-                                                    placeholder="0"
+                                                    placeholder="Quantity"
                                                     :disabled="isPricingLocked"
                                                     @input="() => recalculateCostAmount(cost)"
-                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
+                                                    class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
-                                            <div class="col-span-1">
-                                                <label class="block text-xs font-medium text-orange-700 mb-1">Unit</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Unit
+                                                    (Optional)</label>
                                                 <input v-model="cost.unit" type="text" placeholder="Unit"
-                                                    class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-orange-700 mb-1">Category</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Category</label>
                                                 <SearchableSelect v-model="cost.category_id"
                                                     :options="operationalCostCategoryOptions"
                                                     placeholder="Select category"
@@ -606,24 +618,19 @@
                                                     label-field="label"
                                                     value-field="value"
                                                     sub-label-field="subLabel"
-                                                    :input-class="'w-full px-2 py-1 pr-8 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'"
+                                                    :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'"
                                                     @update:modelValue="() => onOtherCostCategoryChange(cost)" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-orange-700 mb-1">Vendor / Recipient</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-orange-700 mb-1">Vendor / Recipient</label>
                                                 <SearchableSelect v-model="cost.vendor_id"
                                                     :options="vendorSelectOptions"
                                                     placeholder="Select vendor"
                                                     :search-fields="['label']"
-                                                    :input-class="'w-full px-2 py-1 pr-8 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
-                                            </div>
-                                            <div class="col-span-1 flex items-end">
-                                                <button type="button" @click="removeOtherCost(index)"
-                                                    :disabled="isPricingLocked || form.other_costs.length <= 1"
-                                                    class="w-full px-2 py-1 inline-flex items-center justify-center rounded transition-colors"
-                                                    :class="isPricingLocked ? 'text-red-400 cursor-not-allowed' : 'text-red-600 hover:text-red-800 hover:bg-red-100'">
-                                                    <Trash2 class="w-4 h-4" />
-                                                </button>
+                                                    :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
+                                                <p class="text-xs text-orange-600 mt-1">Select vendor jika sudah tahu akan
+                                                    dibayar ke siapa</p>
                                             </div>
                                         </div>
                                     </div>
@@ -631,30 +638,28 @@
                                     <!-- Total Other Costs -->
                                     <div class="pt-3 border-t border-orange-300">
                                         <div class="flex justify-between items-center">
-                                            <span class="text-sm font-medium text-orange-700">Total Other
-                                                Costs:</span>
+                                            <span class="text-sm font-medium text-orange-700">Total Other Costs:</span>
                                             <span class="text-lg font-bold text-orange-800">{{
                                                 formatCurrency(totalOtherCosts) }}</span>
                                         </div>
                                     </div>
 
-                                    <!-- Bottom Add Button for Other Costs -->
-                                    <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
+                                    <div class="mt-6 pt-4 border-t border-orange-200">
                                         <button type="button" @click="addOtherCost"
                                             :disabled="isPricingLocked"
                                             :class="[
-                                                'inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg transition-colors',
-                                                isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-orange-700'
+                                                'w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-orange-200 rounded-lg text-orange-700 transition-colors',
+                                                isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-orange-300 hover:bg-orange-50'
                                             ]">
-                                            <Plus class="w-4 h-4 mr-2" />
-                                            Add More Costs
+                                            <Plus class="w-5 h-5 mb-1" />
+                                            <span class="text-sm font-medium">Add Another Cost</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <div v-else class="text-center py-4 text-orange-600">
                                     <p class="text-sm">No other costs yet</p>
-                                    <p class="text-xs text-orange-500">Click "Add Cost" button to add</p>
+                                    <p class="text-xs text-orange-500">Click "Add Cost" to add one</p>
                                 </div>
                             </div>
                         </div>
@@ -664,15 +669,14 @@
                     <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
                         <div @click="toggleSection('reimbursement')"
                             class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
-                            <h3 class="text-lg font-semibold text-sage-800">Items Reimbursement</h3>
+                            <h3 class="text-lg font-semibold text-sage-800">Reimbursement Items</h3>
                             <ChevronDown :class="{ 'rotate-180': !sections.reimbursement }"
                                 class="w-5 h-5 text-sage-600 transition-transform duration-200" />
                         </div>
                         <div v-show="sections.reimbursement" class="p-6">
-                            <!-- Reimbursement Section -->
                             <div class="bg-purple-50 rounded-lg p-4">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h4 class="text-md font-semibold text-purple-800">Items Reimbursement</h4>
+                                    <h4 class="text-md font-semibold text-purple-800">Reimbursement Items</h4>
                                     <button type="button" @click="addReimbursementItem"
                                         :disabled="isPricingLocked"
                                         :class="[
@@ -684,79 +688,87 @@
                                     </button>
                                 </div>
 
-                                <div v-if="reimbursementItems && reimbursementItems.length > 0" class="space-y-3">
-                                    <div v-for="(item, index) in reimbursementItems" :key="index"
-                                        class="border border-purple-200 rounded-lg p-3 bg-white">
+                                <div v-if="reimbursementItems && reimbursementItems.length > 0"
+                                    class="space-y-3">
+                                    <div v-for="(item, index) in reimbursementItems" :key="'reimburse-' + index"
+                                        class="relative border border-purple-200 rounded-lg p-3 pb-8 bg-white">
+                                        <button type="button" @click="removeReimbursementItem(index)"
+                                            :disabled="isPricingLocked"
+                                            :class="[
+                                                'absolute bottom-2 right-4 px-2 py-1 flex items-center justify-center rounded transition-colors',
+                                                isPricingLocked ? 'opacity-50 cursor-not-allowed text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-100'
+                                            ]">
+                                            <Trash2 class="w-4 h-4" />
+                                        </button>
                                         <div class="grid grid-cols-12 gap-3">
-                                            <div class="col-span-3">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Description</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Description</label>
                                                 <input v-model="item.description" type="text"
-                                                    placeholder="Example: Transport to port"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    placeholder="Example: transport, accommodation, etc."
+                                                    class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
-                                                <input v-model="item.quantity" type="number" step="0.01" min="0"
+                                            <div class="col-span-6">
+                                                <label
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
+                                                <input v-model="item.quantity" type="number" min="0" step="0.01"
                                                     placeholder="1"
                                                     :disabled="isPricingLocked"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
+                                                    class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
+                                            <div class="col-span-6">
+                                                <label
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
                                                 <input v-model="item.unit" type="text" placeholder="Unit"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
-                                                <input v-model="item.amount" type="number" step="0.01"
-                                                    placeholder="0.00"
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
+                                                <input v-model="item.amount" type="number" min="0" step="0.01"
+                                                    placeholder="0"
                                                     :disabled="isPricingLocked"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
+                                                    class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
-                                            <div class="col-span-2">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Category</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Category</label>
                                                 <SearchableSelect v-model="item.category"
                                                     :options="reimbursementCategoryOptions"
-                                                    placeholder="Select Category"
+                                                    placeholder="Select category"
                                                     :search-fields="['label', 'description']"
                                                     label-field="label"
                                                     value-field="value"
                                                     :disabled="reimbursementCategoryOptions.length === 0"
-                                                    :input-class="'w-full px-2 py-1 pr-8 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
+                                                    :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
                                                 <p v-if="reimbursementCategoryOptions.length === 0"
                                                     class="text-xs text-purple-600 mt-1">
-                                                    Category not available. Please add master data first.
+                                                    No categories available. Please add master Operational
+                                                    Cost Categories first.
                                                 </p>
                                             </div>
-                                            <div class="col-span-1 flex items-end">
-                                                <button type="button" @click="removeReimbursementItem(index)"
-                                                    :disabled="isPricingLocked"
-                                                    :class="[
-                                                        'w-full px-2 py-1 inline-flex items-center justify-center rounded transition-colors',
-                                                        isPricingLocked ? 'text-red-400 cursor-not-allowed' : 'text-red-600 hover:text-red-800 hover:bg-red-100'
-                                                    ]">
-                                                    <Trash2 class="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-12 gap-3 mt-2">
-                                            <div class="col-span-6">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Vendor / Recipient</label>
+                                            <div class="col-span-12">
+                                                <label
+                                                    class="block text-xs font-medium text-purple-700 mb-1">Vendor / Recipient</label>
                                                 <SearchableSelect v-model="item.vendor_id"
                                                     :options="vendorSelectOptions"
                                                     placeholder="Select vendor"
                                                     :search-fields="['label']"
-                                                    :input-class="'w-full px-2 py-1 pr-8 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
+                                                    :input-class="'w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
+                                                <p class="text-xs text-purple-600 mt-1">Select vendor jika sudah tahu akan
+                                                    dibayar ke siapa</p>
                                             </div>
-                                            <div class="col-span-6">
-                                                <label class="block text-xs font-medium text-purple-700 mb-1">Notes</label>
-                                                <input v-model="item.notes" type="text" placeholder="Additional notes (optional)"
-                                                    class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label
+                                                class="block text-xs font-medium text-purple-700 mb-1">Notes
+                                                (opsional)</label>
+                                            <textarea v-model="item.notes" rows="2"
+                                                placeholder="Additional notes for this reimbursement item"
+                                                class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"></textarea>
                                         </div>
                                     </div>
 
-                                    <!-- Total Reimbursement -->
                                     <div class="pt-3 border-t border-purple-300">
                                         <div class="flex justify-between items-center">
                                             <span class="text-sm font-medium text-purple-700">Total
@@ -766,24 +778,23 @@
                                         </div>
                                     </div>
 
-                                    <!-- Bottom Add Button for Reimbursement -->
-                                    <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
+                                    <div class="mt-6 pt-4 border-t border-purple-200">
                                         <button type="button" @click="addReimbursementItem"
                                             :disabled="isPricingLocked"
                                             :class="[
-                                                'inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg transition-colors',
-                                                isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+                                                'w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-purple-200 rounded-lg text-purple-700 transition-colors',
+                                                isPricingLocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-purple-300 hover:bg-purple-50'
                                             ]">
-                                            <Plus class="w-4 h-4 mr-2" />
-                                            Add More Reimbursement
+                                            <Plus class="w-5 h-5 mb-1" />
+                                            <span class="text-sm font-medium">Add Another Reimbursement</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <div v-else class="text-center py-4 text-purple-600">
                                     <p class="text-sm">No reimbursement items yet</p>
-                                    <p class="text-xs text-purple-500">Click "Add Reimbursement" button to
-                                        add</p>
+                                    <p class="text-xs text-purple-500">Click "Add Reimbursement" to
+                                        menambahkan</p>
                                 </div>
                             </div>
                         </div>
@@ -934,7 +945,6 @@ const parseReceiptInfo = (info) => {
 
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
-        { value: '', label: '-- Not Determined --' },
         { value: 'internal', label: '-- Internal (Operational Division) --' },
     ];
 

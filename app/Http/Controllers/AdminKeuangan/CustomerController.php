@@ -53,7 +53,7 @@ class CustomerController extends Controller
             ->orderByRaw('sort_name asc')
             ->orderByRaw("{$trimmedName} asc")
             ->orderBy('created_at', 'desc')
-            ->paginate(15)
+            ->paginate(5)
             ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/Customers/Index', [

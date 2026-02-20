@@ -990,7 +990,6 @@ const shipmentTypeOptions = computed(() => {
 
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
-        { value: '', label: '-- Not Specified --' },
         { value: 'internal', label: '-- Internal (Operations Division) --' },
     ];
 

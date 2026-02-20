@@ -139,8 +139,57 @@
                             <p class="mt-1 text-sm text-gray-500">Start by adding your first customer</p>
                         </div>
 
-                        <div v-if="customers.links" class="mt-6">
-                            <Pagination :data="customers" />
+                        <div v-if="customers.links" class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6 mt-6">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Showing {{ customers.from || 0 }} to {{ customers.to || 0 }} of {{ customers.total || 0 }} results
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button
+                                        @click="goToPage(currentPage - 1)"
+                                        :disabled="currentPage <= 1"
+                                        :class="[
+                                            'px-3 py-2 text-sm rounded-md border',
+                                            currentPage <= 1
+                                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                                : 'bg-white text-gray-500 hover:text-gray-700 border-gray-300'
+                                        ]"
+                                    >
+                                        &laquo; Previous
+                                    </button>
+
+                                    <template v-for="item in paginationItems" :key="item.key">
+                                        <span v-if="item.type === 'ellipsis'" class="px-3 py-2 text-sm text-gray-400">
+                                            ...
+                                        </span>
+                                        <button
+                                            v-else
+                                            @click="goToPage(item.page)"
+                                            :class="[
+                                                'px-3 py-2 text-sm rounded-md border',
+                                                item.page === currentPage
+                                                    ? 'bg-blue-500 text-white border-blue-500'
+                                                    : 'bg-white text-gray-500 hover:text-gray-700 border-gray-300'
+                                            ]"
+                                        >
+                                            {{ item.page }}
+                                        </button>
+                                    </template>
+
+                                    <button
+                                        @click="goToPage(currentPage + 1)"
+                                        :disabled="currentPage >= lastPage"
+                                        :class="[
+                                            'px-3 py-2 text-sm rounded-md border',
+                                            currentPage >= lastPage
+                                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                                : 'bg-white text-gray-500 hover:text-gray-700 border-gray-300'
+                                        ]"
+                                    >
+                                        Next &raquo;
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -160,7 +209,6 @@ import { reactive, watch, ref, computed } from "vue";
 import { router, Link, Head } from "@inertiajs/vue3";
 import axios from "axios";
 import AdminKeuanganLayout from "@/Layouts/AdminKeuanganLayout.vue";
-import Pagination from "@/Components/Pagination.vue";
 import AlertDialog from "@/Components/AlertDialog.vue";
 import { Plus, FileDown, Trash2, Users } from 'lucide-vue-next';
 
@@ -187,13 +235,50 @@ const form = reactive({
     search: props.filters?.search || "",
 });
 
+const currentPage = computed(() => Number(props.customers?.current_page || 1));
+const lastPage = computed(() => Number(props.customers?.last_page || 1));
+
+const paginationItems = computed(() => {
+    const total = lastPage.value;
+    const current = currentPage.value;
+    const items = [];
+
+    if (total <= 7) {
+        for (let i = 1; i <= total; i += 1) {
+            items.push({ type: 'page', page: i, key: `page-${i}` });
+        }
+        return items;
+    }
+
+    items.push({ type: 'page', page: 1, key: 'page-1' });
+
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+
+    if (start > 2) {
+        items.push({ type: 'ellipsis', key: 'ellipsis-left' });
+    }
+
+    for (let i = start; i <= end; i += 1) {
+        items.push({ type: 'page', page: i, key: `page-${i}` });
+    }
+
+    if (end < total - 1) {
+        items.push({ type: 'ellipsis', key: 'ellipsis-right' });
+    }
+
+    items.push({ type: 'page', page: total, key: `page-${total}` });
+
+    return items;
+});
+
 const currentIndexQuery = computed(() => {
     const query = {};
     if (form.search) query.search = form.search;
 
-    const currentPage = props.customers?.current_page;
-    if (currentPage && Number(currentPage) > 1) {
-        query.page = currentPage;
+    const page = currentPage.value;
+    if (page > 1) {
+        query.page = page;
     }
 
     return query;
@@ -214,6 +299,21 @@ const exportPdfUrl = computed(() => {
 const search = () => {
     const params = {};
     if (form.search) params.search = form.search;
+
+    router.get(route("admin-keuangan.customers.index"), params, {
+        preserveState: true,
+        replace: true,
+    });
+};
+
+const goToPage = (page) => {
+    if (page < 1 || page > lastPage.value || page === currentPage.value) {
+        return;
+    }
+
+    const params = {};
+    if (form.search) params.search = form.search;
+    if (page > 1) params.page = page;
 
     router.get(route("admin-keuangan.customers.index"), params, {
         preserveState: true,

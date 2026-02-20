@@ -206,8 +206,32 @@
                             <p class="mt-1 text-sm text-gray-500">Start by adding your first shipping order</p>
                         </div>
 
-                        <div v-if="salesOrders.links" class="mt-6">
-                            <Pagination :data="salesOrders" />
+                        <div v-if="salesOrders.links" class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6 mt-6">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Showing {{ salesOrders.from || 0 }} to {{ salesOrders.to || 0 }} of {{ salesOrders.total || 0 }} results
+                                </div>
+                                <div class="flex space-x-1">
+                                    <template v-for="link in salesOrders.links" :key="link.label">
+                                        <button
+                                            v-if="link.url"
+                                            @click="visitPage(link.url)"
+                                            :class="[
+                                                'px-3 py-2 text-sm rounded-md',
+                                                link.active
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                                            ]"
+                                            v-html="link.label"
+                                        ></button>
+                                        <span
+                                            v-else
+                                            class="px-3 py-2 text-sm text-gray-400"
+                                            v-html="link.label"
+                                        ></span>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -217,10 +241,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { reactive, onMounted, computed } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
-import Pagination from '@/Components/Pagination.vue';
 import { debounce } from 'lodash';
 import { Plus, Eye, Edit, FileText } from 'lucide-vue-next';
 
@@ -270,6 +293,18 @@ const applyFilters = () => {
         start_date: form.start_date,
         end_date: form.end_date,
     }, {
+        preserveState: true,
+        replace: true,
+    });
+};
+
+const visitPage = (url) => {
+    router.visit(url, {
+        data: {
+            search: form.search,
+            start_date: form.start_date,
+            end_date: form.end_date,
+        },
         preserveState: true,
         replace: true,
     });

@@ -473,227 +473,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Other Operating Costs Section -->
-                                    <div class="bg-orange-50 rounded-lg p-4">
-                                        <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-md font-semibold text-orange-800">Other Operating Costs</h4>
-                                            <button type="button" @click="addOtherCost"
-                                                class="text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors">
-                                                + Add Cost
-                                            </button>
-                                        </div>
-
-                                        <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
-                                            <div v-for="(cost, index) in form.other_costs" :key="index"
-                                                class="border border-orange-200 rounded-lg p-3 bg-white">
-                                                <div class="grid grid-cols-12 gap-3">
-                                                    <div class="col-span-4">
-                                                        <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost
-                                                            Description</label>
-                                                        <input v-model="cost.description" type="text"
-                                                            placeholder="Example: Handling, documents, etc."
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
-                                                        <input v-model="cost.amount" type="text"
-                                                            placeholder="0 (example: 2,500 or 2500)"
-                                                            @input="(e) => { formatCostAmount(cost, e); onCostAmountInput(cost); }"
-                                                            @blur="() => recalculateCostAmount(cost)"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
-                                                        <p class="text-xs text-orange-600 mt-1" v-if="cost.quantity && parseFloat(cost.quantity) > 0">
-                                                            Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
-                                                        </p>
-                                                    </div>
-                                                    <div class="col-span-12">
-                                                        <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Qty
-                                                            (Optional)</label>
-                                                        <input v-model="cost.quantity" type="number" min="0" step="0.01"
-                                                            placeholder="Quantity"
-                                                            @input="() => recalculateCostAmount(cost)"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
-                                                    </div>
-                                                    <div class="col-span-12">
-                                                        <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Unit
-                                                            (Optional)</label>
-                                                        <input v-model="cost.unit" type="text" placeholder="Unit"
-                                                            class="w-full px-2 py-1 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Category</label>
-                                                        <SearchableSelect v-model="cost.category_id"
-                                                            :options="operationalCostCategorySelectOptions"
-                                                            placeholder="Select category" label-field="label"
-                                                            value-field="value" sub-label-field="description"
-                                                            :search-fields="['label', 'description']"
-                                                            :input-class="`w-full px-2 py-1 pr-8 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${operationalCostCategorySelectOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
-                                                            @select="() => onOtherCostCategoryChange(cost)" />
-                                                    </div>
-                                                    <div class="col-span-3">
-                                                        <label
-                                                            class="block text-xs font-medium text-orange-700 mb-1">Vendor
-                                                            / Payee</label>
-                                                        <SearchableSelect v-model="cost.vendor_id"
-                                                            :options="vendorSelectOptions" placeholder="Select vendor"
-                                                            :search-fields="['label']"
-                                                            :input-class="'w-full px-2 py-1 pr-8 border border-orange-300 rounded text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
-                                                        <p class="text-xs text-orange-600 mt-1">Select a vendor if you
-                                                            already know the payee.</p>
-                                                    </div>
-                                                    <div class="col-span-1 flex items-end">
-                                                        <button type="button" @click="removeOtherCost(index)"
-                                                            class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                                                            :disabled="form.other_costs.length <= 1">
-                                                            <Trash2 class="w-4 h-4 mx-auto" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Total Other Costs -->
-                                            <div class="pt-3 border-t border-orange-300">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-sm font-medium text-orange-700">Total Other
-                                                        Costs:</span>
-                                                    <span class="text-lg font-bold text-orange-800">{{
-                                                        formatCurrency(totalOtherCosts) }}</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Bottom Add Button for Other Costs -->
-                                            <div class="flex justify-center mt-6 pt-4 border-t border-orange-200">
-                                                <button type="button" @click="addOtherCost"
-                                                    class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-                                                    <Plus class="w-4 h-4 mr-2" />
-                                                    Add Another Cost
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div v-else class="text-center py-4 text-orange-600">
-                                            <p class="text-sm">No other costs yet</p>
-                                            <p class="text-xs text-orange-500">Click "Add Cost" to add items.</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Reimbursement Section -->
-                                    <div class="bg-purple-50 rounded-lg p-4">
-                                        <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-md font-semibold text-purple-800">Items Reimbursement</h4>
-                                            <button type="button" @click="addReimbursementItem"
-                                                class="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors">
-                                                + Add Reimbursement
-                                            </button>
-                                        </div>
-
-                                        <div v-if="reimbursementItems && reimbursementItems.length > 0"
-                                            class="space-y-3">
-                                            <div v-for="(item, index) in reimbursementItems" :key="index"
-                                                class="border border-purple-200 rounded-lg p-3 bg-white">
-                                                <div class="grid grid-cols-12 gap-3 mb-2">
-                                                    <div class="col-span-3">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Description</label>
-                                                        <input v-model="item.description" type="text"
-                                                            placeholder="Example: Transport to port"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
-                                                        <input v-model="item.quantity" type="number" step="0.01"
-                                                            min="0" placeholder="1"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
-                                                        <input v-model="item.unit" type="text" placeholder="Unit"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
-                                                        <input v-model="item.amount" type="number" step="0.01"
-                                                            placeholder="0.00"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Category</label>
-                                                        <SearchableSelect v-model="item.category"
-                                                            :options="reimbursementCategoryOptions"
-                                                            placeholder="Select category" label-field="label"
-                                                            value-field="value" sub-label-field="description"
-                                                            :search-fields="['label', 'description']"
-                                                            :input-class="`w-full px-2 py-1 pr-8 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
-                                                        <p v-if="reimbursementCategoryOptions.length === 0"
-                                                            class="text-xs text-purple-600 mt-1">
-                                                            No categories available. Please add Operational Cost
-                                                            Categories first.
-                                                        </p>
-                                                    </div>
-                                                    <div class="col-span-1 flex items-end">
-                                                        <button type="button" @click="removeReimbursementItem(index)"
-                                                            class="w-full px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
-                                                            <Trash2 class="w-4 h-4 mx-auto" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="grid grid-cols-12 gap-3">
-                                                    <div class="col-span-6">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Vendor
-                                                            / Payee</label>
-                                                        <SearchableSelect v-model="item.vendor_id"
-                                                            :options="vendorSelectOptions" placeholder="Select vendor"
-                                                            :search-fields="['label']"
-                                                            :input-class="'w-full px-2 py-1 pr-8 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
-                                                        <p class="text-xs text-purple-600 mt-1">Select a vendor if you
-                                                            already know the payee.</p>
-                                                    </div>
-                                                    <div class="col-span-6">
-                                                        <label
-                                                            class="block text-xs font-medium text-purple-700 mb-1">Notes</label>
-                                                        <input v-model="item.notes" type="text"
-                                                            placeholder="Additional notes (optional)"
-                                                            class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Total Reimbursement -->
-                                            <div class="pt-3 border-t border-purple-300">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-sm font-medium text-purple-700">Total
-                                                        Reimbursement:</span>
-                                                    <span class="text-lg font-bold text-purple-800">{{
-                                                        formatCurrency(totalReimbursement) }}</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Bottom Add Button for Reimbursement -->
-                                            <div class="flex justify-center mt-6 pt-4 border-t border-purple-200">
-                                                <button type="button" @click="addReimbursementItem"
-                                                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                                    <Plus class="w-4 h-4 mr-2" />
-                                                    Add Another Reimbursement
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div v-else class="text-center py-4 text-purple-600">
-                                            <p class="text-sm">No reimbursement items yet</p>
-                                            <p class="text-xs text-purple-500">Click "Add Reimbursement" to add items.
-                                            </p>
-                                        </div>
-                                    </div>
-
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">REMARKS</label>
                                         <textarea v-model="form.remarks" rows="3"
@@ -710,6 +489,235 @@
                                             class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
                                         <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{
                                             form.errors.note }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Other Costs Section -->
+                            <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+                                <div @click="toggleSection('other_costs')"
+                                    class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
+                                    <h3 class="text-lg font-semibold text-sage-800">Other Costs (Operational)</h3>
+                                    <ChevronDown :class="{ 'rotate-180': !sections.other_costs }"
+                                        class="w-5 h-5 text-sage-600 transition-transform duration-200" />
+                                </div>
+                                <div v-show="sections.other_costs" class="p-6">
+                                    <div class="bg-orange-50 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="text-md font-semibold text-orange-800">Other Costs
+                                                (Operational)</h4>
+                                            <button type="button" @click="addOtherCost"
+                                                class="text-sm bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors">
+                                                + Add Cost
+                                            </button>
+                                        </div>
+
+                                        <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
+                                            <div v-for="(cost, index) in form.other_costs" :key="'cost-' + index"
+                                                class="relative border border-orange-200 rounded-lg p-3 bg-white">
+                                                <button type="button" @click="removeOtherCost(index)"
+                                                    class="absolute bottom-1 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                                                    :disabled="form.other_costs.length <= 1">
+                                                    <Trash2 class="w-4 h-4" />
+                                                </button>
+                                                <div class="grid grid-cols-12 gap-3">
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost Description</label>
+                                                        <input v-model="cost.description" type="text"
+                                                            placeholder="Example: handling fees, documents, etc."
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Cost Amount (Unit Price)</label>
+                                                        <input v-model="cost.amount" type="text"
+                                                            placeholder="0 (example: 2,500 or 2500)"
+                                                            @input="(e) => { formatCostAmount(cost, e); onCostAmountInput(cost); }"
+                                                            @blur="() => recalculateCostAmount(cost)"
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                        <p class="text-xs text-orange-600 mt-1"
+                                                            v-if="cost.quantity && parseFloat(cost.quantity) > 0">
+                                                            Total: {{ formatCurrency(getTotalCostAmount(cost)) }}
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Qty
+                                                            (Optional)</label>
+                                                        <input v-model="cost.quantity" type="number" min="0" step="0.01"
+                                                            placeholder="Quantity"
+                                                            @input="() => recalculateCostAmount(cost)"
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Unit
+                                                            (Optional)</label>
+                                                        <input v-model="cost.unit" type="text" placeholder="Unit"
+                                                            class="w-full px-3 py-2 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Category</label>
+                                                        <SearchableSelect v-model="cost.category_id"
+                                                            :options="operationalCostCategorySelectOptions"
+                                                            placeholder="Select category" label-field="label"
+                                                            value-field="value" sub-label-field="description"
+                                                            :search-fields="['label', 'description']"
+                                                            :input-class="`w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 ${operationalCostCategorySelectOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`"
+                                                            @select="() => onOtherCostCategoryChange(cost)" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-orange-700 mb-1">Vendor / Recipient</label>
+                                                        <SearchableSelect v-model="cost.vendor_id"
+                                                            :options="vendorSelectOptions" placeholder="Select vendor"
+                                                            :search-fields="['label']"
+                                                            :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
+                                                        <p class="text-xs text-orange-600 mt-1">Select a vendor if you
+                                                            already know who will be paid</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-3 border-t border-orange-300">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-sm font-medium text-orange-700">Total Other Costs:</span>
+                                                    <span class="text-lg font-bold text-orange-800">{{
+                                                        formatCurrency(totalOtherCosts) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-6 pt-4 border-t border-orange-200">
+                                                <button type="button" @click="addOtherCost"
+                                                    class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-orange-200 rounded-lg text-orange-700 hover:border-orange-300 hover:bg-orange-50 transition-colors">
+                                                    <Plus class="w-5 h-5 mb-1" />
+                                                    <span class="text-sm font-medium">Add Another Cost</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div v-else class="text-center py-4 text-orange-600">
+                                            <p class="text-sm">No other costs yet</p>
+                                            <p class="text-xs text-orange-500">Click "Add Cost" to add one</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reimbursement Section -->
+                            <div class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden">
+                                <div @click="toggleSection('reimbursement')"
+                                    class="px-6 py-4 border-b border-sage-200 bg-sage-50 cursor-pointer flex justify-between items-center hover:bg-sage-100 transition-colors">
+                                    <h3 class="text-lg font-semibold text-sage-800">Reimbursement Items</h3>
+                                    <ChevronDown :class="{ 'rotate-180': !sections.reimbursement }"
+                                        class="w-5 h-5 text-sage-600 transition-transform duration-200" />
+                                </div>
+                                <div v-show="sections.reimbursement" class="p-6">
+                                    <div class="bg-purple-50 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="text-md font-semibold text-purple-800">Reimbursement Items</h4>
+                                            <button type="button" @click="addReimbursementItem"
+                                                class="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors">
+                                                + Add Reimbursement
+                                            </button>
+                                        </div>
+
+                                        <div v-if="reimbursementItems && reimbursementItems.length > 0"
+                                            class="space-y-3">
+                                            <div v-for="(item, index) in reimbursementItems" :key="'reimburse-' + index"
+                                                class="relative border border-purple-200 rounded-lg p-3 pb-8 bg-white">
+                                                <button type="button" @click="removeReimbursementItem(index)"
+                                                    class="absolute bottom-2 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors">
+                                                    <Trash2 class="w-4 h-4" />
+                                                </button>
+                                                <div class="grid grid-cols-12 gap-3">
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Description</label>
+                                                        <input v-model="item.description" type="text"
+                                                            placeholder="Example: transport, accommodation, etc."
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-6">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Qty</label>
+                                                        <input v-model="item.quantity" type="number" min="0" step="0.01"
+                                                            placeholder="1"
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-6">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Unit</label>
+                                                        <input v-model="item.unit" type="text" placeholder="Unit"
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Amount</label>
+                                                        <input v-model="item.amount" type="number" min="0" step="0.01"
+                                                            placeholder="0"
+                                                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500" />
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Category</label>
+                                                        <SearchableSelect v-model="item.category"
+                                                            :options="reimbursementCategoryOptions"
+                                                            placeholder="Select category" label-field="label"
+                                                            value-field="value" sub-label-field="description"
+                                                            :search-fields="['label', 'description']"
+                                                            :input-class="`w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 ${reimbursementCategoryOptions.length === 0 ? 'bg-gray-100 pointer-events-none' : ''}`" />
+                                                        <p v-if="reimbursementCategoryOptions.length === 0"
+                                                            class="text-xs text-purple-600 mt-1">
+                                                            No categories available. Please add Operational Cost
+                                                            Categories first.
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <label
+                                                            class="block text-xs font-medium text-purple-700 mb-1">Vendor / Recipient</label>
+                                                        <SearchableSelect v-model="item.vendor_id"
+                                                            :options="vendorSelectOptions" placeholder="Select vendor"
+                                                            :search-fields="['label']"
+                                                            :input-class="'w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
+                                                        <p class="text-xs text-purple-600 mt-1">Select a vendor if you
+                                                            already know who will be paid</p>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <label
+                                                        class="block text-xs font-medium text-purple-700 mb-1">Notes
+                                                        (optional)</label>
+                                                    <textarea v-model="item.notes" rows="2"
+                                                        placeholder="Additional notes for this reimbursement item"
+                                                        class="w-full px-2 py-1 border border-purple-300 rounded text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"></textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-3 border-t border-purple-300">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-sm font-medium text-purple-700">Total
+                                                        Reimbursement:</span>
+                                                    <span class="text-lg font-bold text-purple-800">{{
+                                                        formatCurrency(totalReimbursement) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-6 pt-4 border-t border-purple-200">
+                                                <button type="button" @click="addReimbursementItem"
+                                                    class="w-full flex flex-col items-center justify-center px-4 py-3 border-2 border-dashed border-purple-200 rounded-lg text-purple-700 hover:border-purple-300 hover:bg-purple-50 transition-colors">
+                                                    <Plus class="w-5 h-5 mb-1" />
+                                                    <span class="text-sm font-medium">Add Another Reimbursement</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div v-else class="text-center py-4 text-purple-600">
+                                            <p class="text-sm">No reimbursement items yet</p>
+                                            <p class="text-xs text-purple-500">Click "Add Reimbursement" to add one</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -952,7 +960,6 @@ const shipmentTypeOptions = computed(() => {
 
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
-        { value: '', label: '-- Not Set --' },
         { value: 'internal', label: '-- Internal (Operations Division) --' },
     ];
 
@@ -1014,10 +1021,10 @@ const sections = ref({
     basic: true,
     shipping: false,
     pricing: false,
+    other_costs: false,
+    reimbursement: false,
     goods: false,
     invoice: false,
-    vendor: false,
-
 });
 
 const form = useForm({

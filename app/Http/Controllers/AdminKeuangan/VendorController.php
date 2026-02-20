@@ -50,7 +50,7 @@ class VendorController extends Controller
                 ) asc
             ")
             ->orderBy('nama_vendor', 'asc')
-            ->paginate(15)
+            ->paginate(5)
             ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/Vendors/Index', [

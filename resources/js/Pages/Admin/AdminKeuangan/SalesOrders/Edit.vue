@@ -248,14 +248,13 @@
                                             <!-- Row 1: Vendor Selection -->
                                             <div>
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Vendor Name</label>
-                                                <select v-model="item.vendor_id" @change="onVendorSelect(index)"
-                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
-                                                    <option value="">Select vendor...</option>
-                                                    <option v-for="vendorOption in vendors" :key="vendorOption.id"
-                                                        :value="vendorOption.id">
-                                                        {{ vendorOption.nama_vendor }}
-                                                    </option>
-                                                </select>
+                                                <SearchableSelect v-model="item.vendor_id"
+                                                    :options="vendorSelectOptions"
+                                                    placeholder="Select vendor..."
+                                                    :search-fields="['label']"
+                                                    :disabled="isPricingLocked"
+                                                    :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'"
+                                                    @update:modelValue="() => onVendorSelect(index)" />
                                             </div>
 
                                             <!-- Row 2: Service Description -->
@@ -962,7 +961,6 @@ const baseOperationalCostCategoryOptions = computed(() => {
 
 const vendorSelectOptions = computed(() => {
     const baseOptions = [
-        { value: '', label: '-- Not Specified --' },
         { value: 'internal', label: '-- Internal (Divisi Operational) --' },
     ];
 

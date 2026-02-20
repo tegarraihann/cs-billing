@@ -26,11 +26,24 @@ class ShipmentTypeController extends Controller
             });
         }
 
-        $shipmentTypes = $query->orderBy('created_at', 'desc')->paginate(15);
+        // Filter by status
+        if ($request->filled('status')) {
+            switch ($request->status) {
+                case '0':
+                case '1':
+                    $query->where('is_active', $request->status === '1');
+                    break;
+            }
+        }
+
+        $shipmentTypes = $query
+            ->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/AdminKeuangan/ShipmentTypes/Index', [
             'shipmentTypes' => $shipmentTypes,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search', 'status'])
         ]);
     }
 

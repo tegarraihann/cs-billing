@@ -222,8 +222,32 @@
               </div>
 
               <!-- Pagination -->
-              <div v-if="invoices.data.length > 0" class="px-6 py-4 border-t border-gray-200">
-                <Pagination :data="invoices" />
+              <div v-if="invoices.data.length > 0" class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm text-gray-700">
+                    Showing {{ invoices.from || 0 }} to {{ invoices.to || 0 }} of {{ invoices.total || 0 }} results
+                  </div>
+                  <div class="flex space-x-1">
+                    <template v-for="link in invoices.links" :key="link.label">
+                      <button
+                        v-if="link.url"
+                        @click="visitPage(link.url)"
+                        :class="[
+                          'px-3 py-2 text-sm rounded-md',
+                          link.active
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                        ]"
+                        v-html="link.label"
+                      ></button>
+                      <span
+                        v-else
+                        class="px-3 py-2 text-sm text-gray-400"
+                        v-html="link.label"
+                      ></span>
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -236,7 +260,6 @@
 <script setup>
 import { Link, Head } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
-import Pagination from '@/Components/Pagination.vue';
 import { Plus, DollarSign, FileText, CheckCircle, Clock } from 'lucide-vue-next';
 
 import { reactive, computed } from 'vue';
@@ -339,6 +362,14 @@ const search = debounce(() => {
     replace: true
   });
 }, 300);
+
+const visitPage = (url) => {
+  router.visit(url, {
+    data: { ...form },
+    preserveState: true,
+    replace: true,
+  });
+};
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', {
