@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPDF;
 
@@ -243,6 +244,9 @@ class SalesOrderController extends Controller
                 $validated['invoice_number'] = Invoice::generateInvoiceNumberFromSO($tempSO);
             }
 
+            $validated['other_costs'] = $this->normalizeOtherCostEntries($validated['other_costs'] ?? []);
+            $this->validateOtherCostDuplicates($validated['other_costs']);
+
             // Remove voucher data and reimbursement items from sales order data
             $reimbursementItems = $validated['reimbursement_items'] ?? [];
             unset($validated['reimbursement_items']);
@@ -466,6 +470,7 @@ class SalesOrderController extends Controller
         $incomingOtherCosts = $this->normalizeOtherCostEntries($validated['other_costs'] ?? []);
         $paidLocks = $this->getPaidComponentLocks($salesOrder);
         $validated['other_costs'] = $this->enforcePaidOtherCostLocks($incomingOtherCosts, $existingOtherCosts, $paidLocks);
+        $this->validateOtherCostDuplicates($validated['other_costs'], $existingOtherCosts);
 
         // Extract reimbursement items before updating sales order
         $reimbursementItems = $validated['reimbursement_items'] ?? [];
@@ -1265,6 +1270,108 @@ class SalesOrderController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function validateOtherCostDuplicates(array $incomingOtherCosts, array $baselineOtherCosts = []): void
+    {
+        $baselineCounts = [];
+        foreach ($baselineOtherCosts as $entry) {
+            $key = $this->buildOtherCostDuplicateKey(is_array($entry) ? $entry : (array) $entry);
+            if ($key === null) {
+                continue;
+            }
+
+            $baselineCounts[$key] = ($baselineCounts[$key] ?? 0) + 1;
+        }
+
+        $incomingCounts = [];
+        $incomingRows = [];
+        $incomingLabels = [];
+
+        foreach ($incomingOtherCosts as $index => $entry) {
+            $entry = is_array($entry) ? $entry : (array) $entry;
+            $key = $this->buildOtherCostDuplicateKey($entry);
+            if ($key === null) {
+                continue;
+            }
+
+            $incomingCounts[$key] = ($incomingCounts[$key] ?? 0) + 1;
+            $incomingRows[$key][] = $index + 1;
+            if (!isset($incomingLabels[$key])) {
+                $incomingLabels[$key] = trim((string) ($entry['description'] ?? '-'));
+            }
+        }
+
+        $errors = [];
+        foreach ($incomingCounts as $key => $count) {
+            $allowedCount = max(1, (int) ($baselineCounts[$key] ?? 0));
+            if ($count <= $allowedCount) {
+                continue;
+            }
+
+            $duplicateRows = array_slice($incomingRows[$key], $allowedCount);
+            $errors[] = 'Baris ' . implode(', ', $duplicateRows)
+                . ' duplikat untuk biaya "'
+                . $incomingLabels[$key]
+                . '" (kombinasi deskripsi + vendor + amount harus unik).';
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages([
+                'other_costs' => implode(' ', $errors),
+            ]);
+        }
+    }
+
+    private function buildOtherCostDuplicateKey(array $entry): ?string
+    {
+        $description = trim((string) ($entry['description'] ?? ''));
+        if ($description === '') {
+            return null;
+        }
+
+        $amount = (float) ($entry['amount'] ?? 0);
+        if ($amount <= 0) {
+            return null;
+        }
+
+        $vendorKey = $this->normalizeOtherCostVendorForDuplicate($entry['vendor_id'] ?? null);
+
+        return strtolower($description)
+            . '|'
+            . $vendorKey
+            . '|'
+            . number_format(round($amount, 2), 2, '.', '');
+    }
+
+    private function normalizeOtherCostVendorForDuplicate($rawVendor): string
+    {
+        if (is_array($rawVendor)) {
+            $rawVendor = $rawVendor['id'] ?? $rawVendor['value'] ?? null;
+        }
+
+        if ($rawVendor === null) {
+            return 'internal';
+        }
+
+        if (is_string($rawVendor)) {
+            $rawVendor = trim($rawVendor);
+            if ($rawVendor === '' || strtolower($rawVendor) === 'internal') {
+                return 'internal';
+            }
+
+            if (is_numeric($rawVendor)) {
+                return 'vendor_' . (int) $rawVendor;
+            }
+
+            return 'vendor_' . strtolower($rawVendor);
+        }
+
+        if (is_numeric($rawVendor)) {
+            return 'vendor_' . (int) $rawVendor;
+        }
+
+        return 'internal';
     }
 
     private function generateOtherCostId(): string
