@@ -564,8 +564,13 @@
                                     <div v-for="(cost, index) in form.other_costs" :key="'cost-' + index"
                                         class="relative border border-orange-200 rounded-lg p-3 bg-white">
                                         <button type="button" @click="removeOtherCost(index)"
-                                            class="absolute bottom-1 right-4 px-2 py-1 flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
-                                            :disabled="isOtherCostLocked(cost) || form.other_costs.length <= 1">
+                                            :disabled="isOtherCostLocked(cost) || form.other_costs.length <= 1"
+                                            :class="[
+                                                'absolute bottom-1 right-4 px-2 py-1 flex items-center justify-center rounded transition-colors',
+                                                (isOtherCostLocked(cost) || form.other_costs.length <= 1)
+                                                    ? 'opacity-50 cursor-not-allowed text-red-400'
+                                                    : 'text-red-600 hover:text-red-800 hover:bg-red-100'
+                                            ]">
                                             <Trash2 class="w-4 h-4" />
                                         </button>
                                         <div class="grid grid-cols-12 gap-3">
@@ -1287,6 +1292,11 @@ const addOtherCost = () => {
 };
 
 const removeOtherCost = (index) => {
+    const target = form.other_costs[index];
+    if (!target || isOtherCostLocked(target)) {
+        return;
+    }
+
     if (form.other_costs.length > 0) {
         form.other_costs.splice(index, 1);
     }
@@ -1419,6 +1429,11 @@ const addReimbursementItem = () => {
 };
 
 const removeReimbursementItem = (index) => {
+    const target = reimbursementItems.value[index];
+    if (!target || isReimbursementLocked(target)) {
+        return;
+    }
+
     if (reimbursementItems.value.length > 1) {
         reimbursementItems.value.splice(index, 1);
     }

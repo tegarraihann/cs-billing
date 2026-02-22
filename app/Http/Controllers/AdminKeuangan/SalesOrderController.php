@@ -666,11 +666,17 @@ class SalesOrderController extends Controller
         );
         $incomingOtherCosts = $this->normalizeOtherCostEntries($validated['other_costs'] ?? []);
         $paidLocks = $this->getPaidComponentLocks($salesOrder);
+        $reimbursementItems = $validated['reimbursement_items'] ?? [];
+        $this->assertLockedItemsNotRemoved(
+            $incomingOtherCosts,
+            $reimbursementItems,
+            $existingOtherCosts,
+            $paidLocks
+        );
         $validated['other_costs'] = $this->enforcePaidOtherCostLocks($incomingOtherCosts, $existingOtherCosts, $paidLocks);
         $this->validateOtherCostDuplicates($validated['other_costs'], $existingOtherCosts);
 
         // Extract reimbursement items before updating sales order
-        $reimbursementItems = $validated['reimbursement_items'] ?? [];
         $reimbursementItems = $this->enforcePaidReimbursementLocks($reimbursementItems, $salesOrder, $paidLocks);
         unset($validated['reimbursement_items']);
 
@@ -1727,7 +1733,7 @@ class SalesOrderController extends Controller
 
     private function getPaidComponentLocks(SalesOrder $salesOrder): array
     {
-        $salesOrder->loadMissing('accountPayables.components');
+        $salesOrder->loadMissing('accountPayables.components', 'reimbursementItems');
 
         $otherCostIds = [];
         $otherCostIndexes = [];
@@ -1764,6 +1770,15 @@ class SalesOrderController extends Controller
             }
         }
 
+        foreach ($salesOrder->reimbursementItems as $item) {
+            $vendorStatus = strtolower((string) ($item->status ?? ''));
+            $customerStatus = strtolower((string) ($item->customer_payment_status ?? ''));
+
+            if ($vendorStatus === 'paid' || $customerStatus === 'paid') {
+                $reimbursementIds[] = (int) $item->id;
+            }
+        }
+
         return [
             'other_cost_ids' => array_values(array_unique($otherCostIds)),
             'other_cost_indexes' => array_values(array_unique($otherCostIndexes)),
@@ -1772,13 +1787,80 @@ class SalesOrderController extends Controller
         ];
     }
 
+    private function assertLockedItemsNotRemoved(
+        array $incomingOtherCosts,
+        array $incomingReimbursements,
+        array $existingOtherCosts,
+        array $locks
+    ): void {
+        $errors = [];
+
+        $incomingOtherCostIds = collect($incomingOtherCosts)
+            ->map(fn ($entry) => isset($entry['id']) ? (string) $entry['id'] : null)
+            ->filter()
+            ->values()
+            ->all();
+
+        foreach ($existingOtherCosts as $index => $entry) {
+            $entryId = (string) ($entry['id'] ?? '');
+            $lookupRef = $this->buildOtherCostLookupRef($entry, $index);
+            $isLocked =
+                in_array($entryId, $locks['other_cost_ids'] ?? [], true)
+                || in_array($index, $locks['other_cost_indexes'] ?? [], true)
+                || in_array($lookupRef, $locks['other_cost_lookup_refs'] ?? [], true);
+
+            if (!$isLocked) {
+                continue;
+            }
+
+            if ($entryId !== '' && in_array($entryId, $incomingOtherCostIds, true)) {
+                continue;
+            }
+
+            $stillExistsByLookup = false;
+            foreach ($incomingOtherCosts as $incomingIndex => $incomingEntry) {
+                if ($this->buildOtherCostLookupRef($incomingEntry, $incomingIndex) === $lookupRef) {
+                    $stillExistsByLookup = true;
+                    break;
+                }
+            }
+
+            if (!$stillExistsByLookup) {
+                $errors['other_costs'] = 'Tidak bisa menghapus item Other Cost yang sudah Paid di AP/AR.';
+                break;
+            }
+        }
+
+        $lockedReimbursementIds = array_values(array_unique(array_map('intval', $locks['reimbursement_ids'] ?? [])));
+        if (!empty($lockedReimbursementIds)) {
+            $incomingReimbursementIds = collect($incomingReimbursements)
+                ->filter(fn ($entry) => isset($entry['id']) && is_numeric($entry['id']))
+                ->map(fn ($entry) => (int) $entry['id'])
+                ->values()
+                ->all();
+
+            $missingLockedReimbursements = array_values(array_diff($lockedReimbursementIds, $incomingReimbursementIds));
+            if (!empty($missingLockedReimbursements)) {
+                $errors['reimbursement_items'] = 'Tidak bisa menghapus item Reimbursement yang sudah Paid di AP/AR.';
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
     private function enforcePaidOtherCostLocks(array $incomingOtherCosts, array $existingOtherCosts, array $locks): array
     {
-        $lockedIds = [];
+        $lockedEntries = [];
         $existingById = [];
         $incomingById = [];
+        $incomingByLookupRef = [];
 
         foreach ($incomingOtherCosts as $index => $entry) {
+            $lookupRef = $this->buildOtherCostLookupRef($entry, $index);
+            $incomingByLookupRef[$lookupRef][] = $index;
+
             if (!empty($entry['id'])) {
                 $incomingById[(string) $entry['id']] = $index;
             }
@@ -1799,11 +1881,17 @@ class SalesOrderController extends Controller
                 || in_array($lookupRef, $locks['other_cost_lookup_refs'] ?? [], true);
 
             if ($isLocked) {
-                $lockedIds[] = $entryId;
+                $lockedEntries[] = [
+                    'id' => $entryId,
+                    'lookup_ref' => $lookupRef,
+                ];
             }
         }
 
-        foreach (array_values(array_unique($lockedIds)) as $lockedId) {
+        foreach ($lockedEntries as $lockedEntry) {
+            $lockedId = (string) ($lockedEntry['id'] ?? '');
+            $lookupRef = (string) ($lockedEntry['lookup_ref'] ?? '');
+
             if (!isset($existingById[$lockedId])) {
                 continue;
             }
@@ -1812,6 +1900,14 @@ class SalesOrderController extends Controller
             if (isset($incomingById[$lockedId])) {
                 $incomingOtherCosts[$incomingById[$lockedId]] = $lockedPayload;
                 continue;
+            }
+
+            if ($lookupRef !== '' && !empty($incomingByLookupRef[$lookupRef])) {
+                $matchedIndex = array_shift($incomingByLookupRef[$lookupRef]);
+                if ($matchedIndex !== null) {
+                    $incomingOtherCosts[$matchedIndex] = $lockedPayload;
+                    continue;
+                }
             }
 
             $incomingOtherCosts[] = $lockedPayload;
