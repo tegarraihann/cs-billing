@@ -1614,9 +1614,11 @@ class SalesOrderController extends Controller
                 $entry = (array) $entry;
             }
 
+            // Keep legacy rows without id as-is. Generating random ids per request
+            // causes lock checks to think paid rows were removed.
             $entry['id'] = !empty($entry['id'])
                 ? (string) $entry['id']
-                : $this->generateOtherCostId();
+                : null;
 
             $normalized[] = $entry;
         }
@@ -1826,6 +1828,12 @@ class SalesOrderController extends Controller
             }
 
             if (!$stillExistsByLookup) {
+                // Legacy rows without stable id can be omitted by older frontend payloads.
+                // They will be restored by enforcePaidOtherCostLocks(), so avoid false-positive rejection.
+                if ($entryId === '') {
+                    continue;
+                }
+
                 $errors['other_costs'] = 'Tidak bisa menghapus item Other Cost yang sudah Paid di AP/AR.';
                 break;
             }

@@ -1508,6 +1508,55 @@ const closeAlert = () => {
 };
 
 const submit = () => {
+    const sanitizedReimbursements = (reimbursementItems.value || [])
+        .filter((item) => {
+            const description = (item.description || '').toString().trim();
+            const amount = normalizeNumberValue(item.amount);
+            const category = (item.category || '').toString().trim();
+            const vendor = item.vendor_id !== undefined && item.vendor_id !== null
+                ? item.vendor_id.toString().trim()
+                : '';
+
+            return description !== '' || amount > 0 || category !== '' || vendor !== '';
+        })
+        .map((item) => ({
+            id: item.id ?? null,
+            description: item.description || '',
+            amount: normalizeNumberValue(item.amount),
+            quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
+            unit: item.unit || '',
+            category: item.category || '',
+            notes: item.notes || '',
+            vendor_id: item.vendor_id === '' ? null : item.vendor_id,
+        }));
+
+    const sanitizedOtherCosts = (form.other_costs || [])
+        .filter((cost) => {
+            const description = (cost.description || '').toString().trim();
+            const amount = normalizeNumberValue(cost.amount);
+            const category = (cost.category || '').toString().trim();
+            const vendor = cost.vendor_id !== undefined && cost.vendor_id !== null
+                ? cost.vendor_id.toString().trim()
+                : '';
+
+            // Keep locked/existing rows so backend lock validation does not treat them as deleted.
+            if (cost.is_paid_locked || (cost.id ?? null) !== null) {
+                return true;
+            }
+
+            return description !== '' || amount > 0 || category !== '' || vendor !== '';
+        })
+        .map((cost) => ({
+            id: cost.id ?? null,
+            description: cost.description || '',
+            amount: normalizeNumberValue(cost.amount),
+            category: cost.category || '',
+            notes: cost.notes || '',
+            vendor_id: cost.vendor_id === '' ? null : cost.vendor_id,
+            quantity: cost.quantity !== '' ? parseFloat(cost.quantity) || cost.quantity : '',
+            unit: cost.unit || ''
+        }));
+
     // Clean up formatted numbers before sending
     const cleanedData = {
         ...form.data(),
@@ -1518,30 +1567,8 @@ const submit = () => {
             quantity: item.quantity !== '' ? parseFloat(item.quantity) || item.quantity : '',
             unit: item.unit || ''
         })),
-        reimbursement_items: reimbursementItems.value
-            .filter(r => r.description && r.amount && r.amount > 0)
-            .map(r => ({
-                id: r.id ?? null,
-                description: r.description,
-                amount: normalizeNumberValue(r.amount),
-                quantity: r.quantity !== '' ? parseFloat(r.quantity) || r.quantity : '',
-                unit: r.unit || '',
-                category: r.category || '',
-                notes: r.notes || '',
-                vendor_id: r.vendor_id === '' ? null : r.vendor_id,
-            })),
-        other_costs: form.other_costs
-            .filter(c => c.description && c.amount && c.amount > 0)
-            .map(c => ({
-                id: c.id ?? null,
-                description: c.description ?? '',
-                amount: normalizeNumberValue(c.amount),
-                category: c.category || '',
-                notes: c.notes || '',
-                vendor_id: c.vendor_id === '' ? null : c.vendor_id,
-                quantity: c.quantity !== '' ? parseFloat(c.quantity) || c.quantity : '',
-                unit: c.unit || ''
-            }))
+        reimbursement_items: sanitizedReimbursements,
+        other_costs: sanitizedOtherCosts
     };
 
     form.transform(() => cleanedData).put(route("admin-keuangan.sales-orders.update", props.salesOrder.id), {
