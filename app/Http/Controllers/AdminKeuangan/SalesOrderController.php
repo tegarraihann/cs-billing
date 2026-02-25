@@ -1015,6 +1015,7 @@ class SalesOrderController extends Controller
 
             // COGS tidak mempengaruhi subtotal pelanggan tapi hitung ulang untuk konsistensi
             $invoice->calculateTotals();
+            AccountReceivable::syncFromInvoice($invoice->fresh());
         }
     }
 
