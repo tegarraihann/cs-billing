@@ -17,9 +17,11 @@ $kernel->bootstrap();
  *   php scripts/deduplicate-opening-payable-abe.php              # dry-run
  *   php scripts/deduplicate-opening-payable-abe.php --apply      # eksekusi hapus
  *   php scripts/deduplicate-opening-payable-abe.php --apply --keep-id=476
+ *   php scripts/deduplicate-opening-payable-abe.php --apply --allow-unpaid-components
  */
 
 $apply = in_array('--apply', $argv, true);
+$allowUnpaidComponents = in_array('--allow-unpaid-components', $argv, true);
 $keepId = null;
 
 foreach ($argv as $arg) {
@@ -90,7 +92,8 @@ $safeDeleteIds = [];
 $blocked = [];
 
 foreach ($deleteCandidates as $row) {
-    $hasComponents = $row->components()->exists();
+    $components = $row->components()->get(['id', 'amount', 'paid_amount', 'outstanding_amount', 'status']);
+    $hasComponents = $components->isNotEmpty();
     $hasNotes = AccountPayableNote::query()->where('account_payable_id', $row->id)->exists();
     $isUnpaid = $row->status === 'unpaid';
 
@@ -100,8 +103,31 @@ foreach ($deleteCandidates as $row) {
     }
 
     if ($hasComponents) {
-        $blocked[] = "ID {$row->id} BLOCKED: punya components";
-        continue;
+        $allComponentsUnpaid = $components->every(function ($component) {
+            $paidAmount = (float) ($component->paid_amount ?? 0);
+            $amount = (float) ($component->amount ?? 0);
+            $outstanding = (float) ($component->outstanding_amount ?? 0);
+            $status = strtolower((string) ($component->status ?? ''));
+
+            return $paidAmount <= 0.0001
+                && abs($outstanding - $amount) <= 0.01
+                && in_array($status, ['unpaid', 'outstanding'], true);
+        });
+
+        if (!($allowUnpaidComponents && $allComponentsUnpaid)) {
+            $componentInfo = $components->map(function ($component) {
+                return sprintf(
+                    '#%d(status=%s, paid=%.2f, outstanding=%.2f, amount=%.2f)',
+                    $component->id,
+                    (string) $component->status,
+                    (float) $component->paid_amount,
+                    (float) $component->outstanding_amount,
+                    (float) $component->amount
+                );
+            })->implode(', ');
+            $blocked[] = "ID {$row->id} BLOCKED: punya components [{$componentInfo}]";
+            continue;
+        }
     }
 
     if ($hasNotes) {
@@ -135,7 +161,13 @@ if (!$apply) {
 }
 
 DB::transaction(function () use ($safeDeleteIds): void {
-    AccountPayable::query()->whereIn('id', $safeDeleteIds)->delete();
+    $rows = AccountPayable::query()->whereIn('id', $safeDeleteIds)->get();
+
+    foreach ($rows as $row) {
+        // Pastikan child components dibersihkan agar tidak ada orphan/residual.
+        $row->components()->delete();
+        $row->delete();
+    }
 });
 
 echo "DONE: berhasil menghapus ID " . implode(', ', $safeDeleteIds) . "\n";
