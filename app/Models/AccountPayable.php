@@ -232,6 +232,7 @@ class AccountPayable extends Model
         if (!empty($vendorBreakdownItem['vendor_id'])) {
             $vendor = Vendor::find($vendorBreakdownItem['vendor_id']);
         }
+        $lineAmount = self::calculateVendorBreakdownAmount($vendorBreakdownItem);
 
         return self::create([
             'sales_order_id' => $salesOrder->id,
@@ -240,8 +241,8 @@ class AccountPayable extends Model
             'vendor_invoice_number' => $vendorBreakdownItem['rcvd_inv'] ?? null,
             'service_description' => $vendorBreakdownItem['description'] ?? 'Service',
             'service_remarks' => $vendorBreakdownItem['remarks'] ?? null,
-            'amount' => floatval($vendorBreakdownItem['buying_amount'] ?? 0),
-            'outstanding_amount' => floatval($vendorBreakdownItem['buying_amount'] ?? 0),
+            'amount' => $lineAmount,
+            'outstanding_amount' => $lineAmount,
             'vendor_bank_account' => $vendor?->nomor_rekening,
             'vendor_account_name' => $vendor?->nama_rekening,
             'created_by' => auth()->id()
@@ -360,7 +361,7 @@ class AccountPayable extends Model
             $firstItem = $items->first();
             $normalizedVendorId = self::normalizeVendorIdentifierValue($firstItem['vendor_id'] ?? null);
             $totalBuying = $items->sum(function ($item) {
-                return (float) ($item['buying_amount'] ?? 0);
+                return self::calculateVendorBreakdownAmount(is_array($item) ? $item : []);
             });
 
             if ($totalBuying <= 0) {
@@ -692,6 +693,12 @@ class AccountPayable extends Model
                   if (!empty($entry['vendor_invoice_number'])) {
                       $relatedItems['vendor_invoice_number'] = $entry['vendor_invoice_number'];
                   }
+                  if (!empty($entry['quantity'])) {
+                      $relatedItems['quantity'] = $entry['quantity'];
+                  }
+                  if (array_key_exists('unit_price', $entry)) {
+                      $relatedItems['unit_price'] = $entry['unit_price'];
+                  }
 
                 $payload = [
                     'component_type' => 'vendor_payment',
@@ -848,10 +855,12 @@ class AccountPayable extends Model
                     return null;
                 }
 
-                $amount = (float) ($entry['buying_amount'] ?? 0);
+                $amount = self::calculateVendorBreakdownAmount($entry);
                 if ($amount <= 0) {
                     return null;
                 }
+                $quantity = self::normalizeBreakdownQuantity($entry['quantity'] ?? null);
+                $unitPrice = (float) ($entry['buying_amount'] ?? 0);
 
                   $description = trim((string) ($entry['description'] ?? ''));
                   $vendorInvoiceNumber = isset($entry['rcvd_inv']) ? trim((string) $entry['rcvd_inv']) : '';
@@ -864,12 +873,15 @@ class AccountPayable extends Model
                         'vendor_id' => $entryVendorId,
                         'vendor_name' => $entryVendorName,
                         'description' => $description,
-                        'amount' => $amount,
+                        'amount' => $unitPrice,
+                        'quantity' => $quantity,
                     ]));
                 }
 
                   return [
                       'amount' => $amount,
+                      'quantity' => $quantity,
+                      'unit_price' => $unitPrice,
                       'description' => $description,
                       'entry_index' => $index,
                       'entry_id' => $entry['id'] ?? null,
@@ -1181,6 +1193,24 @@ class AccountPayable extends Model
         }
 
         return null;
+    }
+
+    protected static function normalizeBreakdownQuantity($value): float
+    {
+        return is_numeric($value) && (float) $value > 0
+            ? (float) $value
+            : 1.0;
+    }
+
+    protected static function calculateVendorBreakdownAmount(array $entry): float
+    {
+        $unitPrice = (float) ($entry['buying_amount'] ?? 0);
+        if ($unitPrice <= 0) {
+            return 0.0;
+        }
+
+        $quantity = self::normalizeBreakdownQuantity($entry['quantity'] ?? null);
+        return $unitPrice * $quantity;
     }
 
     /**
