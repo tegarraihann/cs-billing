@@ -336,17 +336,12 @@ class InvoiceController extends Controller
                 ->first();
 
             $mainComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'main');
-            $debitComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'debit_note');
 
             if (isset($validated['items']) && is_array($validated['items'])) {
-                $validated['items'] = array_values(array_filter($validated['items'], function ($item) use ($mainComponent, $debitComponent) {
+                $validated['items'] = array_values(array_filter($validated['items'], function ($item) use ($mainComponent) {
                     $itemType = $item['item_type'] ?? null;
 
                     if ($itemType === 'billable' && $mainComponent && $mainComponent->status === 'paid') {
-                        return false;
-                    }
-
-                    if ($itemType === 'reimbursement' && $debitComponent && $debitComponent->status === 'paid') {
                         return false;
                     }
 
@@ -355,7 +350,7 @@ class InvoiceController extends Controller
                             $reimbId = (int) $matches[1];
                             if ($reimbId > 0) {
                                 $reimb = ReimbursementItem::find($reimbId);
-                                if ($reimb && ($reimb->customer_payment_status === 'paid' || $reimb->status === 'paid')) {
+                                if ($reimb && $this->isReimbursementPaidByCustomer($reimb)) {
                                     return false;
                                 }
                             }
@@ -2048,6 +2043,30 @@ class InvoiceController extends Controller
         }
 
         return $value;
+    }
+
+    private function isReimbursementPaidByCustomer(ReimbursementItem $reimbursementItem): bool
+    {
+        $customerStatus = strtolower(trim((string) ($reimbursementItem->customer_payment_status ?? '')));
+        if ($customerStatus === 'paid') {
+            return true;
+        }
+
+        if (in_array($customerStatus, ['partial', 'outstanding'], true)) {
+            return false;
+        }
+
+        $lineTotal = method_exists($reimbursementItem, 'getLineTotal')
+            ? (float) $reimbursementItem->getLineTotal()
+            : ((float) ($reimbursementItem->amount ?? 0) * ((float) ($reimbursementItem->quantity ?? 0) > 0 ? (float) $reimbursementItem->quantity : 1));
+
+        $customerOutstanding = $reimbursementItem->customer_outstanding_amount;
+        if ($customerOutstanding !== null) {
+            return (float) $customerOutstanding <= 0.01;
+        }
+
+        $customerPaid = (float) ($reimbursementItem->customer_paid_amount ?? 0);
+        return $lineTotal > 0 && $customerPaid >= ($lineTotal - 0.01);
     }
 
     private function getPreInvoiceReceivable(SalesOrder $salesOrder): ?array

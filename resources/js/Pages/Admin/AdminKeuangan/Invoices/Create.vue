@@ -1146,8 +1146,10 @@ const shouldIncludeMainItems = (salesOrder) => {
 };
 
 const shouldIncludeReimbursementItems = (salesOrder) => {
-    const component = getPreInvoiceComponent(salesOrder, 'debit_note');
-    return !(component && component.status === 'paid');
+    // Jangan blokir seluruh reimbursement dari status komponen AR agregat.
+    // Item yang ditampilkan/disaring harus ditentukan per reimbursement item
+    // berdasarkan status pembayaran customer di bawah.
+    return true;
 };
 
 // Function to auto-populate items from sales order
@@ -1161,7 +1163,32 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
 
     const vendorBreakdown = overrides.vendor_breakdown ?? salesOrder.vendor_breakdown ?? [];
     const reimbursementSource = (overrides.reimbursement_items ?? salesOrder.reimbursement_items ?? [])
-        .filter(item => (item?.customer_payment_status ?? item?.status ?? 'pending') !== 'paid');
+        .filter((item) => {
+            const customerStatus = String(item?.customer_payment_status ?? '').trim().toLowerCase();
+            if (customerStatus === 'paid') {
+                return false;
+            }
+
+            if (customerStatus === 'partial' || customerStatus === 'outstanding') {
+                return true;
+            }
+
+            const customerOutstandingRaw = item?.customer_outstanding_amount;
+            if (customerOutstandingRaw !== undefined && customerOutstandingRaw !== null && customerOutstandingRaw !== '') {
+                return normalizeNumber(customerOutstandingRaw) > 0.01;
+            }
+
+            const quantity = resolveQuantityValue(item?.quantity ?? item?.qty ?? 1);
+            const lineTotal = normalizeNumber(item?.amount) * quantity;
+            const customerPaid = normalizeNumber(item?.customer_paid_amount);
+
+            if (lineTotal > 0 && customerPaid >= (lineTotal - 0.01)) {
+                return false;
+            }
+
+            // Default: tampilkan sebagai outstanding jika status customer belum jelas.
+            return true;
+        });
     const otherCostsSource = overrides.other_costs ?? salesOrder.other_costs ?? [];
     const includeMainItems = shouldIncludeMainItems(salesOrder);
     const includeReimbursementItems = shouldIncludeReimbursementItems(salesOrder);
