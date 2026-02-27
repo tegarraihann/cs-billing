@@ -9,6 +9,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\ReimbursementItem;
 use App\Models\AccountPayableComponent;
+use App\Models\AccountPayable;
 use App\Models\AccountReceivable;
 use App\Models\ChartOfAccount;
 use App\Models\FinancialPositionAdjustment;
@@ -23,17 +24,58 @@ use App\Services\InvoiceCostSyncService;
 use App\Services\InvoicePostingService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            // Basic query first - include items for profit margin calculations
-            $invoices = Invoice::with(['salesOrder', 'customer', 'confirmedBy', 'items'])
-                              ->orderBy('created_at', 'desc')
-                              ->paginate(10)
-                              ->withQueryString();
+            $search = trim((string) $request->input('search', ''));
+            $status = $request->input('status');
+            $invoiceType = $request->input('invoice_type');
+            $dateFrom = $request->input('date_from');
+            $dateTo = $request->input('date_to');
+
+            // Base query + apply filters
+            $query = Invoice::query()
+                ->with(['salesOrder', 'customer', 'confirmedBy', 'items']);
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('invoice_number', 'like', '%' . $search . '%')
+                      ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                          $customerQuery->where('company_name', 'like', '%' . $search . '%')
+                              ->orWhere('name', 'like', '%' . $search . '%');
+                      })
+                      ->orWhereHas('salesOrder', function ($salesOrderQuery) use ($search) {
+                          $salesOrderQuery->where('order_number', 'like', '%' . $search . '%')
+                              ->orWhere('customer_name', 'like', '%' . $search . '%')
+                              ->orWhere('customer', 'like', '%' . $search . '%');
+                      });
+                });
+            }
+
+            if (!empty($status)) {
+                $query->where('status', $status);
+            }
+
+            if (!empty($invoiceType)) {
+                $query->where('invoice_type', $invoiceType);
+            }
+
+            if (!empty($dateFrom)) {
+                $query->whereDate('invoice_date', '>=', Carbon::parse($dateFrom)->toDateString());
+            }
+
+            if (!empty($dateTo)) {
+                $query->whereDate('invoice_date', '<=', Carbon::parse($dateTo)->toDateString());
+            }
+
+            $invoices = $query
+                ->orderBy('created_at', 'desc')
+                ->paginate(10)
+                ->withQueryString();
 
             // Processing for each invoice to determine available types
             foreach ($invoices as $invoice) {
@@ -2057,7 +2099,7 @@ class InvoiceController extends Controller
     private function autoGenerateOperationalDebt(Invoice $invoice)
     {
         try {
-            $invoice->loadMissing(['salesOrder.reimbursementItems']);
+            $invoice->loadMissing(['salesOrder.reimbursementItems', 'items', 'items.vendor']);
             $salesOrder = $invoice->salesOrder;
 
             if ($salesOrder) {
@@ -2073,6 +2115,7 @@ class InvoiceController extends Controller
 
                 if ($hasVendorBreakdown || $hasOtherCosts || $hasReimbursements) {
                     $this->cleanupInvoiceGeneratedPayables($invoice);
+                    $this->syncInvoiceOperationalCostsToPayables($invoice);
                     return;
                 }
             }
@@ -2181,6 +2224,193 @@ class InvoiceController extends Controller
             ]);
             // Don't throw exception to prevent blocking invoice creation
         }
+    }
+
+    private function syncInvoiceOperationalCostsToPayables(Invoice $invoice): void
+    {
+        if (!$invoice->sales_order_id) {
+            return;
+        }
+
+        $invoice->loadMissing(['items.vendor', 'salesOrder']);
+        $salesOrder = $invoice->salesOrder;
+        if (!$salesOrder) {
+            return;
+        }
+
+        $eligibleItems = $invoice->items
+            ->filter(function (InvoiceItem $item) {
+                if (($item->item_type ?? null) !== 'operational_cost') {
+                    return false;
+                }
+
+                if ((float) ($item->amount ?? 0) <= 0) {
+                    return false;
+                }
+
+                $itemRef = strtolower(trim((string) ($item->item_ref ?? '')));
+                if ($itemRef !== '') {
+                    if (str_starts_with($itemRef, 'cogs_vendor_')) {
+                        return false;
+                    }
+                    if (str_starts_with($itemRef, 'other_cost_')) {
+                        return false;
+                    }
+                    if (str_starts_with($itemRef, 'ap_component_')) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+            ->values();
+
+        $activeItemIds = $eligibleItems
+            ->map(fn (InvoiceItem $item) => (int) $item->id)
+            ->values()
+            ->all();
+
+        DB::transaction(function () use ($invoice, $salesOrder, $eligibleItems, $activeItemIds): void {
+            $payables = AccountPayable::query()
+                ->with('components')
+                ->where('sales_order_id', $salesOrder->id)
+                ->get();
+            $payablesToSync = $payables->keyBy('id');
+
+            // Hapus komponen invoice-operational yang sudah tidak ada di invoice (hanya jika belum paid).
+            foreach ($payables as $payable) {
+                foreach ($payable->components as $component) {
+                    $related = is_array($component->related_items) ? $component->related_items : [];
+                    $source = (string) ($related['source'] ?? '');
+                    $componentInvoiceId = (int) ($related['invoice_id'] ?? 0);
+                    $componentInvoiceItemId = (int) ($related['invoice_item_id'] ?? 0);
+
+                    if ($source !== 'invoice_operational_cost') {
+                        continue;
+                    }
+
+                    if ($componentInvoiceId !== (int) $invoice->id) {
+                        continue;
+                    }
+
+                    if ($componentInvoiceItemId > 0 && in_array($componentInvoiceItemId, $activeItemIds, true)) {
+                        continue;
+                    }
+
+                    if (($component->status ?? null) === 'paid') {
+                        continue;
+                    }
+
+                    $component->delete();
+                }
+            }
+
+            if ($eligibleItems->isEmpty()) {
+                // Tetap sync total AP setelah cleanup stale.
+                foreach ($payables as $payable) {
+                    $payable->syncComponents();
+                }
+                return;
+            }
+
+            foreach ($eligibleItems as $item) {
+                $vendorId = is_numeric($item->vendor_id) ? (int) $item->vendor_id : null;
+                $vendorName = $item->vendor?->nama_vendor
+                    ?? ($vendorId ? null : 'Divisi Operational');
+
+                $payableQuery = AccountPayable::query()
+                    ->where('sales_order_id', $salesOrder->id);
+
+                if ($vendorId !== null) {
+                    $payableQuery->where('vendor_id', $vendorId);
+                } else {
+                    $payableQuery->whereNull('vendor_id')
+                        ->where('vendor_name', $vendorName);
+                }
+
+                $payable = $payableQuery->first();
+
+                if (!$payable) {
+                    $payable = AccountPayable::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'vendor_id' => $vendorId,
+                        'vendor_name' => $vendorName ?? 'Divisi Operational',
+                        'vendor_invoice_number' => 'INV-' . $invoice->invoice_number,
+                        'vendor_invoice_date' => $invoice->invoice_date,
+                        'service_description' => $item->description ?: 'Operational Cost',
+                        'service_remarks' => 'Auto-synced from invoice operational costs',
+                        'amount' => 0,
+                        'paid_amount' => 0,
+                        'outstanding_amount' => 0,
+                        'status' => 'unpaid',
+                        'payment_due_date' => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->addDays(30) : null,
+                        'vendor_bank_account' => $item->vendor?->nomor_rekening,
+                        'vendor_account_name' => $item->vendor?->nama_rekening,
+                        'created_by' => auth()->id() ?? $invoice->created_by ?? $salesOrder->created_by ?? 1,
+                    ]);
+                    $payable->load('components');
+                    $payablesToSync->put($payable->id, $payable);
+                } else {
+                    if (!$payable->service_description) {
+                        $payable->service_description = $item->description ?: $payable->service_description;
+                    }
+                    $payable->save();
+                    $payable->load('components');
+                }
+
+                $itemId = (int) $item->id;
+                $lookupRef = 'invoice_operational_item_' . $itemId;
+                $existingComponent = $payable->components->first(function ($component) use ($itemId) {
+                    $related = is_array($component->related_items) ? $component->related_items : [];
+                    return ($related['source'] ?? null) === 'invoice_operational_cost'
+                        && (int) ($related['invoice_item_id'] ?? 0) === $itemId;
+                });
+
+                $amount = (float) $item->amount;
+                $relatedItems = [
+                    'source' => 'invoice_operational_cost',
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'invoice_item_id' => $item->id,
+                    'item_ref' => $item->item_ref,
+                    'lookup_ref' => $lookupRef,
+                ];
+
+                if ($existingComponent) {
+                    $existingComponent->description = $item->description ?: $existingComponent->description;
+                    $existingComponent->amount = $amount;
+                    $existingComponent->recipient_name = $vendorName ?? $payable->vendor_name;
+                    $existingComponent->vendor_id = $vendorId;
+                    $existingComponent->related_items = $relatedItems;
+                    $existingComponent->paid_amount = min((float) $existingComponent->paid_amount, $amount);
+                    $existingComponent->outstanding_amount = max(0, $amount - (float) $existingComponent->paid_amount);
+                    $existingComponent->status = $existingComponent->outstanding_amount <= 0.01
+                        ? 'paid'
+                        : ((float) $existingComponent->paid_amount > 0 ? 'partial' : 'unpaid');
+                    $existingComponent->due_date = $payable->payment_due_date;
+                    $existingComponent->save();
+                } else {
+                    $payable->components()->create([
+                        'component_type' => 'operational_cost',
+                        'description' => $item->description ?: 'Operational Cost',
+                        'amount' => $amount,
+                        'paid_amount' => 0,
+                        'outstanding_amount' => $amount,
+                        'status' => 'unpaid',
+                        'due_date' => $payable->payment_due_date,
+                        'recipient_name' => $vendorName ?? $payable->vendor_name,
+                        'vendor_id' => $vendorId,
+                        'related_items' => $relatedItems,
+                    ]);
+                }
+
+            }
+
+            // Pastikan semua payable yang terdampak cleanup juga ikut tersinkron.
+            foreach ($payablesToSync as $payableToSync) {
+                $payableToSync->refresh()->syncComponents();
+            }
+        });
     }
 
     private function cleanupInvoiceGeneratedPayables(Invoice $invoice): void

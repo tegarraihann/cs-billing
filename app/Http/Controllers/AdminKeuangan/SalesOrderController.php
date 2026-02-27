@@ -63,6 +63,36 @@ class SalesOrderController extends Controller
     {
         // Fresh query to ensure we have the latest data from database
         $salesOrder = $salesOrder->fresh(['creator', 'releasedBy', 'invoices', 'reimbursementItems']);
+        $additionalBuyingItems = AccountPayableComponent::query()
+            ->with('accountPayable')
+            ->where('component_type', 'operational_cost')
+            ->whereHas('accountPayable', function ($query) use ($salesOrder) {
+                $query->where('sales_order_id', $salesOrder->id);
+            })
+            ->get()
+            ->filter(function (AccountPayableComponent $component) {
+                $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+                return ($relatedItems['source'] ?? null) === 'invoice_operational_cost';
+            })
+            ->map(function (AccountPayableComponent $component) {
+                $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+
+                return [
+                    'component_id' => $component->id,
+                    'description' => $component->description,
+                    'amount' => (float) $component->amount,
+                    'status' => $component->status,
+                    'vendor_name' => $component->recipient_name
+                        ?: $component->accountPayable?->vendor_name
+                        ?: 'Divisi Operational',
+                    'invoice_number' => $relatedItems['invoice_number'] ?? null,
+                    'invoice_item_id' => $relatedItems['invoice_item_id'] ?? null,
+                ];
+            })
+            ->values();
+
+        $salesOrder->setAttribute('additional_buying_items', $additionalBuyingItems->all());
+        $salesOrder->setAttribute('additional_buying_total', (float) $additionalBuyingItems->sum('amount'));
 
         // EMERGENCY DEBUG: Print raw data for troubleshooting
         if (request()->has('debug')) {

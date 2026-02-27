@@ -585,8 +585,9 @@ class AccountPayable extends Model
             $processedKeys = array_unique(array_merge($processedKeys, $processedExistingKeys));
             foreach ($existingComponentsCollection as $existingComponent) {
                 $existingKey = $this->computeExistingComponentKey($existingComponent);
-                $isManual = is_array($existingComponent->related_items)
-                    && ($existingComponent->related_items['source'] ?? null) === 'account_payable_manual_entry';
+                $isManual = $this->isProtectedComponentSource(
+                    is_array($existingComponent->related_items) ? $existingComponent->related_items : null
+                );
                 $shouldDelete = !in_array($existingKey, $processedKeys, true)
                     && $existingComponent->status !== 'paid'
                     && !$isManual;
@@ -628,18 +629,30 @@ class AccountPayable extends Model
         // Preserve manual components (created via AP detail modal)
         $manualComponents = $existingComponents->filter(function ($component) {
             $related = $component->related_items;
-            return is_array($related) && ($related['source'] ?? null) === 'account_payable_manual_entry';
+            return $this->isProtectedComponentSource(is_array($related) ? $related : null);
         });
 
         foreach ($manualComponents as $component) {
+            $related = is_array($component->related_items) ? $component->related_items : [];
+            $source = (string) ($related['source'] ?? '');
+            $lookupReference = $related['lookup_ref'] ?? null;
+
+            if (!$lookupReference && $source === 'invoice_operational_cost' && !empty($related['invoice_item_id'])) {
+                $lookupReference = 'invoice_operational_item_' . $related['invoice_item_id'];
+            }
+
+            if (!$lookupReference) {
+                $lookupReference = 'manual_component_' . $component->id;
+            }
+
             $payloads[] = [
                 'component_type' => $component->component_type,
                 'description' => $component->description,
                 'amount' => (float) $component->amount,
                 'recipient_name' => $component->recipient_name,
                 'vendor_id' => $component->vendor_id,
-                'related_items' => $component->related_items,
-                'lookup_reference' => 'manual_component_' . $component->id,
+                'related_items' => $related,
+                'lookup_reference' => $lookupReference,
                 'paid_amount' => (float) $component->paid_amount,
             ];
         }
@@ -1111,6 +1124,16 @@ class AccountPayable extends Model
         }
 
         return $this->makeComponentLookupKey($component->component_type, $component->vendor_id, $reference);
+    }
+
+    protected function isProtectedComponentSource(?array $relatedItems): bool
+    {
+        if (!$relatedItems) {
+            return false;
+        }
+
+        $source = (string) ($relatedItems['source'] ?? '');
+        return in_array($source, ['account_payable_manual_entry', 'invoice_operational_cost'], true);
     }
 
     protected function collectInvoiceItemsForVendor(): Collection
