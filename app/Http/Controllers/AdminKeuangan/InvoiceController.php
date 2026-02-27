@@ -91,8 +91,10 @@ class InvoiceController extends Controller
 
     public function create(Request $request)
     {
+        $isAdditional = $request->boolean('is_additional');
+
         // Check if coming from Sales Order detail page
-        if ($request->has('sales_order_id') && $request->has('invoice_type')) {
+        if ($request->has('sales_order_id') && ($request->has('invoice_type') || $isAdditional)) {
             $salesOrder = SalesOrder::with(['creator', 'releasedBy', 'approvedBy', 'reimbursementItems', 'vendorBreakdownItems', 'accountReceivables.components'])
                 ->findOrFail($request->sales_order_id);
             $this->ensureVendorBreakdownPayload($salesOrder);
@@ -104,24 +106,38 @@ class InvoiceController extends Controller
                     ->withErrors(['error' => 'Sales Order harus sudah disetujui finance untuk dibuat invoice.']);
             }
 
-            // Check if invoice type already exists
-            $existingInvoice = Invoice::where('sales_order_id', $request->sales_order_id)
-                ->where('invoice_type', $request->invoice_type)
-                ->first();
+            if (!$isAdditional) {
+                // Check if invoice type already exists
+                $existingInvoice = Invoice::where('sales_order_id', $request->sales_order_id)
+                    ->where('invoice_type', $request->invoice_type)
+                    ->where('is_additional', false)
+                    ->first();
 
-            if ($existingInvoice) {
-                return redirect()->route('admin-keuangan.sales-orders.show', $salesOrder->id)
-                    ->withErrors(['error' => 'Invoice ' . ucfirst($request->invoice_type) . ' sudah ada untuk Sales Order ini.']);
+                if ($existingInvoice) {
+                    return redirect()->route('admin-keuangan.sales-orders.show', $salesOrder->id)
+                        ->withErrors(['error' => 'Invoice ' . ucfirst($request->invoice_type) . ' sudah ada untuk Sales Order ini.']);
+                }
             }
+
+            $baseInvoice = $salesOrder->invoices()
+                ->when($request->filled('base_invoice_id'), function ($query) use ($request) {
+                    $query->where('id', (int) $request->input('base_invoice_id'));
+                }, function ($query) {
+                    $query->where('is_additional', false)->orderByDesc('invoice_date')->orderByDesc('id');
+                })
+                ->first();
 
             return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
                 'salesOrders' => collect([$salesOrder]),
                 'preselectedSalesOrder' => $salesOrder->id,
-                'preselectedInvoiceType' => $request->invoice_type,
+                'preselectedInvoiceType' => $request->invoice_type ?? 'combined',
+                'preselectedIsAdditional' => $isAdditional,
+                'preselectedBaseInvoiceId' => $baseInvoice?->id,
                 'preselectedVendorBreakdown' => $salesOrder->vendor_breakdown,
                 'preselectedOtherCosts' => $salesOrder->other_costs ?? [], // Send other_costs with vendor_id
                 'preselectedReimbursementItems' => $salesOrder->reimbursementItems ?? [], // Send reimbursement items with vendor_id
                 'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get(),
+                'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
                 'vendors' => \App\Models\Vendor::orderBy('nama_vendor')->get(['id', 'nama_vendor', 'nomor_rekening'])
             ]);
         }
@@ -147,6 +163,8 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/Invoices/Create', [
             'salesOrders' => $salesOrders,
+            'preselectedIsAdditional' => false,
+            'preselectedBaseInvoiceId' => null,
             'operationalCostCategories' => OperationalCostCategory::active()->orderBy('name')->get(),
             'packageUnits' => \App\Models\MasterPackageUnit::getActiveUnits(),
             'vendors' => \App\Models\Vendor::orderBy('nama_vendor')->get(['id', 'nama_vendor', 'nomor_rekening'])
@@ -196,6 +214,14 @@ class InvoiceController extends Controller
             $validated = $request->validate([
             'sales_order_id' => 'required|exists:sales_orders,id',
             'invoice_type' => 'required|in:main,reimbursement,combined',
+            'is_additional' => 'nullable|boolean',
+            'base_invoice_id' => 'nullable|integer|exists:invoices,id',
+            'additional_reason' => [
+                'nullable',
+                'string',
+                'max:1000',
+                Rule::requiredIf(fn () => $request->boolean('is_additional')),
+            ],
             'invoice_date' => 'required|date',
             'term_days' => 'required|integer|min:1',
             'shipper' => 'nullable|string|max:255',
@@ -229,7 +255,7 @@ class InvoiceController extends Controller
             'items.*.include_in_customer_invoice' => 'nullable|boolean',
             'items.*.is_hidden_from_customer' => 'nullable|boolean',
             // Operational cost specific fields
-            'items.*.category_id' => 'nullable|string',
+            'items.*.category_id' => 'nullable|integer|exists:operational_cost_categories,id',
             'items.*.category_name' => 'nullable|string|max:255',
             'items.*.category' => 'nullable|string|max:255',
             'items.*.category_source' => 'nullable|string|max:255',
@@ -244,54 +270,71 @@ class InvoiceController extends Controller
         ]);
 
         $salesOrder = SalesOrder::findOrFail($validated['sales_order_id']);
+        $isAdditional = (bool) ($validated['is_additional'] ?? false);
 
-        // Filter items based on pre-invoice payment status (paid items should not be invoiced)
-        $preInvoiceReceivable = AccountReceivable::with('components')
-            ->where('sales_order_id', $salesOrder->id)
-            ->whereNull('invoice_id')
-            ->where('is_opening', false)
-            ->first();
+        if ($isAdditional && !empty($validated['base_invoice_id'])) {
+            $baseInvoice = Invoice::query()
+                ->where('id', (int) $validated['base_invoice_id'])
+                ->where('sales_order_id', $salesOrder->id)
+                ->first();
 
-        $mainComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'main');
-        $debitComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'debit_note');
+            if (!$baseInvoice) {
+                return back()->withErrors([
+                    'base_invoice_id' => 'Base invoice tidak valid untuk SO yang dipilih.',
+                ])->withInput();
+            }
+        }
 
-        if (isset($validated['items']) && is_array($validated['items'])) {
-            $validated['items'] = array_values(array_filter($validated['items'], function ($item) use ($mainComponent, $debitComponent) {
-                $itemType = $item['item_type'] ?? null;
+        if (!$isAdditional) {
+            // Filter items based on pre-invoice payment status (paid items should not be invoiced)
+            $preInvoiceReceivable = AccountReceivable::with('components')
+                ->where('sales_order_id', $salesOrder->id)
+                ->whereNull('invoice_id')
+                ->where('is_opening', false)
+                ->first();
 
-                if ($itemType === 'billable' && $mainComponent && $mainComponent->status === 'paid') {
-                    return false;
-                }
+            $mainComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'main');
+            $debitComponent = $preInvoiceReceivable?->components?->firstWhere('component_type', 'debit_note');
 
-                if ($itemType === 'reimbursement' && $debitComponent && $debitComponent->status === 'paid') {
-                    return false;
-                }
+            if (isset($validated['items']) && is_array($validated['items'])) {
+                $validated['items'] = array_values(array_filter($validated['items'], function ($item) use ($mainComponent, $debitComponent) {
+                    $itemType = $item['item_type'] ?? null;
 
-                if ($itemType === 'reimbursement' && !empty($item['item_ref'])) {
-                    if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $item['item_ref'], $matches)) {
-                        $reimbId = (int) $matches[1];
-                        if ($reimbId > 0) {
-                            $reimb = ReimbursementItem::find($reimbId);
-                            if ($reimb && ($reimb->customer_payment_status === 'paid' || $reimb->status === 'paid')) {
-                                return false;
+                    if ($itemType === 'billable' && $mainComponent && $mainComponent->status === 'paid') {
+                        return false;
+                    }
+
+                    if ($itemType === 'reimbursement' && $debitComponent && $debitComponent->status === 'paid') {
+                        return false;
+                    }
+
+                    if ($itemType === 'reimbursement' && !empty($item['item_ref'])) {
+                        if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $item['item_ref'], $matches)) {
+                            $reimbId = (int) $matches[1];
+                            if ($reimbId > 0) {
+                                $reimb = ReimbursementItem::find($reimbId);
+                                if ($reimb && ($reimb->customer_payment_status === 'paid' || $reimb->status === 'paid')) {
+                                    return false;
+                                }
                             }
                         }
                     }
-                }
 
-                return true;
-            }));
-        }
+                    return true;
+                }));
+            }
 
-        // Check if invoice type already exists for this Sales Order
-        $existingInvoice = Invoice::where('sales_order_id', $validated['sales_order_id'])
-            ->where('invoice_type', $validated['invoice_type'])
-            ->first();
+            // Check if invoice type already exists for this Sales Order
+            $existingInvoice = Invoice::where('sales_order_id', $validated['sales_order_id'])
+                ->where('invoice_type', $validated['invoice_type'])
+                ->where('is_additional', false)
+                ->first();
 
-        if ($existingInvoice) {
-            return back()->withErrors([
-                'invoice_type' => 'An invoice of type "' . ucfirst($validated['invoice_type']) . '" already exists for this Sales Order.'
-            ]);
+            if ($existingInvoice) {
+                return back()->withErrors([
+                    'invoice_type' => 'An invoice of type "' . ucfirst($validated['invoice_type']) . '" already exists for this Sales Order.'
+                ]);
+            }
         }
 
         $invoiceDate = Carbon::parse($validated['invoice_date']);
@@ -341,9 +384,19 @@ class InvoiceController extends Controller
         }
 
         $vatRate = isset($validated['vat_rate']) ? (float) $validated['vat_rate'] : 0;
+        [$generatedInvoiceNumber, $additionalSequence] = $this->generateInvoiceNumberByType(
+            $salesOrder,
+            $validated['invoice_type'],
+            $isAdditional
+        );
+
         $invoice = Invoice::create([
-            'invoice_number' => $this->generateInvoiceNumberByType($salesOrder, $validated['invoice_type']),
+            'invoice_number' => $generatedInvoiceNumber,
             'invoice_type' => $validated['invoice_type'],
+            'is_additional' => $isAdditional,
+            'additional_sequence' => $additionalSequence,
+            'base_invoice_id' => $isAdditional ? ($validated['base_invoice_id'] ?? null) : null,
+            'additional_reason' => $isAdditional ? ($validated['additional_reason'] ?? null) : null,
             'sales_order_id' => $salesOrder->id,
             'customer_id' => $customerId,
             'invoice_date' => $invoiceDate,
@@ -494,11 +547,15 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice, InvoiceCostSyncService $invoiceCostSyncService)
     {
+        if ($invoice->is_additional) {
+            $this->cleanupAdditionalInvoiceAutoSyncedItems($invoice);
+        }
+
         $invoiceCostSyncService->syncInvoiceWithAccountPayables($invoice);
 
         $invoice->load(['salesOrder', 'customer', 'items', 'reimbursementRecords']);
 
-        if ($invoice->salesOrder) {
+        if ($invoice->salesOrder && !$invoice->is_additional) {
             $this->syncVendorItemsFromSalesOrder($invoice, $invoice->salesOrder);
         }
 
@@ -511,10 +568,20 @@ class InvoiceController extends Controller
         if ($invoice->sales_order_id) {
             $relatedInvoices = Invoice::with(['items'])
                 ->where('sales_order_id', $invoice->sales_order_id)
+                ->orderBy('invoice_date')
+                ->orderBy('id')
                 ->get();
 
-            $mainInvoice = $relatedInvoices->where('invoice_type', 'main')->first();
-            $reimbursementInvoice = $relatedInvoices->where('invoice_type', 'reimbursement')->first();
+            if (!$invoice->is_additional) {
+                $mainInvoice = $relatedInvoices
+                    ->where('is_additional', false)
+                    ->where('invoice_type', 'main')
+                    ->first();
+                $reimbursementInvoice = $relatedInvoices
+                    ->where('is_additional', false)
+                    ->where('invoice_type', 'reimbursement')
+                    ->first();
+            }
         }
 
         // Fallback: if no related invoices found, use current invoice
@@ -557,6 +624,8 @@ class InvoiceController extends Controller
 
         $targetReimbursementInvoice = $reimbursementInvoice;
         if (!$targetReimbursementInvoice && $invoice->invoice_type === 'reimbursement') {
+            $targetReimbursementInvoice = $invoice;
+        } elseif (!$targetReimbursementInvoice && $invoice->is_additional) {
             $targetReimbursementInvoice = $invoice;
         } elseif ($targetReimbursementInvoice && $targetReimbursementInvoice->id === $invoice->id) {
             $targetReimbursementInvoice = $invoice;
@@ -1423,8 +1492,23 @@ class InvoiceController extends Controller
         }
     }
 
-    private function generateInvoiceNumberByType(SalesOrder $salesOrder, string $type): string
+    private function generateInvoiceNumberByType(SalesOrder $salesOrder, string $type, bool $isAdditional = false): array
     {
+        if ($isAdditional) {
+            $baseInvoiceNumber = $this->resolveInvoiceBaseNumberFromSO($salesOrder);
+            $sequence = (int) Invoice::query()
+                ->where('sales_order_id', $salesOrder->id)
+                ->where('is_additional', true)
+                ->max('additional_sequence');
+
+            do {
+                $sequence++;
+                $invoiceNumber = $baseInvoiceNumber . '-ADD' . $sequence;
+            } while (Invoice::where('invoice_number', $invoiceNumber)->exists());
+
+            return [$invoiceNumber, $sequence];
+        }
+
         $baseInvoiceNumber = Invoice::generateInvoiceNumberFromSO($salesOrder);
 
         // Add suffix based on type
@@ -1445,7 +1529,17 @@ class InvoiceController extends Controller
             $counter++;
         }
 
-        return $invoiceNumber;
+        return [$invoiceNumber, null];
+    }
+
+    private function resolveInvoiceBaseNumberFromSO(SalesOrder $salesOrder): string
+    {
+        $soNumber = trim((string) $salesOrder->order_number);
+        if (str_starts_with($soNumber, 'EWILOG')) {
+            return 'EWL' . substr($soNumber, 6);
+        }
+
+        return 'EWL' . preg_replace('/[^A-Za-z0-9]/', '', $soNumber);
     }
 
     public function postToProfitLoss(Request $request, Invoice $invoice)
@@ -2250,6 +2344,22 @@ class InvoiceController extends Controller
 
         // Recalculate customer-facing totals (COGS tidak mempengaruhi subtotal)
         $invoice->calculateTotals();
+    }
+
+    private function cleanupAdditionalInvoiceAutoSyncedItems(Invoice $invoice): void
+    {
+        $deletedCount = InvoiceItem::where('invoice_id', $invoice->id)
+            ->where(function ($q) {
+                $q->where('item_ref', 'like', 'vendor_%')
+                    ->orWhere('item_ref', 'like', 'cogs_vendor_%');
+            })
+            ->delete();
+
+        if ($deletedCount > 0) {
+            // Recalculate totals after removing rows that should never exist on additional invoices.
+            $invoice->load('items');
+            $invoice->calculateTotals();
+        }
     }
 
     private function resolveItemQuantity(array $payload, float $fallback = 1): array

@@ -240,7 +240,7 @@
             </div>
 
             <!-- Main Invoice Items -->
-            <div v-if="mainInvoice || invoice.invoice_type === 'main' || invoice.invoice_type === 'combined' || getMainItems.length > 0"
+            <div v-if="invoice.invoice_type === 'main' || invoice.invoice_type === 'combined' || getMainItems.length > 0"
                 class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-sage-200 bg-blue-50">
                     <div class="flex itemss-center justify-between">
@@ -248,11 +248,11 @@
                             <h3 class="text-lg font-semibold text-blue-800">Main Invoice Items</h3>
                             <span
                                 class="inline-flex itemss-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ (mainInvoice || invoice).invoice_number }}
+                                {{ displayMainInvoice.invoice_number }}
                             </span>
                         </div>
                         <div class="flex space-x-2">
-                            <a :href="route('admin-keuangan.invoices.preview-pdf', (mainInvoice || invoice).id)"
+                            <a :href="route('admin-keuangan.invoices.preview-pdf', displayMainInvoice.id)"
                                 class="inline-flex itemss-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,7 +263,7 @@
                                 </svg>
                                 Preview PDF
                             </a>
-                            <a :href="route('admin-keuangan.invoices.export-pdf', (mainInvoice || invoice).id)"
+                            <a :href="route('admin-keuangan.invoices.export-pdf', displayMainInvoice.id)"
                                 class="inline-flex itemss-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,7 +385,7 @@
             </div>
 
             <!-- Reimbursement Invoice Items -->
-            <div v-if="reimbursementInvoice || invoice.invoice_type === 'reimbursement' || invoice.invoice_type === 'combined'"
+            <div v-if="invoice.invoice_type === 'reimbursement' || invoice.invoice_type === 'combined' || getReimbursementItems.length > 0"
                 class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-sage-200 bg-orange-50">
                     <div class="flex itemss-center justify-between">
@@ -393,11 +393,11 @@
                             <h3 class="text-lg font-semibold text-orange-800">Reimbursement Invoice Items</h3>
                             <span
                                 class="inline-flex itemss-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                                {{ (reimbursementInvoice || invoice).invoice_number }}
+                                {{ displayReimbursementInvoice.invoice_number }}
                             </span>
                         </div>
                         <div class="flex space-x-2">
-                            <a :href="route('admin-keuangan.invoices.preview-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
+                            <a :href="route('admin-keuangan.invoices.preview-pdf-reimbursement', displayReimbursementInvoice.id)"
                                 class="inline-flex itemss-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,7 +408,7 @@
                                 </svg>
                                 Preview PDF
                             </a>
-                            <a :href="route('admin-keuangan.invoices.export-pdf-reimbursement', (reimbursementInvoice || invoice).id)"
+                            <a :href="route('admin-keuangan.invoices.export-pdf-reimbursement', displayReimbursementInvoice.id)"
                                 class="inline-flex itemss-center px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
                                 target="_blank">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1485,8 +1485,39 @@ const getInvoiceItems = (invoiceLike) => {
     return invoiceLike.items || invoiceLike.itemss || [];
 };
 
+const isAdditionalInvoice = computed(() => !!props.invoice?.is_additional);
+
+const displayMainInvoice = computed(() => {
+    return isAdditionalInvoice.value ? props.invoice : (props.mainInvoice || props.invoice);
+});
+
+const displayReimbursementInvoice = computed(() => {
+    return isAdditionalInvoice.value ? props.invoice : (props.reimbursementInvoice || props.invoice);
+});
+
+const isReimbursementInvoiceItem = (items) => {
+    const itemType = (items.item_type || items.items_type || '').toLowerCase();
+    if (itemType === 'reimbursement') {
+        return true;
+    }
+
+    if (!itemType) {
+        const ref = (items.item_ref || items.items_ref || '').toLowerCase().trim();
+        return ref === 'reimbursement' ||
+            ref === 'r' ||
+            ref === '2' ||
+            ref.includes('reimbur');
+    }
+
+    return false;
+};
+
 // Computed properties untuk memisahkan itemss berdasarkan items_ref
 const getMainItems = computed(() => {
+    if (isAdditionalInvoice.value) {
+        return filterMainInvoiceItems(getInvoiceItems(props.invoice));
+    }
+
     if (props.invoice.invoice_type === 'combined') {
         // Untuk invoice combined, pisahkan itemss berdasarkan items_type dan items_ref
         const mainItems = getInvoiceItems(props.mainInvoice);
@@ -1497,7 +1528,7 @@ const getMainItems = computed(() => {
     }
 
     // Untuk invoice type main atau jika ada mainInvoice
-    if (props.mainInvoice) {
+    if (props.mainInvoice && !isAdditionalInvoice.value) {
         return filterMainInvoiceItems(getInvoiceItems(props.mainInvoice));
     }
 
@@ -1510,31 +1541,17 @@ const getMainItems = computed(() => {
 });
 
 const getReimbursementItems = computed(() => {
+    if (isAdditionalInvoice.value) {
+        return getInvoiceItems(props.invoice).filter(isReimbursementInvoiceItem);
+    }
+
     if (props.invoice.invoice_type === 'combined') {
         // Untuk invoice combined, pisahkan itemss berdasarkan items_type dan items_ref
-        return getInvoiceItems(props.invoice).filter(items => {
-            // Primary filter: items_type harus reimbursement
-            const itemType = (items.item_type || items.items_type || '').toLowerCase();
-            if (itemType === 'reimbursement') {
-                return true;
-            }
-
-            // Fallback filter untuk legacy data tanpa items_type
-            if (!itemType) {
-                const ref = (items.item_ref || items.items_ref || '').toLowerCase().trim();
-                // Items masuk ke Reimbursement jika: 'reimbursement', 'r', '2', atau mengandung 'reimbur'
-                return ref === 'reimbursement' ||
-                    ref === 'r' ||
-                    ref === '2' ||
-                    ref.includes('reimbur');
-            }
-
-            return false;
-        });
+        return getInvoiceItems(props.invoice).filter(isReimbursementInvoiceItem);
     }
 
     // Untuk invoice type reimbursement atau jika ada reimbursementInvoice
-    if (props.reimbursementInvoice) {
+    if (props.reimbursementInvoice && !isAdditionalInvoice.value) {
         return getInvoiceItems(props.reimbursementInvoice);
     }
 

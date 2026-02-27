@@ -447,9 +447,9 @@
                             <div class="p-6">
                                 <!-- Main Invoices -->
                                 <div
-                                    v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.invoice_type === 'main').length > 0">
+                                    v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.invoice_type === 'main' && !inv.is_additional).length > 0">
                                     <h4 class="text-md font-semibold text-gray-800 mb-4">Main Invoices</h4>
-                                    <div v-for="invoice in salesOrder.invoices.filter(inv => inv.invoice_type === 'main')"
+                                    <div v-for="invoice in salesOrder.invoices.filter(inv => inv.invoice_type === 'main' && !inv.is_additional)"
                                         :key="'main-' + invoice.id"
                                         class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
                                         <div class="flex justify-between items-start mb-3">
@@ -516,10 +516,10 @@
                                 </div>
 
                                 <!-- Reimbursement Invoices -->
-                                <div v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.invoice_type === 'reimbursement').length > 0"
+                                <div v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.invoice_type === 'reimbursement' && !inv.is_additional).length > 0"
                                     class="mt-6">
                                     <h4 class="text-md font-semibold text-gray-800 mb-4">Reimbursement Invoices</h4>
-                                    <div v-for="invoice in salesOrder.invoices.filter(inv => inv.invoice_type === 'reimbursement')"
+                                    <div v-for="invoice in salesOrder.invoices.filter(inv => inv.invoice_type === 'reimbursement' && !inv.is_additional)"
                                         :key="'reimb-' + invoice.id"
                                         class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
                                         <div class="flex justify-between items-start mb-3">
@@ -570,6 +570,73 @@
                                                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                                 </svg>
                                                 Download PDF -R
+                                            </a>
+                                            <Link :href="route('admin-keuangan.invoices.show', invoice.id)"
+                                                class="inline-flex items-center px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            View
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Invoices -->
+                                <div v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.is_additional).length > 0"
+                                    class="mt-6">
+                                    <h4 class="text-md font-semibold text-gray-800 mb-4">Invoice Tambahan</h4>
+                                    <div v-for="invoice in salesOrder.invoices.filter(inv => inv.is_additional)"
+                                        :key="'additional-' + invoice.id"
+                                        class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
+                                        <div class="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h5 class="font-semibold text-gray-900 flex items-center">
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-1 rounded text-xs font-medium mr-2 bg-purple-100 text-purple-800">
+                                                        Tambahan
+                                                    </span>
+                                                    {{ invoice.invoice_number }}
+                                                </h5>
+                                                <p class="text-sm text-gray-600">{{ invoice.additional_reason || 'Invoice Tambahan' }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-semibold text-gray-900">{{
+                                                    formatCurrency(invoice.total_amount || 0) }}</p>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                    :class="getInvoiceStatusColor(invoice.status)">
+                                                    {{ getInvoiceStatusLabel(invoice.status) }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-500">Date:</span>
+                                                <span class="ml-1 text-gray-900">{{ formatDate(invoice.invoice_date) }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">Type:</span>
+                                                <span class="ml-1 text-gray-900">{{ invoice.invoice_type || 'combined' }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 flex space-x-2">
+                                            <a :href="route('admin-keuangan.invoices.print', invoice.id)"
+                                                target="_blank"
+                                                class="inline-flex items-center px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                </svg>
+                                                Download PDF
                                             </a>
                                             <Link :href="route('admin-keuangan.invoices.show', invoice.id)"
                                                 class="inline-flex items-center px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors">
@@ -778,6 +845,16 @@
                                     <div class="font-medium text-gray-900">Reimbursement Invoice</div>
                                     <div class="text-sm text-gray-600">Invoice untuk penggantian biaya pihak ketiga
                                     </div>
+                                </div>
+                            </label>
+
+                            <label
+                                class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="invoice_type" value="additional"
+                                    v-model="selectedInvoiceType" class="mr-3" />
+                                <div>
+                                    <div class="font-medium text-gray-900">Invoice Tambahan</div>
+                                    <div class="text-sm text-gray-600">Buat tagihan baru tanpa mengubah invoice lama</div>
                                 </div>
                             </label>
                         </div>
@@ -1100,6 +1177,19 @@ const closeInvoiceCreateModal = () => {
 const createInvoice = () => {
     if (!selectedInvoiceType.value) {
         alert('Pilih tipe invoice terlebih dahulu');
+        return;
+    }
+
+    if (selectedInvoiceType.value === 'additional') {
+        const baseInvoice = (props.salesOrder.invoices || [])
+            .filter(invoice => !invoice.is_additional)
+            .sort((a, b) => (b.id || 0) - (a.id || 0))[0];
+
+        router.get(route('admin-keuangan.invoices.create'), {
+            sales_order_id: props.salesOrder.id,
+            is_additional: 1,
+            base_invoice_id: baseInvoice?.id || null,
+        });
         return;
     }
 

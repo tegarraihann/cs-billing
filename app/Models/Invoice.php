@@ -19,6 +19,10 @@ class Invoice extends Model
     protected $fillable = [
         'invoice_number',
         'invoice_type',
+        'is_additional',
+        'additional_sequence',
+        'base_invoice_id',
+        'additional_reason',
         'sales_order_id',
         'customer_id',
         'invoice_date',
@@ -98,7 +102,10 @@ class Invoice extends Model
         'pph23_posted_account_id' => 'integer',
         'posted_to_profit_loss' => 'boolean',
         'posted_to_profit_loss_at' => 'datetime',
-        'profit_loss_entries' => 'array'
+        'profit_loss_entries' => 'array',
+        'is_additional' => 'boolean',
+        'additional_sequence' => 'integer',
+        'base_invoice_id' => 'integer',
     ];
 
     protected static function booted()
@@ -123,6 +130,16 @@ class Invoice extends Model
     public function salesOrder()
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function baseInvoice()
+    {
+        return $this->belongsTo(self::class, 'base_invoice_id');
+    }
+
+    public function additionalInvoices()
+    {
+        return $this->hasMany(self::class, 'base_invoice_id');
     }
 
     public function customer()

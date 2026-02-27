@@ -40,7 +40,7 @@
                                 {{ errors.sales_order_id }}
                             </div>
                             <!-- Auto-load notification -->
-                            <div v-if="form.sales_order_id"
+                            <div v-if="form.sales_order_id && !isAdditionalMode"
                                 class="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
                                 <p class="text-xs text-green-700">
                                     Data loaded automatically from the Sales Order:
@@ -53,9 +53,25 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Type</label>
                             <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
-                                Combined Invoice (Main + Reimbursement)
+                                <span v-if="isAdditionalMode">Additional Invoice (Manual Items)</span>
+                                <span v-else>Combined Invoice (Main + Reimbursement)</span>
                             </div>
                             <input type="hidden" v-model="form.invoice_type" />
+                        </div>
+                    </div>
+
+                    <div v-if="isAdditionalMode" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Reason</label>
+                            <textarea
+                                v-model="form.additional_reason"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+                                placeholder="Jelaskan alasan invoice tambahan..."
+                            ></textarea>
+                            <div v-if="errors.additional_reason" class="text-red-500 text-sm mt-1">
+                                {{ errors.additional_reason }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,7 +199,7 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                 placeholder="e.g., 20GP, 40GP, 45GP" />
                         </div>
-                        <div>
+                        <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Container No.</label>
                             <input type="text" v-model="form.container_no"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
@@ -200,7 +216,7 @@
                 <!-- Down Payment Section -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-sage-200">
                     <h3 class="text-lg font-semibold text-sage-800 mb-4">Down Payment (DP)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Down Payment Amount</label>
                             <input type="number" v-model="form.down_payment_amount" step="0.01" min="0"
@@ -262,7 +278,7 @@
                             <h3 class="text-lg font-semibold text-sage-800">Main Invoice Items</h3>
                             <div class="flex space-x-2">
                                 <!-- Button Load from SO -->
-                                <button v-if="form.sales_order_id" type="button" @click="reloadFromSalesOrder"
+                                <button v-if="form.sales_order_id && !isAdditionalMode" type="button" @click="reloadFromSalesOrder"
                                     class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -348,7 +364,7 @@
                         <!-- Bottom Add Button for Main Items -->
                         <div v-if="mainItems.length > 0" class="flex justify-center mt-6 pt-4 border-t border-gray-200">
                             <div class="flex space-x-2">
-                                <button v-if="form.sales_order_id" type="button" @click="reloadFromSalesOrder"
+                                <button v-if="form.sales_order_id && !isAdditionalMode" type="button" @click="reloadFromSalesOrder"
                                     class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -409,7 +425,7 @@
                                     </button>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Item
                                             Number/Ref</label>
@@ -451,7 +467,7 @@
                                     </p>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                                <div class="grid grid-cols-1 gap-4 mt-3">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                                         <input v-model="item.quantity" @input="calculateReimbursementAmount(index)"
@@ -788,6 +804,14 @@ const props = defineProps({
     errors: Object,
     preselectedSalesOrder: [String, Number],
     preselectedInvoiceType: String,
+    preselectedIsAdditional: {
+        type: Boolean,
+        default: false
+    },
+    preselectedBaseInvoiceId: {
+        type: [String, Number, null],
+        default: null
+    },
     preselectedVendorBreakdown: Array,
     preselectedOtherCosts: {
         type: Array,
@@ -812,27 +836,21 @@ const props = defineProps({
 });
 
 const vendorSelectOptions = computed(() => {
-    const baseOptions = [
-        { value: '', label: '-- Internal (Operations Division) --' },
-    ];
-
     const vendorOptions = (props.vendors ?? []).map(vendor => ({
         value: vendor.id,
         label: vendor.nama_vendor,
     }));
 
-    return [...baseOptions, ...vendorOptions];
+    return vendorOptions;
 });
 
 const operationalCostCategoryOptions = computed(() => {
-    const baseOptions = [{ value: '', label: '-- Select Cost Category --' }];
-
     const categoryOptions = (props.operationalCostCategories ?? []).map(category => ({
         value: category.id,
         label: category.name,
     }));
 
-    return [...baseOptions, ...categoryOptions];
+    return categoryOptions;
 });
 
 const route = window.route || function (name, params) {
@@ -920,6 +938,9 @@ const syncOperationalCostCategories = () => {
 const form = useForm({
     sales_order_id: props.preselectedSalesOrder || '',
     invoice_type: 'combined', // Always combined since we show both sections
+    is_additional: !!props.preselectedIsAdditional,
+    base_invoice_id: props.preselectedBaseInvoiceId || '',
+    additional_reason: '',
     invoice_date: new Date().toISOString().split('T')[0],
     term_days: 30,
     shipper: '',
@@ -948,7 +969,9 @@ const form = useForm({
     items: []
 });
 
-const loadSalesOrderData = () => {
+const isAdditionalMode = computed(() => !!form.is_additional);
+
+const loadSalesOrderData = (autoPopulateItems = !form.is_additional) => {
     const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
     if (selectedOrder) {
         console.log('Loading Sales Order data:', {
@@ -1011,8 +1034,10 @@ const loadSalesOrderData = () => {
                 : (props.preselectedOtherCosts ?? []),
         };
 
-        // Auto-populate items from sales order data
-        populateItemsFromSalesOrder(selectedOrder, fallbackData);
+        // Auto-populate items from sales order data (disabled in additional mode)
+        if (autoPopulateItems) {
+            populateItemsFromSalesOrder(selectedOrder, fallbackData);
+        }
     }
 };
 
@@ -1278,6 +1303,11 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
 
 // Function to reload data from Sales Order
 const reloadFromSalesOrder = () => {
+    if (form.is_additional) {
+        alert('Mode Invoice Tambahan menggunakan item manual. Fitur load otomatis dari SO dinonaktifkan.');
+        return;
+    }
+
     const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
     if (selectedOrder) {
         const hasData = (selectedOrder.vendor_breakdown && selectedOrder.vendor_breakdown.length > 0) ||
@@ -1639,6 +1669,11 @@ const submit = () => {
         form.invoice_type = 'main';
     }
 
+    if (!form.is_additional) {
+        form.additional_reason = '';
+        form.base_invoice_id = '';
+    }
+
     form.post(route('admin-keuangan.invoices.store'), {
         onSuccess: (page) => {
             console.log('Invoice created successfully:', page);
@@ -1658,11 +1693,15 @@ const submit = () => {
 
 // Auto-load data if coming from Sales Order detail page
 if (props.preselectedSalesOrder) {
-    loadSalesOrderData();
+    loadSalesOrderData(!form.is_additional);
 
     // Auto-populate will handle main items, only add reimbursement if needed
-    if (props.preselectedInvoiceType === 'reimbursement' && reimbursementItems.value.length === 0) {
+    if (!form.is_additional && props.preselectedInvoiceType === 'reimbursement' && reimbursementItems.value.length === 0) {
         addReimbursementItem();
+    }
+
+    if (form.is_additional && mainItems.value.length === 0) {
+        addItem();
     }
 } else {
     // Default: add one main item for regular access
