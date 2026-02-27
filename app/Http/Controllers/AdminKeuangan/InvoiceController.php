@@ -539,8 +539,8 @@ class InvoiceController extends Controller
         // Auto-generate operational debt to divisional operational
         $this->autoGenerateOperationalDebt($invoice);
 
-        // Auto-generate Account Receivable
-        \App\Models\AccountReceivable::createFromInvoice($invoice);
+        // Auto-generate / merge Account Receivable from invoice
+        \App\Models\AccountReceivable::syncFromInvoice($invoice);
 
         $this->autoPostInvoice($invoice);
 

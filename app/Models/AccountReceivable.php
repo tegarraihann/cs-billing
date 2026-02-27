@@ -261,9 +261,19 @@ class AccountReceivable extends Model
 
     public static function createOrUpdatePreInvoiceFromSalesOrder(SalesOrder $salesOrder): ?self
     {
-        $salesOrder->loadMissing(['customer', 'reimbursementItems']);
+        $salesOrder->loadMissing(['customer', 'reimbursementItems', 'invoices']);
 
-        $mainAmount = (float) ($salesOrder->total_selling ?? 0);
+        $existingPreInvoiceReceivable = self::where('sales_order_id', $salesOrder->id)
+            ->whereNull('invoice_id')
+            ->where('is_opening', false)
+            ->first();
+
+        // Jika SO sudah memiliki invoice, jangan buat AR pre-invoice baru.
+        if ($salesOrder->invoices->isNotEmpty()) {
+            return $existingPreInvoiceReceivable?->fresh(['components']);
+        }
+
+        $mainAmount = self::resolvePreInvoiceMainAmount($salesOrder);
         $reimbursementAmount = $salesOrder->reimbursementItems
             ->sum(function (ReimbursementItem $item) {
                 $lineTotal = method_exists($item, 'getLineTotal') ? $item->getLineTotal() : ((float) $item->amount * ((float) $item->quantity ?: 1));
@@ -281,10 +291,7 @@ class AccountReceivable extends Model
 
         $invoiceDate = $salesOrder->approved_at ?? $salesOrder->released_at ?? now();
 
-        $receivable = self::where('sales_order_id', $salesOrder->id)
-            ->whereNull('invoice_id')
-            ->where('is_opening', false)
-            ->first();
+        $receivable = $existingPreInvoiceReceivable;
 
         if (!$receivable) {
             $receivable = self::create([
@@ -360,6 +367,50 @@ class AccountReceivable extends Model
         $receivable->recalculateTotals(true);
 
         return $receivable->fresh(['components']);
+    }
+
+    protected static function resolvePreInvoiceMainAmount(SalesOrder $salesOrder): float
+    {
+        $totalSelling = (float) ($salesOrder->total_selling ?? 0);
+        if ($totalSelling > 0) {
+            return $totalSelling;
+        }
+
+        $legacyTotalAmount = (float) ($salesOrder->total_amount ?? 0);
+        if ($legacyTotalAmount > 0) {
+            return $legacyTotalAmount;
+        }
+
+        $salesOrder->loadMissing('vendorBreakdownItems');
+        $vendorItems = $salesOrder->vendorBreakdownItems;
+        if ($vendorItems && $vendorItems->isNotEmpty()) {
+            $computedFromItems = (float) $vendorItems->sum(function ($item) {
+                $quantity = is_numeric($item->quantity) && (float) $item->quantity > 0
+                    ? (float) $item->quantity
+                    : 1;
+
+                return ((float) ($item->selling_amount ?? 0)) * $quantity;
+            });
+
+            if ($computedFromItems > 0) {
+                return $computedFromItems;
+            }
+        }
+
+        $vendorBreakdown = is_array($salesOrder->vendor_breakdown) ? $salesOrder->vendor_breakdown : [];
+        $computedFromArray = (float) collect($vendorBreakdown)->sum(function ($item) {
+            if (!is_array($item)) {
+                return 0;
+            }
+
+            $quantity = is_numeric($item['quantity'] ?? null) && (float) ($item['quantity'] ?? 0) > 0
+                ? (float) $item['quantity']
+                : 1;
+
+            return ((float) ($item['selling_amount'] ?? 0)) * $quantity;
+        });
+
+        return max(0, $computedFromArray);
     }
 
     /**

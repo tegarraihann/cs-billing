@@ -723,6 +723,9 @@ class SalesOrderController extends Controller
         $this->syncVendorBreakdownToInvoices($salesOrder);
         $this->syncOperationalAndReimbursementToInvoices($salesOrder);
         \App\Models\AccountPayable::generateFromSalesOrder($salesOrder);
+        if (in_array($salesOrder->status, ['released', 'approved'], true)) {
+            \App\Models\AccountReceivable::createOrUpdatePreInvoiceFromSalesOrder($salesOrder);
+        }
 
         return redirect()
             ->route('admin-keuangan.sales-orders.index')
