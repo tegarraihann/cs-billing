@@ -740,8 +740,33 @@ class AccountPayableController extends Controller
                 PettyCashBalance::updateBalanceForDate($validated['payment_date']);
             }
 
-            // If component is reimbursement, mark related reimbursement items as paid
-            if ($component && $component->component_type === 'reimbursement' && !empty($validated['reimbursement_items'])) {
+            // If component is reimbursement, mark related reimbursement items as paid.
+            // Fallback ke related_items component agar tetap sinkron walau field reimbursement_items
+            // tidak ikut terkirim dari frontend.
+            $reimbursementItemIds = [];
+            if (!empty($validated['reimbursement_items']) && is_array($validated['reimbursement_items'])) {
+                $reimbursementItemIds = collect($validated['reimbursement_items'])
+                    ->filter(fn ($id) => is_numeric($id))
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+
+            if (
+                $component &&
+                $component->component_type === 'reimbursement' &&
+                empty($reimbursementItemIds)
+            ) {
+                $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+                $fallbackReimbursementId = data_get($relatedItems, 'reimbursement_item_id');
+
+                if (is_numeric($fallbackReimbursementId)) {
+                    $reimbursementItemIds = [(int) $fallbackReimbursementId];
+                }
+            }
+
+            if ($component && $component->component_type === 'reimbursement' && !empty($reimbursementItemIds)) {
                 $reimbursementVendor = $validated['reimbursement_vendor_name']
                     ?? $payableForPayment->vendor_name
                     ?? 'Eshaka Wijaya Logistics';
@@ -756,7 +781,7 @@ class AccountPayableController extends Controller
                     'account_payable_invoice_number' => $payableForPayment->vendor_invoice_number,
                 ];
 
-                $items = ReimbursementItem::whereIn('id', $validated['reimbursement_items'])->get();
+                $items = ReimbursementItem::whereIn('id', $reimbursementItemIds)->get();
                 foreach ($items as $item) {
                     $item->markAsPaid($reimbursementVendor, $reimbursementPaidAt, $reimbursementNotes, $reimbursementExtras);
                 }

@@ -563,7 +563,14 @@ class AccountPayable extends Model
                     $component->vendor_id = $payload['vendor_id'];
                 }
                 if (isset($payload['amount']) && abs((float) $component->amount - (float) $payload['amount']) > 0.01) {
-                    $component->amount = (float) $payload['amount'];
+                    $incomingAmount = (float) $payload['amount'];
+
+                    if ($this->shouldFreezePaidReimbursementComponent($component, $payload)) {
+                        $incomingAmount = max($incomingAmount, (float) $component->amount);
+                    }
+
+                    // Jangan turunkan nominal di bawah jumlah yang sudah benar-benar dibayar.
+                    $component->amount = max($incomingAmount, (float) $component->paid_amount);
                 }
                 // Pertahankan paid_amount lama, tetapi batasi ke amount baru
                 $component->paid_amount = min((float) $component->paid_amount, (float) $component->amount);
@@ -1250,6 +1257,23 @@ class AccountPayable extends Model
         }
 
         return 'unpaid';
+    }
+
+    protected function shouldFreezePaidReimbursementComponent(AccountPayableComponent $component, array $payload): bool
+    {
+        if ($component->component_type !== 'reimbursement') {
+            return false;
+        }
+
+        if (($component->status ?? null) !== 'paid') {
+            return false;
+        }
+
+        $payloadRelated = is_array($payload['related_items'] ?? null) ? $payload['related_items'] : [];
+        $existingRelated = is_array($component->related_items) ? $component->related_items : [];
+        $source = (string) ($payloadRelated['source'] ?? $existingRelated['source'] ?? '');
+
+        return $source === 'reimbursement_items';
     }
 
     /**
