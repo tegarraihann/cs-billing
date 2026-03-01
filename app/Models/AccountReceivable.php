@@ -276,12 +276,18 @@ class AccountReceivable extends Model
         $mainAmount = self::resolvePreInvoiceMainAmount($salesOrder);
         $reimbursementAmount = $salesOrder->reimbursementItems
             ->sum(function (ReimbursementItem $item) {
-                $lineTotal = method_exists($item, 'getLineTotal') ? $item->getLineTotal() : ((float) $item->amount * ((float) $item->quantity ?: 1));
-                $outstanding = $item->customer_outstanding_amount;
-                if ($outstanding === null) {
-                    return $lineTotal;
-                }
-                return max(0, (float) $outstanding);
+                return method_exists($item, 'getLineTotal')
+                    ? (float) $item->getLineTotal()
+                    : ((float) $item->amount * ((float) $item->quantity > 0 ? (float) $item->quantity : 1));
+            });
+        $reimbursementPaid = $salesOrder->reimbursementItems
+            ->sum(function (ReimbursementItem $item) {
+                $lineTotal = method_exists($item, 'getLineTotal')
+                    ? (float) $item->getLineTotal()
+                    : ((float) $item->amount * ((float) $item->quantity > 0 ? (float) $item->quantity : 1));
+                $paid = (float) ($item->customer_paid_amount ?? 0);
+
+                return min($lineTotal, max(0, $paid));
             });
         $totalAmount = $mainAmount + $reimbursementAmount;
 
@@ -332,6 +338,7 @@ class AccountReceivable extends Model
             'debit_note' => [
                 'description' => 'Debit Note / Reimbursement (Pre-Invoice)',
                 'amount' => $reimbursementAmount,
+                'paid_amount' => $reimbursementPaid,
             ],
         ];
 
@@ -353,7 +360,13 @@ class AccountReceivable extends Model
 
             $component->description = $payload['description'];
             $component->amount = $payload['amount'];
-            $component->paid_amount = min($component->paid_amount, $component->amount);
+
+            if (array_key_exists('paid_amount', $payload)) {
+                $component->paid_amount = min($component->amount, max(0, (float) $payload['paid_amount']));
+            } else {
+                $component->paid_amount = min($component->paid_amount, $component->amount);
+            }
+
             $component->outstanding_amount = max(0, $component->amount - $component->paid_amount);
             $component->status = $receivable->determineComponentStatus($component);
             $component->due_date = $receivable->due_date;
@@ -371,16 +384,6 @@ class AccountReceivable extends Model
 
     protected static function resolvePreInvoiceMainAmount(SalesOrder $salesOrder): float
     {
-        $totalSelling = (float) ($salesOrder->total_selling ?? 0);
-        if ($totalSelling > 0) {
-            return $totalSelling;
-        }
-
-        $legacyTotalAmount = (float) ($salesOrder->total_amount ?? 0);
-        if ($legacyTotalAmount > 0) {
-            return $legacyTotalAmount;
-        }
-
         $salesOrder->loadMissing('vendorBreakdownItems');
         $vendorItems = $salesOrder->vendorBreakdownItems;
         if ($vendorItems && $vendorItems->isNotEmpty()) {
@@ -410,7 +413,21 @@ class AccountReceivable extends Model
             return ((float) ($item['selling_amount'] ?? 0)) * $quantity;
         });
 
-        return max(0, $computedFromArray);
+        if ($computedFromArray > 0) {
+            return $computedFromArray;
+        }
+
+        $totalSelling = (float) ($salesOrder->total_selling ?? 0);
+        if ($totalSelling > 0) {
+            return $totalSelling;
+        }
+
+        $legacyTotalAmount = (float) ($salesOrder->total_amount ?? 0);
+        if ($legacyTotalAmount > 0) {
+            return $legacyTotalAmount;
+        }
+
+        return 0;
     }
 
     /**

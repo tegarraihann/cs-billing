@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProfitReportController extends Controller
 {
@@ -22,29 +23,12 @@ class ProfitReportController extends Controller
         $filters = $this->resolveFilterParameters($request);
         [$rangeStart, $rangeEnd] = $filters['range'];
         $customerId = $request->input('customer_id');
-        
-        $invoiceRange = [$rangeStart->toDateString(), $rangeEnd->toDateString()];
 
-        // Base query for sales orders (filter by invoice date for reporting period)
-        $query = SalesOrder::query()
-            ->with([
-                'customer',
-                'invoices' => function ($query) use ($invoiceRange) {
-                    $query->whereBetween('invoice_date', $invoiceRange)
-                        ->with('items');
-                },
-                'accountReceivables',
-                'accountPayables',
-                'reimbursementItems',
-            ])
-            ->whereHas('invoices', function ($query) use ($invoiceRange) {
-                $query->whereBetween('invoice_date', $invoiceRange);
-            })
-            ->where('status', 'approved');
-
-        if ($customerId) {
-            $query->where('customer_id', $customerId);
-        }
+        $query = $this->makeProfitReportQuery(
+            $rangeStart->toDateString(),
+            $rangeEnd->toDateString(),
+            $customerId
+        );
 
         $salesOrdersForSummary = (clone $query)->get();
 
@@ -107,29 +91,12 @@ class ProfitReportController extends Controller
         $filters = $this->resolveFilterParameters($request);
         [$rangeStart, $rangeEnd] = $filters['range'];
         $customerId = $request->input('customer_id');
-        
-        $invoiceRange = [$rangeStart->toDateString(), $rangeEnd->toDateString()];
 
-        // Get the same data as index (filter by invoice date)
-        $query = SalesOrder::query()
-            ->with([
-                'customer',
-                'invoices' => function ($query) use ($invoiceRange) {
-                    $query->whereBetween('invoice_date', $invoiceRange)
-                        ->with('items');
-                },
-                'accountReceivables',
-                'accountPayables',
-                'reimbursementItems',
-            ])
-            ->whereHas('invoices', function ($query) use ($invoiceRange) {
-                $query->whereBetween('invoice_date', $invoiceRange);
-            })
-            ->where('status', 'approved');
-
-        if ($customerId) {
-            $query->where('customer_id', $customerId);
-        }
+        $query = $this->makeProfitReportQuery(
+            $rangeStart->toDateString(),
+            $rangeEnd->toDateString(),
+            $customerId
+        );
 
         $salesOrders = $query->get();
 
@@ -428,23 +395,11 @@ class ProfitReportController extends Controller
         $rangeStart = $dateFrom instanceof Carbon ? $dateFrom->toDateString() : Carbon::parse($dateFrom)->toDateString();
         $rangeEnd = $dateTo instanceof Carbon ? $dateTo->toDateString() : Carbon::parse($dateTo)->toDateString();
 
-        $salesOrders = SalesOrder::query()
-            ->with([
-                'accountPayables',
-                'accountReceivables',
-                'invoices' => function ($query) use ($rangeStart, $rangeEnd) {
-                    $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd])
-                        ->with('items');
-                },
-                'reimbursementItems',
-            ])
-            ->whereHas('invoices', function ($query) use ($rangeStart, $rangeEnd) {
-                $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd]);
-            })
-            ->where('status', 'approved')
-            ->get();
+        $salesOrders = $this->makeProfitReportQuery($rangeStart, $rangeEnd)->get();
 
-        $totalRevenue = $salesOrders->sum('total_selling');
+        $totalRevenue = $salesOrders->sum(function ($so) {
+            return $this->calculateTotalRevenue($so);
+        });
         $totalCosts = $salesOrders->sum(function ($so) {
             return $this->calculateOperationalCosts($so) + $this->calculateTaxExpense($so);
         });
@@ -458,11 +413,38 @@ class ProfitReportController extends Controller
             'average_margin' => $averageMargin,
             'shipment_count' => $salesOrders->count(),
             'profitable_count' => $salesOrders->filter(function ($so) {
-                $revenue = $so->total_selling ?? 0;
+                $revenue = $this->calculateTotalRevenue($so);
                 $costs = $this->calculateOperationalCosts($so) + $this->calculateTaxExpense($so);
                 return ($revenue - $costs) > 0;
             })->count()
         ];
+    }
+
+    private function makeProfitReportQuery(string $rangeStart, string $rangeEnd, $customerId = null): Builder
+    {
+        $salesOrderRange = [
+            Carbon::parse($rangeStart)->startOfDay(),
+            Carbon::parse($rangeEnd)->endOfDay(),
+        ];
+
+        $query = SalesOrder::query()
+            ->with([
+                'customer',
+                'invoices' => function ($query) {
+                    $query->with('items');
+                },
+                'accountReceivables',
+                'accountPayables',
+                'reimbursementItems',
+            ])
+            ->whereBetween('created_at', $salesOrderRange)
+            ->where('status', 'approved');
+
+        if ($customerId) {
+            $query->where('customer_id', $customerId);
+        }
+
+        return $query;
     }
 
     private function getTopProfitableCustomers($limit = 10)

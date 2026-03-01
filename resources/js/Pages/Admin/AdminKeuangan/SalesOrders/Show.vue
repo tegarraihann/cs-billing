@@ -230,10 +230,10 @@
                                         </table>
                                     </div>
 
-                                    <!-- Additional Buying from Invoice Items -->
+                                    <!-- Additional Buying from AP/Invoice Components -->
                                     <div v-if="salesOrder.additional_buying_items && salesOrder.additional_buying_items.length > 0"
                                         class="mb-6">
-                                        <h5 class="text-sm font-semibold text-gray-800 mb-3">Additional Buying (From Invoice)</h5>
+                                        <h5 class="text-sm font-semibold text-gray-800 mb-3">Additional Buying</h5>
                                         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
                                             <div class="overflow-x-auto">
                                                 <table class="min-w-full divide-y divide-gray-200">
@@ -247,7 +247,8 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="bg-white divide-y divide-gray-200">
-                                                        <tr v-for="(item, index) in salesOrder.additional_buying_items" :key="'add-buying-' + index"
+                                                        <tr v-for="(item, index) in salesOrder.additional_buying_items"
+                                                            :key="'add-buying-' + (item.lookup_key || item.component_id || index)"
                                                             class="hover:bg-gray-50">
                                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                                 {{ item.description || '-' }}

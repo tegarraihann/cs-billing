@@ -1251,10 +1251,10 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
         reimbursementSource.forEach((item, index) => {
             if (item.amount && item.amount > 0) {
                 const quantity = resolveQuantityValue(item.quantity ?? item.qty ?? 1);
-                const lineTotal = item.customer_outstanding_amount !== undefined && item.customer_outstanding_amount !== null
-                    ? normalizeNumber(item.customer_outstanding_amount)
-                    : normalizeNumber(item.amount) * quantity;
-                const rate = quantity > 0 ? lineTotal / quantity : normalizeNumber(item.amount);
+                // Pertahankan nilai asli reimbursement pada invoice.
+                // Status/paid amount customer tetap dikelola di AR, bukan dengan mengecilkan nilai item.
+                const rate = normalizeNumber(item.amount);
+                const lineTotal = rate * quantity;
                 const vendorInfo = resolveVendorSelectionFromRecord(item);
 
                 reimbursementItems.value.push({

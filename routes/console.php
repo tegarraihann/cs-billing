@@ -16,3 +16,6 @@ Schedule::command('equipment:post-depreciation')->dailyAt('01:30');
 
 // Rollover opening balance bank setiap awal bulan (ambil closing bulan sebelumnya)
 Schedule::command('bank:rollover-opening')->monthlyOn(1, '00:10');
+
+// Auto-create monthly income statement period (idempotent)
+Schedule::command('profit-loss:ensure-monthly --user-id=1')->monthlyOn(1, '00:20');

@@ -210,7 +210,17 @@ class SalesOrder extends Model
     {
         // Use vendor_breakdown as primary source
         if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
-            return collect($this->vendor_breakdown)->sum('buying_amount');
+            return (float) collect($this->vendor_breakdown)->sum(function ($item) {
+                if (!is_array($item)) {
+                    return 0;
+                }
+
+                $qty = is_numeric($item['quantity'] ?? null) && (float) ($item['quantity'] ?? 0) > 0
+                    ? (float) $item['quantity']
+                    : 1;
+
+                return (float) ($item['buying_amount'] ?? 0) * $qty;
+            });
         }
 
         // Fallback to buying_breakdown for backward compatibility
@@ -225,7 +235,17 @@ class SalesOrder extends Model
     {
         // Use vendor_breakdown as primary source
         if ($this->vendor_breakdown && is_array($this->vendor_breakdown)) {
-            return collect($this->vendor_breakdown)->sum('selling_amount');
+            return (float) collect($this->vendor_breakdown)->sum(function ($item) {
+                if (!is_array($item)) {
+                    return 0;
+                }
+
+                $qty = is_numeric($item['quantity'] ?? null) && (float) ($item['quantity'] ?? 0) > 0
+                    ? (float) $item['quantity']
+                    : 1;
+
+                return (float) ($item['selling_amount'] ?? 0) * $qty;
+            });
         }
 
         // Fallback to selling_breakdown for backward compatibility

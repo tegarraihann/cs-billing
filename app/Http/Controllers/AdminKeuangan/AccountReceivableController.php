@@ -12,6 +12,7 @@ use App\Models\ProfitLossPeriod;
 use App\Models\ProfitLossEntry;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,18 @@ class AccountReceivableController extends Controller
         }
 
         $query = AccountReceivable::with(['customer', 'invoice', 'salesOrder'])
+            ->select('account_receivables.*')
+            ->selectSub(
+                SalesOrder::query()
+                    ->select('order_number')
+                    ->whereColumn('sales_orders.id', 'account_receivables.sales_order_id')
+                    ->limit(1),
+                'sales_order_order_number'
+            )
+            ->orderByRaw(
+                "CASE WHEN sales_order_order_number IS NULL OR sales_order_order_number = '' THEN 1 ELSE 0 END"
+            )
+            ->orderBy('sales_order_order_number')
             ->orderBy('created_at', 'desc');
 
         // Search functionality

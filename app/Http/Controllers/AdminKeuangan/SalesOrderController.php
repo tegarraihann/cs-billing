@@ -72,13 +72,36 @@ class SalesOrderController extends Controller
             ->get()
             ->filter(function (AccountPayableComponent $component) {
                 $relatedItems = is_array($component->related_items) ? $component->related_items : [];
-                return ($relatedItems['source'] ?? null) === 'invoice_operational_cost';
+                $source = (string) ($relatedItems['source'] ?? '');
+
+                return in_array($source, ['invoice_operational_cost', 'account_payable_manual_entry'], true);
             })
+            ->reduce(function (Collection $carry, AccountPayableComponent $component) {
+                $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+                $lookupKey = $this->resolveAdditionalBuyingLookupKey($component, $relatedItems);
+                $existing = $carry->get($lookupKey);
+
+                if (!$existing) {
+                    $carry->put($lookupKey, $component);
+                    return $carry;
+                }
+
+                $existingSource = (string) data_get($existing->related_items, 'source', '');
+                $currentSource = (string) ($relatedItems['source'] ?? '');
+
+                if ($existingSource !== 'account_payable_manual_entry' && $currentSource === 'account_payable_manual_entry') {
+                    $carry->put($lookupKey, $component);
+                }
+
+                return $carry;
+            }, collect())
+            ->values()
             ->map(function (AccountPayableComponent $component) {
                 $relatedItems = is_array($component->related_items) ? $component->related_items : [];
 
                 return [
                     'component_id' => $component->id,
+                    'lookup_key' => $this->resolveAdditionalBuyingLookupKey($component, $relatedItems),
                     'description' => $component->description,
                     'amount' => (float) $component->amount,
                     'status' => $component->status,
@@ -87,6 +110,7 @@ class SalesOrderController extends Controller
                         ?: 'Divisi Operational',
                     'invoice_number' => $relatedItems['invoice_number'] ?? null,
                     'invoice_item_id' => $relatedItems['invoice_item_id'] ?? null,
+                    'source' => (string) ($relatedItems['source'] ?? ''),
                 ];
             })
             ->values();
@@ -2201,6 +2225,25 @@ class SalesOrderController extends Controller
         }
 
         return $deduped;
+    }
+
+    private function resolveAdditionalBuyingLookupKey(AccountPayableComponent $component, array $relatedItems): string
+    {
+        if (!empty($relatedItems['lookup_ref']) && is_string($relatedItems['lookup_ref'])) {
+            return trim($relatedItems['lookup_ref']);
+        }
+
+        $source = (string) ($relatedItems['source'] ?? '');
+
+        if ($source === 'invoice_operational_cost' && !empty($relatedItems['invoice_item_id'])) {
+            return 'invoice_operational_item_' . (int) $relatedItems['invoice_item_id'];
+        }
+
+        if ($source === 'account_payable_manual_entry' && $component->id) {
+            return 'manual_component_' . $component->id;
+        }
+
+        return 'ap_component_' . ($component->id ?? spl_object_id($component));
     }
 
     private function sanitizeContainerNumbers($value): array

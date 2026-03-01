@@ -470,10 +470,25 @@ class InvoiceController extends Controller
 
         // Create invoice items
         foreach ($validated['items'] as $item) {
+            $itemType = $item['item_type'] ?? 'billable';
+
+            if ($itemType === 'reimbursement') {
+                $sourceReimbursement = $this->findReimbursementItemFromRef($item['item_ref'] ?? null);
+                if ($sourceReimbursement) {
+                    $sourceQuantity = is_numeric($sourceReimbursement->quantity) && (float) $sourceReimbursement->quantity > 0
+                        ? (float) $sourceReimbursement->quantity
+                        : 1;
+
+                    $item['description'] = $item['description'] ?: $sourceReimbursement->description;
+                    $item['quantity'] = $sourceQuantity;
+                    $item['unit'] = $sourceReimbursement->unit ?: ($item['unit'] ?? 'SET');
+                    $item['rate'] = (float) $sourceReimbursement->amount;
+                }
+            }
+
             $amount = $item['quantity'] * $item['rate'];
 
             // Determine item type and visibility based on input
-            $itemType = $item['item_type'] ?? 'billable';
             $includeInCustomerInvoice = $item['include_in_customer_invoice'] ?? true;
             $isHiddenFromCustomer = $item['is_hidden_from_customer'] ?? false;
 
@@ -1919,7 +1934,9 @@ class InvoiceController extends Controller
                 ]);
             }
 
-            if (!$reimbursement->exists) {
+            $isExistingReimbursement = $reimbursement->exists;
+
+            if (!$isExistingReimbursement) {
                 $reimbursement->fill([
                     'category' => $reimbursement->category ?? 'general',
                     'created_by' => $reimbursement->created_by ?? $defaultUserId,
@@ -1960,9 +1977,28 @@ class InvoiceController extends Controller
 
             $reimbursement->sales_order_id = $invoice->sales_order_id;
             $reimbursement->invoice_id = $invoice->id;
-            $reimbursement->quantity = $quantity;
-            $reimbursement->unit = $unit;
-            $reimbursement->amount = $rate;
+
+            if (!$isExistingReimbursement) {
+                $reimbursement->quantity = $quantity;
+                $reimbursement->unit = $unit;
+                $reimbursement->amount = $rate;
+
+                $lineTotal = $rate * $quantity;
+                $paidAmount = min($lineTotal, max(0, (float) ($reimbursement->customer_paid_amount ?? 0)));
+                $outstandingAmount = max(0, $lineTotal - $paidAmount);
+
+                $reimbursement->customer_paid_amount = $paidAmount;
+                $reimbursement->customer_outstanding_amount = $outstandingAmount;
+                $reimbursement->customer_payment_status = $outstandingAmount <= 0.01
+                    ? 'paid'
+                    : ($paidAmount > 0 ? 'partial' : 'outstanding');
+            } else {
+                // Reimbursement yang sudah ada harus tetap menyimpan nilai gross aslinya.
+                // Invoice hanya menempel sebagai dokumen, bukan mengganti basis nilai item.
+                $reimbursement->quantity = $reimbursement->quantity ?: $quantity;
+                $reimbursement->unit = $reimbursement->unit ?: $unit;
+            }
+
             $reimbursement->receipt_info = empty($receiptInfo) ? null : $receiptInfo;
             $reimbursement->linked_at = $reimbursement->linked_at ?? now();
             if ($reimbursement->status !== 'paid') {
@@ -2067,6 +2103,25 @@ class InvoiceController extends Controller
 
         $customerPaid = (float) ($reimbursementItem->customer_paid_amount ?? 0);
         return $lineTotal > 0 && $customerPaid >= ($lineTotal - 0.01);
+    }
+
+    private function findReimbursementItemFromRef(?string $itemRef): ?ReimbursementItem
+    {
+        $itemRef = strtolower(trim((string) $itemRef));
+        if ($itemRef === '') {
+            return null;
+        }
+
+        if (!preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $itemRef, $matches)) {
+            return null;
+        }
+
+        $reimbursementId = (int) ($matches[1] ?? 0);
+        if ($reimbursementId <= 0) {
+            return null;
+        }
+
+        return ReimbursementItem::find($reimbursementId);
     }
 
     private function getPreInvoiceReceivable(SalesOrder $salesOrder): ?array
