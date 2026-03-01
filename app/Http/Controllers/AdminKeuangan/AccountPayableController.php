@@ -1105,13 +1105,12 @@ class AccountPayableController extends Controller
     private function paginatePayableGroups(Request $request): LengthAwarePaginator
     {
         $groupingExpression = DB::raw('COALESCE(account_payables.sales_order_id, account_payables.id)');
+        $salesOrderNumberAggregate = 'MIN((SELECT sales_orders.order_number FROM sales_orders WHERE sales_orders.id = account_payables.sales_order_id LIMIT 1))';
 
         $paginator = $this->filteredPayablesQuery($request)
             ->selectRaw('COALESCE(account_payables.sales_order_id, account_payables.id) as grouping_key')
             ->selectRaw('MIN(account_payables.sales_order_id) as sales_order_id')
-            ->selectRaw(
-                'MIN((SELECT sales_orders.order_number FROM sales_orders WHERE sales_orders.id = account_payables.sales_order_id LIMIT 1)) as sales_order_order_number'
-            )
+            ->selectRaw($salesOrderNumberAggregate . ' as sales_order_order_number')
             ->selectRaw('SUM(account_payables.amount) as total_amount')
             ->selectRaw('SUM(account_payables.paid_amount) as total_paid_amount')
             ->selectRaw('SUM(account_payables.outstanding_amount) as total_outstanding_amount')
@@ -1123,9 +1122,9 @@ class AccountPayableController extends Controller
             ->selectRaw('MAX(account_payables.id) as representative_payable_id')
             ->groupBy($groupingExpression)
             ->orderByRaw(
-                "CASE WHEN sales_order_order_number IS NULL OR sales_order_order_number = '' THEN 1 ELSE 0 END"
+                "CASE WHEN {$salesOrderNumberAggregate} IS NULL OR {$salesOrderNumberAggregate} = '' THEN 1 ELSE 0 END"
             )
-            ->orderBy('sales_order_order_number')
+            ->orderByRaw($salesOrderNumberAggregate)
             ->orderByDesc('latest_created_at')
             ->paginate(5)
             ->withQueryString();
