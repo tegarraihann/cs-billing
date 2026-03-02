@@ -67,7 +67,7 @@
                                 v-model="form.additional_reason"
                                 rows="3"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
-                                placeholder="Jelaskan alasan invoice tambahan..."
+                                placeholder="Jelaskan alasan additional invoice..."
                             ></textarea>
                             <div v-if="errors.additional_reason" class="text-red-500 text-sm mt-1">
                                 {{ errors.additional_reason }}
@@ -1331,7 +1331,7 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
 // Function to reload data from Sales Order
 const reloadFromSalesOrder = () => {
     if (form.is_additional) {
-        alert('Mode Invoice Tambahan menggunakan item manual. Fitur load otomatis dari SO dinonaktifkan.');
+        alert('Mode Additional Invoice menggunakan item manual. Fitur load otomatis dari SO dinonaktifkan.');
         return;
     }
 

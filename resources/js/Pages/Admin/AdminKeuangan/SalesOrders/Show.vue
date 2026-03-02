@@ -644,7 +644,7 @@
                                 <!-- Additional Invoices -->
                                 <div v-if="salesOrder.invoices && salesOrder.invoices.filter(inv => inv.is_additional).length > 0"
                                     class="mt-6">
-                                    <h4 class="text-md font-semibold text-gray-800 mb-4">Invoice Tambahan</h4>
+                                    <h4 class="text-md font-semibold text-gray-800 mb-4">Additional Invoice</h4>
                                     <div v-for="invoice in salesOrder.invoices.filter(inv => inv.is_additional)"
                                         :key="'additional-' + invoice.id"
                                         class="border border-gray-200 rounded-lg p-4 mb-4 last:mb-0">
@@ -657,7 +657,7 @@
                                                     </span>
                                                     {{ invoice.invoice_number }}
                                                 </h5>
-                                                <p class="text-sm text-gray-600">{{ invoice.additional_reason || 'Invoice Tambahan' }}</p>
+                                                <p class="text-sm text-gray-600">{{ invoice.additional_reason || 'Additional Invoice' }}</p>
                                             </div>
                                             <div class="text-right">
                                                 <p class="font-semibold text-gray-900">{{
@@ -908,7 +908,7 @@
                                 <input type="radio" name="invoice_type" value="additional"
                                     v-model="selectedInvoiceType" class="mr-3" />
                                 <div>
-                                    <div class="font-medium text-gray-900">Invoice Tambahan</div>
+                                    <div class="font-medium text-gray-900">Additional Invoice</div>
                                     <div class="text-sm text-gray-600">Buat tagihan baru tanpa mengubah invoice lama</div>
                                 </div>
                             </label>
