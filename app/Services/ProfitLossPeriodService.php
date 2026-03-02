@@ -47,21 +47,22 @@ class ProfitLossPeriodService
             ->whereIn('entry_type', ['auto_invoice', 'auto_so', 'auto_equipment_depreciation'])
             ->delete();
 
-        $invoiceGroups = Invoice::with('items')
-            ->whereBetween('invoice_date', [$startDate, $endDate])
-            ->where('posted_to_profit_loss', true)
-            ->get()
-            ->groupBy('sales_order_id');
-
-        $salesOrders = SalesOrder::whereIn('id', $invoiceGroups->keys())
+        $salesOrders = SalesOrder::query()
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->get()
             ->keyBy('id');
 
+        $invoiceGroups = Invoice::with('items')
+            ->where('posted_to_profit_loss', true)
+            ->whereIn('sales_order_id', $salesOrders->keys())
+            ->get()
+            ->groupBy('sales_order_id');
+
         $validSalesOrderIds = [];
 
-        foreach ($invoiceGroups as $salesOrderId => $invoices) {
-            $salesOrder = $salesOrders->get($salesOrderId);
-            if (!$salesOrder) {
+        foreach ($salesOrders as $salesOrderId => $salesOrder) {
+            $invoices = $invoiceGroups->get($salesOrderId, collect());
+            if (!$salesOrder || $invoices->isEmpty()) {
                 continue;
             }
 
@@ -76,16 +77,17 @@ class ProfitLossPeriodService
                 continue;
             }
 
-            $latestInvoiceDate = $invoices->max(function ($invoice) {
-                return $invoice->invoice_date?->format('Y-m-d') ?? $invoice->created_at->format('Y-m-d');
-            });
+            $recognitionDate = $salesOrder->created_at?->format('Y-m-d')
+                ?? $salesOrder->released_at?->format('Y-m-d')
+                ?? $salesOrder->so_date?->format('Y-m-d')
+                ?? now()->format('Y-m-d');
 
             $entry = ProfitLossEntry::createFromShipmentProfit($salesOrder, $period->id, $actingUserId, [
                 'gross_revenue' => $grossRevenue,
                 'operational_costs' => $operationalCosts,
                 'profit' => $grossRevenue - $operationalCosts,
                 'invoice_ids' => $invoices->pluck('id')->all(),
-                'transaction_date' => $latestInvoiceDate,
+                'transaction_date' => $recognitionDate,
             ]);
 
             if ($entry?->wasRecentlyCreated) {
@@ -95,12 +97,14 @@ class ProfitLossPeriodService
             $validSalesOrderIds[] = $salesOrder->id;
         }
 
+        $staleShipmentProfitEntries = ProfitLossEntry::where('period_id', $period->id)
+            ->where('entry_type', 'auto_shipment_profit');
+
         if (!empty($validSalesOrderIds)) {
-            ProfitLossEntry::where('period_id', $period->id)
-                ->where('entry_type', 'auto_shipment_profit')
-                ->whereNotIn('reference_id', $validSalesOrderIds)
-                ->delete();
+            $staleShipmentProfitEntries->whereNotIn('reference_id', $validSalesOrderIds);
         }
+
+        $staleShipmentProfitEntries->delete();
 
         if (class_exists('App\Models\PettyCashTransaction')) {
             $pettyCashTransactions = app('App\Models\PettyCashTransaction')
