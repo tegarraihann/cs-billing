@@ -589,7 +589,13 @@ class AccountReceivable extends Model
 
         $debitAmount = (float) $items->filter(function ($item) {
             return strtolower($item->item_type ?? '') === 'reimbursement';
-        })->sum('amount');
+        })->groupBy(function ($item) {
+            return $this->normalizeReimbursementSourceKey($item);
+        })->sum(function ($group) {
+            return (float) $group->max(function ($item) {
+                return (float) ($item->amount ?? 0);
+            });
+        });
 
         $vatAmount = (float) ($invoice->vat_amount ?? 0);
 
@@ -651,6 +657,17 @@ class AccountReceivable extends Model
         }
 
         return $payloads;
+    }
+
+    protected function normalizeReimbursementSourceKey($item): string
+    {
+        $itemRef = strtolower(trim((string) ($item->item_ref ?? '')));
+
+        if ($itemRef !== '' && preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $itemRef, $matches)) {
+            return 'reimbursement_' . (int) $matches[1];
+        }
+
+        return 'invoice_item_' . (string) ($item->id ?? spl_object_id($item));
     }
 
     protected function determineComponentStatus(AccountReceivableComponent $component): string

@@ -469,7 +469,7 @@ class InvoiceController extends Controller
         $linkedReimbursementItemIds = [];
 
         // Create invoice items
-        foreach ($validated['items'] as $item) {
+        foreach ($this->sanitizeItemsForPersistence($validated['items']) as $item) {
             $itemType = $item['item_type'] ?? 'billable';
 
             if ($itemType === 'reimbursement') {
@@ -902,7 +902,7 @@ class InvoiceController extends Controller
         $invoice->items()->delete();
 
         // Create new items
-        foreach ($validated['items'] as $item) {
+        foreach ($this->sanitizeItemsForPersistence($validated['items']) as $item) {
             $amount = $item['quantity'] * $item['rate'];
             $itemType = $item['item_type'] ?? 'billable';
             $includeInCustomerInvoice = $item['include_in_customer_invoice'] ?? true;
@@ -1514,6 +1514,47 @@ class InvoiceController extends Controller
         }
 
         return [$invoiceNumber, null];
+    }
+
+    private function sanitizeItemsForPersistence(array $items): array
+    {
+        $sanitized = [];
+        $seenReimbursementRefs = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $itemType = strtolower(trim((string) ($item['item_type'] ?? 'billable')));
+            $item['item_ref'] = $this->normalizeInvoiceItemRef($item['item_ref'] ?? null);
+
+            if ($itemType === 'reimbursement' && $item['item_ref']) {
+                if (isset($seenReimbursementRefs[$item['item_ref']])) {
+                    continue;
+                }
+
+                $seenReimbursementRefs[$item['item_ref']] = true;
+            }
+
+            $sanitized[] = $item;
+        }
+
+        return $sanitized;
+    }
+
+    private function normalizeInvoiceItemRef(?string $itemRef): ?string
+    {
+        $itemRef = trim((string) $itemRef);
+        if ($itemRef === '') {
+            return null;
+        }
+
+        if (preg_match('/reimb(?:ursement)?[_-]?(\d+)/i', $itemRef, $matches)) {
+            return 'reimbursement_' . (int) $matches[1];
+        }
+
+        return $itemRef;
     }
 
     private function resolveInvoiceBaseNumberFromSO(SalesOrder $salesOrder): string
