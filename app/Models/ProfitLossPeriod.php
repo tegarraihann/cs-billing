@@ -234,19 +234,20 @@ class ProfitLossPeriod extends Model
         ];
 
         if ($this->start_date && $this->end_date) {
-            $rangeStart = $this->start_date->toDateString();
-            $rangeEnd = $this->end_date->toDateString();
+            $rangeStart = $this->start_date->copy()->startOfDay();
+            $rangeEnd = $this->end_date->copy()->endOfDay();
 
             $salesOrders = SalesOrder::query()
                 ->with([
-                    'invoices' => function ($query) use ($rangeStart, $rangeEnd) {
-                        $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd])
+                    'invoices' => function ($query) {
+                        $query->where('posted_to_profit_loss', true)
                             ->with('items');
                     },
                     'accountReceivables',
                 ])
-                ->whereHas('invoices', function ($query) use ($rangeStart, $rangeEnd) {
-                    $query->whereBetween('invoice_date', [$rangeStart, $rangeEnd]);
+                ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                ->whereHas('invoices', function ($query) {
+                    $query->where('posted_to_profit_loss', true);
                 })
                 ->where('status', 'approved')
                 ->get();

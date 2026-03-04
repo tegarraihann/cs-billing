@@ -1134,34 +1134,7 @@ class InvoiceController extends Controller
         // Load relationships
         $invoice->load(['salesOrder', 'customer', 'items']);
 
-        // Filter customer-visible items (exclude operational costs and hidden items)
-        $customerVisibleItems = $invoice->items->filter(function($item) {
-            // Show only items that are:
-            // 1. Not operational costs
-            // 2. Included in customer invoice
-            // 3. Not hidden from customer
-            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $itemType = strtolower(trim($item->item_type ?? 'billable'));
-            $description = strtolower(trim($item->description ?? ''));
-            $isReimbursementItem = $itemType === 'reimbursement' ||
-                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                                  strpos($itemRef, 'reimbur') !== false ||
-                                  strpos($itemRef, 'reimb_') !== false;
-            $isVatItem = false;
-            if ($itemRef !== '') {
-                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
-            }
-            if (!$isVatItem && $description !== '') {
-                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
-            }
-
-            return $itemType !== 'operational_cost' &&
-                   ($item->include_in_customer_invoice ?? true) &&
-                   !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem &&
-                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
-        });
+        $customerVisibleItems = $this->filterCustomerVisibleMainInvoiceItems($invoice->items);
 
         // Calculate totals for customer-visible items only
         $subtotal = $customerVisibleItems->sum('amount');
@@ -1242,34 +1215,7 @@ class InvoiceController extends Controller
         // Load relationships
         $invoice->load(['salesOrder', 'customer', 'items']);
 
-        // Filter customer-visible items (exclude operational costs and hidden items)
-        $customerVisibleItems = $invoice->items->filter(function($item) {
-            // Show only items that are:
-            // 1. Not operational costs
-            // 2. Included in customer invoice
-            // 3. Not hidden from customer
-            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $itemType = strtolower(trim($item->item_type ?? 'billable'));
-            $description = strtolower(trim($item->description ?? ''));
-            $isReimbursementItem = $itemType === 'reimbursement' ||
-                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                                  strpos($itemRef, 'reimbur') !== false ||
-                                  strpos($itemRef, 'reimb_') !== false;
-            $isVatItem = false;
-            if ($itemRef !== '') {
-                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
-            }
-            if (!$isVatItem && $description !== '') {
-                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
-            }
-
-            return $itemType !== 'operational_cost' &&
-                   ($item->include_in_customer_invoice ?? true) &&
-                   !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem &&
-                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
-        });
+        $customerVisibleItems = $this->filterCustomerVisibleMainInvoiceItems($invoice->items);
 
         // Calculate totals for customer-visible items only
         $subtotal = $customerVisibleItems->sum('amount');
@@ -1444,34 +1390,7 @@ class InvoiceController extends Controller
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
 
-        // Filter customer-visible items (exclude operational costs and hidden items)
-        $customerVisibleItems = $invoice->items->filter(function($item) {
-            // Show only items that are:
-            // 1. Not operational costs
-            // 2. Included in customer invoice
-            // 3. Not hidden from customer
-            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $itemType = strtolower(trim($item->item_type ?? 'billable'));
-            $description = strtolower(trim($item->description ?? ''));
-            $isReimbursementItem = $itemType === 'reimbursement' ||
-                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                                  strpos($itemRef, 'reimbur') !== false ||
-                                  strpos($itemRef, 'reimb_') !== false;
-            $isVatItem = false;
-            if ($itemRef !== '') {
-                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
-            }
-            if (!$isVatItem && $description !== '') {
-                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
-            }
-
-            return $itemType !== 'operational_cost' &&
-                   ($item->include_in_customer_invoice ?? true) &&
-                   !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem &&
-                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
-        });
+        $customerVisibleItems = $this->filterCustomerVisibleMainInvoiceItems($invoice->items);
 
         // Create a copy of invoice with only customer-visible items
         $filteredInvoice = $invoice->replicate();
@@ -1488,34 +1407,7 @@ class InvoiceController extends Controller
     {
         $invoice->load(['customer', 'salesOrder', 'items']);
 
-        // Filter customer-visible items (exclude operational costs and hidden items)
-        $customerVisibleItems = $invoice->items->filter(function($item) {
-            // Show only items that are:
-            // 1. Not operational costs
-            // 2. Included in customer invoice
-            // 3. Not hidden from customer
-            // 4. For main invoice: exclude only reimbursement items (item_ref containing 'reimbur', 'r', or '2')
-            $itemRef = strtolower(trim($item->item_ref ?? ''));
-            $itemType = strtolower(trim($item->item_type ?? 'billable'));
-            $description = strtolower(trim($item->description ?? ''));
-            $isReimbursementItem = $itemType === 'reimbursement' ||
-                                  in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2']) ||
-                                  strpos($itemRef, 'reimbur') !== false ||
-                                  strpos($itemRef, 'reimb_') !== false;
-            $isVatItem = false;
-            if ($itemRef !== '') {
-                $isVatItem = (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef);
-            }
-            if (!$isVatItem && $description !== '') {
-                $isVatItem = (bool) preg_match('/\\b(vat|ppn|tax)\\b/', $description);
-            }
-
-            return $itemType !== 'operational_cost' &&
-                   ($item->include_in_customer_invoice ?? true) &&
-                   !($item->is_hidden_from_customer ?? false) &&
-                   !$isReimbursementItem &&
-                   !$isVatItem; // Exclude reimbursement/VAT items from main invoice
-        });
+        $customerVisibleItems = $this->filterCustomerVisibleMainInvoiceItems($invoice->items);
 
         // Create a copy of invoice with only customer-visible items
         $filteredInvoice = $invoice->replicate();
@@ -1542,6 +1434,46 @@ class InvoiceController extends Controller
                 'error_message' => $th->getMessage(),
             ]);
         }
+    }
+
+    private function filterCustomerVisibleMainInvoiceItems($items)
+    {
+        return $items->filter(function ($item) {
+            $itemType = strtolower(trim($item->item_type ?? 'billable'));
+
+            return $itemType !== 'operational_cost' &&
+                ($item->include_in_customer_invoice ?? true) &&
+                !($item->is_hidden_from_customer ?? false) &&
+                !$this->isReimbursementInvoiceItem($item) &&
+                !$this->isMainInvoiceVatLine($item);
+        })->values();
+    }
+
+    private function isReimbursementInvoiceItem($item): bool
+    {
+        $itemRef = strtolower(trim($item->item_ref ?? ''));
+        $itemType = strtolower(trim($item->item_type ?? 'billable'));
+
+        return $itemType === 'reimbursement' ||
+            in_array($itemRef, ['reimbursement', 'reimbur', 'r', '2'], true) ||
+            strpos($itemRef, 'reimbur') !== false ||
+            strpos($itemRef, 'reimb_') !== false;
+    }
+
+    private function isMainInvoiceVatLine($item): bool
+    {
+        $itemRef = strtolower(trim($item->item_ref ?? ''));
+        $description = strtolower(trim($item->description ?? ''));
+
+        if ($itemRef !== '' && (bool) preg_match('/(^|[_\\-\\s])(vat|ppn|tax)([_\\-\\s]|$)|^(vat|ppn|tax)\\d+/', $itemRef)) {
+            return true;
+        }
+
+        if ($description === '') {
+            return false;
+        }
+
+        return (bool) preg_match('/^(vat|ppn|tax)(\\s+[0-9]+(?:[\\.,][0-9]+)?%?)?$/', $description);
     }
 
     private function generateInvoiceNumberByType(SalesOrder $salesOrder, string $type, bool $isAdditional = false): array
