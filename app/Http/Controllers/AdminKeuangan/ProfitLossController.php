@@ -292,7 +292,20 @@ class ProfitLossController extends Controller
             'account_id' => 'required|exists:chart_of_accounts,id',
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'transaction_date' => 'required|date',
+            'transaction_date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($profitLoss) {
+                    if (!$this->isDateWithinPeriod($profitLoss, (string) $value)) {
+                        $fail(sprintf(
+                            'Tanggal transaksi harus berada dalam periode %s (%s s/d %s).',
+                            $profitLoss->period_name,
+                            $profitLoss->start_date?->format('d/m/Y'),
+                            $profitLoss->end_date?->format('d/m/Y')
+                        ));
+                    }
+                },
+            ],
             'notes' => 'nullable|string',
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'bank_transaction_type' => 'nullable|in:credit,debit',
@@ -370,7 +383,20 @@ class ProfitLossController extends Controller
             'account_id' => 'required|exists:chart_of_accounts,id',
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'transaction_date' => 'required|date',
+            'transaction_date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($entry) {
+                    if (!$this->isDateWithinPeriod($entry->period, (string) $value)) {
+                        $fail(sprintf(
+                            'Tanggal transaksi harus berada dalam periode %s (%s s/d %s).',
+                            $entry->period->period_name,
+                            $entry->period->start_date?->format('d/m/Y'),
+                            $entry->period->end_date?->format('d/m/Y')
+                        ));
+                    }
+                },
+            ],
             'notes' => 'nullable|string',
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'bank_transaction_type' => 'nullable|in:credit,debit',
@@ -545,6 +571,19 @@ class ProfitLossController extends Controller
     {
         return app(\App\Services\ProfitLossPeriodService::class)
             ->generateEntries($period, Auth::id());
+    }
+
+    private function isDateWithinPeriod(ProfitLossPeriod $period, string $date): bool
+    {
+        $transactionDate = Carbon::parse($date)->startOfDay();
+        $periodStart = $period->start_date?->copy()->startOfDay();
+        $periodEnd = $period->end_date?->copy()->endOfDay();
+
+        if (!$periodStart || !$periodEnd) {
+            return false;
+        }
+
+        return $transactionDate->betweenIncluded($periodStart, $periodEnd);
     }
 
     /**

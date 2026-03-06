@@ -153,12 +153,7 @@ class InvoiceItem extends Model
         $this->paid_at = $status === 'paid'
             ? ($paidAt ? \Carbon\Carbon::parse($paidAt) : now())
             : $this->paid_at;
-
-        if ($notes) {
-            $this->item_ref = $this->item_ref
-                ? ($this->item_ref . ' | ' . $notes)
-                : $notes;
-        }
+        // Keep item_ref immutable to preserve source linking integrity.
 
         $this->save();
     }
