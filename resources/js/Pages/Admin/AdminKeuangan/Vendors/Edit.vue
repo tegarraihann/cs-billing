@@ -12,7 +12,8 @@
                                     <Edit class="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 class="text-2xl font-semibold text-gray-900">Edit Vendor: {{ vendor.nama_vendor }}
+                                    <h1 class="text-2xl font-semibold text-gray-900">Edit Vendor: {{ vendor.nama_vendor
+                                        }}
                                     </h1>
                                     <p class="mt-1 text-sm text-gray-600">Update vendor information</p>
                                 </div>
@@ -142,7 +143,8 @@
                                 <label for="nib" class="block text-sm font-medium text-sage-700 mb-2">
                                     Business Identification Number (NIB)
                                 </label>
-                                <input id="nib" v-model="form.nib" type="text" placeholder="Enter business identification number"
+                                <input id="nib" v-model="form.nib" type="text"
+                                    placeholder="Enter business identification number"
                                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                     :class="{ 'border-red-500': errors.nib }" />
                                 <div v-if="errors.nib" class="mt-1 text-sm text-red-600">
@@ -192,7 +194,8 @@
                                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sage-100 file:text-sage-700 hover:file:bg-sage-200"
                                     :class="{ 'border-red-500': errors.legal_document }" />
                                 <p class="mt-1 text-xs text-gray-500">
-                                    Supported format: PDF. Max 10MB. Leave empty if you do not want to replace the document.
+                                    Supported format: PDF. Max 10MB. Leave empty if you do not want to replace the
+                                    document.
                                 </p>
                                 <div v-if="errors.legal_document" class="mt-1 text-sm text-red-600">
                                     {{ errors.legal_document }}

@@ -342,7 +342,7 @@ class AccountPayable extends Model
         // Set ulang vendor_breakdown pada model untuk sinkronisasi komponen
         $salesOrder->setAttribute('vendor_breakdown', $vendorBreakdown);
 
-        $existingPayables = self::where('sales_order_id', $salesOrder->id)->get();
+        $existingPayables = self::with('components')->where('sales_order_id', $salesOrder->id)->get();
         $existingMap = $existingPayables->keyBy(function (self $payable) {
             return self::makeVendorGroupKey($payable->vendor_id, $payable->vendor_name);
         });
@@ -437,6 +437,11 @@ class AccountPayable extends Model
             /** @var self|null $stale */
             $stale = $existingMap->get($key);
             if ($stale) {
+                if (self::shouldRetainHistoricalPayable($stale)) {
+                    $stale->syncComponents();
+                    continue;
+                }
+
                 $stale->components()->delete();
                 $stale->delete();
             }
@@ -458,6 +463,26 @@ class AccountPayable extends Model
         }
 
         return 'internal_' . $name;
+    }
+
+    protected static function shouldRetainHistoricalPayable(self $payable): bool
+    {
+        $payable->loadMissing('components');
+
+        if (!empty(trim((string) $payable->payment_notes))) {
+            return true;
+        }
+
+        return $payable->components->contains(function (AccountPayableComponent $component) {
+            $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+            $source = (string) ($relatedItems['source'] ?? '');
+
+            if ($component->component_type === 'reimbursement' && $component->status === 'paid') {
+                return true;
+            }
+
+            return $source === 'reimbursement_items' && (float) ($component->paid_amount ?? 0) > 0;
+        });
     }
 
     /**

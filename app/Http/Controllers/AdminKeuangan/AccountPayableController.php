@@ -1032,13 +1032,21 @@ class AccountPayableController extends Controller
     private function mapReimbursementItems(AccountPayable $accountPayable)
     {
         return ReimbursementItem::query()
-            ->with(['invoice:id,invoice_number,invoice_type'])
+            ->with(['invoice:id,invoice_number,invoice_type', 'vendor:id,nama_vendor'])
             ->when($accountPayable->sales_order_id, function ($query) use ($accountPayable) {
                 $query->where('sales_order_id', $accountPayable->sales_order_id);
             })
-            ->whereNotNull('invoice_id')
-            ->whereHas('invoice', function ($query) {
-                $query->whereIn('invoice_type', ['reimbursement', 'combined']);
+            ->where(function ($query) use ($accountPayable) {
+                $query->where(function ($invoiceQuery) {
+                    $invoiceQuery->whereNotNull('invoice_id')
+                        ->whereHas('invoice', function ($query) {
+                            $query->whereIn('invoice_type', ['reimbursement', 'combined']);
+                        });
+                });
+
+                if ($accountPayable->sales_order_id) {
+                    $query->orWhereNull('invoice_id');
+                }
             })
             ->orderBy('created_at')
             ->get()
@@ -1065,7 +1073,8 @@ class AccountPayableController extends Controller
                     'invoice_id' => $item->invoice_id,
                     'invoice_number' => $item->invoice?->invoice_number,
                     'invoice_type' => $item->invoice?->invoice_type,
-                    'vendor_name' => data_get($receiptInfo, 'vendor_name'),
+                    'vendor_name' => data_get($receiptInfo, 'vendor_name')
+                        ?? $item->vendor?->nama_vendor,
                     'component_id' => data_get($receiptInfo, 'component_id'),
                 ];
             });
