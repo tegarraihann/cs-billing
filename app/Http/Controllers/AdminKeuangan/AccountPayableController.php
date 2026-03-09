@@ -382,8 +382,26 @@ class AccountPayableController extends Controller
         $noteLines = collect();
 
         if ($salesOrderId) {
+            $payableIds = $groupPayables->pluck('id')->filter()->values();
+            $componentIds = $groupPayables
+                ->flatMap(function (AccountPayable $payable) {
+                    return $payable->components->pluck('id');
+                })
+                ->filter()
+                ->values();
+
             $noteLines = AccountPayableNote::query()
                 ->where('sales_order_id', $salesOrderId)
+                ->where(function ($query) use ($payableIds, $componentIds) {
+                    if ($payableIds->isNotEmpty()) {
+                        $query->whereIn('account_payable_id', $payableIds);
+                    }
+
+                    if ($componentIds->isNotEmpty()) {
+                        $method = $payableIds->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                        $query->{$method}('component_id', $componentIds);
+                    }
+                })
                 ->orderBy('created_at')
                 ->pluck('note');
         }
