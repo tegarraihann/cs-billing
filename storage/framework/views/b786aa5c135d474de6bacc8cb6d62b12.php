@@ -686,11 +686,11 @@
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         <div class="container-list">
-                            <?php if($invoice->container_no): ?>
-                                <?php echo e($invoice->container_no); ?>
-
-                            <?php elseif($invoice->salesOrder && $invoice->salesOrder->containers && $invoice->salesOrder->containers->count() > 0): ?>
-                                <?php echo e($invoice->salesOrder->containers->pluck('container_number')->join(', ')); ?>
+                            <?php
+                                $containerDisplay = blank($invoice->container_no) ? ($invoice->salesOrder->container_no ?? null) : $invoice->container_no;
+                            ?>
+                            <?php if($containerDisplay): ?>
+                                <?php echo e(is_array($containerDisplay) ? implode(', ', $containerDisplay) : $containerDisplay); ?>
 
                             <?php else: ?>
                                 -

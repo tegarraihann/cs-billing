@@ -426,6 +426,9 @@ class InvoiceController extends Controller
             $validated['invoice_type'],
             $isAdditional
         );
+        $containerNo = blank($validated['container_no'] ?? null)
+            ? (is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : $salesOrder->container_no)
+            : $validated['container_no'];
 
         $invoice = Invoice::create([
             'invoice_number' => $generatedInvoiceNumber,
@@ -456,7 +459,7 @@ class InvoiceController extends Controller
             'destination' => $validated['destination'] ?? $salesOrder->pod,
             'etd' => $validated['etd'] ?? $salesOrder->etd,
             'eta' => $validated['eta'] ?? $salesOrder->eta,
-            'container_no' => $validated['container_no'] ?? (is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : $salesOrder->container_no),
+            'container_no' => $containerNo,
             'container_size' => $validated['container_size'] ?? $salesOrder->shipment_type,
             'remarks' => $validated['remarks'],
             'down_payment_amount' => $validated['down_payment_amount'] ?? 0,

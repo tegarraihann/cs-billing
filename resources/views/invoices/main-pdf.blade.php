@@ -671,10 +671,11 @@
                     <td class="ship-colon-right">:</td>
                     <td class="ship-value-right">
                         <div class="container-list">
-                            @if($invoice->container_no)
-                                {{ $invoice->container_no }}
-                            @elseif($invoice->salesOrder && $invoice->salesOrder->containers && $invoice->salesOrder->containers->count() > 0)
-                                {{ $invoice->salesOrder->containers->pluck('container_number')->join(', ') }}
+                            @php
+                                $containerDisplay = blank($invoice->container_no) ? ($invoice->salesOrder->container_no ?? null) : $invoice->container_no;
+                            @endphp
+                            @if($containerDisplay)
+                                {{ is_array($containerDisplay) ? implode(', ', $containerDisplay) : $containerDisplay }}
                             @else
                                 -
                             @endif

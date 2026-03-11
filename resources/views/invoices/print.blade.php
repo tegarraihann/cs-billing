@@ -411,11 +411,13 @@
                 <div class="shipment-row">
                     <span class="field-label">20'/40'/45'</span> :{{ $invoice->party_lcl ?? $invoice->salesOrder->party_lcl ?? '-' }}
                 </div>
-                @if($invoice->salesOrder->container_no ?? null)
+                @php
+                    $containerDisplay = blank($invoice->container_no) ? ($invoice->salesOrder->container_no ?? null) : $invoice->container_no;
+                @endphp
+                @if($containerDisplay)
                 <div class="container-numbers">
                     @php
-                        $containerNo = $invoice->salesOrder->container_no;
-                        $containers = is_array($containerNo) ? $containerNo : explode("\n", str_replace(',', "\n", $containerNo));
+                        $containers = is_array($containerDisplay) ? $containerDisplay : explode("\n", str_replace(',', "\n", (string) $containerDisplay));
                     @endphp
                     @foreach($containers as $container)
                         @if(trim($container))
@@ -456,7 +458,7 @@
                     <span class="field-label-right">ETD / ETA</span> :{{ isset($invoice->etd) ? $invoice->etd->format('d-m-Y') : '14-02-2025' }} / {{ isset($invoice->eta) ? $invoice->eta->format('d-m-Y') : ($invoice->salesOrder->eta ? $invoice->salesOrder->eta->format('d-m-Y') : '06-05-2025') }}
                 </div>
                 <div class="shipment-row">
-                    <span class="field-label-right">CONTAINER No.</span> :{{ $invoice->container_no ?? 'MSKU2934199' }}
+                    <span class="field-label-right">CONTAINER No.</span> :{{ blank($invoice->container_no) ? (is_array($invoice->salesOrder->container_no ?? null) ? implode(', ', $invoice->salesOrder->container_no) : ($invoice->salesOrder->container_no ?? 'MSKU2934199')) : $invoice->container_no }}
                 </div>
             </div>
         </div>
