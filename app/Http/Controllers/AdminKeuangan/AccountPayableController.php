@@ -39,21 +39,6 @@ class AccountPayableController extends Controller
             ]);
         }
 
-        $payables = $this->paginatePayableGroups($request);
-
-        // Calculate summary
-        $summary = [
-            'total_outstanding' => AccountPayable::sum('outstanding_amount'),
-            'total_overdue' => AccountPayable::where('payment_due_date', '<', now())
-                ->whereIn('status', ['unpaid', 'partial'])
-                ->sum('outstanding_amount'),
-            'count_overdue' => AccountPayable::where('payment_due_date', '<', now())
-                ->whereIn('status', ['unpaid', 'partial'])
-                ->count(),
-            'count_unpaid' => AccountPayable::whereIn('status', ['unpaid', 'partial'])->count()
-        ];
-
-        // Calculate summary per vendor (for current filtered results)
         $filteredResults = $this->filteredPayablesQuery($request)
             ->with([
                 'components' => function ($query) {
@@ -68,6 +53,8 @@ class AccountPayableController extends Controller
             $payable->loadMissing(['components', 'vendor']);
         });
 
+        $payables = $this->paginatePayableGroups($request);
+        $summary = $this->buildFilteredSummary($filteredResults);
         $vendorSummary = $this->buildVendorSummaryFromCollection($filteredResults);
 
         // Get vendors for filter
@@ -1568,6 +1555,29 @@ class AccountPayableController extends Controller
             })
             ->sortByDesc('total_outstanding')
             ->values();
+    }
+
+    private function buildFilteredSummary(Collection $payables): array
+    {
+        $now = now();
+
+        $overduePayables = $payables->filter(function (AccountPayable $payable) use ($now) {
+            if (!$payable->payment_due_date) {
+                return false;
+            }
+
+            return $payable->payment_due_date < $now
+                && in_array($payable->status, ['unpaid', 'partial'], true);
+        });
+
+        return [
+            'total_outstanding' => (float) $payables->sum('outstanding_amount'),
+            'total_overdue' => (float) $overduePayables->sum('outstanding_amount'),
+            'count_overdue' => $overduePayables->count(),
+            'count_unpaid' => $payables->filter(function (AccountPayable $payable) {
+                return in_array($payable->status, ['unpaid', 'partial'], true);
+            })->count(),
+        ];
     }
 
     private function buildVendorSummaryPayload(Collection $payables): array
