@@ -28,7 +28,9 @@ class AccountReceivableController extends Controller
      */
     public function index(Request $request)
     {
-        if (!$request->filled('date_from') && !$request->filled('date_to')) {
+        $allMonth = $request->boolean('all_month');
+
+        if (!$allMonth && !$request->filled('date_from') && !$request->filled('date_to')) {
             $request->merge([
                 'date_from' => now()->startOfMonth()->toDateString(),
                 'date_to' => now()->endOfMonth()->toDateString(),
@@ -73,26 +75,25 @@ class AccountReceivableController extends Controller
         }
 
         // Date range filter
-        if ($request->has('date_from') && $request->date_from) {
+        if (!$allMonth && $request->has('date_from') && $request->date_from) {
             $query->where('invoice_date', '>=', $request->date_from);
         }
-        if ($request->has('date_to') && $request->date_to) {
+        if (!$allMonth && $request->has('date_to') && $request->date_to) {
             $query->where('invoice_date', '<=', $request->date_to);
         }
 
         $receivables = $query->paginate(5)->withQueryString();
 
-        // Calculate summary
-        $summary = [
-            'total_outstanding' => AccountReceivable::sum('outstanding_amount'),
-            'total_overdue' => AccountReceivable::where('status', 'overdue')->sum('outstanding_amount'),
-            'count_overdue' => AccountReceivable::where('status', 'overdue')->count(),
-            'count_outstanding' => AccountReceivable::whereIn('status', ['outstanding', 'partial'])->count()
-        ];
-
-        // Calculate summary per customer (for current filtered results)
+        // Calculate summary from the same filtered result set used by the table.
         $currentQuery = clone $query;
         $currentResults = $currentQuery->get();
+
+        $summary = [
+            'total_outstanding' => (float) $currentResults->sum('outstanding_amount'),
+            'total_overdue' => (float) $currentResults->where('status', 'overdue')->sum('outstanding_amount'),
+            'count_overdue' => (int) $currentResults->where('status', 'overdue')->count(),
+            'count_outstanding' => (int) $currentResults->whereIn('status', ['outstanding', 'partial'])->count(),
+        ];
 
         $customerSummary = $currentResults->groupBy('customer_id')->map(function ($receivables, $customerId) {
             $customer = $receivables->first()->customer;
@@ -115,7 +116,7 @@ class AccountReceivableController extends Controller
             'summary' => $summary,
             'customerSummary' => $customerSummary,
             'customers' => $customers,
-            'filters' => $request->only(['search', 'status', 'customer_id', 'date_from', 'date_to'])
+            'filters' => $request->only(['search', 'status', 'customer_id', 'date_from', 'date_to', 'all_month'])
         ]);
     }
 
@@ -1137,16 +1138,18 @@ class AccountReceivableController extends Controller
         $validated = $request->validate([
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
-            'include_paid' => 'nullable|boolean'
+            'include_paid' => 'nullable|boolean',
+            'all_month' => 'nullable|boolean',
         ]);
 
         $query = AccountReceivable::where('customer_id', $customer->id);
+        $allMonth = (bool) ($validated['all_month'] ?? false);
 
-        if ($validated['date_from'] ?? false) {
+        if (!$allMonth && ($validated['date_from'] ?? false)) {
             $query->where('invoice_date', '>=', $validated['date_from']);
         }
 
-        if ($validated['date_to'] ?? false) {
+        if (!$allMonth && ($validated['date_to'] ?? false)) {
             $query->where('invoice_date', '<=', $validated['date_to']);
         }
 
@@ -1170,11 +1173,12 @@ class AccountReceivableController extends Controller
             'customer' => $customer,
             'receivables' => $receivables,
             'summary' => $summary,
-            'date_from' => $validated['date_from'] ?? null,
-            'date_to' => $validated['date_to'] ?? null,
+            'date_from' => $allMonth ? null : ($validated['date_from'] ?? null),
+            'date_to' => $allMonth ? null : ($validated['date_to'] ?? null),
+            'all_month' => $allMonth,
             'generated_at' => now()
         ])
-        ->setPaper('a4', 'portrait')
+        ->setPaper('a4', 'landscape')
         ->setOptions([
             'defaultFont' => 'Arial',
             'isRemoteEnabled' => true,

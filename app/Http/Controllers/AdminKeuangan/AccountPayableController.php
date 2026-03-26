@@ -32,7 +32,9 @@ class AccountPayableController extends Controller
      */
     public function index(Request $request)
     {
-        if (!$request->filled('date_from') && !$request->filled('date_to')) {
+        $allMonth = $request->boolean('all_month');
+
+        if (!$allMonth && !$request->filled('date_from') && !$request->filled('date_to')) {
             $request->merge([
                 'date_from' => now()->startOfMonth()->toDateString(),
                 'date_to' => now()->endOfMonth()->toDateString(),
@@ -65,7 +67,7 @@ class AccountPayableController extends Controller
             'summary' => $summary,
             'vendorSummary' => $vendorSummary,
             'vendors' => $vendors,
-            'filters' => $request->only(['search', 'status', 'vendor_id', 'date_from', 'date_to']),
+            'filters' => $request->only(['search', 'status', 'vendor_id', 'date_from', 'date_to', 'all_month']),
             'bankAccounts' => BankAccount::all(),
         ]);
     }
@@ -1247,11 +1249,13 @@ class AccountPayableController extends Controller
             $query->where('vendor_id', $vendorId);
         }
 
-        if ($dateFrom = $request->get('date_from')) {
+        $allMonth = $request->boolean('all_month');
+
+        if (!$allMonth && ($dateFrom = $request->get('date_from'))) {
             $this->applyDateFallbackFilter($query, '>=', $dateFrom);
         }
 
-        if ($dateTo = $request->get('date_to')) {
+        if (!$allMonth && ($dateTo = $request->get('date_to'))) {
             $this->applyDateFallbackFilter($query, '<=', $dateTo);
         }
     }

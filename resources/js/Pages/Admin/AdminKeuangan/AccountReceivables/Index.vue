@@ -82,7 +82,7 @@
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
                                 <input
@@ -129,6 +129,7 @@
                                 <input
                                     v-model="searchForm.date_from"
                                     type="date"
+                                    :disabled="searchForm.all_month"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 />
@@ -138,9 +139,21 @@
                                 <input
                                     v-model="searchForm.date_to"
                                     type="date"
+                                    :disabled="searchForm.all_month"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Period</label>
+                                <button
+                                    type="button"
+                                    class="w-full rounded-md border px-3 py-2 text-sm font-medium transition"
+                                    :class="searchForm.all_month ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'"
+                                    @click="toggleAllMonth"
+                                >
+                                    {{ searchForm.all_month ? 'All Month' : 'This Month / Custom' }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -160,6 +173,7 @@
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Count</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Count</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -173,6 +187,15 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ customer.count_invoices }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center" :class="customer.count_overdue > 0 ? 'text-red-600 font-semibold' : 'text-gray-900'">
                                         {{ customer.count_overdue }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                        <button
+                                            type="button"
+                                            class="text-purple-600 hover:text-purple-900"
+                                            @click="downloadSOAForCustomer(customer.customer_id)"
+                                        >
+                                            Download SOA
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -194,6 +217,7 @@
                                 <td class="py-2 text-sm text-center text-red-600">
                                     {{ customerSummaryTotals.totalOverdue }}
                                 </td>
+                                <td class="py-2"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -527,7 +551,8 @@ const searchForm = reactive({
     status: props.filters.status || '',
     customer_id: props.filters.customer_id || '',
     date_from: props.filters.date_from || '',
-    date_to: props.filters.date_to || ''
+    date_to: props.filters.date_to || '',
+    all_month: !!props.filters.all_month
 })
 
 const currentIndexQuery = computed(() => {
@@ -536,7 +561,8 @@ const currentIndexQuery = computed(() => {
         status: searchForm.status || undefined,
         customer_id: searchForm.customer_id || undefined,
         date_from: searchForm.date_from || undefined,
-        date_to: searchForm.date_to || undefined
+        date_to: searchForm.date_to || undefined,
+        all_month: searchForm.all_month ? 1 : undefined
     }
 
     const currentPage = props.receivables?.current_page
@@ -561,6 +587,12 @@ const buildUrlWithQuery = (path, query = {}) => {
 }
 
 const setDefaultMonthFilter = () => {
+    if (searchForm.all_month) {
+        searchForm.date_from = ''
+        searchForm.date_to = ''
+        return
+    }
+
     if (props.filters.date_from || props.filters.date_to) {
         return
     }
@@ -647,7 +679,14 @@ const customerSummaryTotals = computed(() => {
 })
 
 const applyFilters = () => {
-    router.get(route('admin-keuangan.account-receivables.index'), searchForm, {
+    const payload = {
+        ...searchForm,
+        all_month: searchForm.all_month ? 1 : undefined,
+        date_from: searchForm.all_month ? undefined : (searchForm.date_from || undefined),
+        date_to: searchForm.all_month ? undefined : (searchForm.date_to || undefined),
+    }
+
+    router.get(route('admin-keuangan.account-receivables.index'), payload, {
         preserveState: true,
         replace: true
     })
@@ -938,17 +977,19 @@ watch(
     }
 )
 
-const getSoaUrl = (receivable) => {
-    const customerId = receivable?.customer?.id || receivable?.customer_id
+const getSoaUrlByCustomerId = (customerId) => {
     if (!customerId) {
         return '#'
     }
 
     const params = new URLSearchParams()
-    if (searchForm.date_from) {
+    if (searchForm.all_month) {
+        params.set('all_month', '1')
+    }
+    if (!searchForm.all_month && searchForm.date_from) {
         params.set('date_from', searchForm.date_from)
     }
-    if (searchForm.date_to) {
+    if (!searchForm.all_month && searchForm.date_to) {
         params.set('date_to', searchForm.date_to)
     }
 
@@ -958,6 +999,11 @@ const getSoaUrl = (receivable) => {
     return queryString ? `${baseUrl}?${queryString}` : baseUrl
 }
 
+const getSoaUrl = (receivable) => {
+    const customerId = receivable?.customer?.id || receivable?.customer_id
+    return getSoaUrlByCustomerId(customerId)
+}
+
 const downloadSOA = (receivable) => {
     const url = getSoaUrl(receivable)
     if (url === '#') {
@@ -965,6 +1011,34 @@ const downloadSOA = (receivable) => {
     }
 
     window.location.href = url
+}
+
+const downloadSOAForCustomer = (customerId) => {
+    const url = getSoaUrlByCustomerId(customerId)
+    if (url === '#') {
+        return
+    }
+
+    window.location.href = url
+}
+
+const toggleAllMonth = () => {
+    searchForm.all_month = !searchForm.all_month
+
+    if (searchForm.all_month) {
+        searchForm.date_from = ''
+        searchForm.date_to = ''
+    } else if (!searchForm.date_from && !searchForm.date_to) {
+        const now = new Date()
+        const start = new Date(now.getFullYear(), now.getMonth(), 1)
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        const format = (date) => date.toISOString().split('T')[0]
+
+        searchForm.date_from = format(start)
+        searchForm.date_to = format(end)
+    }
+
+    applyFilters()
 }
 
 const visitPage = (url) => {

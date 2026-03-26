@@ -7,229 +7,186 @@
     <title>Statement of Account - {{ $customer->company_name }}</title>
     <style>
         @page {
-            margin: 1cm 1cm;
-            font-family: 'Times New Roman', serif;
+            margin: 14mm 12mm 14mm 12mm;
         }
 
         body {
-            font-family: 'Times New Roman', serif;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 10px;
-            line-height: 1.3;
-            color: #000;
+            color: #111827;
             margin: 0;
-            padding: 0;
         }
 
         .header {
-            margin-bottom: 20px;
-            border-bottom: 2px solid #000;
+            width: 100%;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #d1d5db;
             padding-bottom: 10px;
         }
 
-        .company-info {
-            float: left;
-            width: 60%;
-        }
-
-        .company-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #000;
-            margin-bottom: 5px;
-        }
-
-        .company-address {
-            font-size: 9px;
-            color: #333;
-            line-height: 1.3;
-        }
-
-        .document-info {
-            float: right;
-            width: 35%;
-            text-align: right;
-        }
-
-        .document-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .document-details {
-            font-size: 9px;
-            line-height: 1.3;
-        }
-
-        .clear {
-            clear: both;
-        }
-
-        .customer-section {
-            margin: 20px 0;
-            padding: 8px 0;
-        }
-
-        .customer-title {
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #000;
-        }
-
-        .customer-details {
-            font-size: 9px;
-            line-height: 1.4;
-        }
-
-        .summary-section {
-            margin: 12px 0;
-            padding: 8px 0;
-        }
-
-        .summary-title {
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .summary-table td {
-            padding: 4px 8px;
-            font-size: 9px;
-        }
-
-        .summary-label {
-            font-weight: bold;
-            text-align: left;
-            width: 50%;
-        }
-
-        .summary-value {
-            text-align: right;
-            font-family: monospace;
-            width: 50%;
-        }
-
+        .header-table,
+        .summary-table,
         .transactions-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+        }
+
+        .header-left {
+            width: 62%;
+            vertical-align: top;
+        }
+
+        .header-right {
+            width: 38%;
+            vertical-align: top;
+            text-align: right;
+        }
+
+        .company-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #111827;
+        }
+
+        .muted {
+            color: #4b5563;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .section {
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            color: #111827;
+        }
+
+        .summary-card {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 8px 10px;
+        }
+
+        .summary-table td {
+            padding: 3px 0;
+        }
+
+        .summary-label {
+            width: 55%;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            width: 45%;
+            text-align: right;
+            font-family: "Courier New", monospace;
+        }
+
+        .transactions-table {
+            table-layout: fixed;
         }
 
         .transactions-table th,
         .transactions-table td {
-            padding: 6px 4px;
-            font-size: 8px;
-            text-align: center;
+            border: 1px solid #d1d5db;
+            padding: 6px 5px;
+            vertical-align: top;
         }
 
         .transactions-table th {
-            font-weight: bold;
+            background: #f3f4f6;
             text-transform: uppercase;
+            font-size: 9px;
+            letter-spacing: .3px;
+            text-align: center;
         }
 
-        .transactions-table .text-left {
+        .text-left {
             text-align: left;
         }
 
-        .transactions-table .text-right {
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
             text-align: right;
-            font-family: monospace;
+            font-family: "Courier New", monospace;
         }
 
-        .status-outstanding,
-        .status-overdue,
-        .status-partial,
-        .status-paid {
-            background: transparent;
-            color: inherit;
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
         }
 
-        .total-row {
-            font-weight: bold;
+        .total-row td {
+            background: #f9fafb;
+            font-weight: 700;
         }
 
         .footer {
-            position: fixed;
-            bottom: 0.5cm;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 8px;
-            color: #666;
-            padding-top: 5px;
-            border-top: 1px solid #ccc;
-        }
-
-        .print-info {
-            text-align: right;
-            font-size: 8px;
-            color: #666;
             margin-top: 10px;
-            font-style: italic;
-        }
-
-        .aging-section {
-            margin-top: 20px;
-            page-break-inside: avoid;
-        }
-
-        .aging-title {
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .aging-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .aging-table td {
-            padding: 5px;
-            font-size: 9px;
-            text-align: center;
+            font-size: 8px;
+            color: #6b7280;
+            text-align: right;
         }
     </style>
 </head>
 
 <body>
-    <!-- Header -->
     <div class="header">
-        <div class="company-info">
-            <div class="company-name">PT. ESHAKA WIJAYA LOGISTICS</div>
-            <div class="company-address">
-                Ruko Aerohub Citra 8 No.C7-10<br>
-                Pegadungan, Kec.Kalideres, Jakarta Barat 11830<br>
-                Telp: (021) 538-1234 | Email: info@eshakawijaya.com
-            </div>
-        </div>
-        <div class="document-info">
-            <div class="document-title">Statement of Account</div>
-            <div class="document-details">
-                <strong>Date:</strong> {{ $generated_at->locale('id')->isoFormat('DD MMMM YYYY') }}<br>
-                @if($date_from || $date_to)
-                    <strong>Period:</strong>
-                    {{ $date_from ? \Carbon\Carbon::parse($date_from)->locale('id')->isoFormat('DD MMM YYYY') : 'Start' }} -
-                    {{ $date_to ? \Carbon\Carbon::parse($date_to)->locale('id')->isoFormat('DD MMM YYYY') : 'End' }}
-                @endif
-            </div>
-        </div>
-        <div class="clear"></div>
+        <table class="header-table">
+            <tr>
+                <td class="header-left">
+                    <div class="company-name">PT. ESHAKA WIJAYA LOGISTICS</div>
+                    <div class="muted">
+                        Ruko Aerohub Citra 8 No.C7-10, Pegadungan, Kalideres, Jakarta Barat 11830<br>
+                        Telp: (021) 538-1234 | Email: info@eshakawijaya.com
+                    </div>
+                </td>
+                <td class="header-right">
+                    <div class="title">Statement of Account</div>
+                    <div><strong>Customer:</strong> {{ $customer->company_name }}</div>
+                    <div><strong>Printed At:</strong> {{ $generated_at->locale('id')->isoFormat('DD MMM YYYY HH:mm') }}</div>
+                    <div>
+                        <strong>Period:</strong>
+                        @if($all_month ?? false)
+                            All Month
+                        @elseif($date_from || $date_to)
+                            {{ $date_from ? \Carbon\Carbon::parse($date_from)->locale('id')->isoFormat('DD MMM YYYY') : 'Start' }}
+                            -
+                            {{ $date_to ? \Carbon\Carbon::parse($date_to)->locale('id')->isoFormat('DD MMM YYYY') : 'End' }}
+                        @else
+                            Current Filter
+                        @endif
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Customer Information -->
-    <div class="customer-section">
-        <div class="customer-title">Customer Information</div>
-        <div class="customer-details">
+    <div class="section">
+        <div class="section-title">Customer Information</div>
+        <div>
             <strong>Company:</strong> {{ $customer->company_name }}<br>
             <strong>Address:</strong> {{ $customer->address ?? 'N/A' }}<br>
             <strong>Contact:</strong> {{ $customer->pic_name ?? 'N/A' }} | {{ $customer->pic_phone ?? 'N/A' }}<br>
@@ -237,152 +194,90 @@
         </div>
     </div>
 
-    <!-- Summary -->
-    <div class="summary-section">
-        <div class="summary-title">Account Summary</div>
+    <div class="section summary-card">
+        <div class="section-title">Summary</div>
         <table class="summary-table">
             <tr>
-                <td class="summary-label">Total Invoiced Amount:</td>
+                <td class="summary-label">Total Invoice</td>
                 <td class="summary-value">Rp {{ number_format($summary['total_invoiced'], 0, '.', '.') }}</td>
             </tr>
             <tr>
-                <td class="summary-label">Total Paid Amount:</td>
+                <td class="summary-label">Total Paid</td>
                 <td class="summary-value">Rp {{ number_format($summary['total_paid'], 0, '.', '.') }}</td>
             </tr>
-            <tr style="font-weight: bold;">
-                <td class="summary-label">Total Outstanding:</td>
+            <tr>
+                <td class="summary-label">Total Outstanding</td>
                 <td class="summary-value">Rp {{ number_format($summary['total_outstanding'], 0, '.', '.') }}</td>
             </tr>
-            @if($summary['oldest_invoice'])
-                <tr>
-                    <td class="summary-label">Oldest Invoice Date:</td>
-                    <td class="summary-value">
-                        {{ \Carbon\Carbon::parse($summary['oldest_invoice'])->locale('id')->isoFormat('DD MMMM YYYY') }}
-                    </td>
-                </tr>
-            @endif
-            @if($summary['count_overdue'] > 0)
-                <tr style="background-color: #fab1a0;">
-                    <td class="summary-label">Overdue Invoices:</td>
-                    <td class="summary-value">{{ $summary['count_overdue'] }} invoice(s)</td>
-                </tr>
-            @endif
+            <tr>
+                <td class="summary-label">Overdue Count</td>
+                <td class="summary-value">{{ number_format($summary['count_overdue'] ?? 0, 0, '.', '.') }}</td>
+            </tr>
         </table>
     </div>
 
-    <!-- Transaction Details -->
-    <table class="transactions-table">
-        <thead style="border: 1px solid #000;">
-            <tr>
-                <th style="width: 10%;">Date</th>
-                <th style="width: 15%;">Invoice No</th>
-                <th style="width: 12%;">SO No</th>
-                <th style="width: 15%;">Description</th>
-                <th style="width: 12%;">Amount</th>
-                <th style="width: 12%;">Paid</th>
-                <th style="width: 12%;">Outstanding</th>
-                <th style="width: 12%;">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $totalInvoiced = 0;
-                $totalPaid = 0;
-                $totalOutstanding = 0;
-            @endphp
-            @foreach($receivables as $receivable)
-                @php
-                    $totalInvoiced += $receivable->invoice_amount;
-                    $totalPaid += $receivable->paid_amount;
-                    $totalOutstanding += $receivable->outstanding_amount;
-                @endphp
-                <tr class="status-{{ $receivable->status }}">
-                    <td>{{ $receivable->invoice_date->format('d/m/Y') }}</td>
-                    <td class="text-left">{{ $receivable->invoice_number }}</td>
-                    <td class="text-left">{{ $receivable->salesOrder->order_number ?? '-' }}</td>
-                    <td class="text-left">
-                        @if($receivable->salesOrder && $receivable->salesOrder->customer)
-                            Logistics Service - {{ $receivable->salesOrder->shipment_type ?? 'General' }}
-                        @else
-                            Service Charge
-                        @endif
-                    </td>
-                    <td class="text-right">{{ number_format($receivable->invoice_amount, 0, '.', '.') }}</td>
-                    <td class="text-right">{{ number_format($receivable->paid_amount, 0, '.', '.') }}</td>
-                    <td class="text-right">{{ number_format($receivable->outstanding_amount, 0, '.', '.') }}</td>
-                    <td style="text-transform: uppercase; font-weight: bold;">
-                        {{ $receivable->status }}@if($receivable->days_overdue > 0) ({{ $receivable->days_overdue }}
-                        days)@endif
-                    </td>
+    <div class="section">
+        <div class="section-title">Receivable Details</div>
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Date</th>
+                    <th style="width: 17%;">Invoice No</th>
+                    <th style="width: 17%;">SO No</th>
+                    <th style="width: 11%;">Type</th>
+                    <th style="width: 15%;">Total</th>
+                    <th style="width: 12%;">Paid</th>
+                    <th style="width: 12%;">Outstanding</th>
+                    <th style="width: 6%;">Status</th>
                 </tr>
-            @endforeach
+            </thead>
+            <tbody>
+                @php
+                    $totalInvoiced = 0;
+                    $totalPaid = 0;
+                    $totalOutstanding = 0;
+                @endphp
 
-            <!-- Total Row -->
-            <tr class="total-row">
-                <td colspan="4" style="text-align: center; font-weight: bold;">TOTAL</td>
-                <td class="text-right">{{ number_format($totalInvoiced, 0, '.', '.') }}</td>
-                <td class="text-right">{{ number_format($totalPaid, 0, '.', '.') }}</td>
-                <td class="text-right">{{ number_format($totalOutstanding, 0, '.', '.') }}</td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
-
-    @if($receivables->where('status', '!=', 'paid')->count() > 0)
-        <!-- Aging Analysis -->
-        <div class="aging-section">
-            <div class="aging-title">Aging Analysis</div>
-            <table class="aging-table">
-                <thead style="border: 1px solid #333; fonr-weight: bold;">
-                    <tr>
-                        <th>Current (0-30 days)</th>
-                        <th>31-60 days</th>
-                        <th>61-90 days</th>
-                        <th>Over 90 days</th>
-                    </tr>
-                </thead>
-                <tbody>
+                @forelse($receivables as $receivable)
                     @php
-                        $aging = [
-                            'current' => 0,
-                            'days_31_60' => 0,
-                            'days_61_90' => 0,
-                            'over_90' => 0
-                        ];
-
-                        foreach ($receivables->where('status', '!=', 'paid') as $receivable) {
-                            $days = $receivable->days_overdue;
-                            if ($days <= 30) {
-                                $aging['current'] += $receivable->outstanding_amount;
-                            } elseif ($days <= 60) {
-                                $aging['days_31_60'] += $receivable->outstanding_amount;
-                            } elseif ($days <= 90) {
-                                $aging['days_61_90'] += $receivable->outstanding_amount;
-                            } else {
-                                $aging['over_90'] += $receivable->outstanding_amount;
-                            }
-                        }
+                        $totalInvoiced += (float) $receivable->invoice_amount;
+                        $totalPaid += (float) $receivable->paid_amount;
+                        $totalOutstanding += (float) $receivable->outstanding_amount;
+                        $soaType = $receivable->is_opening ? 'Opening Balance' : 'Invoice';
                     @endphp
                     <tr>
-                        <td>Rp {{ number_format($aging['current'], 0, '.', '.') }}</td>
-                        <td>Rp {{ number_format($aging['days_31_60'], 0, '.', '.') }}</td>
-                        <td>Rp {{ number_format($aging['days_61_90'], 0, '.', '.') }}</td>
-                        <td>Rp {{ number_format($aging['over_90'], 0, '.', '.') }}</td>
+                        <td class="text-center">
+                            {{ $receivable->invoice_date ? \Carbon\Carbon::parse($receivable->invoice_date)->format('d/m/Y') : '-' }}
+                        </td>
+                        <td class="text-left">{{ $receivable->invoice_number ?? '-' }}</td>
+                        <td class="text-left">{{ $receivable->salesOrder->order_number ?? $receivable->source_so_number ?? '-' }}</td>
+                        <td class="text-center">{{ $soaType }}</td>
+                        <td class="text-right">{{ number_format((float) $receivable->invoice_amount, 0, '.', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) $receivable->paid_amount, 0, '.', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) $receivable->outstanding_amount, 0, '.', '.') }}</td>
+                        <td class="text-center">
+                            <span class="badge">{{ strtoupper($receivable->status) }}</span>
+                        </td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
-    @endif
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center">No receivables found for this customer and filter.</td>
+                    </tr>
+                @endforelse
 
-    <!-- Print Information -->
-    <div class="print-info">
-        Generated on: {{ $generated_at->locale('id')->isoFormat('DD MMMM YYYY HH:mm') }}<br>
-        By: {{ auth()->user()->name ?? 'System' }}
+                <tr class="total-row">
+                    <td colspan="4" class="text-center">TOTAL</td>
+                    <td class="text-right">{{ number_format($totalInvoiced, 0, '.', '.') }}</td>
+                    <td class="text-right">{{ number_format($totalPaid, 0, '.', '.') }}</td>
+                    <td class="text-right">{{ number_format($totalOutstanding, 0, '.', '.') }}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
-        Statement of Account | {{ $customer->company_name }} | PT. Eshaka Wijaya Logistics | Page 1 of 1
+        Generated by {{ auth()->user()->name ?? 'System' }}
     </div>
 </body>
 

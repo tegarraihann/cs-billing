@@ -82,7 +82,7 @@
                 <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Filters</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
                                 <input
@@ -128,6 +128,7 @@
                                 <input
                                     v-model="searchForm.date_from"
                                     type="date"
+                                    :disabled="searchForm.all_month"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 />
@@ -137,9 +138,21 @@
                                 <input
                                     v-model="searchForm.date_to"
                                     type="date"
+                                    :disabled="searchForm.all_month"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @change="applyFilters"
                                 />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Period</label>
+                                <button
+                                    type="button"
+                                    class="w-full rounded-md border px-3 py-2 text-sm font-medium transition"
+                                    :class="searchForm.all_month ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'"
+                                    @click="toggleAllMonth"
+                                >
+                                    {{ searchForm.all_month ? 'All Month' : 'This Month / Custom' }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -464,7 +477,8 @@ const searchForm = reactive({
     status: props.filters.status || '',
     vendor_id: props.filters.vendor_id || '',
     date_from: props.filters.date_from || '',
-    date_to: props.filters.date_to || ''
+    date_to: props.filters.date_to || '',
+    all_month: !!props.filters.all_month
 })
 
 const currentIndexQuery = computed(() => {
@@ -474,6 +488,7 @@ const currentIndexQuery = computed(() => {
         vendor_id: searchForm.vendor_id || undefined,
         date_from: searchForm.date_from || undefined,
         date_to: searchForm.date_to || undefined,
+        all_month: searchForm.all_month ? 1 : undefined,
     }
 
     const currentPage = props.payables?.current_page
@@ -485,6 +500,12 @@ const currentIndexQuery = computed(() => {
 })
 
 const setDefaultMonthFilter = () => {
+    if (searchForm.all_month) {
+        searchForm.date_from = ''
+        searchForm.date_to = ''
+        return
+    }
+
     if (props.filters.date_from || props.filters.date_to) {
         return
     }
@@ -637,8 +658,9 @@ const goToVendorSummaryDetail = (vendor = activeVendorPopover.value) => {
         search: vendor.vendor_id ? '' : (vendor.vendor_name || ''),
         status: searchForm.status,
         vendor_id: vendor.vendor_id ?? '',
-        date_from: searchForm.date_from,
-        date_to: searchForm.date_to
+        date_from: searchForm.all_month ? '' : searchForm.date_from,
+        date_to: searchForm.all_month ? '' : searchForm.date_to,
+        all_month: searchForm.all_month ? 1 : ''
     }
 
     searchForm.vendor_id = params.vendor_id
@@ -772,7 +794,14 @@ const debounceSearch = () => {
 }
 
 const applyFilters = () => {
-    router.get(route('admin-keuangan.account-payables.index'), searchForm, {
+    const payload = {
+        ...searchForm,
+        all_month: searchForm.all_month ? 1 : undefined,
+        date_from: searchForm.all_month ? undefined : (searchForm.date_from || undefined),
+        date_to: searchForm.all_month ? undefined : (searchForm.date_to || undefined),
+    }
+
+    router.get(route('admin-keuangan.account-payables.index'), payload, {
         preserveState: false,
         replace: true
     })
@@ -836,11 +865,37 @@ const showPayable = (row) => {
 }
 
 const visitPage = (url) => {
+    const payload = {
+        ...searchForm,
+        all_month: searchForm.all_month ? 1 : undefined,
+        date_from: searchForm.all_month ? undefined : (searchForm.date_from || undefined),
+        date_to: searchForm.all_month ? undefined : (searchForm.date_to || undefined),
+    }
+
     router.visit(url, {
-        data: { ...searchForm },
+        data: payload,
         preserveState: true,
         replace: true
     })
+}
+
+const toggleAllMonth = () => {
+    searchForm.all_month = !searchForm.all_month
+
+    if (searchForm.all_month) {
+        searchForm.date_from = ''
+        searchForm.date_to = ''
+    } else if (!searchForm.date_from && !searchForm.date_to) {
+        const now = new Date()
+        const start = new Date(now.getFullYear(), now.getMonth(), 1)
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        const format = (date) => date.toISOString().split('T')[0]
+
+        searchForm.date_from = format(start)
+        searchForm.date_to = format(end)
+    }
+
+    applyFilters()
 }
 </script>
 
