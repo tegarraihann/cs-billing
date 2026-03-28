@@ -570,7 +570,9 @@ class SalesOrderController extends Controller
         // Load reimbursement items with vendor relationship for editing
         $salesOrder->load(['reimbursementItems.vendor']);
         $this->hydrateOtherCostsWithVendors($salesOrder);
-        $this->hydrateVendorBreakdownFromInvoices($salesOrder);
+        // Do not backfill vendor breakdown from invoice items in edit flow.
+        // Sales Order must remain the source of truth to prevent values
+        // from appearing to change on their own when users open the form.
         $this->enrichSalesOrderWithPaidComponentLocks($salesOrder);
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Edit', [
