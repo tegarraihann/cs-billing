@@ -513,7 +513,9 @@ class AccountPayable extends Model
             $component = $existingComponents->get($key);
             $matchedExistingKey = $component ? $key : null;
 
-            if (!$component) {
+            $shouldAllowFallbackMatch = !($type === 'reimbursement' && $lookupReference);
+
+            if (!$component && $shouldAllowFallbackMatch) {
                 // Fallback: cari komponen existing yang belum diproses dengan tipe/vendor/description yang sama
                 $fallback = $existingComponentsCollection
                     ->filter(function ($item) use ($type, $vendorId, $payload, $processedExistingKeys) {
@@ -689,6 +691,52 @@ class AccountPayable extends Model
             ];
         }
 
+        $reimbursementEntries = $this->collectReimbursementEntries();
+        $activeReimbursementRefs = $reimbursementEntries
+            ->pluck('lookup_ref')
+            ->filter(fn ($ref) => is_string($ref) && $ref !== '')
+            ->values()
+            ->all();
+
+        // Preserve paid reimbursement components as history so they remain visible in AP detail.
+        $historicalReimbursementComponents = $existingComponents->filter(function ($component) use ($activeReimbursementRefs) {
+            if ($component->component_type !== 'reimbursement') {
+                return false;
+            }
+
+            $related = is_array($component->related_items) ? $component->related_items : [];
+            if (($related['source'] ?? null) !== 'reimbursement_items') {
+                return false;
+            }
+
+            $lookupRef = $related['lookup_ref'] ?? null;
+            if (!is_string($lookupRef) || $lookupRef === '') {
+                return false;
+            }
+
+            if (in_array($lookupRef, $activeReimbursementRefs, true)) {
+                return false;
+            }
+
+            return ($component->status === 'paid') || ((float) ($component->paid_amount ?? 0) > 0);
+        });
+
+        foreach ($historicalReimbursementComponents as $component) {
+            $related = is_array($component->related_items) ? $component->related_items : [];
+            $lookupRef = (string) ($related['lookup_ref'] ?? '');
+
+            $payloads[] = [
+                'component_type' => 'reimbursement',
+                'description' => $component->description,
+                'amount' => (float) $component->amount,
+                'recipient_name' => $component->recipient_name,
+                'vendor_id' => $component->vendor_id,
+                'related_items' => $related,
+                'lookup_reference' => $lookupRef,
+                'paid_amount' => (float) $component->paid_amount,
+            ];
+        }
+
         $vendorPaymentEntries = $this->collectVendorPaymentEntries();
 
         $existingVendorComponents = $existingComponents->filter(function ($component) {
@@ -819,7 +867,6 @@ class AccountPayable extends Model
             ];
         }
 
-        $reimbursementEntries = $this->collectReimbursementEntries();
         foreach ($reimbursementEntries as $entry) {
             $relatedItems = [
                 'source' => 'reimbursement_items',

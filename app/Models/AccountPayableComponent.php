@@ -71,6 +71,36 @@ class AccountPayableComponent extends Model
         return $this->component_type === 'vat_reimbursement';
     }
 
+    public function getVatSourceRate(): ?float
+    {
+        $relatedItems = is_array($this->related_items) ? $this->related_items : [];
+        $rate = $relatedItems['vat_rate'] ?? null;
+
+        if ($rate === null || $rate === '') {
+            return null;
+        }
+
+        return (float) $rate;
+    }
+
+    public function isVatReceivableSourceComponent(): bool
+    {
+        $relatedItems = is_array($this->related_items) ? $this->related_items : [];
+        $hasVatFlag = (bool) ($relatedItems['vat_reimbursement'] ?? false);
+        $rate = $this->getVatSourceRate();
+
+        return ($this->component_type === 'vat_reimbursement' || $hasVatFlag)
+            && in_array($rate, [11.0, 1.1], true);
+    }
+
+    public function canPostVatReceivable(): bool
+    {
+        return $this->isVatReceivableSourceComponent()
+            && $this->status === 'paid'
+            && (float) ($this->outstanding_amount ?? 0) <= 0
+            && $this->vat_receivable_posted_at === null;
+    }
+
     // Get component label
     public function getComponentLabel(): string
     {

@@ -302,14 +302,14 @@
                                                             <div class="my-1 border-t border-gray-100"></div>
                                                             <button type="button"
                                                                 class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                :disabled="isPostingVat || !canPostVatReceivableFor(component)"
-                                                                @click="canPostVatReceivableFor(component) && handleVatAction(postVatReceivable11, component)">
+                                                                :disabled="isPostingVat || !canPostVatReceivableFor(component, 11)"
+                                                                @click="canPostVatReceivableFor(component, 11) && handleVatAction(postVatReceivable11, component)">
                                                                 Post VAT Receivable 11%
                                                             </button>
                                                             <button type="button"
                                                                 class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                :disabled="isPostingVat || !canPostVatReceivableFor(component)"
-                                                                @click="canPostVatReceivableFor(component) && handleVatAction(postVatReceivable11_1, component)">
+                                                                :disabled="isPostingVat || !canPostVatReceivableFor(component, 1.1)"
+                                                                @click="canPostVatReceivableFor(component, 1.1) && handleVatAction(postVatReceivable11_1, component)">
                                                                 Post VAT Receivable 1.1%
                                                             </button>
                                                         </div>
@@ -887,12 +887,27 @@ const canPostPph23PayableFor = (component) => (
     canPostPph23Payable.value &&
     Number(component?.outstanding_amount ?? 0) > 0
 )
-const canPostVatReceivableFor = (component) => (
-    component?.component_type === 'vat_reimbursement' &&
-    Number(component?.outstanding_amount ?? 0) <= 0 &&
-    component?.status === 'paid' &&
-    !component?.vat_receivable_posted_at
-)
+const componentVatRateMatches = (component, rate) => {
+    const sourceRate = Number(component?.vat_source_rate ?? 0)
+    if (!sourceRate || Number.isNaN(sourceRate)) {
+        return false
+    }
+
+    return Math.abs(sourceRate - Number(rate)) < 0.01
+}
+
+const canPostVatReceivableFor = (component, rate = null) => {
+    const eligible = component?.can_post_vat_receivable === true
+    if (!eligible) {
+        return false
+    }
+
+    if (rate === null) {
+        return true
+    }
+
+    return componentVatRateMatches(component, rate)
+}
 
 const activeVatMenuId = ref(null)
 
@@ -1308,7 +1323,7 @@ const postVatReceivable11 = (component = null) => {
     if (!payable.value || postingVatReceivable11.value) {
         return
     }
-    if (!canPostVatReceivableFor(component)) {
+    if (!canPostVatReceivableFor(component, 11)) {
         return
     }
     const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id
@@ -1336,7 +1351,7 @@ const postVatReceivable11_1 = (component = null) => {
     if (!payable.value || postingVatReceivable11_1.value) {
         return
     }
-    if (!canPostVatReceivableFor(component)) {
+    if (!canPostVatReceivableFor(component, 1.1)) {
         return
     }
     const targetPayableId = component?.parent_payable_id || component?.account_payable_id || payable.value.id

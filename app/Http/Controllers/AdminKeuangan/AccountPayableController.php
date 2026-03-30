@@ -190,8 +190,15 @@ class AccountPayableController extends Controller
             if (!$targetComponent) {
                 return redirect()->back()->withErrors(['error' => 'Komponen VAT tidak ditemukan untuk hutang ini.']);
             }
-            if ($targetComponent->component_type !== 'vat_reimbursement') {
-                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting dari komponen VAT.']);
+            if (!$targetComponent->isVatReceivableSourceComponent()) {
+                return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting dari komponen pajak vendor.']);
+            }
+            $sourceRate = $targetComponent->getVatSourceRate();
+            if ($sourceRate === null) {
+                return redirect()->back()->withErrors(['error' => 'VAT rate pada komponen vendor belum dikonfigurasi.']);
+            }
+            if (abs($sourceRate - $rate) > 0.01) {
+                return redirect()->back()->withErrors(['error' => 'VAT rate pada komponen tidak sesuai dengan aksi yang dipilih.']);
             }
             if ($targetComponent->status !== 'paid') {
                 return redirect()->back()->withErrors(['error' => 'VAT Receivable hanya bisa diposting setelah komponen paid.']);
@@ -1466,6 +1473,9 @@ class AccountPayableController extends Controller
                       'status' => $component->status,
                       'due_date' => $this->formatDateValue($component->due_date),
                       'recipient_name' => $component->recipient_name,
+                      'vat_source_rate' => $component->getVatSourceRate(),
+                      'is_vat_receivable_source_component' => $component->isVatReceivableSourceComponent(),
+                      'can_post_vat_receivable' => $component->canPostVatReceivable(),
                       'vat_receivable_rate' => $component->vat_receivable_rate !== null ? (float) $component->vat_receivable_rate : null,
                       'vat_receivable_amount' => $component->vat_receivable_amount !== null ? (float) $component->vat_receivable_amount : null,
                       'vat_receivable_posted_at' => $component->vat_receivable_posted_at?->toDateTimeString(),

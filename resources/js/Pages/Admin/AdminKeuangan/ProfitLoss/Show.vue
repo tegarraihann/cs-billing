@@ -91,75 +91,57 @@
         <!-- Structured sections -->
         <div class="space-y-6">
           <SectionCard title="REVENUE" :total="reportData.revenues.total" tone="text-green-700">
-            <SummaryRow v-if="totalRevenuesMain > 0" title="Main Revenue" :amount="totalRevenuesMain" />
-            <SummaryRow
+            <CollapsibleSummaryRow
+              v-if="totalRevenuesMain > 0"
+              title="Main Revenue"
+              :amount="totalRevenuesMain"
+              :entries="revenuesMain"
+            />
+            <CollapsibleSummaryRow
               v-if="otherIncome.bunga_mandiri.total > 0"
               title="Other Income - Mandiri Bank Interest"
               :amount="otherIncome.bunga_mandiri.total"
+              :entries="otherIncome.bunga_mandiri.entries"
             />
-            <SummaryRow
+            <CollapsibleSummaryRow
               v-if="otherIncome.bunga_bca.total > 0"
               title="Other Income - BCA Bank Interest"
               :amount="otherIncome.bunga_bca.total"
+              :entries="otherIncome.bunga_bca.entries"
             />
-            <SummaryRow
+            <CollapsibleSummaryRow
               v-if="otherIncome.lainnya.total > 0"
               title="Other Income - Other"
               :amount="otherIncome.lainnya.total"
+              :entries="otherIncome.lainnya.entries"
             />
-            <div v-if="manualRevenueEntries.length" class="space-y-2">
-              <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Manual Entries</div>
-              <div class="space-y-2">
-                <div
-                  v-for="entry in manualRevenueEntries"
-                  :key="entry.id"
-                  class="flex items-center justify-between border border-gray-100 rounded px-3 py-2 bg-gray-50"
-                >
-                  <div class="text-sm text-gray-800">
-                    {{ entry.description }}
-                    <span class="ml-2 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Manual</span>
-                  </div>
-                  <div class="text-sm font-bold text-gray-900">{{ formatCurrency(entry.amount) }}</div>
-                </div>
-              </div>
-            </div>
           </SectionCard>
 
           <SectionCard title="EXPENSES" :total="expensesTotal" tone="text-red-700">
-            <SummaryRow v-if="totalExpensesSalary > 0" title="Salary Expense" :amount="totalExpensesSalary" />
+            <CollapsibleSummaryRow
+              v-if="totalExpensesSalary > 0"
+              title="Salary Expense"
+              :amount="totalExpensesSalary"
+              :entries="expensesSalary"
+            />
             <div v-if="operationalGrouped.length" class="space-y-2">
               <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Operational Expenses</div>
               <div class="space-y-1">
-                <SummaryRow
+                <CollapsibleSummaryRow
                   v-for="cat in operationalGrouped"
                   :key="cat.category_name"
                   :title="cat.category_name"
                   :amount="cat.total"
+                  :entries="cat.entries"
                 />
               </div>
             </div>
-            <SummaryRow v-if="totalExpensesAdmin > 0" title="Administrative Expenses" :amount="totalExpensesAdmin" />
-            <SummaryRow v-if="totalExpensesConsumption > 0" title="Consumption Expense" :amount="totalExpensesConsumption" />
-            <SummaryRow v-if="totalExpensesOutside > 0" title="Outside Assignments Expense" :amount="totalExpensesOutside" />
-            <SummaryRow v-if="totalExpensesPrepaid > 0" title="Prepaid Rent Expense" :amount="totalExpensesPrepaid" />
-            <SummaryRow v-if="totalExpensesTax > 0" title="Tax Expenses" :amount="totalExpensesTax" />
-            <SummaryRow v-if="totalExpensesOther > 0" title="Other Expenses" :amount="totalExpensesOther" />
-            <div v-if="manualExpenseEntries.length" class="space-y-2">
-              <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Manual Entries</div>
-              <div class="space-y-2">
-                <div
-                  v-for="entry in manualExpenseEntries"
-                  :key="entry.id"
-                  class="flex items-center justify-between border border-gray-100 rounded px-3 py-2 bg-gray-50"
-                >
-                  <div class="text-sm text-gray-800">
-                    {{ entry.description }}
-                    <span class="ml-2 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Manual</span>
-                  </div>
-                  <div class="text-sm font-bold text-gray-900">{{ formatCurrency(entry.amount) }}</div>
-                </div>
-              </div>
-            </div>
+            <CollapsibleSummaryRow v-if="totalExpensesAdmin > 0" title="Administrative Expenses" :amount="totalExpensesAdmin" :entries="expensesAdmin" />
+            <CollapsibleSummaryRow v-if="totalExpensesConsumption > 0" title="Consumption Expense" :amount="totalExpensesConsumption" :entries="expensesConsumption" />
+            <CollapsibleSummaryRow v-if="totalExpensesOutside > 0" title="Outside Assignments Expense" :amount="totalExpensesOutside" :entries="expensesOutside" />
+            <CollapsibleSummaryRow v-if="totalExpensesPrepaid > 0" title="Prepaid Rent Expense" :amount="totalExpensesPrepaid" :entries="expensesPrepaid" />
+            <CollapsibleSummaryRow v-if="totalExpensesTax > 0" title="Tax Expenses" :amount="totalExpensesTax" :entries="expensesTax" />
+            <CollapsibleSummaryRow v-if="totalExpensesOther > 0" title="Other Expenses" :amount="totalExpensesOther" :entries="expensesOther" />
           </SectionCard>
 
           <SectionCard
@@ -288,7 +270,6 @@ const summaryCards = computed(() => [
 ])
 
 const revenuesMain = computed(() => props.reportData?.revenues?.main || [])
-const revenuesOther = computed(() => props.reportData?.revenues?.other || [])
 const totalRevenuesMain = computed(() => revenuesMain.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const otherIncome = computed(() => {
   const oi = props.reportData?.revenues?.other_income_breakdown || {}
@@ -316,29 +297,6 @@ const totalExpensesOutside = computed(() => expensesOutside.value.reduce((sum, i
 const totalExpensesTax = computed(() => expensesTax.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesOther = computed(() => expensesOther.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
 const totalExpensesPrepaid = computed(() => expensesPrepaid.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
-
-const manualRevenueEntries = computed(() => {
-  return [...revenuesMain.value, ...revenuesOther.value].filter((entry) => entry.entry_type === 'manual')
-})
-
-const operationalEntries = computed(() => {
-  const grouped = props.reportData?.expenses?.operational?.grouped || []
-  return grouped.flatMap((group) => group.entries || [])
-})
-
-const manualExpenseEntries = computed(() => {
-  const allExpenseEntries = [
-    ...expensesSalary.value,
-    ...operationalEntries.value,
-    ...expensesAdmin.value,
-    ...expensesConsumption.value,
-    ...expensesOutside.value,
-    ...expensesPrepaid.value,
-    ...expensesTax.value,
-    ...expensesOther.value,
-  ]
-  return allExpenseEntries.filter((entry) => entry.entry_type === 'manual')
-})
 
 const revenueAccounts = computed(() => props.accounts?.revenue || [])
 const expenseAccounts = computed(() => props.accounts?.expense || [])
@@ -474,21 +432,84 @@ const SectionCard = defineComponent({
   },
 })
 
-const SummaryRow = defineComponent({
-  name: 'SummaryRow',
+const formatEntryDate = (value) => {
+  if (!value) return '-'
+  return new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+const resolveEntryLabel = (entry) => {
+  return entry?.description
+    || entry?.reference_number
+    || entry?.account?.account_name
+    || `Entry #${entry?.id ?? '-'}`
+}
+
+const resolveEntryMeta = (entry) => {
+  const segments = []
+  if (entry?.account?.account_code || entry?.account?.account_name) {
+    segments.push([entry?.account?.account_code, entry?.account?.account_name].filter(Boolean).join(' - '))
+  }
+  if (entry?.transaction_date) {
+    segments.push(formatEntryDate(entry.transaction_date))
+  }
+  if (entry?.entry_type === 'manual') {
+    segments.push('Manual')
+  }
+  return segments.join(' | ')
+}
+
+const CollapsibleSummaryRow = defineComponent({
+  name: 'CollapsibleSummaryRow',
   props: {
     title: String,
     amount: {
       type: [Number, String],
       default: 0,
     },
+    entries: {
+      type: Array,
+      default: () => [],
+    },
   },
   setup(props) {
-    return () =>
-      h('div', { class: 'flex items-center justify-between border border-gray-100 rounded px-3 py-2 bg-gray-50' }, [
-        h('div', { class: 'text-sm font-semibold text-gray-800' }, props.title || 'Category'),
-        h('div', { class: 'text-sm font-bold text-gray-900' }, formatCurrency(props.amount)),
+    const isOpen = ref(false)
+
+    return () => {
+      const details = (props.entries || []).map((entry) =>
+        h('div', {
+          class: 'flex items-start justify-between gap-3 px-3 py-2 border-t border-gray-100 first:border-t-0',
+        }, [
+          h('div', { class: 'min-w-0' }, [
+            h('div', { class: 'text-sm text-gray-800 break-words' }, resolveEntryLabel(entry)),
+            h('div', { class: 'mt-0.5 text-xs text-gray-500' }, resolveEntryMeta(entry)),
+          ]),
+          h('div', { class: 'text-sm font-semibold text-gray-700 whitespace-nowrap' }, formatCurrency(entry?.amount || 0)),
+        ])
+      )
+
+      return h('div', { class: 'border border-gray-100 rounded overflow-hidden bg-white' }, [
+        h('button', {
+          type: 'button',
+          class: 'w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors',
+          onClick: () => {
+            isOpen.value = !isOpen.value
+          },
+        }, [
+          h('div', { class: 'flex items-center gap-2 min-w-0' }, [
+            h(ChevronDown, {
+              class: ['w-4 h-4 text-gray-500 transition-transform shrink-0', isOpen.value ? 'rotate-180' : ''],
+            }),
+            h('div', { class: 'text-sm font-semibold text-gray-800 text-left' }, props.title || 'Category'),
+          ]),
+          h('div', { class: 'text-sm font-bold text-gray-900 whitespace-nowrap' }, formatCurrency(props.amount)),
+        ]),
+        isOpen.value
+          ? h('div', { class: 'bg-white' }, details.length
+            ? details
+            : [h('div', { class: 'px-3 py-2 text-sm text-gray-500 border-t border-gray-100' }, 'No breakdown available')])
+          : null,
       ])
+    }
   },
 })
 </script>
