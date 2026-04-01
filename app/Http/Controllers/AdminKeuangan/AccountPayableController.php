@@ -1231,15 +1231,21 @@ class AccountPayableController extends Controller
     private function applyFilters($query, Request $request): void
     {
         if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
+            $search = trim((string) $search);
+            $soSearch = $this->buildSoSearchTerms($search);
+
+            $query->where(function ($q) use ($search, $soSearch) {
                 $q->where('vendor_invoice_number', 'like', "%{$search}%")
                     ->orWhere('vendor_name', 'like', "%{$search}%")
                     ->orWhere('service_description', 'like', "%{$search}%")
+                    ->orWhere('source_so_number', 'like', '%' . $soSearch['dashed'] . '%')
+                    ->orWhereRaw("REPLACE(COALESCE(source_so_number, ''), '-', '') like ?", ['%' . $soSearch['digits'] . '%'])
                     ->orWhereHas('vendor', function ($vendorQuery) use ($search) {
                         $vendorQuery->where('nama_vendor', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('salesOrder', function ($salesOrderQuery) use ($search) {
+                    ->orWhereHas('salesOrder', function ($salesOrderQuery) use ($search, $soSearch) {
                         $salesOrderQuery->where('order_number', 'like', "%{$search}%")
+                            ->orWhere('order_number', 'like', '%' . $soSearch['digits'] . '%')
                             ->orWhere('customer', 'like', "%{$search}%")
                             ->orWhere('shipper', 'like', "%{$search}%")
                             ->orWhere('customer_name', 'like', "%{$search}%")
@@ -1278,6 +1284,21 @@ class AccountPayableController extends Controller
                     ->whereDate('created_at', $operator, $date);
             });
         });
+    }
+
+    private function buildSoSearchTerms(string $search): array
+    {
+        $digits = preg_replace('/\D+/', '', $search) ?? '';
+        $dashed = $search;
+
+        if (strlen($digits) === 10) {
+            $dashed = substr($digits, 0, 4) . '-' . substr($digits, 4);
+        }
+
+        return [
+            'digits' => $digits !== '' ? $digits : $search,
+            'dashed' => $dashed,
+        ];
     }
 
     private function fetchPayablesBySalesOrder(Request $request, array $salesOrderIds): Collection

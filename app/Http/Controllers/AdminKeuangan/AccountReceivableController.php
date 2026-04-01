@@ -54,12 +54,20 @@ class AccountReceivableController extends Controller
 
         // Search functionality
         if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $search = trim((string) $request->search);
+            $soSearch = $this->buildSoSearchTerms($search);
+
+            $query->where(function ($q) use ($search, $soSearch) {
                 $q->where('invoice_number', 'like', "%{$search}%")
                     ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('source_so_number', 'like', '%' . $soSearch['dashed'] . '%')
+                    ->orWhereRaw("REPLACE(COALESCE(source_so_number, ''), '-', '') like ?", ['%' . $soSearch['digits'] . '%'])
                     ->orWhereHas('customer', function ($customerQuery) use ($search) {
                         $customerQuery->where('company_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('salesOrder', function ($salesOrderQuery) use ($search, $soSearch) {
+                        $salesOrderQuery->where('order_number', 'like', "%{$search}%")
+                            ->orWhere('order_number', 'like', '%' . $soSearch['digits'] . '%');
                     });
             });
         }
@@ -1300,5 +1308,20 @@ class AccountReceivableController extends Controller
     {
         // This can be implemented later with Laravel Excel
         return response()->json(['message' => 'Export feature coming soon']);
+    }
+
+    private function buildSoSearchTerms(string $search): array
+    {
+        $digits = preg_replace('/\D+/', '', $search) ?? '';
+        $dashed = $search;
+
+        if (strlen($digits) === 10) {
+            $dashed = substr($digits, 0, 4) . '-' . substr($digits, 4);
+        }
+
+        return [
+            'digits' => $digits !== '' ? $digits : $search,
+            'dashed' => $dashed,
+        ];
     }
 }

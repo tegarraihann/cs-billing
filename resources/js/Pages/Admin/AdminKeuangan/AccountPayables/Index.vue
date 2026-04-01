@@ -88,7 +88,7 @@
                                 <input
                                     v-model="searchForm.search"
                                     type="text"
-                                    placeholder="Search vendors or services..."
+                                    placeholder="Search vendor, service, invoice, or SO number..."
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500"
                                     @input="debounceSearch"
                                 />
