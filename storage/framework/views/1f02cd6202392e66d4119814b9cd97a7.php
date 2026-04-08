@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Order - {{ $salesOrder->order_number }}</title>
+    <title>Shipping Order - <?php echo e($salesOrder->order_number); ?></title>
     <style>
         @page {
             margin: 1cm 1cm;
@@ -224,9 +224,9 @@
 </style>
 </head>
 <body>
-    @php
+    <?php
         $useLiveData = $useLiveData ?? false;
-    @endphp
+    ?>
     <!-- Header -->
     <div class="header">
         <div class="company-info">
@@ -240,10 +240,10 @@
         <div class="document-info">
             <div class="document-title">Shipping Order</div>
             <div class="document-details">
-                <strong>No: {{ $salesOrder->order_number }}</strong><br>
-                Tanggal: {{ $salesOrder->created_at ? $salesOrder->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y') }}<br>
+                <strong>No: <?php echo e($salesOrder->order_number); ?></strong><br>
+                Tanggal: <?php echo e($salesOrder->created_at ? $salesOrder->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y')); ?><br>
                 <div class="status-info">
-                    <span class="status-badge">{{ strtoupper($salesOrder->status ?: 'draft') }}</span>
+                    <span class="status-badge"><?php echo e(strtoupper($salesOrder->status ?: 'draft')); ?></span>
                 </div>
             </div>
         </div>
@@ -252,8 +252,9 @@
 
     <!-- Print Info -->
     <div class="print-info" style="line-height: 1.5;">
-        Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMMM YYYY HH:mm') }}<br>
-        Account: {{ auth()->user()->name ?? 'System' }}
+        Dicetak pada: <?php echo e(\Carbon\Carbon::now()->locale('id')->isoFormat('DD MMMM YYYY HH:mm')); ?><br>
+        Account: <?php echo e(auth()->user()->name ?? 'System'); ?>
+
     </div>
 
     <!-- Content -->
@@ -271,37 +272,37 @@
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">ORDER NUMB</td>
                             <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 60%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">{{ $salesOrder->order_number }}</td>
+                            <td style="width: 60%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->order_number); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">CUSTOMER</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->customer }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->customer); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SHIPPER</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->shipper ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->shipper ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">BL/AWB</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->bl_awb ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->bl_awb ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">LINER</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->liner ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->liner ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">VESSEL</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->vessel ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->vessel ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">ETA</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->locale('id')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
                         </tr>
                     </table>
                 </div>
@@ -312,37 +313,37 @@
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">AJU</td>
                             <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->aju ?: '-' }}</td>
+                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->aju ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SPPB DATE</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->sppb_date ? \Carbon\Carbon::parse($salesOrder->sppb_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->sppb_date ? \Carbon\Carbon::parse($salesOrder->sppb_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SHIPMENT TYPE</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->shipment_type ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->shipment_type ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">POL/POD</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ ($salesOrder->pol && $salesOrder->pod) ? $salesOrder->pol . ' / ' . $salesOrder->pod : ($salesOrder->pol ?: ($salesOrder->pod ?: '-')) }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e(($salesOrder->pol && $salesOrder->pod) ? $salesOrder->pol . ' / ' . $salesOrder->pod : ($salesOrder->pol ?: ($salesOrder->pod ?: '-'))); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">GUDANG/UTC</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->gudang_utc ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->gudang_utc ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">PARTY/LCL</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->party_lcl ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->party_lcl ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">REF NO.</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->ref_no ?: '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->ref_no ?: '-'); ?></td>
                         </tr>
                     </table>
                 </div>
@@ -361,29 +362,30 @@
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">COMMODITY</td>
                             <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->commodity ?: '-' }}</td>
+                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->commodity ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">QTY</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
                             <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">
-                                @php
+                                <?php
                                     $packageUnitLabel = optional($salesOrder->packageUnit)->name ?: $salesOrder->package_unit;
-                                @endphp
-                                @if($salesOrder->qty !== null && $salesOrder->qty !== '')
-                                    {{ $salesOrder->qty }}
-                                    @if($packageUnitLabel)
-                                        <span style="font-size: 8px; color: #000;">{{ $packageUnitLabel }}</span>
-                                    @endif
-                                @else
+                                ?>
+                                <?php if($salesOrder->qty !== null && $salesOrder->qty !== ''): ?>
+                                    <?php echo e($salesOrder->qty); ?>
+
+                                    <?php if($packageUnitLabel): ?>
+                                        <span style="font-size: 8px; color: #000;"><?php echo e($packageUnitLabel); ?></span>
+                                    <?php endif; ?>
+                                <?php else: ?>
                                     -
-                                @endif
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NET WEIGHT</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->net_weight ? $salesOrder->net_weight . ' KG' : '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->net_weight ? $salesOrder->net_weight . ' KG' : '-'); ?></td>
                         </tr>
                     </table>
                 </div>
@@ -394,17 +396,17 @@
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">MEASUREMENT</td>
                             <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->measurement ? $salesOrder->measurement . ' M³' : '-' }}</td>
+                            <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->measurement ? $salesOrder->measurement . ' M³' : '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">CONTAINER NO</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : ($salesOrder->container_no ?: '-') }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e(is_array($salesOrder->container_no) ? implode(', ', $salesOrder->container_no) : ($salesOrder->container_no ?: '-')); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">GROSS WEIGHT</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;">{{ isset($salesOrder->gross_weight) ? number_format($salesOrder->gross_weight, 2) . ' KG' : '-' }}</td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e(isset($salesOrder->gross_weight) ? number_format($salesOrder->gross_weight, 2) . ' KG' : '-'); ?></td>
                         </tr>
                     </table>
                 </div>
@@ -417,7 +419,7 @@
                 <tr>
                     <td style="width: 35%; font-size: 8px; font-style: italic; padding: 1px 0; vertical-align: top;">EXCHANGE RATE</td>
                     <td style="width: 5%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                    <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 4, '.', '.') : '-' }}</td>
+                    <td style="width: 60%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->exchange_rate ? number_format($salesOrder->exchange_rate, 4, '.', '.') : '-'); ?></td>
                 </tr>
             </table>
         </div>
@@ -427,7 +429,7 @@
             <div class="section-title">Detail Informasi</div>
 
             <!-- Cost Breakdown -->
-            @php
+            <?php
                 $csSnapshot = $salesOrder->cs_snapshot ?? null;
                 if ($useLiveData) {
                     $csVendorBreakdown = $salesOrder->vendor_breakdown ?? [];
@@ -442,9 +444,9 @@
                     $csTotalSelling = $csSnapshot['total_selling'] ?? $salesOrder->total_selling;
                     $csTotalRevenue = $csSnapshot['total_revenue'] ?? $salesOrder->total_revenue;
                 }
-            @endphp
+            ?>
 
-            @if(!empty($csVendorBreakdown))
+            <?php if(!empty($csVendorBreakdown)): ?>
             <div style="font-family: 'Times New Roman', serif; font-size: 9px; margin-bottom: 20px;">
                 <table style="width: 90%; border-collapse: collapse; margin: 0 auto;">
                     <tr>
@@ -454,38 +456,38 @@
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REVENUE</td>
                         <td style="width: 15%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REMARKS</td>
                     </tr>
-                    @php
+                    <?php
                         $totalBuying = 0;
                         $totalSelling = 0;
-                    @endphp
-                    @foreach($csVendorBreakdown as $item)
-                    @php
+                    ?>
+                    <?php $__currentLoopData = $csVendorBreakdown; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $buying = floatval($item['buying_amount'] ?? 0);
                         $selling = floatval($item['selling_amount'] ?? 0);
                         $profit = $selling - $buying;
                         $totalBuying += $buying;
                         $totalSelling += $selling;
-                    @endphp
+                    ?>
                     <tr>
-                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ $item['description'] ?? '-' }}</td>
-                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ $buying > 0 ? 'Rp ' . number_format($buying, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ $selling > 0 ? 'Rp ' . number_format($selling, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ 'Rp ' . number_format($profit, 0, '.', '.') }}</td>
-                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ $item['remarks'] ?? '-' }}</td>
+                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;"><?php echo e($item['description'] ?? '-'); ?></td>
+                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;"><?php echo e($buying > 0 ? 'Rp ' . number_format($buying, 0, '.', '.') : '-'); ?></td>
+                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;"><?php echo e($selling > 0 ? 'Rp ' . number_format($selling, 0, '.', '.') : '-'); ?></td>
+                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;"><?php echo e('Rp ' . number_format($profit, 0, '.', '.')); ?></td>
+                        <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;"><?php echo e($item['remarks'] ?? '-'); ?></td>
                     </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <!-- Total Row -->
                     <tr><td colspan="5" style="padding: 8px;"></td></tr>
                     <tr style="font-weight: bold;">
                         <td style="padding: 4px 4px 4px 8px; text-align: left;">TOTAL</td>
-                        <td style="padding: 4px 4px 4px 8px; text-align: left;">Rp {{ number_format($totalBuying, 0, '.', '.') }}</td>
-                        <td style="padding: 4px 4px 4px 8px; text-align: left;">Rp {{ number_format($totalSelling, 0, '.', '.') }}</td>
-                        <td style="padding: 4px 4px 4px 8px; text-align: left;">Rp {{ number_format($totalSelling - $totalBuying, 0, '.', '.') }}</td>
+                        <td style="padding: 4px 4px 4px 8px; text-align: left;">Rp <?php echo e(number_format($totalBuying, 0, '.', '.')); ?></td>
+                        <td style="padding: 4px 4px 4px 8px; text-align: left;">Rp <?php echo e(number_format($totalSelling, 0, '.', '.')); ?></td>
+                        <td style="padding: 4px 4px 4px 8px; text-align: left;">Rp <?php echo e(number_format($totalSelling - $totalBuying, 0, '.', '.')); ?></td>
                         <td style="padding: 4px 4px 4px 8px; text-align: left;"></td>
                     </tr>
                 </table>
             </div>
-            @else
+            <?php else: ?>
             <!-- Fallback for legacy data -->
             <div style="font-family: 'Times New Roman', serif; font-size: 10px; margin-bottom: 35px;">
                 <table style="width: 90%; border-collapse: collapse; margin: 0 auto;">
@@ -497,19 +499,19 @@
                         <td style="width: 20%; font-weight: bold; padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">REMARKS</td>
                     </tr>
                     <tr>
-                        <td style="padding: 2px 0 2px 8px; vertical-align: top; text-align: left;">{{ $salesOrder->jenis_biaya ?: '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $csTotalBuying ? 'Rp ' . number_format($csTotalBuying, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $csTotalSelling ? 'Rp ' . number_format($csTotalSelling, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $csTotalRevenue ? 'Rp ' . number_format($csTotalRevenue, 0, '.', '.') : '-' }}</td>
-                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">{{ $salesOrder->remarks ?: '-' }}</td>
+                        <td style="padding: 2px 0 2px 8px; vertical-align: top; text-align: left;"><?php echo e($salesOrder->jenis_biaya ?: '-'); ?></td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;"><?php echo e($csTotalBuying ? 'Rp ' . number_format($csTotalBuying, 0, '.', '.') : '-'); ?></td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;"><?php echo e($csTotalSelling ? 'Rp ' . number_format($csTotalSelling, 0, '.', '.') : '-'); ?></td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;"><?php echo e($csTotalRevenue ? 'Rp ' . number_format($csTotalRevenue, 0, '.', '.') : '-'); ?></td>
+                        <td style="padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;"><?php echo e($salesOrder->remarks ?: '-'); ?></td>
                     </tr>
                 </table>
             </div>
-            @endif
+            <?php endif; ?>
 
         </div>
 
-        @php
+        <?php
             $snapshot = $csSnapshot ?? ($salesOrder->cs_snapshot ?? null);
             if ($useLiveData) {
                 $reimbursementItems = $salesOrder->reimbursementItems ?? [];
@@ -520,9 +522,9 @@
                 $reimbursementItems = $snapshot ? ($snapshot['reimbursement_items'] ?? []) : [];
             }
             $hasReimbursementItems = !empty($reimbursementItems);
-        @endphp
+        ?>
 
-        @if($hasReimbursementItems)
+        <?php if($hasReimbursementItems): ?>
         <div class="section">
             <div class="section-title">Items Reimbursement</div>
             <div style="font-family: 'Times New Roman', serif; font-size: 9px; margin-bottom: 20px;">
@@ -532,7 +534,7 @@
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">AMOUNT</td>
                         <td style="width: 9%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REMARKS</td>
                     </tr>
-                    @php
+                    <?php
                         $statusLabels = [
                             'pending' => 'Pending',
                             'linked' => 'Linked',
@@ -540,29 +542,30 @@
                             'paid' => 'Paid',
                         ];
                         $totalReimbursement = 0;
-                    @endphp
-                    @foreach($reimbursementItems as $item)
-                        @php
+                    ?>
+                    <?php $__currentLoopData = $reimbursementItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $amount = floatval($item['amount'] ?? 0);
                             $totalReimbursement += $amount;
-                        @endphp
+                        ?>
                         <tr>
-                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;">{{ $item['description'] ?? '-' }}</td>
-                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px; text-align: left;">{{ $amount > 0 ? 'Rp ' . number_format($amount, 0, '.', '.') : '-' }}</td>
+                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px;"><?php echo e($item['description'] ?? '-'); ?></td>
+                            <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px; text-align: left;"><?php echo e($amount > 0 ? 'Rp ' . number_format($amount, 0, '.', '.') : '-'); ?></td>
                             <td style="padding: 3px 3px 3px 8px; vertical-align: top; font-size: 8px; text-align: left;">
-                                {{ $item['notes'] ?? '-' }}
+                                <?php echo e($item['notes'] ?? '-'); ?>
+
                             </td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr><td colspan="3" style="padding: 8px; border-top: none;"></td></tr>
                     <tr style="font-weight: bold;">
                         <td colspan="2" style="padding: 4px 4px 4px 8px; text-align: left;">TOTAL</td>
-                        <td style="padding: 4px 4px 4px 8px; text-align: left;">{{ 'Rp ' . number_format($totalReimbursement, 0, '.', '.') }}</td>
+                        <td style="padding: 4px 4px 4px 8px; text-align: left;"><?php echo e('Rp ' . number_format($totalReimbursement, 0, '.', '.')); ?></td>
                     </tr>
                 </table>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
         <div class="invoice-footer-block">
             <!-- Detail Invoice -->
@@ -573,17 +576,17 @@
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE NUMB</td>
                             <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_number ?: '-' }}</td>
+                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->invoice_number ?: '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE DATE</td>
                             <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">TERM</td>
                             <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->top ?: '-' }}</td>
+                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->top ?: '-'); ?></td>
                         </tr>
                     </table>
                 </div>
@@ -597,38 +600,21 @@
                         <tr>
                             <td style="width: 120px; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
                             <td style="width: 15px; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;">{{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}</td>
-                            {{-- <td style="width: 51%; font-size: 8px; vertical-align: top; padding: 0px 0; white-space: pre-wrap; text-align: justify;">
-                                {{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}
-                            </td> --}}
+                            <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;"><?php echo e($salesOrder->note ?: 'Tidak ada catatan tambahan'); ?></td>
+                            
                         </tr>
                     </table>
                 </div>
 
                 <!-- Remarks -->
-                {{-- @if($salesOrder->remarks)
-                <div style="margin-bottom: 15px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">REMARKS</td>
-                            <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 87%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 20px; padding: 5px;">
-                                {{ $salesOrder->remarks }}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                @endif --}}
+                
             </div>
 
             <!-- Signature Section -->
             <div class="signature-section">
                 <table class="signature-table">
                     <tr>
-                        {{-- <td class="signature-cell">
-                            <div class="signature-line"></div>
-                            <div class="signature-label">Prepared By</div>
-                        </td> --}}
+                        
                         <td class="signature-cell">
                             <div class="signature-line"></div>
                             <div class="signature-label">Checked By</div>
@@ -646,8 +632,9 @@
 
     <!-- Footer -->
     <div class="footer">
-        Shipping Order No: {{ $salesOrder->order_number }} | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1<br>
-        Dicetak pada: {{ $generatedAt->format('d/m/Y H:i:s') }} | Dokumen ini digenerate secara otomatis oleh sistem
+        Shipping Order No: <?php echo e($salesOrder->order_number); ?> | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1<br>
+        Dicetak pada: <?php echo e($generatedAt->format('d/m/Y H:i:s')); ?> | Dokumen ini digenerate secara otomatis oleh sistem
     </div>
 </body>
 </html>
+<?php /**PATH C:\laragon\www\OfficeManagement\resources\views/admin/admin-cs/sales-orders/pdf.blade.php ENDPATH**/ ?>

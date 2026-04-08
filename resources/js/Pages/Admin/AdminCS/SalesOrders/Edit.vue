@@ -1059,20 +1059,35 @@ const initializeReimbursementItems = () => {
     return [{ id: null, description: '', amount: 0, quantity: '', unit: '', category: '', notes: '', vendor_id: '', is_paid_locked: false }];
 };
 
+const normalizeDateForInput = (value) => {
+    if (!value) {
+        return "";
+    }
+
+    if (typeof value === 'string') {
+        const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (match) {
+            return match[1];
+        }
+    }
+
+    return "";
+};
+
 const form = useForm({
     // Required fields based on requirements only
     order_number: props.salesOrder.order_number || "",
     ref_no: props.salesOrder.ref_no || "",
-    so_date: props.salesOrder.so_date ? new Date(props.salesOrder.so_date).toISOString().split('T')[0] : "",
+    so_date: normalizeDateForInput(props.salesOrder.so_date),
     customer: props.salesOrder.customer || "",
     shipper: props.salesOrder.shipper || "",
     bl_awb: props.salesOrder.bl_awb || "",
     liner: props.salesOrder.liner || "",
     vessel: props.salesOrder.vessel || "",
-    eta: props.salesOrder.eta ? new Date(props.salesOrder.eta).toISOString().split('T')[0] : "",
-    etd: props.salesOrder.etd ? new Date(props.salesOrder.etd).toISOString().split('T')[0] : "",
+    eta: normalizeDateForInput(props.salesOrder.eta),
+    etd: normalizeDateForInput(props.salesOrder.etd),
     aju: props.salesOrder.aju || "",
-    sppb_date: props.salesOrder.sppb_date ? new Date(props.salesOrder.sppb_date).toISOString().split('T')[0] : "",
+    sppb_date: normalizeDateForInput(props.salesOrder.sppb_date),
     shipment_type: props.salesOrder.shipment_type || "",
     pol: props.salesOrder.pol || "",
     pod: props.salesOrder.pod || "",
@@ -1089,7 +1104,7 @@ const form = useForm({
     measurement: props.salesOrder.measurement || "",
     container_no: Array.isArray(props.salesOrder.container_no) ? props.salesOrder.container_no : (props.salesOrder.container_no ? [props.salesOrder.container_no] : [""]),
     invoice_number: props.salesOrder.invoice_number || "",
-    invoice_date: props.salesOrder.invoice_date ? new Date(props.salesOrder.invoice_date).toISOString().split('T')[0] : "",
+    invoice_date: normalizeDateForInput(props.salesOrder.invoice_date),
     top: props.salesOrder.top || "",
     package_unit: props.salesOrder.package_unit ?? null,
     other_costs: initializeOtherCosts()

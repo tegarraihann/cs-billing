@@ -179,10 +179,6 @@
             page-break-inside: avoid;
         }
 
-        .invoice-footer-block {
-            margin-top: 150px;
-        }
-
         .signature-table {
             width: 100%;
             border-collapse: collapse;
@@ -564,82 +560,80 @@
         </div>
         @endif
 
-        <div class="invoice-footer-block">
-            <!-- Detail Invoice -->
-            <div class="section">
-                <div class="section-title">Detail Invoice</div>
-                <div style="margin-bottom: 15px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE NUMB</td>
-                            <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_number ?: '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE DATE</td>
-                            <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">TERM</td>
-                            <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->top ?: '-' }}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Garis pemisah -->
-                <div style="border-bottom: 1px solid #000; margin: 10px 0;"></div>
-
-                <!-- Note -->
-                <div style="margin-bottom: 15px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 120px; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
-                            <td style="width: 15px; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;">{{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}</td>
-                            {{-- <td style="width: 51%; font-size: 8px; vertical-align: top; padding: 0px 0; white-space: pre-wrap; text-align: justify;">
-                                {{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}
-                            </td> --}}
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Remarks -->
-                {{-- @if($salesOrder->remarks)
-                <div style="margin-bottom: 15px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">REMARKS</td>
-                            <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 87%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 20px; padding: 5px;">
-                                {{ $salesOrder->remarks }}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                @endif --}}
+        <!-- Detail Invoice -->
+        <div class="section">
+            <div class="section-title">Detail Invoice</div>
+            <div style="margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE NUMB</td>
+                        <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_number ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE DATE</td>
+                        <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">TERM</td>
+                        <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;">{{ $salesOrder->top ?: '-' }}</td>
+                    </tr>
+                </table>
             </div>
 
-            <!-- Signature Section -->
-            <div class="signature-section">
-                <table class="signature-table">
+            <!-- Garis pemisah -->
+            <div style="border-bottom: 1px solid #000; margin: 10px 0;"></div>
+
+            <!-- Note -->
+            <div style="margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        {{-- <td class="signature-cell">
-                            <div class="signature-line"></div>
-                            <div class="signature-label">Prepared By</div>
+                        <td style="width: 120px; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
+                        <td style="width: 15px; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;">{{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}</td>
+                        {{-- <td style="width: 51%; font-size: 8px; vertical-align: top; padding: 0px 0; white-space: pre-wrap; text-align: justify;">
+                            {{ $salesOrder->note ?: 'Tidak ada catatan tambahan' }}
                         </td> --}}
-                        <td class="signature-cell">
-                            <div class="signature-line"></div>
-                            <div class="signature-label">Checked By</div>
-                        </td>
-                        <td class="signature-cell">
-                            <div class="signature-line"></div>
-                            <div class="signature-label">Approved By</div>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Remarks -->
+            {{-- @if($salesOrder->remarks)
+            <div style="margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 10%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">REMARKS</td>
+                        <td style="width: 3%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
+                        <td style="width: 87%; font-size: 8px; padding: 1px 0; vertical-align: top; min-height: 20px; padding: 5px;">
+                            {{ $salesOrder->remarks }}
                         </td>
                     </tr>
                 </table>
             </div>
+            @endif --}}
+        </div>
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <table class="signature-table">
+                <tr>
+                    {{-- <td class="signature-cell">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Prepared By</div>
+                    </td> --}}
+                    <td class="signature-cell">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Checked By</div>
+                    </td>
+                    <td class="signature-cell">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Approved By</div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
     </div>
