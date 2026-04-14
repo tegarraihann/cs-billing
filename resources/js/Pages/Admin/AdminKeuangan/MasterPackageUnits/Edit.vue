@@ -3,10 +3,10 @@
     <Head title="Edit Package Unit" />
 
     <div class="py-6">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
           <Link
-            :href="route('admin-keuangan.master-package-units.index')"
+            :href="indexUrl"
             class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
           >
             <ArrowLeft class="w-4 h-4 mr-2" />
@@ -17,7 +17,7 @@
         </div>
 
         <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
-          <div class="px-6 py-8">
+          <div class="px-4 py-5 sm:p-6">
             <form @submit.prevent="submit" class="space-y-6">
               <div>
                 <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
@@ -104,7 +104,7 @@
 
               <div class="mt-8 flex justify-end space-x-3">
                 <Link
-                  :href="route('admin-keuangan.master-package-units.index')"
+                  :href="indexUrl"
                   class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                 >
                   Cancel
@@ -134,7 +134,24 @@ import { ArrowLeft, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
   packageUnit: Object,
+  filters: Object,
 });
+
+const buildQueryString = (query = {}) => {
+  const params = new URLSearchParams(
+    Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  ).toString();
+
+  return params ? `?${params}` : '';
+};
+
+const indexUrl = computed(() =>
+  `${route('admin-keuangan.master-package-units.index')}${buildQueryString(props.filters || {})}`
+);
+
+const updateUrl = computed(() =>
+  `${route('admin-keuangan.master-package-units.update', props.packageUnit.id)}${buildQueryString(props.filters || {})}`
+);
 
 const form = useForm({
   code: props.packageUnit.code,
@@ -147,6 +164,6 @@ const form = useForm({
 const processing = computed(() => form.processing);
 
 const submit = () => {
-  form.put(route('admin-keuangan.master-package-units.update', props.packageUnit.id));
+  form.put(updateUrl.value);
 };
 </script>

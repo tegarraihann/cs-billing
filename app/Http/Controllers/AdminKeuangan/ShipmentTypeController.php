@@ -81,10 +81,11 @@ class ShipmentTypeController extends Controller
     /**
      * Show the form for editing the specified shipment type
      */
-    public function edit(ShipmentType $shipmentType)
+    public function edit(Request $request, ShipmentType $shipmentType)
     {
         return Inertia::render('Admin/AdminKeuangan/ShipmentTypes/Edit', [
-            'shipmentType' => $shipmentType
+            'shipmentType' => $shipmentType,
+            'filters' => $request->only(['search', 'status', 'page'])
         ]);
     }
 
@@ -107,19 +108,19 @@ class ShipmentTypeController extends Controller
         $shipmentType->update($validated);
 
         return redirect()
-            ->route('admin-keuangan.shipment-types.index')
+            ->route('admin-keuangan.shipment-types.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Shipment type berhasil diperbarui.');
     }
 
     /**
      * Remove the specified shipment type
      */
-    public function destroy(ShipmentType $shipmentType)
+    public function destroy(Request $request, ShipmentType $shipmentType)
     {
         $shipmentType->delete();
 
         return redirect()
-            ->route('admin-keuangan.shipment-types.index')
+            ->route('admin-keuangan.shipment-types.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Shipment type berhasil dihapus.');
     }
 }

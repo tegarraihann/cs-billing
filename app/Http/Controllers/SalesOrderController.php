@@ -1226,6 +1226,22 @@ class SalesOrderController extends Controller
             $data = $this->attachPaidLocksToPayload($salesOrder, $data);
         }
 
+        foreach (['so_date', 'eta', 'etd', 'sppb_date', 'invoice_date'] as $dateField) {
+            $rawValue = $data[$dateField] ?? null;
+
+            if ($rawValue instanceof \Carbon\CarbonInterface) {
+                $data[$dateField] = $rawValue->toDateString();
+                continue;
+            }
+
+            if (is_string($rawValue) && preg_match('/^(\d{4}-\d{2}-\d{2})/', $rawValue, $matches)) {
+                $data[$dateField] = $matches[1];
+                continue;
+            }
+
+            $data[$dateField] = null;
+        }
+
         return $data;
     }
 

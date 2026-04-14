@@ -121,7 +121,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div class="flex space-x-2">
                         <Link
-                          :href="route('admin-keuangan.chart-of-accounts.edit', account.id)"
+                          :href="getEditUrl(account.id)"
                           class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
                           title="Edit"
                         >
@@ -154,8 +154,32 @@
               <p class="mt-1 text-sm text-gray-500">Start by adding your first account</p>
             </div>
 
-            <div v-if="accounts?.data && accounts.data.length > 0" class="mt-6">
-              <Pagination :data="accounts" />
+            <div v-if="accounts?.links && accounts.links.length > 3" class="mt-6 bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                  Showing {{ accounts?.from ?? 0 }} to {{ accounts?.to ?? 0 }} of {{ accounts?.total ?? 0 }} accounts
+                </div>
+                <div class="flex space-x-1">
+                  <template v-for="link in accounts?.links || []" :key="link.label">
+                    <button
+                      v-if="link.url"
+                      @click="visitPage(link.url)"
+                      :class="[
+                        'px-3 py-2 text-sm rounded-md',
+                        link.active
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                      ]"
+                      v-html="link.label"
+                    ></button>
+                    <span
+                      v-else
+                      class="px-3 py-2 text-sm text-gray-400"
+                      v-html="link.label"
+                    ></span>
+                  </template>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -176,10 +200,9 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
-import Pagination from '@/Components/Pagination.vue';
 import AlertDialog from '@/Components/AlertDialog.vue';
 import { Plus, Search, Edit, Trash2, BookOpen } from 'lucide-vue-next';
 
@@ -191,6 +214,20 @@ const props = defineProps({
 const form = reactive({
   search: props.filters?.search || '',
   status: props.filters?.status || '',
+});
+
+const currentIndexQuery = computed(() => {
+  const query = {
+    search: form.search || undefined,
+    status: form.status || undefined,
+  };
+
+  const currentPage = props.accounts?.current_page;
+  if (currentPage && Number(currentPage) > 1) {
+    query.page = currentPage;
+  }
+
+  return query;
 });
 
 const deleteModal = reactive({
@@ -217,6 +254,34 @@ const search = () => {
   );
 };
 
+const visitPage = (url) => {
+  const targetUrl = new URL(url, window.location.origin);
+  const page = targetUrl.searchParams.get('page');
+
+  router.visit(targetUrl.pathname, {
+    data: {
+      search: form.search || undefined,
+      status: form.status || undefined,
+      page: page || undefined,
+    },
+    preserveState: true,
+    preserveScroll: true,
+    replace: true,
+  });
+};
+
+const appendQuery = (url, query) => {
+  const queryString = new URLSearchParams(
+    Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  ).toString();
+
+  return queryString ? `${url}${url.includes('?') ? '&' : '?'}${queryString}` : url;
+};
+
+const getEditUrl = (accountId) => {
+  return appendQuery(route('admin-keuangan.chart-of-accounts.edit', accountId), currentIndexQuery.value);
+};
+
 const confirmDeactivate = (account) => {
   deleteModal.account = account;
   deleteModal.show = true;
@@ -224,6 +289,7 @@ const confirmDeactivate = (account) => {
 
 const deactivateAccount = () => {
   router.delete(route('admin-keuangan.chart-of-accounts.destroy', deleteModal.account.id), {
+    data: { ...currentIndexQuery.value },
     onSuccess: () => {
       deleteModal.show = false;
       deleteModal.account = null;

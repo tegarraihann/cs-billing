@@ -87,10 +87,11 @@ class ServiceTypeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(MasterServiceType $serviceType)
+    public function edit(Request $request, MasterServiceType $serviceType)
     {
         return Inertia::render('Admin/AdminKeuangan/ServiceTypes/Edit', [
             'serviceType' => $serviceType,
+            'filters' => $request->only(['search', 'status', 'page']),
         ]);
     }
 
@@ -108,19 +109,19 @@ class ServiceTypeController extends Controller
         $serviceType->update($validated);
 
         return redirect()
-            ->route('admin-keuangan.service-types.index')
+            ->route('admin-keuangan.service-types.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Service Type berhasil diupdate.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MasterServiceType $serviceType)
+    public function destroy(Request $request, MasterServiceType $serviceType)
     {
         $serviceType->delete();
 
         return redirect()
-            ->route('admin-keuangan.service-types.index')
+            ->route('admin-keuangan.service-types.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Service Type berhasil dihapus.');
     }
 }

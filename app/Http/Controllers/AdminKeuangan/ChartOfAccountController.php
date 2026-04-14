@@ -106,12 +106,13 @@ class ChartOfAccountController extends Controller
         ]);
     }
 
-    public function edit(ChartOfAccount $chartOfAccount)
+    public function edit(Request $request, ChartOfAccount $chartOfAccount)
     {
         $chartOfAccount->load('parent');
 
         return Inertia::render('Admin/AdminKeuangan/ChartOfAccounts/Edit', [
             'account' => $chartOfAccount,
+            'filters' => $request->only(['search', 'status', 'page']),
         ]);
     }
 
@@ -127,16 +128,16 @@ class ChartOfAccountController extends Controller
         $chartOfAccount->update($validated);
 
         return redirect()
-            ->route('admin-keuangan.chart-of-accounts.index')
+            ->route('admin-keuangan.chart-of-accounts.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Account updated successfully.');
     }
 
-    public function destroy(ChartOfAccount $chartOfAccount)
+    public function destroy(Request $request, ChartOfAccount $chartOfAccount)
     {
         $chartOfAccount->update(['is_active' => false]);
 
         return redirect()
-            ->route('admin-keuangan.chart-of-accounts.index')
+            ->route('admin-keuangan.chart-of-accounts.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Account deactivated successfully.');
     }
 }

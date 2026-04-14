@@ -396,27 +396,52 @@ class InvoiceController extends Controller
             'user_id' => auth()->id()
         ]);
 
-        // Cari customer berdasarkan customer_id jika ada, atau buat dummy customer
+        // Cari customer berdasarkan customer_id jika ada, atau reuse dummy customer
         $customerId = $salesOrder->customer_id;
         if (!$customerId) {
-            // Jika tidak ada customer_id, cari berdasarkan customer name atau buat dummy
-            $customer = Customer::where('company_name', $salesOrder->customer)
-                              ->orWhere('company_name', $salesOrder->customer_name)
-                              ->first();
+            $customerName = trim((string) ($salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer'));
+
+            // Jika tidak ada customer_id, coba cari customer existing dulu
+            $customer = Customer::query()
+                ->where(function ($query) use ($salesOrder, $customerName) {
+                    $candidates = collect([
+                        $salesOrder->customer,
+                        $salesOrder->customer_name,
+                        $customerName,
+                    ])->filter(fn ($value) => filled($value))->unique()->values();
+
+                    foreach ($candidates as $candidate) {
+                        $query->orWhere('company_name', $candidate)
+                              ->orWhere('name', $candidate)
+                              ->orWhere('pic_name', $candidate);
+                    }
+                })
+                ->first();
+
             if (!$customer) {
-                // Buat dummy customer jika tidak ditemukan
-                $customerName = $salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer';
-                $customer = Customer::create([
-                    'name' => $customerName, // Field name yang diperlukan
-                    'email' => 'unknown@example.com', // Field email yang diperlukan
-                    'phone' => 'N/A', // Field phone yang diperlukan
-                    'company_name' => $customerName,
-                    'company_address' => $salesOrder->customer_address ?? 'N/A',
-                    'pic_phone' => 'N/A',
-                    'pic_email' => 'unknown@example.com',
-                    'handled_by' => auth()->id()
+                // Reuse dummy customer agar tidak gagal di unique email
+                $customer = Customer::firstOrCreate(
+                    ['email' => 'unknown@example.com'],
+                    [
+                        'name' => $customerName,
+                        'phone' => 'N/A',
+                        'company_name' => $customerName,
+                        'company_address' => $salesOrder->customer_address ?? 'N/A',
+                        'pic_phone' => 'N/A',
+                        'pic_email' => 'unknown@example.com',
+                        'handled_by' => auth()->id()
+                    ]
+                );
+
+                \Log::warning('Invoice store using fallback dummy customer', [
+                    'sales_order_id' => $salesOrder->id,
+                    'sales_order_number' => $salesOrder->order_number,
+                    'customer_name' => $customerName,
+                    'resolved_customer_id' => $customer->id,
+                    'user_id' => auth()->id(),
                 ]);
             }
+
             $customerId = $customer->id;
         }
 

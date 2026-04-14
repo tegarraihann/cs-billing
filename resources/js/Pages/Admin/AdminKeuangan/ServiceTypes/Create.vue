@@ -3,7 +3,7 @@
     <Head title="Add Service Type" />
 
     <div class="py-6">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
           <Link
             :href="route('admin-keuangan.service-types.index')"
@@ -17,7 +17,7 @@
         </div>
 
         <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
-          <div class="px-6 py-8">
+          <div class="px-4 py-5 sm:p-6">
             <form @submit.prevent="submit" class="space-y-6">
               <!-- Kode -->
               <div>

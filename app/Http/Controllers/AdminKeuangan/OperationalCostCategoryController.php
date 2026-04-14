@@ -81,10 +81,11 @@ class OperationalCostCategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(OperationalCostCategory $operationalCostCategory)
+    public function edit(Request $request, OperationalCostCategory $operationalCostCategory)
     {
         return Inertia::render('Admin/AdminKeuangan/OperationalCostCategories/Edit', [
             'operationalCostCategory' => $operationalCostCategory,
+            'filters' => $request->only(['search', 'status', 'page']),
         ]);
     }
 
@@ -103,18 +104,18 @@ class OperationalCostCategoryController extends Controller
 
         $operationalCostCategory->update($validated);
 
-        return redirect()->route('admin-keuangan.operational-cost-categories.index')
+        return redirect()->route('admin-keuangan.operational-cost-categories.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Kategori biaya operasional berhasil diperbarui.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(OperationalCostCategory $operationalCostCategory)
+    public function destroy(Request $request, OperationalCostCategory $operationalCostCategory)
     {
         $operationalCostCategory->delete();
 
-        return redirect()->route('admin-keuangan.operational-cost-categories.index')
+        return redirect()->route('admin-keuangan.operational-cost-categories.index', $request->only(['search', 'status', 'page']))
             ->with('success', 'Kategori biaya operasional berhasil dihapus.');
     }
 }

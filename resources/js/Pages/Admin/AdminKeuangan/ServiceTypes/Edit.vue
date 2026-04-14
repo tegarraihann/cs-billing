@@ -6,7 +6,7 @@
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
           <Link
-            :href="route('admin-keuangan.service-types.index')"
+            :href="indexUrl"
             class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
           >
             <ArrowLeft class="w-4 h-4 mr-2" />
@@ -68,7 +68,7 @@
               <!-- Submit Button -->
               <div class="mt-8 flex justify-end space-x-3">
                 <Link
-                  :href="route('admin-keuangan.service-types.index')"
+                  :href="indexUrl"
                   class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500"
                 >
                   Cancel
@@ -97,8 +97,25 @@ import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps({
-  serviceType: Object
+  serviceType: Object,
+  filters: Object
 })
+
+const buildQueryString = (query = {}) => {
+  const params = new URLSearchParams(
+    Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  ).toString()
+
+  return params ? `?${params}` : ''
+}
+
+const indexUrl = computed(() =>
+  `${route('admin-keuangan.service-types.index')}${buildQueryString(props.filters || {})}`
+)
+
+const updateUrl = computed(() =>
+  `${route('admin-keuangan.service-types.update', props.serviceType.id)}${buildQueryString(props.filters || {})}`
+)
 
 const form = useForm({
   code: props.serviceType.code,
@@ -109,6 +126,6 @@ const form = useForm({
 const processing = computed(() => form.processing)
 
 const submit = () => {
-  form.put(route('admin-keuangan.service-types.update', props.serviceType.id))
+  form.put(updateUrl.value)
 }
 </script>

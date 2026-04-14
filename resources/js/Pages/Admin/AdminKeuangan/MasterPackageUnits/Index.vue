@@ -108,7 +108,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div class="flex space-x-2">
                         <Link
-                          :href="route('admin-keuangan.master-package-units.edit', unit.id)"
+                          :href="getEditUrl(unit.id)"
                           class="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
                           title="Edit"
                         >
@@ -134,8 +134,32 @@
               <p class="mt-1 text-sm text-gray-500">Start by adding your first package unit</p>
             </div>
 
-            <div v-if="packageUnits?.data && packageUnits.data.length > 0" class="mt-6">
-              <Pagination :data="packageUnits" />
+            <div v-if="packageUnits?.links && packageUnits.links.length > 3" class="mt-6 bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                  Showing {{ packageUnits?.from ?? 0 }} to {{ packageUnits?.to ?? 0 }} of {{ packageUnits?.total ?? 0 }} package units
+                </div>
+                <div class="flex space-x-1">
+                  <template v-for="link in packageUnits?.links || []" :key="link.label">
+                    <button
+                      v-if="link.url"
+                      @click="visitPage(link.url)"
+                      :class="[
+                        'px-3 py-2 text-sm rounded-md',
+                        link.active
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-300'
+                      ]"
+                      v-html="link.label"
+                    ></button>
+                    <span
+                      v-else
+                      class="px-3 py-2 text-sm text-gray-400"
+                      v-html="link.label"
+                    ></span>
+                  </template>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -155,20 +179,32 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
-import Pagination from '@/Components/Pagination.vue';
 import AlertDialog from '@/Components/AlertDialog.vue';
 import { Plus, Search, Edit, Trash2, PackageSearch } from 'lucide-vue-next';
 
 const props = defineProps({
   packageUnits: Object,
-  search: String,
+  filters: Object,
 });
 
 const form = reactive({
-  search: props.search || '',
+  search: props.filters?.search || '',
+});
+
+const currentIndexQuery = computed(() => {
+  const query = {
+    search: form.search || undefined,
+  };
+
+  const currentPage = props.packageUnits?.current_page;
+  if (currentPage && Number(currentPage) > 1) {
+    query.page = currentPage;
+  }
+
+  return query;
 });
 
 const deleteModal = reactive({
@@ -185,12 +221,40 @@ const search = () => {
     {
       preserveState: true,
       preserveScroll: true,
+      replace: true,
     }
   );
 };
 
+const visitPage = (url) => {
+  const targetUrl = new URL(url, window.location.origin);
+  const page = targetUrl.searchParams.get('page');
+
+  router.visit(targetUrl.pathname, {
+    data: {
+      search: form.search || undefined,
+      page: page || undefined,
+    },
+    preserveState: true,
+    preserveScroll: true,
+    replace: true,
+  });
+};
+
+const appendQuery = (url, query) => {
+  const queryString = new URLSearchParams(
+    Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  ).toString();
+
+  return queryString ? `${url}${url.includes('?') ? '&' : '?'}${queryString}` : url;
+};
+
+const getEditUrl = (unitId) => {
+  return appendQuery(route('admin-keuangan.master-package-units.edit', unitId), currentIndexQuery.value);
+};
+
 const toggleStatus = (unit) => {
-  router.patch(route('admin-keuangan.master-package-units.toggle-status', unit.id), {}, {
+  router.patch(route('admin-keuangan.master-package-units.toggle-status', unit.id), { ...currentIndexQuery.value }, {
     preserveScroll: true,
   });
 };
@@ -202,6 +266,7 @@ const confirmDelete = (unit) => {
 
 const deleteUnit = () => {
   router.delete(route('admin-keuangan.master-package-units.destroy', deleteModal.unit.id), {
+    data: { ...currentIndexQuery.value },
     onSuccess: () => {
       deleteModal.show = false;
       deleteModal.unit = null;

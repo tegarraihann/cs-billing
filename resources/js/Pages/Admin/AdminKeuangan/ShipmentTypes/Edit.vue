@@ -37,7 +37,7 @@
           </div>
           <div class="mt-4 sm:mt-0">
             <Link
-              :href="route('admin-keuangan.shipment-types.index')"
+              :href="indexUrl"
               class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
               <svg
@@ -152,8 +152,8 @@
 
             <!-- Submit Button -->
             <div class="flex justify-end space-x-3">
-              <Link
-                :href="route('admin-keuangan.shipment-types.index')"
+                <Link
+                  :href="indexUrl"
                 class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
                 Cancel
@@ -180,8 +180,25 @@ import { useForm, Link } from '@inertiajs/vue3'
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue'
 
 const props = defineProps({
-  shipmentType: Object
+  shipmentType: Object,
+  filters: Object
 })
+
+const buildQueryString = (query = {}) => {
+  const params = new URLSearchParams(
+    Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  ).toString()
+
+  return params ? `?${params}` : ''
+}
+
+const indexUrl = computed(() =>
+  `${route('admin-keuangan.shipment-types.index')}${buildQueryString(props.filters || {})}`
+)
+
+const updateUrl = computed(() =>
+  `${route('admin-keuangan.shipment-types.update', props.shipmentType.id)}${buildQueryString(props.filters || {})}`
+)
 
 const form = useForm({
   name: props.shipmentType.name,
@@ -191,7 +208,7 @@ const form = useForm({
 })
 
 const submit = () => {
-  form.put(route('admin-keuangan.shipment-types.update', props.shipmentType.id))
+  form.put(updateUrl.value)
 }
 
 // Computed property for processing state  

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -180,7 +180,7 @@
         }
 
         .invoice-footer-block {
-            margin-top: 150px;
+            margin-top: 400px;
         }
 
         .signature-table {
@@ -241,7 +241,7 @@
             <div class="document-title">Shipping Order</div>
             <div class="document-details">
                 <strong>No: <?php echo e($salesOrder->order_number); ?></strong><br>
-                Tanggal: <?php echo e($salesOrder->created_at ? $salesOrder->created_at->locale('id')->isoFormat('DD MMMM YYYY') : date('d F Y')); ?><br>
+                Date: <?php echo e($salesOrder->created_at ? $salesOrder->created_at->locale('en')->isoFormat('DD MMMM YYYY') : date('d F Y')); ?><br>
                 <div class="status-info">
                     <span class="status-badge"><?php echo e(strtoupper($salesOrder->status ?: 'draft')); ?></span>
                 </div>
@@ -252,7 +252,7 @@
 
     <!-- Print Info -->
     <div class="print-info" style="line-height: 1.5;">
-        Dicetak pada: <?php echo e(\Carbon\Carbon::now()->locale('id')->isoFormat('DD MMMM YYYY HH:mm')); ?><br>
+        Printed on: <?php echo e(\Carbon\Carbon::now()->locale('en')->isoFormat('DD MMMM YYYY HH:mm')); ?><br>
         Account: <?php echo e(auth()->user()->name ?? 'System'); ?>
 
     </div>
@@ -262,7 +262,7 @@
 
         <!-- Primary Information -->
         <div class="section">
-            <div class="section-title">Informasi Shipping Order</div>
+            <div class="section-title">Shipping Order Information</div>
 
             <!-- Two Column Layout -->
             <div style="width: 100%; display: table; margin-bottom: 25px;">
@@ -302,7 +302,7 @@
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">ETA</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->locale('id')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->eta ? \Carbon\Carbon::parse($salesOrder->eta)->locale('en')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
                         </tr>
                     </table>
                 </div>
@@ -318,7 +318,7 @@
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SPPB DATE</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->sppb_date ? \Carbon\Carbon::parse($salesOrder->sppb_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
+                            <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->sppb_date ? \Carbon\Carbon::parse($salesOrder->sppb_date)->locale('en')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">SHIPMENT TYPE</td>
@@ -331,7 +331,7 @@
                             <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e(($salesOrder->pol && $salesOrder->pod) ? $salesOrder->pol . ' / ' . $salesOrder->pod : ($salesOrder->pol ?: ($salesOrder->pod ?: '-'))); ?></td>
                         </tr>
                         <tr>
-                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">GUDANG/UTC</td>
+                            <td style="font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">WAREHOUSE/UTC</td>
                             <td style="font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
                             <td style="font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->gudang_utc ?: '-'); ?></td>
                         </tr>
@@ -350,9 +350,9 @@
             </div>
         </div>
 
-        <!-- Informasi Barang -->
+        <!-- Cargo Information -->
         <div class="section">
-            <div class="section-title">Informasi Barang</div>
+            <div class="section-title">Cargo Information</div>
 
             <!-- Two Column Layout -->
             <div style="width: 100%; display: table; margin-bottom: 15px;">
@@ -426,7 +426,7 @@
 
         <!-- Detail Information -->
         <div class="section">
-            <div class="section-title">Detail Informasi</div>
+            <div class="section-title">Charge Details</div>
 
             <!-- Cost Breakdown -->
             <?php
@@ -450,7 +450,7 @@
             <div style="font-family: 'Times New Roman', serif; font-size: 9px; margin-bottom: 20px;">
                 <table style="width: 90%; border-collapse: collapse; margin: 0 auto;">
                     <tr>
-                        <td style="width: 25%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">JENIS BIAYA</td>
+                        <td style="width: 25%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">COST TYPE</td>
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">BUYING</td>
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">SELLING</td>
                         <td style="width: 20%; font-weight: bold; padding: 4px 4px 4px 8px; vertical-align: top; text-align: left;">REVENUE</td>
@@ -492,7 +492,7 @@
             <div style="font-family: 'Times New Roman', serif; font-size: 10px; margin-bottom: 35px;">
                 <table style="width: 90%; border-collapse: collapse; margin: 0 auto;">
                     <tr>
-                        <td style="width: 20%; font-weight: bold; padding: 2px 0 2px 8px; vertical-align: top; text-align: left;">JENIS BIAYA</td>
+                        <td style="width: 20%; font-weight: bold; padding: 2px 0 2px 8px; vertical-align: top; text-align: left;">COST TYPE</td>
                         <td style="width: 20%; font-weight: bold; padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">BUYING</td>
                         <td style="width: 20%; font-weight: bold; padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">SELLING</td>
                         <td style="width: 20%; font-weight: bold; padding: 2px 16px 2px 24px; vertical-align: top; text-align: left;">REVENUE</td>
@@ -581,7 +581,7 @@
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">INVOICE DATE</td>
                             <td style="width: 2%; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('id')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
+                            <td style="width: 165%; font-size: 8px; padding: 1px 0; vertical-align: top;"><?php echo e($salesOrder->invoice_date ? \Carbon\Carbon::parse($salesOrder->invoice_date)->locale('en')->isoFormat('DD MMMM YYYY') : '-'); ?></td>
                         </tr>
                         <tr>
                             <td style="width: 35%; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">TERM</td>
@@ -600,7 +600,7 @@
                         <tr>
                             <td style="width: 120px; font-size: 8px; font-weight: bold; padding: 1px 0; vertical-align: top;">NOTE</td>
                             <td style="width: 15px; font-size: 8px; font-weight: bold; padding: 1px 0; text-align: center; vertical-align: top;">:</td>
-                            <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;"><?php echo e($salesOrder->note ?: 'Tidak ada catatan tambahan'); ?></td>
+                            <td style="font-size: 8px; padding: 1px 0; text-align: left; vertical-align: top; white-space: pre-wrap; word-wrap: break-word; word-break: break-word; max-width: 300px;"><?php echo e($salesOrder->note ?: 'No additional notes'); ?></td>
                             
                         </tr>
                     </table>
@@ -632,8 +632,8 @@
 
     <!-- Footer -->
     <div class="footer">
-        Shipping Order No: <?php echo e($salesOrder->order_number); ?> | PT. Eshaka Wijaya Logistics | Halaman 1 dari 1<br>
-        Dicetak pada: <?php echo e($generatedAt->format('d/m/Y H:i:s')); ?> | Dokumen ini digenerate secara otomatis oleh sistem
+        Shipping Order No: <?php echo e($salesOrder->order_number); ?> | PT. Eshaka Wijaya Logistics | Page 1 of 1<br>
+        Printed on: <?php echo e($generatedAt->format('d/m/Y H:i:s')); ?> | This document was generated automatically by the system
     </div>
 </body>
 </html>

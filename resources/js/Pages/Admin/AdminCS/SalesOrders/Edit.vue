@@ -222,7 +222,7 @@
                                     </button>
                                 </div>
                                 <div v-if="isPricingLocked" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
-                                    Pricing terkunci karena invoice sudah dibayar.
+                                    Pricing is locked because the invoice has already been paid.
                                 </div>
                                 <div v-for="(item, index) in form.vendor_breakdown" :key="index"
                                     class="border border-sage-200 rounded-lg p-4 mb-4 space-y-4">
@@ -323,18 +323,18 @@
                                     <!-- Row 4: Vendor Details (Auto-filled) -->
                                     <div v-if="item.vendor_id" class="grid grid-cols-1 gap-3 p-3 bg-sage-50 rounded-lg">
                                         <div>
-                                            <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                Vendor</label>
+                                            <label class="block text-xs font-medium text-sage-700 mb-1">Vendor
+                                                Name</label>
                                             <p class="text-sm text-gray-900">{{ item.nama_vendor || '-' }}</p>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-sage-700 mb-1">Nomor
-                                                Rekening</label>
+                                            <label class="block text-xs font-medium text-sage-700 mb-1">Account
+                                                Number</label>
                                             <p class="text-sm text-gray-900 font-mono">{{ item.no_rekening || '-' }}</p>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-sage-700 mb-1">Nama
-                                                Rekening</label>
+                                            <label class="block text-xs font-medium text-sage-700 mb-1">Account
+                                                Name</label>
                                             <p class="text-sm text-gray-900">{{ item.nama_rekening || '-' }}</p>
                                         </div>
                                     </div>
@@ -404,7 +404,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-sage-700 mb-2">NOTE</label>
                                 <textarea v-model="form.note" rows="3"
-                                    placeholder="Catatan tambahan untuk Shipping Order ini"
+                                    placeholder="Additional notes for this shipping order"
                                     class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 resize-none"></textarea>
                                 <div v-if="form.errors.note" class="mt-2 text-sm text-red-600">{{ form.errors.note }}
                                 </div>
@@ -557,7 +557,7 @@
                                     </button>
                                 </div>
                                 <div v-if="hasLockedOtherCosts" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                                    Beberapa item sudah <strong>Paid</strong> di AP, jadi item tersebut terkunci dan tidak bisa diubah/dihapus.
+                                    Some items have already been <strong>Paid</strong> in AP, so they are locked and cannot be edited or deleted.
                                 </div>
 
                                 <div v-if="form.other_costs && form.other_costs.length > 0" class="space-y-3">
@@ -637,8 +637,7 @@
                                                     :search-fields="['label']"
                                                     :disabled="isOtherCostLocked(cost)"
                                                     :input-class="'w-full px-3 py-2 pr-8 border border-orange-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500'" />
-                                                <p class="text-xs text-orange-600 mt-1">Select vendor jika sudah tahu akan
-                                                    dibayar ke siapa</p>
+                                                <p class="text-xs text-orange-600 mt-1">Select the vendor if you already know who will receive the payment.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -688,7 +687,7 @@
                                     </button>
                                 </div>
                                 <div v-if="hasLockedReimbursements" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                                    Item reimbursement yang sudah <strong>Paid</strong> di AP terkunci dan tidak bisa diubah/dihapus.
+                                    Reimbursement items that have already been <strong>Paid</strong> in AP are locked and cannot be edited or deleted.
                                 </div>
 
                                 <div v-if="reimbursementItems && reimbursementItems.length > 0"
@@ -761,14 +760,13 @@
                                                     :search-fields="['label']"
                                                     :disabled="isReimbursementLocked(item)"
                                                     :input-class="'w-full px-3 py-2 pr-8 border border-purple-300 rounded-lg text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500'" />
-                                                <p class="text-xs text-purple-600 mt-1">Select vendor jika sudah tahu akan
-                                                    dibayar ke siapa</p>
+                                                <p class="text-xs text-purple-600 mt-1">Select the vendor if you already know who will receive the payment.</p>
                                             </div>
                                         </div>
                                         <div class="mt-2">
                                             <label
                                                 class="block text-xs font-medium text-purple-700 mb-1">Notes
-                                                (opsional)</label>
+                                                (optional)</label>
                                             <textarea v-model="item.notes" rows="2"
                                                 placeholder="Additional notes for this reimbursement item"
                                                 :disabled="isReimbursementLocked(item)"
@@ -796,8 +794,7 @@
 
                                 <div v-else class="text-center py-4 text-purple-600">
                                     <p class="text-sm">No reimbursement items yet</p>
-                                    <p class="text-xs text-purple-500">Click "Add Reimbursement" to
-                                        menambahkan</p>
+                                    <p class="text-xs text-purple-500">Click "Add Reimbursement" to add one</p>
                                 </div>
                             </div>
                         </div>

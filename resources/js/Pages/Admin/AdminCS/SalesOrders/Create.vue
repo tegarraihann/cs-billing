@@ -316,7 +316,7 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">RCVD
                                                     INV</label>
                                                 <input v-model="item.rcvd_inv" type="text"
-                                                    placeholder="Nomor invoice yang diterima"
+                                                    placeholder="Received invoice number"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
                                             </div>
 
@@ -884,7 +884,7 @@
                                         </path>
                                     </svg>
                                     <span v-if="form.processing">Saving...</span>
-                                    <span v-else>Simpan shipping order</span>
+                                    <span v-else>Save Shipping Order</span>
                                 </button>
                             </div>
                         </form>

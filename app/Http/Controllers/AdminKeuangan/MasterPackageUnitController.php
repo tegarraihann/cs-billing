@@ -26,7 +26,9 @@ class MasterPackageUnitController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/MasterPackageUnits/Index', [
             'packageUnits' => $packageUnits,
-            'search' => $search,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
@@ -52,10 +54,11 @@ class MasterPackageUnitController extends Controller
         ]);
     }
 
-    public function edit(MasterPackageUnit $masterPackageUnit)
+    public function edit(Request $request, MasterPackageUnit $masterPackageUnit)
     {
         return Inertia::render('Admin/AdminKeuangan/MasterPackageUnits/Edit', [
-            'packageUnit' => $masterPackageUnit
+            'packageUnit' => $masterPackageUnit,
+            'filters' => $request->only(['search', 'page']),
         ]);
     }
 
@@ -65,28 +68,28 @@ class MasterPackageUnitController extends Controller
 
         $masterPackageUnit->update($request->all());
 
-        return redirect()->route('admin-keuangan.master-package-units.index')
+        return redirect()->route('admin-keuangan.master-package-units.index', $request->only(['search', 'page']))
             ->with('success', 'Package unit berhasil diperbarui.');
     }
 
-    public function destroy(MasterPackageUnit $masterPackageUnit)
+    public function destroy(Request $request, MasterPackageUnit $masterPackageUnit)
     {
         // Check if package unit is being used
         $usedInInvoices = \App\Models\Invoice::where('package_unit', $masterPackageUnit->code)->count();
         $usedInSalesOrders = \App\Models\SalesOrder::where('package_unit', $masterPackageUnit->code)->count();
 
         if ($usedInInvoices > 0 || $usedInSalesOrders > 0) {
-            return redirect()->back()
+            return redirect()->route('admin-keuangan.master-package-units.index', $request->only(['search', 'page']))
                 ->with('error', "Package unit '{$masterPackageUnit->code}' tidak dapat dihapus karena sedang digunakan di {$usedInInvoices} invoice dan {$usedInSalesOrders} sales order.");
         }
 
         $masterPackageUnit->delete();
 
-        return redirect()->route('admin-keuangan.master-package-units.index')
+        return redirect()->route('admin-keuangan.master-package-units.index', $request->only(['search', 'page']))
             ->with('success', 'Package unit berhasil dihapus.');
     }
 
-    public function toggleStatus(MasterPackageUnit $masterPackageUnit)
+    public function toggleStatus(Request $request, MasterPackageUnit $masterPackageUnit)
     {
         $masterPackageUnit->update([
             'is_active' => !$masterPackageUnit->is_active
@@ -94,7 +97,7 @@ class MasterPackageUnitController extends Controller
 
         $status = $masterPackageUnit->is_active ? 'diaktifkan' : 'dinonaktifkan';
 
-        return redirect()->back()
+        return redirect()->route('admin-keuangan.master-package-units.index', $request->only(['search', 'page']))
             ->with('success', "Package unit '{$masterPackageUnit->code}' berhasil {$status}.");
     }
 
