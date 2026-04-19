@@ -396,53 +396,70 @@ class InvoiceController extends Controller
             'user_id' => auth()->id()
         ]);
 
-        // Cari customer berdasarkan customer_id jika ada, atau reuse dummy customer
+        // Resolve customer with strict matching only.
         $customerId = $salesOrder->customer_id;
-        if (!$customerId) {
-            $customerName = trim((string) ($salesOrder->customer ?? $salesOrder->customer_name ?? 'Unknown Customer'));
+        if ($customerId) {
+            $linkedCustomer = Customer::find($customerId);
 
-            // Jika tidak ada customer_id, coba cari customer existing dulu
-            $customer = Customer::query()
-                ->where(function ($query) use ($salesOrder, $customerName) {
-                    $candidates = collect([
-                        $salesOrder->customer,
-                        $salesOrder->customer_name,
-                        $customerName,
-                    ])->filter(fn ($value) => filled($value))->unique()->values();
+            if (!$linkedCustomer) {
+                return back()->withErrors([
+                    'customer_resolution' => 'The Sales Order is linked to a customer record that no longer exists. Please fix the customer linkage on the Sales Order before creating the invoice.',
+                ])->withInput();
+            }
+        } else {
+            $customerCandidates = collect([
+                $salesOrder->customer,
+                $salesOrder->customer_name,
+            ])
+                ->map(fn ($value) => is_string($value) ? trim($value) : $value)
+                ->filter(fn ($value) => filled($value))
+                ->unique()
+                ->values();
 
-                    foreach ($candidates as $candidate) {
-                        $query->orWhere('company_name', $candidate)
-                              ->orWhere('name', $candidate)
-                              ->orWhere('pic_name', $candidate);
-                    }
-                })
-                ->first();
-
-            if (!$customer) {
-                // Reuse dummy customer agar tidak gagal di unique email
-                $customer = Customer::firstOrCreate(
-                    ['email' => 'unknown@example.com'],
-                    [
-                        'name' => $customerName,
-                        'phone' => 'N/A',
-                        'company_name' => $customerName,
-                        'company_address' => $salesOrder->customer_address ?? 'N/A',
-                        'pic_phone' => 'N/A',
-                        'pic_email' => 'unknown@example.com',
-                        'handled_by' => auth()->id()
-                    ]
-                );
-
-                \Log::warning('Invoice store using fallback dummy customer', [
-                    'sales_order_id' => $salesOrder->id,
-                    'sales_order_number' => $salesOrder->order_number,
-                    'customer_name' => $customerName,
-                    'resolved_customer_id' => $customer->id,
-                    'user_id' => auth()->id(),
-                ]);
+            if ($customerCandidates->isEmpty()) {
+                return back()->withErrors([
+                    'customer_resolution' => 'The Sales Order does not have a linked customer yet. Please assign the correct customer on the Sales Order before creating the invoice.',
+                ])->withInput();
             }
 
-            $customerId = $customer->id;
+            $matchedCustomers = Customer::query()
+                ->where(function ($query) use ($customerCandidates) {
+                    foreach ($customerCandidates as $candidate) {
+                        $query->orWhere('company_name', $candidate)
+                            ->orWhere('name', $candidate)
+                            ->orWhere('pic_name', $candidate);
+                    }
+                })
+                ->get(['id', 'company_name', 'name', 'pic_name']);
+
+            if ($matchedCustomers->count() > 1) {
+                \Log::warning('Invoice store aborted due to ambiguous customer match', [
+                    'sales_order_id' => $salesOrder->id,
+                    'sales_order_number' => $salesOrder->order_number,
+                    'customer_candidates' => $customerCandidates->all(),
+                    'matched_customer_ids' => $matchedCustomers->pluck('id')->all(),
+                    'user_id' => auth()->id(),
+                ]);
+
+                return back()->withErrors([
+                    'customer_resolution' => 'Multiple customer records match this Sales Order. Please link the correct customer on the Sales Order before creating the invoice.',
+                ])->withInput();
+            }
+
+            if ($matchedCustomers->count() === 0) {
+                \Log::warning('Invoice store aborted due to missing customer match', [
+                    'sales_order_id' => $salesOrder->id,
+                    'sales_order_number' => $salesOrder->order_number,
+                    'customer_candidates' => $customerCandidates->all(),
+                    'user_id' => auth()->id(),
+                ]);
+
+                return back()->withErrors([
+                    'customer_resolution' => 'No matching customer record was found for this Sales Order. Please create or assign the correct customer first, then retry invoice creation.',
+                ])->withInput();
+            }
+
+            $customerId = $matchedCustomers->first()->id;
         }
 
         $vatRate = isset($validated['vat_rate']) ? (float) $validated['vat_rate'] : 0;

@@ -240,6 +240,9 @@
                                                 + Add Vendor
                                             </button>
                                         </div>
+                                        <div v-if="hasLockedVendorBreakdown" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+                                            Item vendor yang sudah <strong>paid</strong> di AP terkunci dan tidak bisa diubah/dihapus.
+                                        </div>
                                         <div v-if="isPricingLocked" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
                                             Pricing terkunci karena invoice sudah dibayar.
                                         </div>
@@ -252,7 +255,7 @@
                                                     :options="vendorSelectOptions"
                                                     placeholder="Select vendor..."
                                                     :search-fields="['label']"
-                                                    :disabled="isPricingLocked"
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
                                                     :input-class="'w-full px-3 py-2 pr-8 border border-sage-300 rounded text-sm focus:ring-1 focus:ring-sage-500 focus:border-sage-500'"
                                                     @update:modelValue="() => onVendorSelect(index)" />
                                             </div>
@@ -262,7 +265,8 @@
                                                 <label
                                                     class="block text-xs font-medium text-sage-700 mb-1">Service Description / Cost Type</label>
                                                 <select v-model="item.description"
-                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500">
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:text-gray-500">
                                                     <option value="">Select Cost Type</option>
                                                     <option v-for="option in serviceTypeOptions" :key="option.value" :value="option.value">
                                                         {{ option.label }}
@@ -280,7 +284,7 @@
                                                     (Optional)</label>
                                                 <input v-model="item.quantity" type="number" step="0.01" min="0"
                                                     placeholder="Quantity"
-                                                    :disabled="isPricingLocked"
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
                                                     @input="() => recalculateVendorAmounts(item)"
                                                     @blur="calculateTotals"
                                                     class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:text-gray-500" />
@@ -291,7 +295,8 @@
                                                 <label class="block text-xs font-medium text-sage-700 mb-1">Unit
                                                     (Optional)</label>
                                                 <input v-model="item.unit" type="text" placeholder="Unit"
-                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
 
                                             <!-- Row 3: RCVD INV -->
@@ -300,7 +305,8 @@
                                                     INV</label>
                                                 <input v-model="item.rcvd_inv" type="text"
                                                     placeholder="Received invoice number"
-                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
 
                                             <!-- Row 2.5: Individual Remarks -->
@@ -309,7 +315,8 @@
                                                     (Individual)</label>
                                                 <input v-model="item.remarks" type="text"
                                                     placeholder="Notes for this item"
-                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
+                                                    class="w-full px-3 py-2 border border-sage-300 rounded focus:ring-2 focus:ring-sage-500 focus:border-sage-500 disabled:bg-gray-100 disabled:text-gray-500" />
                                             </div>
 
                                             <!-- Row 3: Buying & Selling Amounts -->
@@ -317,7 +324,7 @@
                                                 <div>
                                                     <label class="block text-xs font-medium text-blue-700 mb-1">Buying Amount (Unit Price)</label>
                                                     <input v-model="item.buying_amount" type="text" placeholder="0"
-                                                        :disabled="isPricingLocked"
+                                                        :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
                                                         @input="onBuyingAmountInput(item)"
                                                         @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
@@ -328,7 +335,7 @@
                                                 <div>
                                                     <label class="block text-xs font-medium text-green-700 mb-1">Selling Amount (Unit Price)</label>
                                                     <input v-model="item.selling_amount" type="text" placeholder="0"
-                                                        :disabled="isPricingLocked"
+                                                        :disabled="isPricingLocked || isVendorBreakdownLocked(item)"
                                                         @input="onSellingAmountInput(item)"
                                                         @blur="() => { recalculateVendorAmounts(item); calculateTotals(); }"
                                                         class="w-full px-3 py-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:text-gray-500" />
@@ -366,7 +373,7 @@
 
                                             <div class="flex justify-end">
                                                 <button type="button" @click="removeVendorItem(index)"
-                                                    :disabled="isPricingLocked || form.vendor_breakdown.length <= 1"
+                                                    :disabled="isPricingLocked || isVendorBreakdownLocked(item) || form.vendor_breakdown.length <= 1"
                                                     class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                     <Trash2 class="w-4 h-4 mr-1" />
                                                     Remove Vendor
@@ -1003,8 +1010,10 @@ const showDetailUrl = computed(() => route('admin-keuangan.sales-orders.show', {
 
 // Global lock dimatikan: lock hanya berlaku per item paid (other cost / reimbursement).
 const isPricingLocked = computed(() => false);
+const isVendorBreakdownLocked = (item) => !!item?.is_paid_locked;
 const isOtherCostLocked = (cost) => !!cost?.is_paid_locked;
 const isReimbursementLocked = (item) => !!item?.is_paid_locked;
+const hasLockedVendorBreakdown = computed(() => (form.vendor_breakdown || []).some(isVendorBreakdownLocked));
 const hasLockedOtherCosts = computed(() => (form.other_costs || []).some(isOtherCostLocked));
 const hasLockedReimbursements = computed(() => (reimbursementItems.value || []).some(isReimbursementLocked));
 
@@ -1114,7 +1123,8 @@ const initializeVendorBreakdown = () => {
             buying_amount: item.buying_amount || 0,
             selling_amount: item.selling_amount || 0,
             rcvd_inv: item.rcvd_inv || '',
-            remarks: item.remarks || ''
+            remarks: item.remarks || '',
+            is_paid_locked: !!item.is_paid_locked,
         }));
     }
     return [{
@@ -1129,7 +1139,8 @@ const initializeVendorBreakdown = () => {
         buying_amount: 0,
         selling_amount: 0,
         rcvd_inv: '',
-        remarks: ''
+        remarks: '',
+        is_paid_locked: false,
     }];
 };
 
@@ -1206,11 +1217,17 @@ const addVendorItem = () => {
         buying_amount: 0,
         selling_amount: 0,
         rcvd_inv: '',
-        remarks: ''
+        remarks: '',
+        is_paid_locked: false,
     });
 };
 
 const removeVendorItem = (index) => {
+    const target = form.vendor_breakdown[index];
+    if (!target || isVendorBreakdownLocked(target)) {
+        return;
+    }
+
     if (form.vendor_breakdown.length > 1) {
         form.vendor_breakdown.splice(index, 1);
     }

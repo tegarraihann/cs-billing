@@ -23,8 +23,8 @@ class AuthenticatedSessionController extends Controller
             'status' => session('status'),
             'roles' => [
                 ['value' => 'masteradmin', 'label' => 'Master Administrator'],
-                ['value' => 'admin_cs', 'label' => 'Admin Customer Service'],
-                ['value' => 'admin_keuangan', 'label' => 'Admin Keuangan']
+                ['value' => 'admin_cs', 'label' => 'Customer Service'],
+                ['value' => 'admin_keuangan', 'label' => 'Finance']
             ],
         ]);
     }

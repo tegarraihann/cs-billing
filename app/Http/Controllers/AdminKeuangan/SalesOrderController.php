@@ -717,6 +717,10 @@ class SalesOrderController extends Controller
         // Don't change status on update - preserve existing status
         // This prevents released Sales Orders from being reverted to draft when edited
 
+        $existingVendorBreakdown = $this->normalizeVendorBreakdownEntries(
+            is_array($salesOrder->vendor_breakdown) ? $salesOrder->vendor_breakdown : []
+        );
+        $incomingVendorBreakdown = $this->normalizeVendorBreakdownEntries($validated['vendor_breakdown'] ?? []);
         $existingOtherCosts = $this->normalizeOtherCostEntries(
             is_array($salesOrder->other_costs) ? $salesOrder->other_costs : []
         );
@@ -724,9 +728,16 @@ class SalesOrderController extends Controller
         $paidLocks = $this->getPaidComponentLocks($salesOrder);
         $reimbursementItems = $validated['reimbursement_items'] ?? [];
         $this->assertLockedItemsNotRemoved(
+            $incomingVendorBreakdown,
             $incomingOtherCosts,
             $reimbursementItems,
+            $existingVendorBreakdown,
             $existingOtherCosts,
+            $paidLocks
+        );
+        $validated['vendor_breakdown'] = $this->enforcePaidVendorBreakdownLocks(
+            $incomingVendorBreakdown,
+            $existingVendorBreakdown,
             $paidLocks
         );
         $validated['other_costs'] = $this->enforcePaidOtherCostLocks($incomingOtherCosts, $existingOtherCosts, $paidLocks);
@@ -1636,10 +1647,29 @@ class SalesOrderController extends Controller
     private function enrichSalesOrderWithPaidComponentLocks(SalesOrder $salesOrder): void
     {
         $locks = $this->getPaidComponentLocks($salesOrder);
+        $lockedVendorBreakdownIds = $locks['vendor_breakdown_ids'];
+        $lockedVendorBreakdownIndexes = $locks['vendor_breakdown_indexes'];
         $lockedOtherCostIds = $locks['other_cost_ids'];
         $lockedOtherCostIndexes = $locks['other_cost_indexes'];
         $lockedOtherCostLookupRefs = $locks['other_cost_lookup_refs'];
         $lockedReimbursementIds = $locks['reimbursement_ids'];
+
+        $vendorBreakdown = $this->normalizeVendorBreakdownEntries(
+            is_array($salesOrder->vendor_breakdown) ? $salesOrder->vendor_breakdown : []
+        );
+
+        foreach ($vendorBreakdown as $index => &$vendorItem) {
+            $vendorItemId = isset($vendorItem['id']) && is_numeric($vendorItem['id'])
+                ? (int) $vendorItem['id']
+                : null;
+
+            $vendorItem['is_paid_locked'] =
+                ($vendorItemId !== null && in_array($vendorItemId, $lockedVendorBreakdownIds, true))
+                || in_array($index, $lockedVendorBreakdownIndexes, true);
+        }
+        unset($vendorItem);
+
+        $salesOrder->setAttribute('vendor_breakdown', $vendorBreakdown);
 
         $otherCosts = $this->normalizeOtherCostEntries(
             is_array($salesOrder->other_costs) ? $salesOrder->other_costs : []
@@ -1678,6 +1708,25 @@ class SalesOrderController extends Controller
             // causes lock checks to think paid rows were removed.
             $entry['id'] = !empty($entry['id'])
                 ? (string) $entry['id']
+                : null;
+
+            $normalized[] = $entry;
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeVendorBreakdownEntries(array $vendorBreakdown): array
+    {
+        $normalized = [];
+
+        foreach ($vendorBreakdown as $entry) {
+            if (!is_array($entry)) {
+                $entry = (array) $entry;
+            }
+
+            $entry['id'] = (isset($entry['id']) && is_numeric($entry['id']))
+                ? (int) $entry['id']
                 : null;
 
             $normalized[] = $entry;
@@ -1797,6 +1846,8 @@ class SalesOrderController extends Controller
     {
         $salesOrder->loadMissing('accountPayables.components', 'reimbursementItems');
 
+        $vendorBreakdownIds = [];
+        $vendorBreakdownIndexes = [];
         $otherCostIds = [];
         $otherCostIndexes = [];
         $otherCostLookupRefs = [];
@@ -1804,11 +1855,24 @@ class SalesOrderController extends Controller
 
         foreach ($salesOrder->accountPayables as $accountPayable) {
             foreach ($accountPayable->components as $component) {
-                if (($component->status ?? null) !== 'paid') {
+                $componentStatus = strtolower((string) ($component->status ?? ''));
+                $componentPaidAmount = (float) ($component->paid_amount ?? 0);
+
+                if (!in_array($componentStatus, ['paid', 'partial'], true) && $componentPaidAmount <= 0.01) {
                     continue;
                 }
 
                 $relatedItems = is_array($component->related_items) ? $component->related_items : [];
+
+                if ($component->component_type === 'vendor_payment') {
+                    if (isset($relatedItems['vendor_breakdown_id']) && is_numeric($relatedItems['vendor_breakdown_id'])) {
+                        $vendorBreakdownIds[] = (int) $relatedItems['vendor_breakdown_id'];
+                    }
+
+                    if (isset($relatedItems['vendor_breakdown_index']) && is_numeric($relatedItems['vendor_breakdown_index'])) {
+                        $vendorBreakdownIndexes[] = (int) $relatedItems['vendor_breakdown_index'];
+                    }
+                }
 
                 if ($component->component_type === 'operational_cost') {
                     if (isset($relatedItems['other_cost_id'])) {
@@ -1842,6 +1906,8 @@ class SalesOrderController extends Controller
         }
 
         return [
+            'vendor_breakdown_ids' => array_values(array_unique(array_map('intval', $vendorBreakdownIds))),
+            'vendor_breakdown_indexes' => array_values(array_unique(array_map('intval', $vendorBreakdownIndexes))),
             'other_cost_ids' => array_values(array_unique($otherCostIds)),
             'other_cost_indexes' => array_values(array_unique($otherCostIndexes)),
             'other_cost_lookup_refs' => array_values(array_unique($otherCostLookupRefs)),
@@ -1850,12 +1916,28 @@ class SalesOrderController extends Controller
     }
 
     private function assertLockedItemsNotRemoved(
+        array $incomingVendorBreakdown,
         array $incomingOtherCosts,
         array $incomingReimbursements,
+        array $existingVendorBreakdown,
         array $existingOtherCosts,
         array $locks
     ): void {
         $errors = [];
+
+        $lockedVendorBreakdownIds = array_values(array_unique(array_map('intval', $locks['vendor_breakdown_ids'] ?? [])));
+        if (!empty($lockedVendorBreakdownIds)) {
+            $incomingVendorBreakdownIds = collect($incomingVendorBreakdown)
+                ->filter(fn ($entry) => isset($entry['id']) && is_numeric($entry['id']))
+                ->map(fn ($entry) => (int) $entry['id'])
+                ->values()
+                ->all();
+
+            $missingLockedVendorBreakdown = array_values(array_diff($lockedVendorBreakdownIds, $incomingVendorBreakdownIds));
+            if (!empty($missingLockedVendorBreakdown)) {
+                $errors['vendor_breakdown'] = 'Tidak bisa menghapus item Vendor Breakdown yang sudah memiliki pembayaran di AP.';
+            }
+        }
 
         $incomingOtherCostIds = collect($incomingOtherCosts)
             ->map(fn ($entry) => isset($entry['id']) ? (string) $entry['id'] : null)
@@ -1916,6 +1998,55 @@ class SalesOrderController extends Controller
         if (!empty($errors)) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    private function enforcePaidVendorBreakdownLocks(array $incomingVendorBreakdown, array $existingVendorBreakdown, array $locks): array
+    {
+        $lockedIds = array_values(array_unique(array_map('intval', $locks['vendor_breakdown_ids'] ?? [])));
+        $lockedIndexes = array_values(array_unique(array_map('intval', $locks['vendor_breakdown_indexes'] ?? [])));
+
+        if (empty($lockedIds) && empty($lockedIndexes)) {
+            return array_values($incomingVendorBreakdown);
+        }
+
+        $existingById = [];
+        $incomingById = [];
+
+        foreach ($existingVendorBreakdown as $index => $entry) {
+            $entryId = isset($entry['id']) && is_numeric($entry['id']) ? (int) $entry['id'] : null;
+
+            if ($entryId !== null) {
+                $existingById[$entryId] = $entry;
+            }
+
+            if (in_array($index, $lockedIndexes, true) && $entryId === null) {
+                $incomingVendorBreakdown[$index] = $entry;
+            }
+        }
+
+        foreach ($incomingVendorBreakdown as $index => $entry) {
+            $entryId = isset($entry['id']) && is_numeric($entry['id']) ? (int) $entry['id'] : null;
+            if ($entryId !== null) {
+                $incomingById[$entryId] = $index;
+            }
+        }
+
+        foreach ($lockedIds as $lockedId) {
+            if (!isset($existingById[$lockedId])) {
+                continue;
+            }
+
+            $lockedPayload = $existingById[$lockedId];
+
+            if (isset($incomingById[$lockedId])) {
+                $incomingVendorBreakdown[$incomingById[$lockedId]] = $lockedPayload;
+                continue;
+            }
+
+            $incomingVendorBreakdown[] = $lockedPayload;
+        }
+
+        return array_values($incomingVendorBreakdown);
     }
 
     private function enforcePaidOtherCostLocks(array $incomingOtherCosts, array $existingOtherCosts, array $locks): array

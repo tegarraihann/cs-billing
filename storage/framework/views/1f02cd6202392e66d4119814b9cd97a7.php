@@ -68,6 +68,7 @@
 
         .content {
             margin-top: 10px;
+            padding-bottom: 170px;
         }
 
         .section {
@@ -180,7 +181,10 @@
         }
 
         .invoice-footer-block {
-            margin-top: 400px;
+            position: fixed;
+            left: 1cm;
+            right: 1cm;
+            bottom: 1.7cm;
         }
 
         .signature-table {

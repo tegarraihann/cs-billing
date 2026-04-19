@@ -789,6 +789,18 @@
                 </div>
             </form>
         </div>
+
+        <AlertDialog
+            :show="alertDialog.show"
+            :type="alertDialog.type"
+            :title="alertDialog.title"
+            :message="alertDialog.message"
+            :confirm-text="alertDialog.confirmText"
+            :cancel-text="alertDialog.cancelText"
+            @confirm="handleAlertConfirm"
+            @cancel="handleAlertCancel"
+            @close="closeAlert"
+        />
     </AdminKeuanganLayout>
 </template>
 
@@ -798,6 +810,7 @@ import { useForm, Link } from '@inertiajs/vue3';
 import AdminKeuanganLayout from '@/Layouts/AdminKeuanganLayout.vue';
 import OperationalCostsSection from '@/Components/OperationalCostsSection.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import AlertDialog from '@/Components/AlertDialog.vue';
 
 const props = defineProps({
     salesOrders: Array,
@@ -970,6 +983,105 @@ const form = useForm({
 });
 
 const isAdditionalMode = computed(() => !!form.is_additional);
+
+const alertDialog = reactive({
+    show: false,
+    type: 'info',
+    title: '',
+    message: '',
+    confirmText: '',
+    cancelText: '',
+    onConfirm: null,
+    onCancel: null,
+});
+
+const openAlert = ({
+    type = 'info',
+    title = '',
+    message = '',
+    confirmText = '',
+    cancelText = '',
+    onConfirm = null,
+    onCancel = null,
+} = {}) => {
+    alertDialog.show = true;
+    alertDialog.type = type;
+    alertDialog.title = title;
+    alertDialog.message = message;
+    alertDialog.confirmText = confirmText;
+    alertDialog.cancelText = cancelText;
+    alertDialog.onConfirm = onConfirm;
+    alertDialog.onCancel = onCancel;
+};
+
+const closeAlert = () => {
+    alertDialog.show = false;
+    alertDialog.type = 'info';
+    alertDialog.title = '';
+    alertDialog.message = '';
+    alertDialog.confirmText = '';
+    alertDialog.cancelText = '';
+    alertDialog.onConfirm = null;
+    alertDialog.onCancel = null;
+};
+
+const handleAlertConfirm = () => {
+    if (typeof alertDialog.onConfirm === 'function') {
+        alertDialog.onConfirm();
+    }
+    closeAlert();
+};
+
+const handleAlertCancel = () => {
+    if (typeof alertDialog.onCancel === 'function') {
+        alertDialog.onCancel();
+    }
+    closeAlert();
+};
+
+const buildErrorMessage = (errors = {}) => {
+    const prioritizedKeys = [
+        'customer_resolution',
+        'sales_order_id',
+        'invoice_type',
+        'base_invoice_id',
+        'items',
+        'general',
+    ];
+
+    const orderedMessages = [];
+
+    prioritizedKeys.forEach((key) => {
+        const value = errors[key];
+        if (!value) {
+            return;
+        }
+
+        if (Array.isArray(value)) {
+            orderedMessages.push(...value.filter(Boolean));
+            return;
+        }
+
+        orderedMessages.push(value);
+    });
+
+    Object.entries(errors).forEach(([key, value]) => {
+        if (prioritizedKeys.includes(key) || !value) {
+            return;
+        }
+
+        if (Array.isArray(value)) {
+            orderedMessages.push(...value.filter(Boolean));
+            return;
+        }
+
+        orderedMessages.push(value);
+    });
+
+    const uniqueMessages = [...new Set(orderedMessages.map((message) => String(message).trim()).filter(Boolean))];
+
+    return uniqueMessages.join('\n');
+};
 
 const loadSalesOrderData = (autoPopulateItems = !form.is_additional) => {
     const selectedOrder = props.salesOrders.find(order => order.id == form.sales_order_id);
@@ -1331,7 +1443,11 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
 // Function to reload data from Sales Order
 const reloadFromSalesOrder = () => {
     if (form.is_additional) {
-        alert('Mode Additional Invoice menggunakan item manual. Fitur load otomatis dari SO dinonaktifkan.');
+        openAlert({
+            type: 'warning',
+            title: 'Automatic Load Disabled',
+            message: 'Additional Invoice mode uses manual items. Automatic loading from the Sales Order is disabled.',
+        });
         return;
     }
 
@@ -1342,11 +1458,20 @@ const reloadFromSalesOrder = () => {
             (selectedOrder.other_costs && selectedOrder.other_costs.length > 0);
 
         if (hasData) {
-            if (confirm('This will replace all existing items with data from the Sales Order. Continue?')) {
-                populateItemsFromSalesOrder(selectedOrder);
-            }
+            openAlert({
+                type: 'confirm',
+                title: 'Reload Sales Order Data',
+                message: 'This will replace all existing invoice items with data from the Sales Order. Continue?',
+                confirmText: 'Continue',
+                cancelText: 'Cancel',
+                onConfirm: () => populateItemsFromSalesOrder(selectedOrder),
+            });
         } else {
-            alert('Sales Order ini tidak memiliki data vendor breakdown, reimbursement items, atau operational costs untuk di-load.');
+            openAlert({
+                type: 'warning',
+                title: 'No Data to Load',
+                message: 'This Sales Order does not have vendor breakdown, reimbursement items, or operational costs to load.',
+            });
         }
     }
 };
@@ -1710,7 +1835,11 @@ const submit = () => {
         onError: (errors) => {
             console.error('Invoice creation failed:', errors);
             console.error('Form data:', form.data());
-            alert('Error creating invoice: ' + JSON.stringify(errors));
+            openAlert({
+                type: 'error',
+                title: 'Failed to Create Invoice',
+                message: buildErrorMessage(errors) || 'An unexpected error occurred while creating the invoice.',
+            });
         },
         onFinish: () => {
             console.log('Invoice creation finished');
