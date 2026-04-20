@@ -63,15 +63,18 @@
                                         </div>
                                     </div>
 
-                                    <div v-if="inputMethod === 'customer'" class="mt-4">
+                                    <div class="mt-4">
                                         <label class="block text-sm font-medium text-sage-700 mb-2">Select
                                             Customer</label>
+                                        <p class="mb-2 text-xs text-sage-500">Sales order can only be saved when the customer is selected from master data.</p>
                                         <SearchableSelect v-model="selectedCustomerId" :options="customerOptions"
                                             placeholder="Search customers... (e.g., CI)" label-field="label"
                                             sub-label-field="subLabel" value-field="value"
                                             :search-fields="['label', 'subLabel', 'company_name', 'pic_name']"
                                             input-class="w-full px-3 py-2 pr-10 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
                                             @select="onCustomerSelect" />
+                                        <div v-if="form.errors.customer_id" class="mt-2 text-sm text-red-600">{{
+                                            form.errors.customer_id }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -117,8 +120,9 @@
                                     <div>
                                         <label class="block text-sm font-medium text-sage-700 mb-2">CUSTOMER <span
                                                 class="text-red-500">*</span></label>
-                                        <input v-model="form.customer" type="text" required
-                                            class="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500" />
+                                        <input v-model="form.customer" type="text" readonly
+                                            placeholder="Customer name will be filled from master data"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed" />
                                         <div v-if="form.errors.customer" class="mt-2 text-sm text-red-600">{{
                                             form.errors.customer }}</div>
                                     </div>
@@ -1083,6 +1087,7 @@ const buildDefaultForm = () => ({
     order_number: props.orderNumber || "",
     ref_no: "",
     so_date: "",
+    customer_id: "",
     customer: "",
     shipper: "",
     bl_awb: "",
@@ -1121,6 +1126,7 @@ const resetFormState = () => {
     const defaults = buildDefaultForm();
     form.reset();
     Object.assign(form, defaults);
+    selectedCustomerId.value = "";
 };
 
 onMounted(() => {
@@ -1140,6 +1146,7 @@ const toggleSection = (section) => {
 
 const onCustomerSelect = (selectedCustomer) => {
     if (selectedCustomer) {
+        form.customer_id = selectedCustomer.value || selectedCustomer.id || "";
         // Auto-fill fields that are available from customer data
         form.customer = selectedCustomer.company_name || "";
         // Clear shipping fields since they're no longer available
@@ -1148,16 +1155,26 @@ const onCustomerSelect = (selectedCustomer) => {
         form.pod = "";
         form.eta = "";
     } else {
+        form.customer_id = "";
         // Clear auto-filled data
-        if (inputMethod.value === 'customer') {
-            form.customer = "";
-            form.bl_awb = "";
-            form.pol = "";
-            form.pod = "";
-            form.eta = "";
-        }
+        form.customer = "";
+        form.bl_awb = "";
+        form.pol = "";
+        form.pod = "";
+        form.eta = "";
     }
 };
+
+watch(selectedCustomerId, (value) => {
+    form.customer_id = value || "";
+
+    if (!value) {
+        form.customer = "";
+    }
+});
+
+const getCustomerSelectionErrorMessage = () =>
+    "Please select a customer from the master customer list before saving the sales order.";
 
 // Vendor selection for buying breakdown
 const onVendorSelect = (index) => {
@@ -1411,6 +1428,11 @@ const closeAlert = () => {
 };
 
 const submit = () => {
+    if (!form.customer_id) {
+        showAlert("error", "Customer Required", getCustomerSelectionErrorMessage());
+        return;
+    }
+
     const sanitizedReimbursements = reimbursementItems.value
         .filter(r => r.description && r.amount && r.amount > 0)
         .map(r => ({
@@ -1440,6 +1462,7 @@ const submit = () => {
 
     const cleanedData = {
         ...form.data(),
+        customer_id: form.customer_id || selectedCustomerId.value || "",
         vendor_breakdown: form.vendor_breakdown.map(item => {
             const buyingUnitPrice = parseFloat(item.buying_amount.toString().replace(/\./g, '')) || 0;
             const sellingUnitPrice = parseFloat(item.selling_amount.toString().replace(/\./g, '')) || 0;
@@ -1478,6 +1501,15 @@ const submit = () => {
         },
         onError: (errors) => {
             console.error('Sales Order Creation Error:', errors);
+
+            if (errors?.customer_id) {
+                const customerError = Array.isArray(errors.customer_id)
+                    ? errors.customer_id.join(". ")
+                    : errors.customer_id;
+
+                showAlert("error", "Customer Required", customerError);
+                return;
+            }
 
             // Handle specific validation errors
             if (errors && Object.keys(errors).length > 0) {

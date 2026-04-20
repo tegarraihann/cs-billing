@@ -314,7 +314,7 @@ class SalesOrderController extends Controller
      */
     public function create(Request $request)
     {
-        $customers = Customer::select('id', 'company_name', 'pic_name', 'pic_email', 'marketing_name')
+        $customers = Customer::select('id', 'customer_code', 'company_name', 'company_address', 'invoice_address', 'pic_name', 'pic_email', 'marketing_name')
             ->orderBy('company_name')
             ->get();
 
@@ -362,7 +362,8 @@ class SalesOrderController extends Controller
             'order_number' => 'required|string|max:255',
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
-            'customer' => 'required|string|max:255',
+            'customer_id' => 'required|exists:customers,id',
+            'customer' => 'nullable|string|max:255',
             'shipper' => 'nullable|string|max:255',
             'bl_awb' => 'nullable|string|max:255',
             'liner' => 'nullable|string|max:255',
@@ -434,7 +435,7 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
 
 
-        ]);
+        ], $this->salesOrderCustomerValidationMessages());
 
         $validated['package_unit'] = !empty($validated['package_unit'])
             ? $validated['package_unit']
@@ -446,13 +447,12 @@ class SalesOrderController extends Controller
             $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no']);
         }
 
+        $validated = $this->applyMasterCustomerPayload($validated);
+
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
         $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
-        $validated['customer_name'] = $validated['customer'];
-        $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
-        $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
         // Calculate totals from vendor breakdown
         $totalSelling = 0;
@@ -552,6 +552,10 @@ class SalesOrderController extends Controller
             ->orderBy('nama_vendor')
             ->get();
 
+        $customers = Customer::select('id', 'customer_code', 'company_name', 'company_address', 'invoice_address', 'pic_name', 'pic_email', 'marketing_name')
+            ->orderBy('company_name')
+            ->get();
+
         $shipmentTypes = \App\Models\ShipmentType::active()
             ->select('id', 'name', 'code', 'description')
             ->orderBy('name')
@@ -577,6 +581,7 @@ class SalesOrderController extends Controller
 
         return Inertia::render('Admin/AdminKeuangan/SalesOrders/Edit', [
             'salesOrder' => $salesOrder,
+            'customers' => $customers,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
             'serviceTypes' => $serviceTypes,
@@ -598,7 +603,8 @@ class SalesOrderController extends Controller
             'order_number' => 'required|string|max:255',
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
-            'customer' => 'required|string|max:255',
+            'customer_id' => 'required|exists:customers,id',
+            'customer' => 'nullable|string|max:255',
             'shipper' => 'nullable|string|max:255',
             'bl_awb' => 'nullable|string|max:255',
             'liner' => 'nullable|string|max:255',
@@ -670,7 +676,7 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
-        ]);
+        ], $this->salesOrderCustomerValidationMessages());
 
         // Ensure package unit always has a valid code (column is non-nullable)
         $validated['package_unit'] = !empty($validated['package_unit'])
@@ -686,13 +692,12 @@ class SalesOrderController extends Controller
         unset($validated['vendor_details']); // Remove vendor_details from main validated data
         $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
 
+        $validated = $this->applyMasterCustomerPayload($validated);
+
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
         $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
-        $validated['customer_name'] = $validated['customer'];
-        $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
-        $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
         // Calculate totals from vendor breakdown
         $totalSelling = 0;
@@ -2411,5 +2416,31 @@ class SalesOrderController extends Controller
         }
 
         return array_values(array_unique($results));
+    }
+
+    private function salesOrderCustomerValidationMessages(): array
+    {
+        return [
+            'customer_id.required' => 'Please select a customer from the master customer list before saving the sales order.',
+            'customer_id.exists' => 'The selected customer was not found in the master customer list. Please reselect the customer.',
+        ];
+    }
+
+    private function applyMasterCustomerPayload(array $validated): array
+    {
+        $customer = Customer::findOrFail($validated['customer_id']);
+        $customerName = $customer->company_name ?: $customer->name;
+        $companyAddress = $customer->company_address ?: 'N/A';
+        $invoiceAddress = $customer->invoice_address ?: $companyAddress;
+
+        $validated['customer'] = $customerName;
+        $validated['customer_name'] = $customerName;
+        $validated['customer_code'] = $customer->customer_code;
+        $validated['customer_address'] = $companyAddress;
+        $validated['shipping_address'] = $invoiceAddress;
+        $validated['customer_email'] = $customer->email ?: $customer->pic_email;
+        $validated['customer_phone'] = $customer->phone ?: $customer->pic_phone;
+
+        return $validated;
     }
 }

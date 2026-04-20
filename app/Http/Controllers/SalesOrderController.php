@@ -68,7 +68,7 @@ class SalesOrderController extends Controller
      */
     public function create(Request $request)
     {
-        $customers = Customer::select('id', 'company_name', 'pic_name', 'pic_email', 'marketing_name')
+        $customers = Customer::select('id', 'customer_code', 'company_name', 'company_address', 'invoice_address', 'pic_name', 'pic_email', 'marketing_name')
             ->orderBy('company_name')
             ->get();
 
@@ -126,7 +126,8 @@ class SalesOrderController extends Controller
                 'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number',
                 'ref_no' => 'nullable|string|max:255',
                 'so_date' => 'nullable|date',
-                'customer' => 'required|string|max:255',
+                'customer_id' => 'required|exists:customers,id',
+                'customer' => 'nullable|string|max:255',
                 'shipper' => 'nullable|string|max:255',
                 'bl_awb' => 'nullable|string|max:255',
                 'liner' => 'nullable|string|max:255',
@@ -196,20 +197,19 @@ class SalesOrderController extends Controller
                 'reimbursement_items.*.category' => 'nullable|string|max:100',
                 'reimbursement_items.*.notes' => 'nullable|string|max:500',
                 'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
-            ]);
+            ], $this->salesOrderCustomerValidationMessages());
 
             $validated['created_by'] = Auth::id();
 
             // Convert container_no string to array if needed
             $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no'] ?? null);
 
+            $validated = $this->applyMasterCustomerPayload($validated);
+
             // Set legacy fields for backward compatibility
             $validated['so_number'] = $validated['order_number'];
             $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
-            $validated['customer_name'] = $validated['customer'];
-            $validated['customer_address'] = 'N/A';
             $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
-            $validated['shipping_address'] = 'N/A';
             $validated['service_description'] = 'Sales Order';
             // Calculate totals from vendor breakdown
             $totalSelling = 0;
@@ -308,6 +308,10 @@ class SalesOrderController extends Controller
             ->orderBy('nama_vendor')
             ->get();
 
+        $customers = Customer::select('id', 'customer_code', 'company_name', 'company_address', 'invoice_address', 'pic_name', 'pic_email', 'marketing_name')
+            ->orderBy('company_name')
+            ->get();
+
         $shipmentTypes = ShipmentType::active()
             ->select('id', 'name', 'code', 'description')
             ->orderBy('name')
@@ -330,6 +334,7 @@ class SalesOrderController extends Controller
 
         return Inertia::render('Admin/AdminCS/SalesOrders/Edit', [
             'salesOrder' => $salesOrderPayload,
+            'customers' => $customers,
             'vendors' => $vendors,
             'shipmentTypes' => $shipmentTypes,
             'serviceTypes' => $serviceTypes,
@@ -357,7 +362,8 @@ class SalesOrderController extends Controller
             'order_number' => 'required|string|regex:/^EWILOG\d+$/|unique:sales_orders,order_number,' . $salesOrder->id,
             'ref_no' => 'nullable|string|max:255',
             'so_date' => 'nullable|date',
-            'customer' => 'required|string|max:255',
+            'customer_id' => 'required|exists:customers,id',
+            'customer' => 'nullable|string|max:255',
             'shipper' => 'nullable|string|max:255',
             'bl_awb' => 'nullable|string|max:255',
             'liner' => 'nullable|string|max:255',
@@ -429,7 +435,7 @@ class SalesOrderController extends Controller
             'reimbursement_items.*.category' => 'nullable|string|max:100',
             'reimbursement_items.*.notes' => 'nullable|string|max:500',
             'reimbursement_items.*.vendor_id' => 'nullable', // Can be vendor ID (integer), 'internal' (string), or empty
-        ]);
+        ], $this->salesOrderCustomerValidationMessages());
 
         // Convert container_no string to array if needed
         $validated['container_no'] = $this->sanitizeContainerNumbers($validated['container_no'] ?? null);
@@ -439,13 +445,12 @@ class SalesOrderController extends Controller
         unset($validated['vendor_details']); // Remove vendor_details from main validated data
         $validated['vendors'] = $vendorDetails; // Store multiple vendors data in vendors field
 
+        $validated = $this->applyMasterCustomerPayload($validated);
+
         // Set legacy fields for backward compatibility
         $validated['so_number'] = $validated['order_number'];
         $validated['so_date'] = $validated['so_date'] ?? now()->toDateString();
-        $validated['customer_name'] = $validated['customer'];
-        $validated['customer_address'] = 'N/A';
         $validated['consignee_shipper'] = $validated['shipper'] ?? 'N/A';
-        $validated['shipping_address'] = 'N/A';
         $validated['service_description'] = 'Sales Order';
         // Calculate totals from vendor breakdown
         $totalSelling = 0;
@@ -529,6 +534,12 @@ class SalesOrderController extends Controller
         }
 
         // Validate required fields before release
+        if (empty($salesOrder->customer_id)) {
+            return redirect()->back()->withErrors([
+                'error' => 'Sales order cannot be released because no master customer has been selected yet.'
+            ]);
+        }
+
         $requiredFields = ['order_number', 'customer'];
         $missingFields = [];
 
@@ -1273,6 +1284,32 @@ class SalesOrderController extends Controller
         $data['reimbursement_items'] = $reimbursements;
 
         return $data;
+    }
+
+    private function salesOrderCustomerValidationMessages(): array
+    {
+        return [
+            'customer_id.required' => 'Please select a customer from the master customer list before saving the sales order.',
+            'customer_id.exists' => 'The selected customer was not found in the master customer list. Please reselect the customer.',
+        ];
+    }
+
+    private function applyMasterCustomerPayload(array $validated): array
+    {
+        $customer = Customer::findOrFail($validated['customer_id']);
+        $customerName = $customer->company_name ?: $customer->name;
+        $companyAddress = $customer->company_address ?: 'N/A';
+        $invoiceAddress = $customer->invoice_address ?: $companyAddress;
+
+        $validated['customer'] = $customerName;
+        $validated['customer_name'] = $customerName;
+        $validated['customer_code'] = $customer->customer_code;
+        $validated['customer_address'] = $companyAddress;
+        $validated['shipping_address'] = $invoiceAddress;
+        $validated['customer_email'] = $customer->email ?: $customer->pic_email;
+        $validated['customer_phone'] = $customer->phone ?: $customer->pic_phone;
+
+        return $validated;
     }
 
     private function normalizeOtherCostEntries(array $otherCosts): array
