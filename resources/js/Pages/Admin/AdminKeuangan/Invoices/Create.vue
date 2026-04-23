@@ -1273,6 +1273,11 @@ const populateItemsFromSalesOrder = (salesOrder, overrides = {}) => {
     reimbursementItems.value = [];
     operationalCosts.value = [];
 
+    if (form.is_additional) {
+        addItem();
+        return;
+    }
+
     const vendorBreakdown = overrides.vendor_breakdown ?? salesOrder.vendor_breakdown ?? [];
     const reimbursementSource = (overrides.reimbursement_items ?? salesOrder.reimbursement_items ?? [])
         .filter((item) => {

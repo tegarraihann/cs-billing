@@ -70,6 +70,10 @@ class InvoiceCostSyncService
      */
     public function syncInvoiceWithAccountPayables(Invoice $invoice): void
     {
+        if ($invoice->is_additional) {
+            return;
+        }
+
         if (!$invoice->sales_order_id) {
             return;
         }
@@ -113,6 +117,7 @@ class InvoiceCostSyncService
 
         return $salesOrder->invoices()
             ->whereIn('invoice_type', $prioritizedTypes)
+            ->where('is_additional', false)
             ->orderByRaw("FIELD(invoice_type, '" . implode("','", $prioritizedTypes) . "')")
             ->get();
     }
