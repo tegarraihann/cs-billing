@@ -385,7 +385,7 @@
             </div>
 
             <!-- Reimbursement Invoice Items -->
-            <div v-if="invoice.invoice_type === 'reimbursement' || invoice.invoice_type === 'combined' || getReimbursementItems.length > 0"
+            <div v-if="invoice.invoice_type === 'reimbursement' || invoice.invoice_type === 'combined' || hasReimbursementEntries || getReimbursementItems.length > 0"
                 class="bg-white rounded-lg shadow-sm border border-sage-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-sage-200 bg-orange-50">
                     <div class="flex itemss-center justify-between">
@@ -1548,6 +1548,11 @@ const getReimbursementItems = computed(() => {
     if (props.invoice.invoice_type === 'combined') {
         // Untuk invoice combined, pisahkan itemss berdasarkan items_type dan items_ref
         return getInvoiceItems(props.invoice).filter(isReimbursementInvoiceItem);
+    }
+
+    const invoiceLevelReimbursementItems = getInvoiceItems(props.invoice).filter(isReimbursementInvoiceItem);
+    if (invoiceLevelReimbursementItems.length > 0) {
+        return invoiceLevelReimbursementItems;
     }
 
     // Untuk invoice type reimbursement atau jika ada reimbursementInvoice
