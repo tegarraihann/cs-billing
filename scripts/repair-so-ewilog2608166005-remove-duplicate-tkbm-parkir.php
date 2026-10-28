@@ -43,6 +43,35 @@ final class RepairSo2608166005
         663 => ['TKBM', 2, 150000, '20GP'],
     ];
 
+    // Production IDs have different meanings from the older local snapshot.
+    private const PRODUCTION_SOURCES = [
+        652 => ['DELIVERY ORDER', 1, 7353728, 'SET', 19, 8644, 5684, 1067],
+        653 => ['DEVOSIT CONTAINER', 1, 280000, 'SET', 19, 8645, 5685, 1067],
+        662 => ['STORAGE', 1, 5677660, 'SET', 62, 8646, 5688, 1066],
+        663 => ['UANG KULI', 1, 100000, 'SET', 19, 8647, 5686, 1067],
+        664 => ['PARKIR 1', 1, 50000, 'SET', 102, 8648, 5693, 1095],
+        676 => ['PARKIR 2', 1, 50000, '20GP', 101, 9175, 5690, 1093],
+        677 => ['TKBM 1', 1, 150000, '20GP', 102, 9176, 5694, 1095],
+        683 => ['TKBM 2', 1, 150000, '20GP', 101, 9512, 5691, 1093],
+        684 => ['LOLO 1', 1, 821622, '20GP', 102, 9513, 5259, 1095],
+        685 => ['LOLO 2', 1, 821622, '20GP', 101, 9561, 5692, 1093],
+        686 => ['TKBM 1', 1, 150000, '20GP', 102, 9562, 5263, 1095],
+        687 => ['TKBM', 2, 150000, '20GP', 101, 9563, 5261, 1093],
+        689 => ['LOLO', 2, 821622, '20GP', 19, 9696, 5362, 1067],
+        690 => ['TKBM STUFFING', 2, 50000, '20GP', 19, 9697, 5363, 1067],
+        691 => ['PARKIR GUDANG', 2, 50000, '20GP', 19, 9698, 5364, 1067],
+        692 => ['CHARGE LINER CONTAINER', 1, 2800000, 'SET', 19, 9699, 5365, 1067],
+    ];
+
+    private const PRODUCTION_KEEPERS = [
+        653 => ['DEPOSIT KONTAINER', 1, 2800000, 'SET'],
+        663 => ['EXTRA KULI', 1, 100000, 'SET'],
+        662 => ['STORAGE', 1, 5677660, 'SET'],
+        689 => ['LOLO', 2, 821622, '20GP'],
+        691 => ['PARKIR', 2, 50000, '20GP'],
+        690 => ['TKBM', 2, 150000, '20GP'],
+    ];
+
     private const REQUIRED_TABLES = [
         'sales_orders', 'invoices', 'invoice_items', 'reimbursement_items',
         'account_payables', 'account_payable_components', 'account_receivables',
@@ -53,6 +82,8 @@ final class RepairSo2608166005
     private array $columns = [];
     private array $tables = [];
     private array $referenceTargets;
+    private array $finalKeepers = self::FINAL_KEEPERS;
+    private bool $productionProfile = false;
 
     public function __construct(private Connection $db, private string $backupDirectory, private bool $finalize = false)
     {
@@ -61,6 +92,22 @@ final class RepairSo2608166005
             foreach (self::FINAL_SOURCES as $id => $values) {
                 $this->referenceTargets[$id] = array_combine(['description', 'quantity', 'amount', 'unit', 'vendor_id', 'invoice_item', 'component', 'ap'], $values);
             }
+        }
+    }
+
+    private function configureFinalProfile(bool $lock): void
+    {
+        $query = $this->db->table('reimbursement_items')->where('sales_order_id', 322)->where('id', 663);
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+        // This is only a routing hint. planFinal still validates every source and reference.
+        $this->productionProfile = in_array($query->value('description'), ['UANG KULI', 'EXTRA KULI'], true);
+        $this->finalKeepers = $this->productionProfile ? self::PRODUCTION_KEEPERS : self::FINAL_KEEPERS;
+        $sources = $this->productionProfile ? self::PRODUCTION_SOURCES : self::FINAL_SOURCES;
+        $this->referenceTargets = $this->productionProfile ? [] : self::TARGETS;
+        foreach ($sources as $id => $values) {
+            $this->referenceTargets[$id] = array_combine(['description', 'quantity', 'amount', 'unit', 'vendor_id', 'invoice_item', 'component', 'ap'], $values);
         }
     }
 
@@ -79,6 +126,9 @@ final class RepairSo2608166005
                     $this->check(strtolower((string) $engine->engine) === 'innodb', "Tabel {$engine->table_name} bukan InnoDB; rollback tidak dapat dijamin.");
                 }
             }
+        }
+        if ($this->finalize) {
+            $this->configureFinalProfile($lock);
         }
         $s = $this->snapshot($lock);
         $so = $this->one($s['sales_orders'], 322);
@@ -216,13 +266,13 @@ final class RepairSo2608166005
         $ids = array_map('intval', array_column($s['reimbursement_items'], 'id'));
         $all = array_keys($this->referenceTargets);
         $intermediate = array_keys(self::FINAL_SOURCES);
-        $keepers = array_keys(self::FINAL_KEEPERS);
+        $keepers = array_keys($this->finalKeepers);
         sort($ids);
         sort($all);
         sort($intermediate);
         sort($keepers);
         $clean = $ids === $keepers;
-        $this->check($clean || $ids === $all || $ids === $intermediate, 'Daftar sumber berbeda/parsial: hanya kondisi 16, 13, atau enam item final yang ditinjau dapat diproses.');
+        $this->check($clean || $ids === $all || (!$this->productionProfile && $ids === $intermediate), 'Daftar sumber berbeda/parsial: hanya kondisi 16, 13 lokal lama, atau enam item final yang ditinjau dapat diproses.');
         $this->check($this->db->table('reimbursement_items')->whereIn('id', $all)->count() === count($ids), 'ID reimbursement target ditemukan pada SO lain.');
         $active = array_intersect_key($this->referenceTargets, array_flip($ids));
         $this->guardReferences($s, false, $active);
@@ -234,7 +284,7 @@ final class RepairSo2608166005
         foreach ($active as $id => $source) {
             $expected = array_intersect_key($source, array_flip(['description', 'quantity', 'amount', 'unit', 'vendor_id']));
             if ($clean) {
-                [$expected['description'], $expected['quantity'], $expected['amount'], $expected['unit']] = self::FINAL_KEEPERS[$id];
+                [$expected['description'], $expected['quantity'], $expected['amount'], $expected['unit']] = $this->finalKeepers[$id];
             }
             $r = $this->one($s['reimbursement_items'], $id);
             $this->same($r, $expected + ['invoice_id' => 308, 'sales_order_id' => 322, 'status' => 'invoiced'], "Sumber #{$id}");
@@ -257,13 +307,13 @@ final class RepairSo2608166005
             $related = self::json($c['related_items']);
             $this->same($related, $metadata + ['source' => 'reimbursement_items', 'reimbursement_item_id' => $id, 'lookup_ref' => 'reimbursement_' . $id], "Referensi AP #{$c['id']}");
             $this->unpaid($c, "AP component #{$c['id']}");
-            if (!isset(self::FINAL_KEEPERS[$id])) {
+            if (!isset($this->finalKeepers[$id])) {
                 $deletes['reimbursement_items'][] = $id;
                 $deletes['invoice_items'][] = $source['invoice_item'];
                 $deletes['account_payable_components'][] = $source['component'];
                 continue;
             }
-            [$description, $qty, $rate, $unit] = self::FINAL_KEEPERS[$id];
+            [$description, $qty, $rate, $unit] = $this->finalKeepers[$id];
             $newLine = self::money(self::cents($rate) * $qty);
             $newMetadata = ['quantity' => $qty, 'unit' => $unit, 'unit_price' => $rate];
             $this->propose($s, $after, $updates, 'reimbursement_items', $id, [
@@ -289,29 +339,40 @@ final class RepairSo2608166005
         $this->check(count($s['account_receivables']) === 1 && count($s['account_receivable_components']) === 2, 'Struktur AR tidak tunggal.');
         $this->same($ar, ['sales_order_id' => 322, 'invoice_id' => 308], 'AR 368');
         $this->same($debit, ['account_receivable_id' => 368, 'component_type' => 'debit_note'], 'AR 537');
-        $this->same($main, ['account_receivable_id' => 368, 'component_type' => 'main', 'amount' => '11348000.00', 'outstanding_amount' => '11348000.00'], 'AR main');
+        $mainAmount = $this->productionProfile ? '11448000.00' : '11348000.00';
+        $finalTotal = $this->productionProfile ? '22068904.00' : '21968904.00';
+        $this->same($main, ['account_receivable_id' => 368, 'component_type' => 'main', 'amount' => $mainAmount, 'outstanding_amount' => $mainAmount], 'AR main');
         foreach ([$invoice, $ar, $debit, $main] as $row) {
             $this->unpaid($row, 'Invoice/AR #' . $row['id']);
         }
         $totals = $this->invoiceTotals($s['invoice_items']);
         $newTotals = $this->invoiceTotals($after['invoice_items']);
+        $this->equalMoney($totals['gross_revenue'], $mainAmount, 'Main invoice berbeda dari baseline billable yang ditinjau.');
         $this->equalMoney($invoice['vat_amount'], 0, 'PPN berubah dari baseline nol.');
         $this->equalMoney($invoice['down_payment_amount'], 0, 'DP berubah dari baseline nol.');
-        $expectedTotal = $clean ? '21968904.00' : (count($ids) === 16 ? '32917498.00' : '32417498.00');
+        $expectedTotal = $clean ? $finalTotal : ($this->productionProfile ? '31995876.00' : (count($ids) === 16 ? '32917498.00' : '32417498.00'));
         foreach ([$invoice['subtotal'], $invoice['total'], $ar['invoice_amount'], $ar['outstanding_amount'], $totals['subtotal']] as $value) {
             $this->equalMoney($value, $expectedTotal, 'Invoice/AR tidak sesuai baseline yang ditinjau.');
         }
         $this->equalMoney($debit['amount'], $totals['reimbursement'], 'AR debit_note berbeda dari invoice reimbursement.');
         $this->equalMoney($debit['outstanding_amount'], $debit['amount'], 'Outstanding debit_note berbeda.');
         $this->equalMoney($newTotals['reimbursement'], '10620904.00', 'Total enam reimbursement final salah.');
-        $this->equalMoney($newTotals['subtotal'], '21968904.00', 'Total invoice final salah.');
+        $this->equalMoney($newTotals['subtotal'], $finalTotal, 'Total invoice final salah.');
         $this->check($totals['gross_revenue'] === $newTotals['gross_revenue'] && $totals['operational_costs'] === $newTotals['operational_costs'], 'Basis profit berubah.');
         $warnings = $this->guardPosting($s, $invoice, $totals);
         $this->propose($s, $after, $updates, 'invoices', 308, ['subtotal' => $newTotals['subtotal'], 'total' => $newTotals['subtotal']]);
         $this->propose($s, $after, $updates, 'account_receivables', 368, ['invoice_amount' => $newTotals['subtotal'], 'outstanding_amount' => $newTotals['subtotal']]);
         $this->propose($s, $after, $updates, 'account_receivable_components', 537, ['amount' => $newTotals['reimbursement'], 'outstanding_amount' => $newTotals['reimbursement']]);
 
-        foreach ([1066 => [62, '5677660.00'], 1067 => [19, '5253244.00'], 1093 => [101, '3500000.00'], 1095 => [102, '3800000.00']] as $apId => [$vendor, $finalAmount]) {
+        $apTargets = [1066 => [62, '5677660.00'], 1067 => [19, '5253244.00'], 1093 => [101, '3500000.00'], 1095 => [102, '3800000.00']];
+        $productionApBefore = [1066 => '5677660.00', 1067 => '12686972.00', 1068 => '100000.00', 1093 => '4821622.00', 1095 => '4971622.00', 1111 => '166500.00'];
+        if ($this->productionProfile) {
+            $apTargets += [1068 => [99, '100000.00'], 1111 => [15, '166500.00']];
+            $apIds = array_map('intval', array_column($s['account_payables'], 'id'));
+            sort($apIds);
+            $this->check($apIds === array_keys($productionApBefore), 'Daftar header AP production berbeda dari baseline.');
+        }
+        foreach ($apTargets as $apId => [$vendor, $finalAmount]) {
             $ap = $this->one($s['account_payables'], $apId);
             $this->same($ap, ['sales_order_id' => 322, 'vendor_id' => $vendor], "AP header #{$apId}");
             $this->unpaid($ap, "AP header #{$apId}");
@@ -324,9 +385,15 @@ final class RepairSo2608166005
             $sum = $this->sum($beforeComponents, 'amount');
             $this->equalMoney($ap['amount'], $sum, "AP header #{$apId} berbeda dari komponen.");
             $this->equalMoney($ap['outstanding_amount'], $sum, "Outstanding AP header #{$apId} berbeda.");
+            if ($this->productionProfile) {
+                $this->equalMoney($sum, $clean ? $finalAmount : $productionApBefore[$apId], "AP production #{$apId} berbeda dari baseline.");
+                if (!$clean && in_array($apId, [1067, 1093, 1095], true)) {
+                    $this->check(empty($ap['vendor_invoice_number']) && empty($ap['vendor_invoice_date']), "AP #{$apId} sudah memiliki data invoice vendor; perlu tinjauan sebelum repair.");
+                }
+            }
             $newSum = $this->sum($remaining, 'amount');
             $this->equalMoney($newSum, $finalAmount, "AP final #{$apId} berbeda dari rencana.");
-            if ($apId !== 1066) {
+            if (in_array($apId, [1067, 1093, 1095], true)) {
                 $this->propose($s, $after, $updates, 'account_payables', $apId, [
                     'amount' => $newSum, 'outstanding_amount' => $newSum,
                     'service_description' => implode(', ', array_unique(array_column($remaining, 'description'))),
@@ -334,7 +401,7 @@ final class RepairSo2608166005
             }
         }
         $this->check(!$clean || $updates === [], 'Enam sumber ditemukan tetapi rincian/metadata/nominal belum final; kondisi parsial, tinjau manual.');
-        return ['clean' => $clean, 'before' => $s, 'after' => $after, 'updates' => $updates, 'deletes' => $deletes, 'warnings' => $warnings, 'fingerprint' => hash('sha256', json_encode($s, JSON_THROW_ON_ERROR))];
+        return ['profile' => $this->productionProfile ? 'production-2026-10-28' : 'local-2026-10-19', 'clean' => $clean, 'before' => $s, 'after' => $after, 'updates' => $updates, 'deletes' => $deletes, 'warnings' => $warnings, 'fingerprint' => hash('sha256', json_encode($s, JSON_THROW_ON_ERROR))];
     }
 
     private function propose(array $before, array &$after, array &$updates, string $table, int $id, array $fields): void
@@ -592,6 +659,10 @@ final class RepairSo2608166005
             if ($column === 'payment_history' && !empty(self::json($value))) {
                 throw new RuntimeException("{$label} memiliki payment_history.");
             }
+            if (in_array($column, ['receipt_info', 'related_items'], true)) {
+                $meta = self::json($value);
+                $this->check(empty($meta['payment_history']) && empty($meta['marked_paid_at']) && empty($meta['marked_paid_by']), "{$label} memiliki histori pembayaran pada {$column}.");
+            }
         }
         foreach (['status', 'payment_status', 'customer_payment_status', 'buying_payment_status', 'selling_payment_status'] as $column) {
             $this->check(!in_array($r[$column] ?? '', ['paid', 'partial', 'partially_paid'], true), "{$label} memiliki status pembayaran {$column}.");
@@ -742,7 +813,7 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
             }
         }
         if (in_array('--help', $args, true)) {
-            echo "Usage: php scripts/repair-so-ewilog2608166005-remove-duplicate-tkbm-parkir.php [--apply]\nScope: enam reimbursement final sesuai rencana 2026-10-19. Default: DRY-RUN, tanpa perubahan database/file. Tutup form SO/invoice lama sebelum apply.\n";
+            echo "Usage: php scripts/repair-so-ewilog2608166005-remove-duplicate-tkbm-parkir.php [--apply]\nScope: SO EWILOG2608166005, enam reimbursement final; profil lokal 2026-10-19 atau production 2026-10-28 dideteksi dan divalidasi penuh. Default: DRY-RUN, tanpa perubahan database/file. Tutup form SO/invoice lama sebelum apply.\n";
             exit(0);
         }
         require __DIR__ . '/../vendor/autoload.php';
@@ -756,12 +827,20 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
         $plan = $repair->plan();
         $apply = in_array('--apply', $args, true);
         echo ($apply ? 'APPLY' : 'DRY-RUN') . ' | database=' . $db->getDatabaseName() . " | SO EWILOG2608166005 | Invoice EWL2608166005\n";
+        echo 'PROFIL: ' . $plan['profile'] . "\n";
         foreach ($plan['warnings'] as $warning) {
             echo "CATATAN: {$warning}\n";
         }
         if ($plan['clean']) {
             echo "SUDAH FINAL: enam sumber beserta invoice/AP/AR dan metadata sesuai; tidak ada perubahan kedua.\n";
         } else {
+            foreach ($plan['after']['reimbursement_items'] as $row) {
+                echo 'FINAL #' . $row['id'] . ' | ' . $row['description'] . ' | qty=' . $row['quantity'] . ' ' . $row['unit'] . ' | rate=' . $row['amount'] . ' | vendor=' . $row['vendor_id'] . "\n";
+            }
+            foreach ($plan['after']['account_payables'] as $row) {
+                $old = array_values(array_filter($plan['before']['account_payables'], fn ($r) => (int) $r['id'] === (int) $row['id']))[0];
+                echo 'AP #' . $row['id'] . ' | vendor=' . $row['vendor_id'] . ' | ' . $old['amount'] . ' -> ' . $row['amount'] . "\n";
+            }
             foreach ($plan['deletes'] as $table => $ids) {
                 echo "DELETE {$table}: " . implode(', ', $ids) . "\n";
             }
